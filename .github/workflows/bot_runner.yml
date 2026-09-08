@@ -1,0 +1,44 @@
+name: Run Solana Paper Trading Bot
+
+on:
+  workflow_dispatch:        # Ermöglicht manuellen Start per Klick
+  schedule:
+    - cron: '0 */6 * * *'   # Startet alle 6 Stunden automatisch neu
+
+jobs:
+  run-bot:
+    runs-on: ubuntu-latest
+    timeout-minutes: 350    # Bricht kurz vor dem GitHub-Limit (360 Min) sauber ab
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install Dependencies
+        run: |
+          pip install -r requirements.txt
+
+      - name: Run Trading Bot Loop
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+        run: |
+          # Führt den Bot im Hintergrund aus und stoppt nach 5,5 Stunden für den Commit
+          timeout 330m python bot.py || true
+
+      - name: Commit & Push Updated Trade Data
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add solana_paper_trades_v2.csv
+          if git diff --staged --quiet; then
+            echo "Keine neuen Trades zum Committen."
+          else
+            git commit -m "chore: update solana_paper_trades_v2.csv [skip ci]"
+            git push
+          fi
