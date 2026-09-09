@@ -45,7 +45,6 @@ MAX_HOLD_MINUTES = 15
 
 HEADERS = {"User-Agent": "Mozilla/5.0"}
 
-# Feste Typdefinition für saubere CSV-Verarbeitung ohne TypeErrors
 DTYPE_DICT = {
     "token_address": "object",
     "pair_address": "object",
@@ -77,6 +76,27 @@ def send_discord_alert(embed_data):
         requests.post(DISCORD_WEBHOOK_URL, json=payload, timeout=5)
     except Exception as e:
         print(f"⚠️ Discord Webhook Fehler: {e}")
+
+def get_current_stats():
+    """Berechnet aktuelle Bankroll und Win/Loss Statistik aus der CSV."""
+    if not os.path.exists(CSV_FILE):
+        return STARTING_SOL, STARTING_SOL * SOL_PRICE_USD, 0, 0
+    try:
+        df = pd.read_csv(CSV_FILE, dtype=object)
+        for col in ["pnl_usd", "pnl_sol"]:
+            if col in df.columns:
+                df[col] = pd.to_numeric(df[col], errors="coerce")
+        closed = df[df["status"] == "CLOSED"]
+        if closed.empty:
+            return STARTING_SOL, STARTING_SOL * SOL_PRICE_USD, 0, 0
+        total_pnl_sol = closed["pnl_sol"].sum()
+        current_bankroll_sol = STARTING_SOL + total_pnl_sol
+        current_bankroll_usd = current_bankroll_sol * SOL_PRICE_USD
+        wins = len(closed[closed["pnl_usd"] > 0])
+        losses = len(closed[closed["pnl_usd"] <= 0])
+        return current_bankroll_sol, current_bankroll_usd, wins, losses
+    except Exception:
+        return STARTING_SOL, STARTING_SOL * SOL_PRICE_USD, 0, 0
 
 def init_csv():
     columns = list(DTYPE_DICT.keys())
@@ -167,6 +187,8 @@ def scan_and_enter_trades():
 
             print(f"🟢 [BUY] ${symbol} zu ${price_usd:.6f} | Liq: ${liquidity:,.0f} | Ratio: {buy_ratio*100:.0f}%")
 
+            cur_sol, cur_usd, wins, losses = get_current_stats()
+
             send_discord_alert({
                 "title": f"🟢 KAUF: ${symbol}",
                 "url": f"https://dexscreener.com/solana/{pair_addr}",
@@ -174,7 +196,9 @@ def scan_and_enter_trades():
                 "fields": [
                     {"name": "Einstiegskurs", "value": f"${price_usd:.6f}", "inline": True},
                     {"name": "Investition", "value": f"{TRADE_SIZE_SOL} SOL (~${usd_amount:.2f})", "inline": True},
-                    {"name": "M5 Metriken", "value": f"Liq: ${liquidity:,.0f} | Vol: ${vol_m5:,.0f} | Ratio: {buy_ratio*100:.0f}%", "inline": False}
+                    {"name": "M5 Metriken", "value": f"Liq: ${liquidity:,.0f} | Vol: ${vol_m5:,.0f} | Ratio: {buy_ratio*100:.0f}%", "inline": False},
+                    {"name": "Bankroll", "value": f"{cur_sol:.4f} SOL (~${cur_usd:.2f})", "inline": True},
+                    {"name": "Performance", "value": f"{wins}W / {losses}L", "inline": True}
                 ],
                 "footer": {"text": "Solana Paper Bot"},
                 "timestamp": datetime.now(timezone.utc).isoformat()
@@ -187,7 +211,6 @@ def scan_and_enter_trades():
 def resolve_and_fetch_live():
     df = pd.read_csv(CSV_FILE, dtype=object)
     
-    # Numerische Spalten explizit konvertieren
     numeric_cols = ["entry_price_usd", "peak_price_usd", "sol_invested", "amount_tokens", "exit_price_usd", "pnl_usd", "pnl_sol"]
     for col in numeric_cols:
         if col in df.columns:
@@ -201,7 +224,6 @@ def resolve_and_fetch_live():
 
     open_indices = df[open_mask].index
     
-    # Preisabfrage auf Token-Ebene (erfasst Migrationen & liquideste Pools)
     token_addresses = df.loc[open_indices, "token_address"].dropna().tolist()
     tokens_str = ",".join(token_addresses[:30])
     url = f"https://api.dexscreener.com/latest/dex/tokens/{tokens_str}"
@@ -290,6 +312,10 @@ def resolve_and_fetch_live():
             icon = "💰" if pnl_usd > 0 else "🛑"
             print(f"{icon} [EXIT] ${symbol} | Reason: {reason} | PnL: ${pnl_usd:+.2f} ({pnl_sol:+.4f} SOL)")
 
+            # Vorübergehend in CSV speichern für exakte Bankroll-Berechnung
+            df.to_csv(CSV_FILE, index=False)
+            cur_sol, cur_usd, wins, losses = get_current_stats()
+
             is_win = pnl_usd > 0
             color = 3066993 if is_win else 15158332
             pair_addr = str(df.loc[idx, "pair_address"])
@@ -302,7 +328,9 @@ def resolve_and_fetch_live():
                     {"name": "Exit Grund", "value": reason, "inline": True},
                     {"name": "PnL", "value": f"${pnl_usd:+.2f} USD ({pnl_sol:+.4f} SOL)", "inline": True},
                     {"name": "Verkaufskurs", "value": f"${current_price:.6f} (In: ${entry_price:.6f})", "inline": False},
-                    {"name": "Haltedauer", "value": f"{age_minutes:.1f} Minuten", "inline": True}
+                    {"name": "Haltedauer", "value": f"{age_minutes:.1f} Minuten", "inline": True},
+                    {"name": "Aktuelle Bankroll", "value": f"{cur_sol:.4f} SOL (~${cur_usd:.2f})", "inline": True},
+                    {"name": "Performance", "value": f"{wins}W / {losses}L", "inline": True}
                 ],
                 "footer": {"text": "Solana Paper Bot"},
                 "timestamp": datetime.now(timezone.utc).isoformat()
@@ -322,26 +350,10 @@ def resolve_and_fetch_live():
     return live_open_info
 
 def print_status_log(live_positions):
-    df = pd.read_csv(CSV_FILE, dtype=object)
-    
-    numeric_cols = ["pnl_usd", "pnl_sol"]
-    for col in numeric_cols:
-        if col in df.columns:
-            df[col] = pd.to_numeric(df[col], errors="coerce")
-
-    closed = df[df["status"] == "CLOSED"]
+    cur_sol, cur_usd, wins, losses = get_current_stats()
     now_str = get_utc_now().strftime("%H:%M:%S UTC")
 
-    if not closed.empty:
-        wins = len(closed[closed["pnl_usd"] > 0])
-        losses = len(closed[closed["pnl_usd"] <= 0])
-        pnl_usd = closed["pnl_usd"].sum()
-        pnl_sol = closed["pnl_sol"].sum()
-        bankroll = STARTING_SOL + pnl_sol
-        stats_str = f"Stats: {wins}W/{losses}L | PnL: ${pnl_usd:+.2f} ({pnl_sol:+.4f} SOL) | Bankroll: {bankroll:.4f} SOL"
-    else:
-        stats_str = f"Stats: 0W/0L | Bankroll: {STARTING_SOL:.2f} SOL"
-
+    stats_str = f"Stats: {wins}W/{losses}L | Bankroll: {cur_sol:.4f} SOL (~${cur_usd:.2f})"
     open_summary = f"Offen ({len(live_positions)}): " + ", ".join(
         [f"{p['symbol']} ({p['change']*100:+.1f}%)" for p in live_positions]
     ) if live_positions else "Keine offenen Positionen"
@@ -374,7 +386,7 @@ if __name__ == "__main__":
             # 2. Exits im 4s-Takt prüfen
             live_data = resolve_and_fetch_live()
 
-            # 3. Status-Log alle 30s im Terminal/GitHub-Log
+            # 3. Status-Log alle 30s
             if now_ts - last_log_time >= 30:
                 print_status_log(live_data)
                 last_log_time = now_ts
