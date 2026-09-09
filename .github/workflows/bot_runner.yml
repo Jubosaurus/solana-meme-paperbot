@@ -28,8 +28,8 @@ jobs:
         env:
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
         run: |
-          # Führt den Bot im Hintergrund aus und stoppt nach 5,5 Stunden für den Commit
-          timeout 330m python bot.py || true
+          # Führt den Bot für 5,5 Stunden aus und stoppt sauber für den Git-Push
+          timeout 330m python -u bot.py || true
 
       - name: Commit & Push Updated Trade Data
         run: |
@@ -40,5 +40,7 @@ jobs:
             echo "Keine neuen Trades zum Committen."
           else
             git commit -m "chore: update solana_paper_trades_v2.csv [skip ci]"
-            git push
+            # Holt eventuelle Remote-Änderungen ab und behält den Stand des Runners bei Konflikten
+            git pull --rebase -X ours origin main || true
+            git push origin main
           fi
