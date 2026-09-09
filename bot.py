@@ -15,7 +15,7 @@ SOL_PRICE_USD = 101.77
 STARTING_SOL = 5.0
 TRADE_SIZE_SOL = 0.25
 
-# Discord Webhook via GitHub Secrets / Environment Variable
+# Discord Webhook via Environment Variable
 DISCORD_WEBHOOK_URL = os.getenv("DISCORD_WEBHOOK_URL", "")
 
 # Taktung (Asymmetrisch)
@@ -45,6 +45,24 @@ MAX_HOLD_MINUTES = 15
 
 HEADERS = {"User-Agent": "Mozilla/5.0"}
 
+# Feste Typdefinition für saubere CSV-Verarbeitung ohne TypeErrors
+DTYPE_DICT = {
+    "token_address": "object",
+    "pair_address": "object",
+    "symbol": "object",
+    "entry_time": "object",
+    "entry_price_usd": "float64",
+    "peak_price_usd": "float64",
+    "sol_invested": "float64",
+    "amount_tokens": "float64",
+    "status": "object",
+    "exit_time": "object",
+    "exit_price_usd": "float64",
+    "pnl_usd": "float64",
+    "pnl_sol": "float64",
+    "exit_reason": "object"
+}
+
 def get_utc_now():
     return datetime.now(timezone.utc)
 
@@ -61,17 +79,13 @@ def send_discord_alert(embed_data):
         print(f"⚠️ Discord Webhook Fehler: {e}")
 
 def init_csv():
-    columns = [
-        "token_address", "pair_address", "symbol", "entry_time", 
-        "entry_price_usd", "peak_price_usd", "sol_invested", "amount_tokens",
-        "status", "exit_time", "exit_price_usd", "pnl_usd", "pnl_sol", "exit_reason"
-    ]
+    columns = list(DTYPE_DICT.keys())
     if not os.path.exists(CSV_FILE):
         df = pd.DataFrame(columns=columns)
         df.to_csv(CSV_FILE, index=False)
         print(f"📁 {CSV_FILE} neu initialisiert.")
     else:
-        df = pd.read_csv(CSV_FILE)
+        df = pd.read_csv(CSV_FILE, dtype=object)
         if "peak_price_usd" not in df.columns:
             df["peak_price_usd"] = df["entry_price_usd"]
             df.to_csv(CSV_FILE, index=False)
@@ -98,7 +112,7 @@ def scan_and_enter_trades():
     except Exception:
         return
 
-    df_csv = pd.read_csv(CSV_FILE)
+    df_csv = pd.read_csv(CSV_FILE, dtype=object)
     known_tokens = set(df_csv["token_address"].dropna().tolist())
     open_trades_count = len(df_csv[df_csv["status"] == "OPEN"])
     max_open_trades = int(STARTING_SOL / TRADE_SIZE_SOL)
@@ -153,7 +167,6 @@ def scan_and_enter_trades():
 
             print(f"🟢 [BUY] ${symbol} zu ${price_usd:.6f} | Liq: ${liquidity:,.0f} | Ratio: {buy_ratio*100:.0f}%")
 
-            # Discord Alert: Kauf
             send_discord_alert({
                 "title": f"🟢 KAUF: ${symbol}",
                 "url": f"https://dexscreener.com/solana/{pair_addr}",
@@ -172,7 +185,14 @@ def scan_and_enter_trades():
         df_csv.to_csv(CSV_FILE, index=False)
 
 def resolve_and_fetch_live():
-    df = pd.read_csv(CSV_FILE)
+    df = pd.read_csv(CSV_FILE, dtype=object)
+    
+    # Numerische Spalten explizit konvertieren
+    numeric_cols = ["entry_price_usd", "peak_price_usd", "sol_invested", "amount_tokens", "exit_price_usd", "pnl_usd", "pnl_sol"]
+    for col in numeric_cols:
+        if col in df.columns:
+            df[col] = pd.to_numeric(df[col], errors="coerce")
+
     open_mask = df["status"] == "OPEN"
     live_open_info = []
 
@@ -180,32 +200,42 @@ def resolve_and_fetch_live():
         return live_open_info
 
     open_indices = df[open_mask].index
-    pair_addresses = df.loc[open_indices, "pair_address"].tolist()
-    pairs_str = ",".join(pair_addresses[:30])
-    url = f"https://api.dexscreener.com/latest/dex/pairs/solana/{pairs_str}"
+    
+    # Preisabfrage auf Token-Ebene (erfasst Migrationen & liquideste Pools)
+    token_addresses = df.loc[open_indices, "token_address"].dropna().tolist()
+    tokens_str = ",".join(token_addresses[:30])
+    url = f"https://api.dexscreener.com/latest/dex/tokens/{tokens_str}"
 
     try:
         res = requests.get(url, headers=HEADERS, timeout=8)
         data = res.json().get("pairs", [])
-        pair_map = {p["pairAddress"]: float(p.get("priceUsd") or 0.0) for p in data}
-    except Exception:
+        
+        token_price_map = {}
+        for p in data:
+            t_addr = p.get("baseToken", {}).get("address")
+            p_usd = float(p.get("priceUsd") or 0.0)
+            if t_addr and p_usd > 0:
+                if t_addr not in token_price_map:
+                    token_price_map[t_addr] = p_usd
+    except Exception as e:
+        print(f"⚠️ API-Fehler bei Live-Abfrage: {e}")
         return live_open_info
 
     now = get_utc_now()
 
     for idx in open_indices:
-        pair_addr = df.loc[idx, "pair_address"]
-        current_price = pair_map.get(pair_addr)
-        if not current_price:
+        token_addr = df.loc[idx, "token_address"]
+        current_price = token_price_map.get(token_addr)
+        
+        if not current_price or current_price <= 0:
             continue
 
         entry_price = float(df.loc[idx, "entry_price_usd"])
-        entry_time = datetime.strptime(df.loc[idx, "entry_time"], "%Y-%m-%d %H:%M:%S").replace(tzinfo=timezone.utc)
+        entry_time = datetime.strptime(str(df.loc[idx, "entry_time"]), "%Y-%m-%d %H:%M:%S").replace(tzinfo=timezone.utc)
         tokens = float(df.loc[idx, "amount_tokens"])
         sol_in = float(df.loc[idx, "sol_invested"])
-        symbol = df.loc[idx, "symbol"]
+        symbol = str(df.loc[idx, "symbol"])
 
-        # High-Water-Mark aktualisieren
         current_peak = float(df.loc[idx, "peak_price_usd"]) if pd.notnull(df.loc[idx, "peak_price_usd"]) else entry_price
         if current_price > current_peak:
             current_peak = current_price
@@ -250,19 +280,19 @@ def resolve_and_fetch_live():
             pnl_usd = exit_usd - invested_usd
             pnl_sol = pnl_usd / SOL_PRICE_USD
 
-            df.loc[idx, "status"] = "CLOSED"
-            df.loc[idx, "exit_time"] = now.strftime("%Y-%m-%d %H:%M:%S")
-            df.loc[idx, "exit_price_usd"] = current_price
-            df.loc[idx, "pnl_usd"] = round(pnl_usd, 2)
-            df.loc[idx, "pnl_sol"] = round(pnl_sol, 4)
-            df.loc[idx, "exit_reason"] = reason
+            df.at[idx, "status"] = "CLOSED"
+            df.at[idx, "exit_time"] = now.strftime("%Y-%m-%d %H:%M:%S")
+            df.at[idx, "exit_price_usd"] = current_price
+            df.at[idx, "pnl_usd"] = round(pnl_usd, 2)
+            df.at[idx, "pnl_sol"] = round(pnl_sol, 4)
+            df.at[idx, "exit_reason"] = reason
 
             icon = "💰" if pnl_usd > 0 else "🛑"
             print(f"{icon} [EXIT] ${symbol} | Reason: {reason} | PnL: ${pnl_usd:+.2f} ({pnl_sol:+.4f} SOL)")
 
-            # Discord Alert: Verkauf
             is_win = pnl_usd > 0
             color = 3066993 if is_win else 15158332
+            pair_addr = str(df.loc[idx, "pair_address"])
             
             send_discord_alert({
                 "title": f"{icon} TRADE GESCHLOSSEN: ${symbol}",
@@ -292,7 +322,13 @@ def resolve_and_fetch_live():
     return live_open_info
 
 def print_status_log(live_positions):
-    df = pd.read_csv(CSV_FILE)
+    df = pd.read_csv(CSV_FILE, dtype=object)
+    
+    numeric_cols = ["pnl_usd", "pnl_sol"]
+    for col in numeric_cols:
+        if col in df.columns:
+            df[col] = pd.to_numeric(df[col], errors="coerce")
+
     closed = df[df["status"] == "CLOSED"]
     now_str = get_utc_now().strftime("%H:%M:%S UTC")
 
@@ -330,15 +366,15 @@ if __name__ == "__main__":
         while True:
             now_ts = time.time()
 
-            # 1. Discovery neuer Profile im 15s-Takt
+            # 1. Token-Suche im 15s-Takt
             if now_ts - last_scan_time >= SCAN_INTERVAL_SECONDS:
                 scan_and_enter_trades()
                 last_scan_time = now_ts
 
-            # 2. Exits im schnellen Takt prüfen
+            # 2. Exits im 4s-Takt prüfen
             live_data = resolve_and_fetch_live()
 
-            # 3. Log-Ausgabe alle 30s im Terminal/Action-Log
+            # 3. Status-Log alle 30s im Terminal/GitHub-Log
             if now_ts - last_log_time >= 30:
                 print_status_log(live_data)
                 last_log_time = now_ts
