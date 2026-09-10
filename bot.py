@@ -15,8 +15,14 @@ MAX_OPEN_TRADES = int(STARTING_SOL / TRADE_SIZE_SOL)  # Max 20 Slots
 MAX_TRACKED_REJECTS = 15                              # Max 15 parallele Schatten-Beobachtungen
 DISCORD_WEBHOOK_URL = os.environ.get("DISCORD_WEBHOOK_URL")
 
-# Schutzregeln
+# Schutzregeln & Anti-Peak-Filter
 MAX_TRADES_PER_TOKEN = 1              # Jeder Token darf exakt 1x gehandelt werden
+MIN_PAIR_AGE_HOURS = 1.0              # Pool muss mind. 1 Stunde alt sein (keine Sniper-Dumps)
+MIN_PRICE_CHANGE_M5 = 1.0             # Gesundes Mindest-Momentum (+1%)
+MAX_PRICE_CHANGE_M5 = 20.0            # Anti-FOMO: Kerzen > +20% werden verworfen
+MIN_LIQ_TO_FDV_RATIO = 0.03           # Min. 3% Liquidität im Verhältnis zum FDV
+
+# RugCheck Sicherheitsgrenzen
 RUGCHECK_MAX_ALLOWED_SCORE = 3500     # Score > 3500 gilt als hohes Risiko
 MAX_SINGLE_HOLDER_PCT = 15.0          # Max. 15% Supply für eine Einzel-Wallet
 
@@ -37,17 +43,18 @@ SLIPPAGE_SELL_MAX_PCT = 0.045
 FIXED_PRIORITY_FEES_SOL = 0.006       # 0.003 Buy + 0.003 Sell Priority Fee
 DEX_FEE_PCT = 0.010                   # 0,5% Buy + 0,5% Sell DEX Fee
 
-# Strategie-Parameter (Echte Trades)
-TAKE_PROFIT_PCT = 0.50
-STOP_LOSS_PCT = -0.15
-TRAILING_TRIGGER_PCT = 0.20
-TRAILING_OFFSET_PCT = 0.10
-BREAK_EVEN_TRIGGER_PCT = 0.15
+# Strategie-Parameter
+TAKE_PROFIT_PCT = 0.50                # Fester TP bei +50%
+STOP_LOSS_PCT = -0.15                 # SL bei -15%
+TRAILING_TRIGGER_PCT = 0.20           # Trailing SL ab +20%
+TRAILING_OFFSET_PCT = 0.10            # 10% Abstand vom Peak
+BREAK_EVEN_TRIGGER_PCT = 0.15         # Break-Even ab +15%
 MAX_HOLD_SECONDS = 900                # 15 Min Timeout
 RUG_LIQUIDITY_DROP_THRESHOLD = -0.40  # Notverkauf wenn Liq um >40% fällt
 
-# Beobachtungsdauer für abgelehnte Rugs (Schatten-Tracking)
-REJECT_OBSERVE_SECONDS = 900          # 15 Min Schatten-Tracking
+# Post-Exit & Schatten-Tracking Zeiten
+POST_EXIT_CHECK_SECONDS = 900         # 15 Min nach Trade: Genau 1x Endkurs prüfen
+REJECT_OBSERVE_SECONDS = 900          # 15 Min Schatten-Tracking für Rejects
 
 HEADERS_TRADES = [
     "token_address", "pair_address", "symbol", "dex_id", "trade_num_for_token",
@@ -58,7 +65,8 @@ HEADERS_TRADES = [
     "peak_price_usd", "peak_gain_pct", "max_drawdown_pct", "hold_duration_seconds",
     "status", "exit_time", "signal_exit_usd", "simulated_exit_usd", "exit_slip_pct",
     "exit_liquidity_usd", "liq_change_pct", "exit_reason",
-    "raw_pnl_sol", "fees_sol", "net_pnl_sol", "net_pnl_usd"
+    "raw_pnl_sol", "fees_sol", "net_pnl_sol", "net_pnl_usd",
+    "post_exit_price_15m", "post_exit_change_pct", "post_exit_verdict"
 ]
 
 HEADERS_REJECTS = [
@@ -108,12 +116,15 @@ def init_csvs():
         with open(CSV_REJECTS, mode="w", newline="", encoding="utf-8") as f:
             csv.writer(f).writerow(HEADERS_REJECTS)
 
-def read_csv(filename):
+def read_csv(filename, headers):
     init_csvs()
     data = []
     with open(filename, mode="r", encoding="utf-8") as f:
         reader = csv.DictReader(f)
         for row in reader:
+            for h in headers:
+                if h not in row:
+                    row[h] = ""
             data.append(row)
     return data
 
@@ -156,10 +167,10 @@ def check_token_safety(token_address):
 
 def get_current_stats(trades, sol_price):
     closed = [t for t in trades if t.get("status") == "CLOSED"]
-    net_pnl_sol = sum(float(t.get("net_pnl_sol", 0.0)) for t in closed)
-    total_fees_sol = sum(float(t.get("fees_sol", 0.0)) for t in closed)
-    wins = len([t for t in closed if float(t.get("net_pnl_sol", 0.0)) > 0])
-    losses = len([t for t in closed if float(t.get("net_pnl_sol", 0.0)) <= 0])
+    net_pnl_sol = sum(float(t.get("net_pnl_sol", 0.0) or 0.0) for t in closed)
+    total_fees_sol = sum(float(t.get("fees_sol", 0.0) or 0.0) for t in closed)
+    wins = len([t for t in closed if float(t.get("net_pnl_sol", 0.0) or 0.0) > 0])
+    losses = len([t for t in closed if float(t.get("net_pnl_sol", 0.0) or 0.0) <= 0])
     current_sol = STARTING_SOL + net_pnl_sol
     current_usd = current_sol * sol_price
     winrate = (wins / len(closed) * 100) if closed else 0.0
@@ -221,17 +232,31 @@ def scan_and_enter(trades, rejects, sol_price):
             sells_5m = tx_5m.get("sells", 0)
             price_change_m5 = float(pair.get("priceChange", {}).get("m5") or 0.0)
 
-            # Marktkriterien prüfen
+            # Pool-Alter prüfen: Mind. 1 Stunde alt
+            created_at_ms = pair.get("pairCreatedAt")
+            if not created_at_ms:
+                continue
+            pair_age_hours = round((now_dt.timestamp() - (created_at_ms / 1000.0)) / 3600.0, 2)
+            if pair_age_hours < MIN_PAIR_AGE_HOURS:
+                continue
+
+            # Basis-Filter
             if liquidity < 15000 or vol_5m < 3000 or (buys_5m + sells_5m < 15):
                 continue
             buy_ratio = buys_5m / (buys_5m + sells_5m)
-            if buy_ratio < 0.55 or price_change_m5 <= 0.0 or price_usd <= 0.0:
+            if buy_ratio < 0.55 or price_usd <= 0.0:
+                continue
+
+            # Anti-FOMO & Momentum
+            if price_change_m5 < MIN_PRICE_CHANGE_M5 or price_change_m5 > MAX_PRICE_CHANGE_M5:
+                continue
+
+            # Liq zu FDV Stabilität
+            if fdv_usd > 0 and (liquidity / fdv_usd) < MIN_LIQ_TO_FDV_RATIO:
                 continue
 
             # Sicherheits-Audit
             is_safe, rc_score, safety_reason, risk_flags = check_token_safety(token_addr)
-            
-            # WENN ABGELEHNT -> In das Schatten-Tracking aufnehmen!
             if not is_safe:
                 if token_addr not in already_rejected_tokens and len([r for r in rejects if r.get("status") == "OBSERVING"]) < MAX_TRACKED_REJECTS:
                     reject_entry = {
@@ -261,11 +286,6 @@ def scan_and_enter(trades, rejects, sol_price):
                     write_csv(CSV_REJECTS, rejects, HEADERS_REJECTS)
                     print(f"[SHADOW-TRACK] Abgelehnt: {reject_entry['symbol']} ({safety_reason}) -> Beobachtung gestartet.")
                 continue
-
-            created_at_ms = pair.get("pairCreatedAt")
-            pair_age_hours = 0.0
-            if created_at_ms:
-                pair_age_hours = round((now_dt.timestamp() - (created_at_ms / 1000.0)) / 3600.0, 2)
 
             socials_count = len(pair.get("info", {}).get("socials", []))
             vol_to_liq = round(vol_5m / liquidity, 2) if liquidity > 0 else 0.0
@@ -316,13 +336,16 @@ def scan_and_enter(trades, rejects, sol_price):
                 "raw_pnl_sol": "0.0",
                 "fees_sol": "0.0",
                 "net_pnl_sol": "0.0",
-                "net_pnl_usd": "0.0"
+                "net_pnl_usd": "0.0",
+                "post_exit_price_15m": "",
+                "post_exit_change_pct": "",
+                "post_exit_verdict": ""
             }
 
             trades.append(new_trade)
             active_open_tokens.add(token_addr)
             write_csv(CSV_TRADES, trades, HEADERS_TRADES)
-            print(f"[ENTRY] {new_trade['symbol']} | Fill: ${simulated_entry:.6f} ({actual_buy_slip*100:+.2f}%) | RugScore: {rc_score}")
+            print(f"[ENTRY] {new_trade['symbol']} | Fill: ${simulated_entry:.6f} ({actual_buy_slip*100:+.2f}%) | Age: {pair_age_hours:.1f}h")
 
             chart_url = f"https://dexscreener.com/solana/{pair_addr}"
             current_open = len([t for t in trades if t.get("status") == "OPEN"])
@@ -330,8 +353,8 @@ def scan_and_enter(trades, rejects, sol_price):
                 f"**Symbol:** [{new_trade['symbol']}]({chart_url}) ({new_trade['dex_id']})\n"
                 f"**Fill-Kurs:** ${simulated_entry:.8f} (Slippage: {actual_buy_slip*100:+.2f}%)\n"
                 f"**Liq:** ${liquidity:,.0f} | **FDV:** ${fdv_usd:,.0f}\n"
-                f"**5m Vol:** ${vol_5m:,.0f} | **Buy-Ratio:** {buy_ratio*100:.1f}%\n"
-                f"**RugCheck Score:** `{rc_score}` (Audit Bestanden)\n"
+                f"**5m Momentum:** {price_change_m5:+.1f}% | **Pool-Alter:** {pair_age_hours:.1f}h\n"
+                f"**RugCheck Score:** `{rc_score}`\n"
                 f"━━━━━━━━━━━━━━━━━━\n"
                 f"📈 **[DexScreener Live-Chart öffnen]({chart_url})**\n"
                 f"Offene Positionen: {current_open}/{MAX_OPEN_TRADES}"
@@ -359,8 +382,10 @@ def manage_open_trades(trades, sol_price):
             if not pairs:
                 continue
 
-            current_signal_price = float(pairs[0].get("priceUsd") or 0.0)
-            current_liquidity = float(pairs[0].get("liquidity", {}).get("usd") or 0.0)
+            pair = pairs[0]
+            current_signal_price = float(pair.get("priceUsd") or 0.0)
+            current_liquidity = float(pair.get("liquidity", {}).get("usd") or 0.0)
+            price_change_m5 = float(pair.get("priceChange", {}).get("m5") or 0.0)
             if current_signal_price <= 0.0:
                 continue
 
@@ -386,6 +411,7 @@ def manage_open_trades(trades, sol_price):
             exit_triggered = False
             exit_reason = ""
 
+            # 1. Notausstieg bei Liquiditätsabzug
             if liq_change <= RUG_LIQUIDITY_DROP_THRESHOLD:
                 exit_triggered = True
                 exit_reason = f"RUG_LIQ_DROP ({liq_change*100:.1f}%)"
@@ -395,6 +421,10 @@ def manage_open_trades(trades, sol_price):
             elif price_change_raw <= STOP_LOSS_PCT:
                 exit_triggered = True
                 exit_reason = f"SL_HIT ({price_change_raw*100:.1f}%)"
+            # 2. Gewinn-Absicherung: Nach 8 Minuten bei > +25% und abflauendem Momentum sichern
+            elif held_seconds >= 480 and price_change_raw >= 0.25 and price_change_m5 <= 0.0:
+                exit_triggered = True
+                exit_reason = f"EARLY_TP_SECURED (+{price_change_raw*100:.1f}%)"
             elif peak_gain >= TRAILING_TRIGGER_PCT and current_signal_price <= peak * (1.0 - TRAILING_OFFSET_PCT):
                 exit_triggered = True
                 exit_reason = f"TRAILING_SL (+{price_change_raw*100:.1f}%)"
@@ -468,10 +498,57 @@ def manage_open_trades(trades, sol_price):
 
     return trades
 
+def manage_post_exit_checks(trades):
+    """
+    Ressourcenschonende Post-Exit Analyse:
+    Prüft geschlossene Trades genau 1x nach Ablauf von 15 Minuten.
+    Verursacht 0 API-Spam!
+    """
+    now = datetime.now(timezone.utc)
+    updated = False
+
+    for trade in trades:
+        if trade.get("status") == "CLOSED" and not trade.get("post_exit_price_15m"):
+            exit_time_str = trade.get("exit_time")
+            if not exit_time_str:
+                continue
+            try:
+                exit_dt = datetime.strptime(exit_time_str, "%Y-%m-%d %H:%M:%S").replace(tzinfo=timezone.utc)
+                seconds_since_exit = (now - exit_dt).total_seconds()
+                
+                # Wenn 15 Minuten seit Exit vergangen sind -> Genau 1 Request ausführen
+                if seconds_since_exit >= POST_EXIT_CHECK_SECONDS:
+                    pair_addr = trade.get("pair_address")
+                    url = f"https://api.dexscreener.com/latest/dex/pairs/solana/{pair_addr}"
+                    res = requests.get(url, timeout=4).json()
+                    pairs = res.get("pairs")
+                    if pairs:
+                        current_price = float(pairs[0].get("priceUsd") or 0.0)
+                        exit_price = float(trade.get("simulated_exit_usd") or 0.0)
+                        
+                        if current_price > 0 and exit_price > 0:
+                            change_pct = ((current_price - exit_price) / exit_price) * 100.0
+                            trade["post_exit_price_15m"] = f"{current_price:.8f}"
+                            trade["post_exit_change_pct"] = f"{change_pct:+.1f}%"
+                            
+                            if change_pct <= -25.0:
+                                trade["post_exit_verdict"] = "SAVED_BY_EXIT"
+                            elif change_pct >= 30.0:
+                                trade["post_exit_verdict"] = "MISSED_FURTHER_PUMP"
+                            else:
+                                trade["post_exit_verdict"] = "SIDEWAYS"
+                                
+                            print(f"[POST-EXIT] {trade['symbol']} nach 15m: {change_pct:+.1f}% -> {trade['post_exit_verdict']}")
+                            updated = True
+            except Exception:
+                pass
+
+    if updated:
+        write_csv(CSV_TRADES, trades, HEADERS_TRADES)
+
+    return trades
+
 def manage_shadow_rejects(rejects):
-    """
-    Überwacht abgelehnte Rugs passiv für 15 Min, um Muster für künftige Analysen zu sammeln.
-    """
     observing = [r for r in rejects if r.get("status") == "OBSERVING"]
     if not observing:
         return rejects
@@ -507,7 +584,6 @@ def manage_shadow_rejects(rejects):
                 if curr_drawdown < prev_dd:
                     item["max_drawdown_pct"] = f"{curr_drawdown*100:.1f}%"
 
-            # Nach 15 Min Beobachtung: Finale Auswertung
             if observed_sec >= REJECT_OBSERVE_SECONDS:
                 item["status"] = "COMPLETED"
                 item["final_price_usd"] = f"{current_price:.8f}"
@@ -519,7 +595,6 @@ def manage_shadow_rejects(rejects):
                 item["liq_change_pct"] = f"{liq_change:+.1f}%"
                 item["final_price_change_pct"] = f"{price_change:+.1f}%"
 
-                # Klassifizierung des Musters
                 if liq_change <= -50.0:
                     item["final_verdict"] = "CONFIRMED_HARD_RUG"
                 elif price_change <= -60.0:
@@ -539,24 +614,25 @@ def manage_shadow_rejects(rejects):
     return rejects
 
 def main():
-    print("=== Solana Paper Bot v2 (Erweiterte Realitäts-Simulation & Schatten-Analyse) ===")
+    print("=== Solana Paper Bot v2 (Vollständige Simulation & Post-Trade-Tracking) ===")
     send_discord_alert(
-        "Bot Aktiviert: Trading + Schatten-Rug-Analyse", 
-        "Features:\n"
-        "• Live Paper-Trades: 0,25 SOL Slots (Start: 5,0 SOL)\n"
-        "• RugCheck-Sicherheitsfilter & Sofort-Bann\n"
-        "• Schatten-Tracking: Abgelehnte Scams werden 15 Min weiterbeobachtet\n"
-        "• Datenbasis: Erfasst alle Kollaps- & Liquiditäts-Muster autonom."
+        "Bot Komplett-Update Aktiviert", 
+        "Alle Schutz- & Analyse-Mechanismen aktiv:\n"
+        "• Anti-Peak: Mindestalter 1h + Max Kerze +20%\n"
+        "• RugCheck-Prävention & Schatten-Beobachtung\n"
+        "• Neu: 15m Post-Exit Tracking (Prüfung nach Verkauf)\n"
+        "• Neu: Vorzeitige Gewinnsicherung ab +25%"
     )
 
     while True:
         try:
             sol_price = get_sol_price()
-            trades = read_csv(CSV_TRADES)
-            rejects = read_csv(CSV_REJECTS)
+            trades = read_csv(CSV_TRADES, HEADERS_TRADES)
+            rejects = read_csv(CSV_REJECTS, HEADERS_REJECTS)
             
             trades, rejects = scan_and_enter(trades, rejects, sol_price)
             trades = manage_open_trades(trades, sol_price)
+            trades = manage_post_exit_checks(trades)
             rejects = manage_shadow_rejects(rejects)
             
             time.sleep(12)
