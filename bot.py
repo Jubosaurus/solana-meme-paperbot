@@ -2,6 +2,7 @@ import os
 import time
 import csv
 import random
+import subprocess
 import requests
 from datetime import datetime, timezone
 
@@ -52,9 +53,10 @@ BREAK_EVEN_TRIGGER_PCT = 0.15         # Break-Even ab +15%
 MAX_HOLD_SECONDS = 900                # 15 Min Timeout
 RUG_LIQUIDITY_DROP_THRESHOLD = -0.40  # Notverkauf wenn Liq um >40% fällt
 
-# Post-Exit & Schatten-Tracking Zeiten
+# Tracking-Zeiten & Session-Dauer
 POST_EXIT_CHECK_SECONDS = 900         # 15 Min nach Trade: Genau 1x Endkurs prüfen
 REJECT_OBSERVE_SECONDS = 900          # 15 Min Schatten-Tracking für Rejects
+SESSION_DURATION_SECONDS = 18000      # 5 Stunden Laufzeit (verhindert 6h-Timeout)
 
 HEADERS_TRADES = [
     "token_address", "pair_address", "symbol", "dex_id", "trade_num_for_token",
@@ -77,6 +79,19 @@ HEADERS_REJECTS = [
     "final_price_usd", "final_liq_usd", "liq_change_pct", "final_price_change_pct",
     "observed_seconds", "final_verdict", "status"
 ]
+
+def git_push_updates(commit_msg="Update CSV data [skip ci]"):
+    """Pusht geänderte CSV-Dateien sofort live ins GitHub-Repository."""
+    try:
+        subprocess.run(["git", "add", CSV_TRADES, CSV_REJECTS], check=False)
+        status = subprocess.run(["git", "status", "--porcelain"], capture_output=True, text=True)
+        if status.stdout.strip():
+            subprocess.run(["git", "commit", "-m", commit_msg], check=False)
+            subprocess.run(["git", "pull", "origin", "main", "--rebase"], check=False)
+            subprocess.run(["git", "push", "origin", "main"], check=False)
+            print(f"[GIT] Sofort-Push erfolgreich: {commit_msg}")
+    except Exception as e:
+        print(f"[GIT-WARNUNG] Push fehlgeschlagen: {e}")
 
 def get_sol_price():
     try:
@@ -232,7 +247,7 @@ def scan_and_enter(trades, rejects, sol_price):
             sells_5m = tx_5m.get("sells", 0)
             price_change_m5 = float(pair.get("priceChange", {}).get("m5") or 0.0)
 
-            # Pool-Alter prüfen: Mind. 1 Stunde alt
+            # Filter: Mindestens 1 Stunde alt
             created_at_ms = pair.get("pairCreatedAt")
             if not created_at_ms:
                 continue
@@ -247,11 +262,11 @@ def scan_and_enter(trades, rejects, sol_price):
             if buy_ratio < 0.55 or price_usd <= 0.0:
                 continue
 
-            # Anti-FOMO & Momentum
+            # Anti-FOMO & Momentum (+1% bis +20%)
             if price_change_m5 < MIN_PRICE_CHANGE_M5 or price_change_m5 > MAX_PRICE_CHANGE_M5:
                 continue
 
-            # Liq zu FDV Stabilität
+            # Stabilität Liq/FDV
             if fdv_usd > 0 and (liquidity / fdv_usd) < MIN_LIQ_TO_FDV_RATIO:
                 continue
 
@@ -284,7 +299,7 @@ def scan_and_enter(trades, rejects, sol_price):
                     rejects.append(reject_entry)
                     already_rejected_tokens.add(token_addr)
                     write_csv(CSV_REJECTS, rejects, HEADERS_REJECTS)
-                    print(f"[SHADOW-TRACK] Abgelehnt: {reject_entry['symbol']} ({safety_reason}) -> Beobachtung gestartet.")
+                    git_push_updates(f"Reject Shadow Track: {reject_entry['symbol']}")
                 continue
 
             socials_count = len(pair.get("info", {}).get("socials", []))
@@ -345,7 +360,10 @@ def scan_and_enter(trades, rejects, sol_price):
             trades.append(new_trade)
             active_open_tokens.add(token_addr)
             write_csv(CSV_TRADES, trades, HEADERS_TRADES)
-            print(f"[ENTRY] {new_trade['symbol']} | Fill: ${simulated_entry:.6f} ({actual_buy_slip*100:+.2f}%) | Age: {pair_age_hours:.1f}h")
+            
+            # Sofortiger Git-Push bei Eröffnung
+            git_push_updates(f"Trade Entry: {new_trade['symbol']}")
+            print(f"[ENTRY] {new_trade['symbol']} | Fill: ${simulated_entry:.6f}")
 
             chart_url = f"https://dexscreener.com/solana/{pair_addr}"
             current_open = len([t for t in trades if t.get("status") == "OPEN"])
@@ -411,7 +429,6 @@ def manage_open_trades(trades, sol_price):
             exit_triggered = False
             exit_reason = ""
 
-            # 1. Notausstieg bei Liquiditätsabzug
             if liq_change <= RUG_LIQUIDITY_DROP_THRESHOLD:
                 exit_triggered = True
                 exit_reason = f"RUG_LIQ_DROP ({liq_change*100:.1f}%)"
@@ -421,7 +438,6 @@ def manage_open_trades(trades, sol_price):
             elif price_change_raw <= STOP_LOSS_PCT:
                 exit_triggered = True
                 exit_reason = f"SL_HIT ({price_change_raw*100:.1f}%)"
-            # 2. Gewinn-Absicherung: Nach 8 Minuten bei > +25% und abflauendem Momentum sichern
             elif held_seconds >= 480 and price_change_raw >= 0.25 and price_change_m5 <= 0.0:
                 exit_triggered = True
                 exit_reason = f"EARLY_TP_SECURED (+{price_change_raw*100:.1f}%)"
@@ -465,6 +481,9 @@ def manage_open_trades(trades, sol_price):
 
                 write_csv(CSV_TRADES, trades, HEADERS_TRADES)
                 
+                # Sofortiger Git-Push nach Trade-Abschluss
+                git_push_updates(f"Trade Exit: {trade['symbol']} ({exit_reason})")
+
                 stats = get_current_stats(trades, sol_price)
                 chart_url = f"https://dexscreener.com/solana/{pair_addr}"
 
@@ -491,7 +510,7 @@ def manage_open_trades(trades, sol_price):
                     f"**Gezahlte Tx-Fees gesamt:** {stats['total_fees_sol']:.4f} SOL"
                 )
                 send_discord_alert(f"{title_prefix}: {trade['symbol']}", desc, embed_color, chart_url)
-                print(f"[EXIT] {trade['symbol']} | {exit_reason} | Net: {net_pnl_sol:+.4f} SOL | Fee: {total_fees:.4f} SOL")
+                print(f"[EXIT] {trade['symbol']} | {exit_reason} | Net: {net_pnl_sol:+.4f} SOL")
 
         except Exception as e:
             print(f"Fehler bei Trade-Update {trade.get('symbol')}: {e}")
@@ -499,11 +518,6 @@ def manage_open_trades(trades, sol_price):
     return trades
 
 def manage_post_exit_checks(trades):
-    """
-    Ressourcenschonende Post-Exit Analyse:
-    Prüft geschlossene Trades genau 1x nach Ablauf von 15 Minuten.
-    Verursacht 0 API-Spam!
-    """
     now = datetime.now(timezone.utc)
     updated = False
 
@@ -516,7 +530,6 @@ def manage_post_exit_checks(trades):
                 exit_dt = datetime.strptime(exit_time_str, "%Y-%m-%d %H:%M:%S").replace(tzinfo=timezone.utc)
                 seconds_since_exit = (now - exit_dt).total_seconds()
                 
-                # Wenn 15 Minuten seit Exit vergangen sind -> Genau 1 Request ausführen
                 if seconds_since_exit >= POST_EXIT_CHECK_SECONDS:
                     pair_addr = trade.get("pair_address")
                     url = f"https://api.dexscreener.com/latest/dex/pairs/solana/{pair_addr}"
@@ -545,6 +558,7 @@ def manage_post_exit_checks(trades):
 
     if updated:
         write_csv(CSV_TRADES, trades, HEADERS_TRADES)
+        git_push_updates("Post-Exit Update [skip ci]")
 
     return trades
 
@@ -604,7 +618,7 @@ def manage_shadow_rejects(rejects):
                 else:
                     item["final_verdict"] = "SLOW_BLEED_SIDEWAYS"
 
-                print(f"[SHADOW-END] {item['symbol']} | Urteil: {item['final_verdict']} | Liq: {liq_change:+.1f}% | Kurs: {price_change:+.1f}%")
+                print(f"[SHADOW-END] {item['symbol']} | Urteil: {item['final_verdict']}")
 
             write_csv(CSV_REJECTS, rejects, HEADERS_REJECTS)
 
@@ -614,18 +628,25 @@ def manage_shadow_rejects(rejects):
     return rejects
 
 def main():
-    print("=== Solana Paper Bot v2 (Vollständige Simulation & Post-Trade-Tracking) ===")
+    print("=== Solana Paper Bot v2 (Live Sofort-Push & Schutzfilter) ===")
     send_discord_alert(
-        "Bot Komplett-Update Aktiviert", 
-        "Alle Schutz- & Analyse-Mechanismen aktiv:\n"
+        "Bot Aktiviert: Live-Push & Schutzfilter", 
+        "Updates aktiv:\n"
+        "• Sofort-Push: Jeder Trade wird sofort live auf GitHub gesichert!\n"
+        "• 5h-Session: Verhindert 6h-Timeout-Abbrüche\n"
         "• Anti-Peak: Mindestalter 1h + Max Kerze +20%\n"
-        "• RugCheck-Prävention & Schatten-Beobachtung\n"
-        "• Neu: 15m Post-Exit Tracking (Prüfung nach Verkauf)\n"
-        "• Neu: Vorzeitige Gewinnsicherung ab +25%"
+        "• Post-Exit Tracking & frühe Gewinnsicherung"
     )
+
+    start_time = time.time()
 
     while True:
         try:
+            # Nach 5 Stunden die Schleife sauber beenden
+            if time.time() - start_time >= SESSION_DURATION_SECONDS:
+                print("5 Stunden erreicht. Beende Session für Git-Push...")
+                break
+
             sol_price = get_sol_price()
             trades = read_csv(CSV_TRADES, HEADERS_TRADES)
             rejects = read_csv(CSV_REJECTS, HEADERS_REJECTS)
@@ -641,6 +662,10 @@ def main():
         except Exception as e:
             print(f"Loop-Fehler: {e}")
             time.sleep(10)
+
+    # Letzter Git-Push vor dem Herunterfahren
+    git_push_updates("Session Clean Exit Push")
+    print("Session beendet.")
 
 if __name__ == "__main__":
     main()
