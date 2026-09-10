@@ -57,18 +57,20 @@ jobs:
           wait $BOT_PID 2>/dev/null || true
           echo "Bot sauber beendet."
 
-      - name: Commit and Push Updated CSV
+      - name: Commit and Push Updated CSVs
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git add solana_paper_trades_v2.csv || true
           
-          # Nur committen und pushen, wenn sich die CSV tatsächlich geändert hat
-          if git status --porcelain | grep -q "solana_paper_trades_v2.csv"; then
-            git commit -m "Auto-Update: Neue Trades in CSV gespeichert [skip ci]"
+          # Beide CSVs vormerken: Deine Trades und das Rug-Schatten-Tracking
+          git add solana_paper_trades_v2.csv rejected_rugs_tracking.csv || true
+          
+          # Nur committen und pushen, wenn neue Daten vorhanden sind
+          if git status --porcelain | grep -qE "solana_paper_trades_v2.csv|rejected_rugs_tracking.csv"; then
+            git commit -m "Auto-Update: Trades & Rug-Muster CSVs aktualisiert [skip ci]"
             git pull origin main --rebase || true
             git push origin main
-            echo "CSV erfolgreich ins Repository gepusht."
+            echo "CSVs erfolgreich ins Repository gepusht."
           else
-            echo "Keine neuen Trades zum Committen vorhanden."
+            echo "Keine Änderungen zum Committen vorhanden."
           fi
