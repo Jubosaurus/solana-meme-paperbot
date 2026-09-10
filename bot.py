@@ -9,10 +9,13 @@ from datetime import datetime, timezone
 CSV_FILE = "solana_paper_trades_v2.csv"
 STARTING_SOL = 5.0000
 TRADE_SIZE_SOL = 0.25
-MAX_OPEN_TRADES = int(STARTING_SOL / TRADE_SIZE_SOL)  # Max 20 parallele Slots
+MAX_OPEN_TRADES = int(STARTING_SOL / TRADE_SIZE_SOL)  # Max 20 Slots
 DISCORD_WEBHOOK_URL = os.environ.get("DISCORD_WEBHOOK_URL")
 
-# Farbschema für Discord (Hex-Werte als Integer)
+# Schutz vor Mehrfachkäufen & API-Lags
+MAX_TRADES_PER_TOKEN = 1              # Jeder Token darf exakt 1x gehandelt werden
+
+# Farbschema für Discord
 COLOR_BUY = 0x00B4D8          # Electric Cyan für Einstiege
 COLOR_EXIT_WIN = 0x10B981     # Emerald Green für Gewinne
 COLOR_EXIT_LOSS = 0xEF4444    # Crimson Red für Verluste
@@ -37,7 +40,7 @@ TRAILING_TRIGGER_PCT = 0.20           # Trailing SL ab +20%
 TRAILING_OFFSET_PCT = 0.10            # 10% Abstand vom Peak
 BREAK_EVEN_TRIGGER_PCT = 0.15         # Break-Even ab +15%
 MAX_HOLD_SECONDS = 900                # 15 Min Timeout
-RUG_LIQUIDITY_DROP_THRESHOLD = -0.40  # Notverkauf wenn Liquidität um >40% fällt
+RUG_LIQUIDITY_DROP_THRESHOLD = -0.40  # Notverkauf wenn Liq um >40% fällt
 
 CSV_HEADERS = [
     "token_address", "pair_address", "symbol", "dex_id", "trade_num_for_token",
@@ -73,7 +76,7 @@ def send_discord_alert(title, description, color=0x3498db, chart_url=None):
         "timestamp": datetime.now(timezone.utc).isoformat()
     }
     if chart_url:
-        embed["url"] = chart_url  # Klickbarer Titel
+        embed["url"] = chart_url
     
     payload = {"embeds": [embed]}
     try:
@@ -130,7 +133,9 @@ def scan_and_enter(trades, sol_price):
     if len(open_trades) >= MAX_OPEN_TRADES:
         return trades
 
-    active_tokens = {t["token_address"] for t in open_trades}
+    active_open_tokens = {t["token_address"] for t in open_trades}
+    # Alle Tokens erfassen, die jemals gehandelt wurden
+    all_traded_tokens = {t["token_address"] for t in trades}
 
     try:
         url = "https://api.dexscreener.com/token-profiles/latest/v1"
@@ -147,7 +152,14 @@ def scan_and_enter(trades, sol_price):
                 continue
             
             token_addr = item.get("tokenAddress")
-            if token_addr in active_tokens:
+            
+            # 1. Ausschluss: Ist der Token aktuell offen?
+            if token_addr in active_open_tokens:
+                continue
+
+            # 2. Ausschluss: Wurde der Token bereits früher gehandelt? (Verhindert DexScreener-Spam)
+            past_trades_count = len([t for t in trades if t.get("token_address") == token_addr])
+            if past_trades_count >= MAX_TRADES_PER_TOKEN:
                 continue
 
             pair_url = f"https://api.dexscreener.com/latest/dex/tokens/{token_addr}"
@@ -167,14 +179,13 @@ def scan_and_enter(trades, sol_price):
             sells_5m = tx_5m.get("sells", 0)
             price_change_m5 = float(pair.get("priceChange", {}).get("m5") or 0.0)
 
-            # Filterkriterien
+            # Strikte Qualitätskriterien
             if liquidity < 15000 or vol_5m < 3000 or (buys_5m + sells_5m < 15):
                 continue
             buy_ratio = buys_5m / (buys_5m + sells_5m)
-            if buy_ratio < 0.55 or price_usd <= 0.0:
+            # Nur kaufen, wenn Momentum positiv ist (> 0%) und Buy-Ratio >= 55%
+            if buy_ratio < 0.55 or price_change_m5 <= 0.0 or price_usd <= 0.0:
                 continue
-
-            token_history_count = len([t for t in trades if t.get("token_address") == token_addr]) + 1
 
             created_at_ms = pair.get("pairCreatedAt")
             pair_age_hours = 0.0
@@ -187,7 +198,6 @@ def scan_and_enter(trades, sol_price):
             # Variable Entry-Slippage
             actual_buy_slip = random.uniform(SLIPPAGE_BUY_MIN_PCT, SLIPPAGE_BUY_MAX_PCT)
             if actual_buy_slip > SLIPPAGE_MAX_TOLERANCE_PCT:
-                print(f"[REJECT] {pair.get('baseToken', {}).get('symbol')}: Slippage drift too high ({actual_buy_slip*100:.2f}%)")
                 continue
 
             simulated_entry = price_usd * (1.0 + actual_buy_slip)
@@ -199,7 +209,7 @@ def scan_and_enter(trades, sol_price):
                 "pair_address": pair_addr,
                 "symbol": pair.get("baseToken", {}).get("symbol", "UNKNOWN"),
                 "dex_id": pair.get("dexId", "unknown"),
-                "trade_num_for_token": token_history_count,
+                "trade_num_for_token": past_trades_count + 1,
                 "entry_time": now_dt.strftime("%Y-%m-%d %H:%M:%S"),
                 "pair_age_hours": pair_age_hours,
                 "socials_count": socials_count,
@@ -235,18 +245,18 @@ def scan_and_enter(trades, sol_price):
             }
 
             trades.append(new_trade)
-            active_tokens.add(token_addr)
+            active_open_tokens.add(token_addr)
             write_trades(trades)
-            print(f"[ENTRY] {new_trade['symbol']} (#{token_history_count}) | Fill: ${simulated_entry:.6f} ({actual_buy_slip*100:+.2f}%)")
+            print(f"[ENTRY] {new_trade['symbol']} | Fill: ${simulated_entry:.6f} ({actual_buy_slip*100:+.2f}%)")
 
             chart_url = f"https://dexscreener.com/solana/{pair_addr}"
             current_open = len([t for t in trades if t.get("status") == "OPEN"])
             desc = (
-                f"**Symbol:** [{new_trade['symbol']}]({chart_url}) ({new_trade['dex_id']}) | Trade #{token_history_count}\n"
+                f"**Symbol:** [{new_trade['symbol']}]({chart_url}) ({new_trade['dex_id']})\n"
                 f"**Fill-Kurs:** ${simulated_entry:.8f} (Slippage: {actual_buy_slip*100:+.2f}%)\n"
                 f"**Liq:** ${liquidity:,.0f} | **FDV:** ${fdv_usd:,.0f}\n"
                 f"**5m Vol:** ${vol_5m:,.0f} | **Buy-Ratio:** {buy_ratio*100:.1f}%\n"
-                f"**Pool-Alter:** {pair_age_hours:.1f}h | **Socials:** {socials_count}\n"
+                f"**5m Momentum:** {price_change_m5:+.1f}% | **Pool-Alter:** {pair_age_hours:.1f}h\n"
                 f"━━━━━━━━━━━━━━━━━━\n"
                 f"📈 **[DexScreener Live-Chart öffnen]({chart_url})**\n"
                 f"Offene Positionen: {current_open}/{MAX_OPEN_TRADES}"
@@ -392,11 +402,12 @@ def manage_open_trades(trades, sol_price):
 def main():
     print("=== Solana Paper Bot v2 (Erweiterte Realitäts-Simulation) ===")
     send_discord_alert(
-        "Bot Aktiviert (Vollständige Simulation)", 
-        "Alle Datenpunkte & Filterkriterien aktiv.\n"
-        "Startkapital: **5,0000 SOL**\n"
-        "Features: Direkte DexScreener-Links, Chart-Audits, Rug-Schutz & Re-Entry-Tracking.\n"
-        "Farbschema: 🔵 Kauf | 🟢 Gewinn | 🔴 Verlust | 🟡 Neutral."
+        "Bot Schutz-Update Aktiviert", 
+        "Schutzregeln:\n"
+        "• Max 1 Trade pro Token (Keine Mehrfach-Käufe)\n"
+        "• Nur positives Momentum (price_change_m5 > 0)\n"
+        "• Sofortiger Rug-Notausstieg bei Liq-Drop > 40%\n"
+        "• Farbschema: 🔵 Kauf | 🟢 Gewinn | 🔴 Verlust | 🟡 Neutral."
     )
 
     while True:
