@@ -1,20 +1,29 @@
-name: Run Solana Paper Trading Bot
+name: Solana Paper Trading Bot
 
 on:
-  workflow_dispatch:        # Ermöglicht manuellen Start per Klick
+  workflow_dispatch:
   schedule:
-    - cron: '0 */6 * * *'   # Startet alle 6 Stunden automatisch neu
+    # Startet alle 6 Stunden automatisch
+    - cron: '0 */6 * * *'
+
+# Verhindert parallele Instanzen: Nur ein Bot darf aktiv sein
+concurrency:
+  group: solana-trading-bot
+  cancel-in-progress: false
 
 jobs:
   run-bot:
     runs-on: ubuntu-latest
-    timeout-minutes: 350    # Bricht kurz vor dem GitHub-Limit (360 Min) sauber ab
+    timeout-minutes: 360  # Maximal 6 Stunden Gesamtlaufzeit
 
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
 
-      - name: Set up Python 3.11
+      - name: Setup Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
@@ -22,25 +31,44 @@ jobs:
 
       - name: Install Dependencies
         run: |
-          pip install -r requirements.txt
+          python -m pip install --upgrade pip
+          pip install requests
 
-      - name: Run Trading Bot Loop
-        env:
-          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
-        run: |
-          # Führt den Bot für 5,5 Stunden aus und stoppt sauber für den Git-Push
-          timeout 330m python -u bot.py || true
-
-      - name: Commit & Push Updated Trade Data
+      - name: Pull Latest Changes
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git add solana_paper_trades_v2.csv
-          if git diff --staged --quiet; then
-            echo "Keine neuen Trades zum Committen."
-          else
-            git commit -m "chore: update solana_paper_trades_v2.csv [skip ci]"
-            # Holt eventuelle Remote-Änderungen ab und behält den Stand des Runners bei Konflikten
-            git pull --rebase -X ours origin main || true
+          git pull origin main --rebase || true
+
+      - name: Run Trading Bot Loop (5.5 Stunden)
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+        run: |
+          # Führt den Bot im Hintergrund aus und stoppt ihn sauber nach 19800 Sekunden (5,5 Std.)
+          python bot.py &
+          BOT_PID=$!
+          echo "Bot läuft unter PID $BOT_PID..."
+          
+          # 5,5 Stunden (19.800 Sekunden) laufen lassen
+          sleep 19800 || true
+          
+          echo "Stoppe Bot nach 5,5 Stunden für Git-Push..."
+          kill -SIGINT $BOT_PID 2>/dev/null || kill -SIGTERM $BOT_PID 2>/dev/null || true
+          wait $BOT_PID 2>/dev/null || true
+          echo "Bot sauber beendet."
+
+      - name: Commit and Push Updated CSV
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add solana_paper_trades_v2.csv || true
+          
+          # Nur committen und pushen, wenn sich die CSV tatsächlich geändert hat
+          if git status --porcelain | grep -q "solana_paper_trades_v2.csv"; then
+            git commit -m "Auto-Update: Neue Trades in CSV gespeichert [skip ci]"
+            git pull origin main --rebase || true
             git push origin main
+            echo "CSV erfolgreich ins Repository gepusht."
+          else
+            echo "Keine neuen Trades zum Committen vorhanden."
           fi
