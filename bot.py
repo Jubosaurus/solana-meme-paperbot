@@ -16,11 +16,11 @@ MAX_OPEN_TRADES = int(STARTING_SOL / TRADE_SIZE_SOL)  # Max 20 Slots
 MAX_TRACKED_REJECTS = 15                              # Max 15 parallele Schatten-Beobachtungen
 DISCORD_WEBHOOK_URL = os.environ.get("DISCORD_WEBHOOK_URL")
 
-# Schutzregeln & Anti-Peak-Filter
+# Schutzregeln & kalibrierte Anti-Peak-Filter
 MAX_TRADES_PER_TOKEN = 1              # Jeder Token darf exakt 1x gehandelt werden
-MIN_PAIR_AGE_HOURS = 1.0              # Pool muss mind. 1 Stunde alt sein (keine Sniper-Dumps)
-MIN_PRICE_CHANGE_M5 = 1.0             # Gesundes Mindest-Momentum (+1%)
-MAX_PRICE_CHANGE_M5 = 20.0            # Anti-FOMO: Kerzen > +20% werden verworfen
+MIN_PAIR_AGE_HOURS = 0.35             # ~21 Minuten: Sniper-Welle vorbei, Trend noch aktiv
+MIN_PRICE_CHANGE_M5 = 0.0             # Stabiler Boden oder leichtes Momentum (>= 0%)
+MAX_PRICE_CHANGE_M5 = 25.0            # Anti-FOMO: Kerzen > +25% werden verworfen
 MIN_LIQ_TO_FDV_RATIO = 0.03           # Min. 3% Liquidität im Verhältnis zum FDV
 
 # RugCheck Sicherheitsgrenzen
@@ -247,7 +247,7 @@ def scan_and_enter(trades, rejects, sol_price):
             sells_5m = tx_5m.get("sells", 0)
             price_change_m5 = float(pair.get("priceChange", {}).get("m5") or 0.0)
 
-            # Filter: Mindestens 1 Stunde alt
+            # 1. Pool-Alter prüfen: Mind. 0.35h (~21 Min alt)
             created_at_ms = pair.get("pairCreatedAt")
             if not created_at_ms:
                 continue
@@ -255,22 +255,22 @@ def scan_and_enter(trades, rejects, sol_price):
             if pair_age_hours < MIN_PAIR_AGE_HOURS:
                 continue
 
-            # Basis-Filter
+            # 2. Basis-Filter
             if liquidity < 15000 or vol_5m < 3000 or (buys_5m + sells_5m < 15):
                 continue
             buy_ratio = buys_5m / (buys_5m + sells_5m)
             if buy_ratio < 0.55 or price_usd <= 0.0:
                 continue
 
-            # Anti-FOMO & Momentum (+1% bis +20%)
+            # 3. Kalibrierter Anti-FOMO & Momentum Filter (0.0% bis +25.0%)
             if price_change_m5 < MIN_PRICE_CHANGE_M5 or price_change_m5 > MAX_PRICE_CHANGE_M5:
                 continue
 
-            # Stabilität Liq/FDV
+            # 4. Liq zu FDV Verhältnis
             if fdv_usd > 0 and (liquidity / fdv_usd) < MIN_LIQ_TO_FDV_RATIO:
                 continue
 
-            # Sicherheits-Audit
+            # 5. Sicherheits-Audit
             is_safe, rc_score, safety_reason, risk_flags = check_token_safety(token_addr)
             if not is_safe:
                 if token_addr not in already_rejected_tokens and len([r for r in rejects if r.get("status") == "OBSERVING"]) < MAX_TRACKED_REJECTS:
@@ -361,9 +361,8 @@ def scan_and_enter(trades, rejects, sol_price):
             active_open_tokens.add(token_addr)
             write_csv(CSV_TRADES, trades, HEADERS_TRADES)
             
-            # Sofortiger Git-Push bei Eröffnung
             git_push_updates(f"Trade Entry: {new_trade['symbol']}")
-            print(f"[ENTRY] {new_trade['symbol']} | Fill: ${simulated_entry:.6f}")
+            print(f"[ENTRY] {new_trade['symbol']} | Fill: ${simulated_entry:.6f} | Alter: {pair_age_hours:.1f}h")
 
             chart_url = f"https://dexscreener.com/solana/{pair_addr}"
             current_open = len([t for t in trades if t.get("status") == "OPEN"])
@@ -480,8 +479,6 @@ def manage_open_trades(trades, sol_price):
                 trade["exit_reason"] = exit_reason
 
                 write_csv(CSV_TRADES, trades, HEADERS_TRADES)
-                
-                # Sofortiger Git-Push nach Trade-Abschluss
                 git_push_updates(f"Trade Exit: {trade['symbol']} ({exit_reason})")
 
                 stats = get_current_stats(trades, sol_price)
@@ -630,21 +627,20 @@ def manage_shadow_rejects(rejects):
 def main():
     print("=== Solana Paper Bot v2 (Live Sofort-Push & Schutzfilter) ===")
     send_discord_alert(
-        "Bot Aktiviert: Live-Push & Schutzfilter", 
-        "Updates aktiv:\n"
-        "• Sofort-Push: Jeder Trade wird sofort live auf GitHub gesichert!\n"
-        "• 5h-Session: Verhindert 6h-Timeout-Abbrüche\n"
-        "• Anti-Peak: Mindestalter 1h + Max Kerze +20%\n"
-        "• Post-Exit Tracking & frühe Gewinnsicherung"
+        "Bot Update: Optimierte Einstiegsfilter", 
+        "Parameter:\n"
+        "• Pool-Alter: mind. ~21 Min (0.35h)\n"
+        "• 5m Momentum: 0.0% bis +25.0% (keine Riesenkerzen)\n"
+        "• Sofort-Push bei Trade-Eröffnung & Exit\n"
+        "• 15m Post-Exit Tracking aktiv"
     )
 
     start_time = time.time()
 
     while True:
         try:
-            # Nach 5 Stunden die Schleife sauber beenden
             if time.time() - start_time >= SESSION_DURATION_SECONDS:
-                print("5 Stunden erreicht. Beende Session für Git-Push...")
+                print("5 Stunden erreicht. Beende Session...")
                 break
 
             sol_price = get_sol_price()
@@ -663,7 +659,6 @@ def main():
             print(f"Loop-Fehler: {e}")
             time.sleep(10)
 
-    # Letzter Git-Push vor dem Herunterfahren
     git_push_updates("Session Clean Exit Push")
     print("Session beendet.")
 
