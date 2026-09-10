@@ -1,398 +1,325 @@
 import os
 import time
+import csv
+import random
 import requests
-import warnings
-import pandas as pd
 from datetime import datetime, timezone
 
-warnings.filterwarnings("ignore", category=FutureWarning)
-
-# ==========================================
-# KONFIGURATION & PARAMETER
-# ==========================================
+# --- KONFIGURATION & SIMULATIONSPARAMETER ---
 CSV_FILE = "solana_paper_trades_v2.csv"
-SOL_PRICE_USD = 101.77
-STARTING_SOL = 5.0
+STARTING_SOL = 5.0000
 TRADE_SIZE_SOL = 0.25
+MAX_OPEN_TRADES = int(STARTING_SOL / TRADE_SIZE_SOL)  # Max 20 parallele Slots
+DISCORD_WEBHOOK_URL = os.environ.get("DISCORD_WEBHOOK_URL")
 
-# Discord Webhook via Environment Variable
-DISCORD_WEBHOOK_URL = os.getenv("DISCORD_WEBHOOK_URL", "")
+# Realistische, variable Slippage-Korridore (Empirische Solana-Microcap-Werte)
+SLIPPAGE_BUY_MIN_PCT = -0.005         # Best-Case Buy: 0,5% günstiger (seltene Gegen-Tx im selben Slot)
+SLIPPAGE_BUY_MAX_PCT = 0.040          # Worst-Case Buy: 4,0% teurer (Momentum-Slippage)
+SLIPPAGE_MAX_TOLERANCE_PCT = 0.045    # Reject-Grenze: Orderabbruch bei > 4,5% Abweichung
 
-# Taktung (Asymmetrisch)
-SCAN_INTERVAL_SECONDS = 15               # Neue Token-Suche alle 15 Sekunden
-FAST_CHECK_INTERVAL_SECONDS = 4          # Live-Preis- & Exit-Prüfung alle 4 Sekunden
+SLIPPAGE_SELL_MIN_PCT = 0.005         # Best-Case Sell: nur 0,5% unter Signalpreis
+SLIPPAGE_SELL_MAX_PCT = 0.045         # Worst-Case Sell: 4,5% unter Signalpreis (Verkauf in fallende Liquidität)
 
-# Strategie- & Momentum-Filter
-MIN_LIQUIDITY_USD = 15000.0   
-MIN_VOLUME_M5 = 5000.0        
-MIN_BUYS_M5 = 30              
-BUY_RATIO_MIN = 0.60          
+# Feste Transaktions- & DEX-Kosten
+FIXED_PRIORITY_FEES_SOL = 0.006       # 0.003 SOL Buy + 0.003 SOL Sell Priority/Jito Fee
+DEX_FEE_PCT = 0.010                   # 0,5% Swap-Gebühr beim Kauf + 0,5% beim Verkauf
 
-# Exit- & Risikomanagement
-TAKE_PROFIT_PCT = 0.50        
-BASE_STOP_LOSS_PCT = -0.15    
+# Strategie-Parameter
+TAKE_PROFIT_PCT = 0.50                # +50% TP
+STOP_LOSS_PCT = -0.15                 # -15% SL
+TRAILING_TRIGGER_PCT = 0.20           # Trailing SL aktiviert ab +20%
+TRAILING_OFFSET_PCT = 0.10            # Trailing Abstand 10% vom Peak
+BREAK_EVEN_TRIGGER_PCT = 0.15         # SL auf Break-Even ab +15%
+MAX_HOLD_SECONDS = 900                # 15 Minuten Time-Limit
 
-# Dynamische Absicherung
-BREAK_EVEN_TRIGGER = 0.18     
-BREAK_EVEN_LOCK = 0.02        
-TRAILING_TRIGGER = 0.30       
-TRAILING_DISTANCE = 0.12      
+CSV_HEADERS = [
+    "token_address", "pair_address", "symbol", "entry_time", "signal_price_usd",
+    "simulated_entry_usd", "entry_slip_pct", "peak_price_usd", "sol_invested", 
+    "amount_tokens", "status", "exit_time", "signal_exit_usd", "simulated_exit_usd",
+    "exit_slip_pct", "raw_pnl_sol", "fees_sol", "net_pnl_sol", "net_pnl_usd", "exit_reason"
+]
 
-# Zeitbasierte Exits
-EARLY_PROFIT_MINUTES = 10     
-EARLY_PROFIT_THRESHOLD = 0.10 
-MAX_HOLD_MINUTES = 15         
+def get_sol_price():
+    try:
+        url = "https://api.dexscreener.com/latest/dex/tokens/So11111111111111111111111111111111111111112"
+        res = requests.get(url, timeout=5).json()
+        pairs = res.get("pairs", [])
+        for p in pairs:
+            if p.get("quoteToken", {}).get("symbol") in ["USDC", "USDT"]:
+                return float(p.get("priceUsd", 100.0))
+        return float(pairs[0].get("priceUsd", 100.0)) if pairs else 100.0
+    except Exception:
+        return 100.0
 
-HEADERS = {"User-Agent": "Mozilla/5.0"}
-
-DTYPE_DICT = {
-    "token_address": "object",
-    "pair_address": "object",
-    "symbol": "object",
-    "entry_time": "object",
-    "entry_price_usd": "float64",
-    "peak_price_usd": "float64",
-    "sol_invested": "float64",
-    "amount_tokens": "float64",
-    "status": "object",
-    "exit_time": "object",
-    "exit_price_usd": "float64",
-    "pnl_usd": "float64",
-    "pnl_sol": "float64",
-    "exit_reason": "object"
-}
-
-def get_utc_now():
-    return datetime.now(timezone.utc)
-
-def send_discord_alert(embed_data):
+def send_discord_alert(title, description, color=0x3498db):
     if not DISCORD_WEBHOOK_URL:
         return
     payload = {
-        "username": "Solana Paper Bot",
-        "embeds": [embed_data]
+        "embeds": [{
+            "title": title,
+            "description": description,
+            "color": color,
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        }]
     }
     try:
         requests.post(DISCORD_WEBHOOK_URL, json=payload, timeout=5)
     except Exception as e:
-        print(f"⚠️ Discord Webhook Fehler: {e}")
-
-def get_current_stats():
-    """Berechnet aktuelle Bankroll und Win/Loss Statistik aus der CSV."""
-    if not os.path.exists(CSV_FILE):
-        return STARTING_SOL, STARTING_SOL * SOL_PRICE_USD, 0, 0
-    try:
-        df = pd.read_csv(CSV_FILE, dtype=object)
-        for col in ["pnl_usd", "pnl_sol"]:
-            if col in df.columns:
-                df[col] = pd.to_numeric(df[col], errors="coerce")
-        closed = df[df["status"] == "CLOSED"]
-        if closed.empty:
-            return STARTING_SOL, STARTING_SOL * SOL_PRICE_USD, 0, 0
-        total_pnl_sol = closed["pnl_sol"].sum()
-        current_bankroll_sol = STARTING_SOL + total_pnl_sol
-        current_bankroll_usd = current_bankroll_sol * SOL_PRICE_USD
-        wins = len(closed[closed["pnl_usd"] > 0])
-        losses = len(closed[closed["pnl_usd"] <= 0])
-        return current_bankroll_sol, current_bankroll_usd, wins, losses
-    except Exception:
-        return STARTING_SOL, STARTING_SOL * SOL_PRICE_USD, 0, 0
+        print(f"Discord Webhook Fehler: {e}")
 
 def init_csv():
-    columns = list(DTYPE_DICT.keys())
     if not os.path.exists(CSV_FILE):
-        df = pd.DataFrame(columns=columns)
-        df.to_csv(CSV_FILE, index=False)
-        print(f"📁 {CSV_FILE} neu initialisiert.")
-    else:
-        df = pd.read_csv(CSV_FILE, dtype=object)
-        if "peak_price_usd" not in df.columns:
-            df["peak_price_usd"] = df["entry_price_usd"]
-            df.to_csv(CSV_FILE, index=False)
-            print(f"🔄 {CSV_FILE} um 'peak_price_usd' migriert.")
+        with open(CSV_FILE, mode="w", newline="", encoding="utf-8") as f:
+            writer = csv.writer(f)
+            writer.writerow(CSV_HEADERS)
 
-def scan_and_enter_trades():
-    url = "https://api.dexscreener.com/token-profiles/latest/v1"
-    try:
-        res = requests.get(url, headers=HEADERS, timeout=8)
-        profiles = res.json()
-    except Exception:
-        return
+def read_trades():
+    init_csv()
+    trades = []
+    with open(CSV_FILE, mode="r", encoding="utf-8") as f:
+        reader = csv.DictReader(f)
+        for row in reader:
+            trades.append(row)
+    return trades
 
-    sol_tokens = [p["tokenAddress"] for p in profiles if p.get("chainId") == "solana"][:30]
-    if not sol_tokens:
-        return
+def write_trades(trades):
+    with open(CSV_FILE, mode="w", newline="", encoding="utf-8") as f:
+        writer = csv.DictWriter(f, fieldnames=CSV_HEADERS)
+        writer.writeheader()
+        writer.writerows(trades)
 
-    tokens_str = ",".join(sol_tokens)
-    pair_url = f"https://api.dexscreener.com/latest/dex/tokens/{tokens_str}"
+def get_current_stats(trades, sol_price):
+    closed = [t for t in trades if t.get("status") == "CLOSED"]
+    net_pnl_sol = sum(float(t.get("net_pnl_sol", 0.0)) for t in closed)
+    total_fees_sol = sum(float(t.get("fees_sol", 0.0)) for t in closed)
     
+    wins = len([t for t in closed if float(t.get("net_pnl_sol", 0.0)) > 0])
+    losses = len([t for t in closed if float(t.get("net_pnl_sol", 0.0)) <= 0])
+    
+    current_sol = STARTING_SOL + net_pnl_sol
+    current_usd = current_sol * sol_price
+    winrate = (wins / len(closed) * 100) if closed else 0.0
+    
+    return {
+        "current_sol": current_sol,
+        "current_usd": current_usd,
+        "net_pnl_sol": net_pnl_sol,
+        "total_fees_sol": total_fees_sol,
+        "wins": wins,
+        "losses": losses,
+        "total_trades": len(closed),
+        "winrate": winrate
+    }
+
+def scan_and_enter(trades, sol_price):
+    open_count = len([t for t in trades if t.get("status") == "OPEN"])
+    if open_count >= MAX_OPEN_TRADES:
+        return trades
+
     try:
-        pair_res = requests.get(pair_url, headers=HEADERS, timeout=8)
-        pairs_data = pair_res.json().get("pairs", [])
-    except Exception:
-        return
+        url = "https://api.dexscreener.com/token-profiles/latest/v1"
+        res = requests.get(url, timeout=5).json()
+        if not isinstance(res, list):
+            return trades
 
-    df_csv = pd.read_csv(CSV_FILE, dtype=object)
-    known_tokens = set(df_csv["token_address"].dropna().tolist())
-    open_trades_count = len(df_csv[df_csv["status"] == "OPEN"])
-    max_open_trades = int(STARTING_SOL / TRADE_SIZE_SOL)
+        existing_tokens = {t["token_address"] for t in trades}
 
-    new_rows = []
-    for pair in pairs_data:
-        if open_trades_count >= max_open_trades:
-            break
+        for item in res:
+            if open_count >= MAX_OPEN_TRADES:
+                break
+            if item.get("chainId") != "solana":
+                continue
+            
+            token_addr = item.get("tokenAddress")
+            if token_addr in existing_tokens:
+                continue
 
-        token_addr = pair.get("baseToken", {}).get("address")
-        symbol = pair.get("baseToken", {}).get("symbol", "UNKNOWN")
-        pair_addr = pair.get("pairAddress")
-        price_usd = float(pair.get("priceUsd") or 0.0)
-        liquidity = float(pair.get("liquidity", {}).get("usd") or 0.0)
-        vol_m5 = float(pair.get("volume", {}).get("m5") or 0.0)
-        buys_m5 = int(pair.get("txns", {}).get("m5", {}).get("buys") or 0)
-        sells_m5 = int(pair.get("txns", {}).get("m5", {}).get("sells") or 0)
+            pair_url = f"https://api.dexscreener.com/latest/dex/tokens/{token_addr}"
+            pair_data = requests.get(pair_url, timeout=5).json()
+            pairs = pair_data.get("pairs")
+            if not pairs:
+                continue
 
-        total_txns_m5 = buys_m5 + sells_m5
-        buy_ratio = buys_m5 / total_txns_m5 if total_txns_m5 > 0 else 0
+            pair = pairs[0]
+            price_usd = float(pair.get("priceUsd") or 0.0)
+            liquidity = float(pair.get("liquidity", {}).get("usd") or 0.0)
+            vol_5m = float(pair.get("volume", {}).get("m5") or 0.0)
+            tx_5m = pair.get("txns", {}).get("m5", {})
+            buys_5m = tx_5m.get("buys", 0)
+            sells_5m = tx_5m.get("sells", 0)
 
-        if token_addr in known_tokens or price_usd <= 0:
-            continue
+            # Filterkriterien
+            if liquidity < 15000 or vol_5m < 3000 or (buys_5m + sells_5m < 15):
+                continue
+            if buys_5m / (buys_5m + sells_5m) < 0.55 or price_usd <= 0.0:
+                continue
 
-        if (liquidity >= MIN_LIQUIDITY_USD and 
-            vol_m5 >= MIN_VOLUME_M5 and 
-            buys_m5 >= MIN_BUYS_M5 and 
-            buy_ratio >= BUY_RATIO_MIN):
+            # Realistische variable Entry-Slippage
+            actual_buy_slip = random.uniform(SLIPPAGE_BUY_MIN_PCT, SLIPPAGE_BUY_MAX_PCT)
+            if actual_buy_slip > SLIPPAGE_MAX_TOLERANCE_PCT:
+                print(f"[REJECT] {pair.get('baseToken', {}).get('symbol')}: Slippage drift too high ({actual_buy_slip*100:.2f}%)")
+                continue
 
-            usd_amount = TRADE_SIZE_SOL * SOL_PRICE_USD
-            tokens_bought = usd_amount / price_usd
+            simulated_entry = price_usd * (1.0 + actual_buy_slip)
+            invested_usd = TRADE_SIZE_SOL * sol_price
+            tokens_bought = invested_usd / simulated_entry
 
             new_trade = {
                 "token_address": token_addr,
-                "pair_address": pair_addr,
-                "symbol": symbol,
-                "entry_time": get_utc_now().strftime("%Y-%m-%d %H:%M:%S"),
-                "entry_price_usd": price_usd,
-                "peak_price_usd": price_usd,
+                "pair_address": pair.get("pairAddress"),
+                "symbol": pair.get("baseToken", {}).get("symbol", "UNKNOWN"),
+                "entry_time": datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S"),
+                "signal_price_usd": f"{price_usd:.8f}",
+                "simulated_entry_usd": f"{simulated_entry:.8f}",
+                "entry_slip_pct": f"{actual_buy_slip*100:.2f}%",
+                "peak_price_usd": f"{simulated_entry:.8f}",
                 "sol_invested": TRADE_SIZE_SOL,
                 "amount_tokens": tokens_bought,
                 "status": "OPEN",
-                "exit_time": None,
-                "exit_price_usd": None,
-                "pnl_usd": 0.0,
-                "pnl_sol": 0.0,
-                "exit_reason": None
+                "exit_time": "",
+                "signal_exit_usd": "",
+                "simulated_exit_usd": "",
+                "exit_slip_pct": "",
+                "raw_pnl_sol": "0.0",
+                "fees_sol": "0.0",
+                "net_pnl_sol": "0.0",
+                "net_pnl_usd": "0.0",
+                "exit_reason": ""
             }
-            new_rows.append(new_trade)
-            known_tokens.add(token_addr)
-            open_trades_count += 1
 
-            print(f"🟢 [BUY] ${symbol} zu ${price_usd:.6f} | Liq: ${liquidity:,.0f} | Ratio: {buy_ratio*100:.0f}%")
+            trades.append(new_trade)
+            open_count += 1
+            existing_tokens.add(token_addr)
+            write_trades(trades)
+            print(f"[ENTRY REALISTISCH] {new_trade['symbol']} | Fill: ${simulated_entry:.6f} (Slippage: {actual_buy_slip*100:+.2f}%)")
 
-            cur_sol, cur_usd, wins, losses = get_current_stats()
-
-            send_discord_alert({
-                "title": f"🟢 KAUF: ${symbol}",
-                "url": f"https://dexscreener.com/solana/{pair_addr}",
-                "color": 3066993,
-                "fields": [
-                    {"name": "Einstiegskurs", "value": f"${price_usd:.6f}", "inline": True},
-                    {"name": "Investition", "value": f"{TRADE_SIZE_SOL} SOL (~${usd_amount:.2f})", "inline": True},
-                    {"name": "M5 Metriken", "value": f"Liq: ${liquidity:,.0f} | Vol: ${vol_m5:,.0f} | Ratio: {buy_ratio*100:.0f}%", "inline": False},
-                    {"name": "Bankroll", "value": f"{cur_sol:.4f} SOL (~${cur_usd:.2f})", "inline": True},
-                    {"name": "Performance", "value": f"{wins}W / {losses}L", "inline": True}
-                ],
-                "footer": {"text": "Solana Paper Bot"},
-                "timestamp": datetime.now(timezone.utc).isoformat()
-            })
-
-    if new_rows:
-        df_csv = pd.concat([df_csv, pd.DataFrame(new_rows)], ignore_index=True)
-        df_csv.to_csv(CSV_FILE, index=False)
-
-def resolve_and_fetch_live():
-    df = pd.read_csv(CSV_FILE, dtype=object)
-    
-    numeric_cols = ["entry_price_usd", "peak_price_usd", "sol_invested", "amount_tokens", "exit_price_usd", "pnl_usd", "pnl_sol"]
-    for col in numeric_cols:
-        if col in df.columns:
-            df[col] = pd.to_numeric(df[col], errors="coerce")
-
-    open_mask = df["status"] == "OPEN"
-    live_open_info = []
-
-    if not open_mask.any():
-        return live_open_info
-
-    open_indices = df[open_mask].index
-    
-    token_addresses = df.loc[open_indices, "token_address"].dropna().tolist()
-    tokens_str = ",".join(token_addresses[:30])
-    url = f"https://api.dexscreener.com/latest/dex/tokens/{tokens_str}"
-
-    try:
-        res = requests.get(url, headers=HEADERS, timeout=8)
-        data = res.json().get("pairs", [])
-        
-        token_price_map = {}
-        for p in data:
-            t_addr = p.get("baseToken", {}).get("address")
-            p_usd = float(p.get("priceUsd") or 0.0)
-            if t_addr and p_usd > 0:
-                if t_addr not in token_price_map:
-                    token_price_map[t_addr] = p_usd
     except Exception as e:
-        print(f"⚠️ API-Fehler bei Live-Abfrage: {e}")
-        return live_open_info
+        print(f"Fehler bei Scan: {e}")
 
-    now = get_utc_now()
+    return trades
 
-    for idx in open_indices:
-        token_addr = df.loc[idx, "token_address"]
-        current_price = token_price_map.get(token_addr)
-        
-        if not current_price or current_price <= 0:
-            continue
+def manage_open_trades(trades, sol_price):
+    open_trades = [t for t in trades if t.get("status") == "OPEN"]
+    if not open_trades:
+        return trades
 
-        entry_price = float(df.loc[idx, "entry_price_usd"])
-        entry_time = datetime.strptime(str(df.loc[idx, "entry_time"]), "%Y-%m-%d %H:%M:%S").replace(tzinfo=timezone.utc)
-        tokens = float(df.loc[idx, "amount_tokens"])
-        sol_in = float(df.loc[idx, "sol_invested"])
-        symbol = str(df.loc[idx, "symbol"])
+    now = datetime.now(timezone.utc)
 
-        current_peak = float(df.loc[idx, "peak_price_usd"]) if pd.notnull(df.loc[idx, "peak_price_usd"]) else entry_price
-        if current_price > current_peak:
-            current_peak = current_price
-            df.loc[idx, "peak_price_usd"] = current_peak
+    for trade in open_trades:
+        try:
+            pair_addr = trade.get("pair_address")
+            url = f"https://api.dexscreener.com/latest/dex/pairs/solana/{pair_addr}"
+            res = requests.get(url, timeout=5).json()
+            pairs = res.get("pairs")
+            if not pairs:
+                continue
 
-        pct_change = (current_price - entry_price) / entry_price
-        peak_pct_change = (current_peak - entry_price) / entry_price
-        age_minutes = (now - entry_time).total_seconds() / 60.0
+            current_signal_price = float(pairs[0].get("priceUsd") or 0.0)
+            if current_signal_price <= 0.0:
+                continue
 
-        current_sl = BASE_STOP_LOSS_PCT
-        sl_type = "SL_HIT"
+            entry_sim = float(trade["simulated_entry_usd"])
+            peak = max(float(trade["peak_price_usd"]), current_signal_price)
+            trade["peak_price_usd"] = f"{peak:.8f}"
 
-        if peak_pct_change >= TRAILING_TRIGGER:
-            trailing_sl = peak_pct_change - TRAILING_DISTANCE
-            if trailing_sl > current_sl:
-                current_sl = trailing_sl
-                sl_type = "TRAILING_SL"
-        elif peak_pct_change >= BREAK_EVEN_TRIGGER:
-            if BREAK_EVEN_LOCK > current_sl:
-                current_sl = BREAK_EVEN_LOCK
-                sl_type = "BREAK_EVEN"
+            price_change_raw = (current_signal_price - entry_sim) / entry_sim
+            peak_change = (peak - entry_sim) / entry_sim
 
-        exit_triggered = False
-        reason = ""
+            entry_dt = datetime.strptime(trade["entry_time"], "%Y-%m-%d %H:%M:%S").replace(tzinfo=timezone.utc)
+            held_seconds = (now - entry_dt).total_seconds()
 
-        if pct_change >= TAKE_PROFIT_PCT:
-            exit_triggered = True
-            reason = f"TP_HIT (+{pct_change:.1%})"
-        elif pct_change <= current_sl:
-            exit_triggered = True
-            reason = f"{sl_type} ({pct_change:.1%})"
-        elif age_minutes >= EARLY_PROFIT_MINUTES and pct_change >= EARLY_PROFIT_THRESHOLD:
-            exit_triggered = True
-            reason = f"TIME_PROFIT_TAKE (+{pct_change:.1%})"
-        elif age_minutes >= MAX_HOLD_MINUTES:
-            exit_triggered = True
-            reason = f"TIME_EXPIRED ({pct_change:.1%})"
+            exit_triggered = False
+            exit_reason = ""
 
-        if exit_triggered:
-            exit_usd = tokens * current_price
-            invested_usd = sol_in * SOL_PRICE_USD
-            pnl_usd = exit_usd - invested_usd
-            pnl_sol = pnl_usd / SOL_PRICE_USD
+            if price_change_raw >= TAKE_PROFIT_PCT:
+                exit_triggered = True
+                exit_reason = f"TP_HIT (+{price_change_raw*100:.1f}%)"
+            elif price_change_raw <= STOP_LOSS_PCT:
+                exit_triggered = True
+                exit_reason = f"SL_HIT ({price_change_raw*100:.1f}%)"
+            elif peak_change >= TRAILING_TRIGGER_PCT and current_signal_price <= peak * (1.0 - TRAILING_OFFSET_PCT):
+                exit_triggered = True
+                exit_reason = f"TRAILING_SL (+{price_change_raw*100:.1f}%)"
+            elif peak_change >= BREAK_EVEN_TRIGGER_PCT and price_change_raw <= 0.0:
+                exit_triggered = True
+                exit_reason = f"BREAK_EVEN ({price_change_raw*100:.1f}%)"
+            elif held_seconds >= MAX_HOLD_SECONDS:
+                exit_triggered = True
+                exit_reason = f"TIME_EXPIRED ({price_change_raw*100:.1f}%)"
 
-            df.at[idx, "status"] = "CLOSED"
-            df.at[idx, "exit_time"] = now.strftime("%Y-%m-%d %H:%M:%S")
-            df.at[idx, "exit_price_usd"] = current_price
-            df.at[idx, "pnl_usd"] = round(pnl_usd, 2)
-            df.at[idx, "pnl_sol"] = round(pnl_sol, 4)
-            df.at[idx, "exit_reason"] = reason
+            if exit_triggered:
+                # Variabler Slippage-Abzug beim Verkauf
+                actual_sell_slip = random.uniform(SLIPPAGE_SELL_MIN_PCT, SLIPPAGE_SELL_MAX_PCT)
+                simulated_exit = current_signal_price * (1.0 - actual_sell_slip)
 
-            icon = "💰" if pnl_usd > 0 else "🛑"
-            print(f"{icon} [EXIT] ${symbol} | Reason: {reason} | PnL: ${pnl_usd:+.2f} ({pnl_sol:+.4f} SOL)")
+                tokens = float(trade["amount_tokens"])
+                sol_inv = float(trade["sol_invested"])
 
-            # Vorübergehend in CSV speichern für exakte Bankroll-Berechnung
-            df.to_csv(CSV_FILE, index=False)
-            cur_sol, cur_usd, wins, losses = get_current_stats()
+                gross_return_usd = tokens * simulated_exit
+                gross_return_sol = gross_return_usd / sol_price
+                raw_pnl_sol = gross_return_sol - sol_inv
 
-            is_win = pnl_usd > 0
-            color = 3066993 if is_win else 15158332
-            pair_addr = str(df.loc[idx, "pair_address"])
-            
-            send_discord_alert({
-                "title": f"{icon} TRADE GESCHLOSSEN: ${symbol}",
-                "url": f"https://dexscreener.com/solana/{pair_addr}",
-                "color": color,
-                "fields": [
-                    {"name": "Exit Grund", "value": reason, "inline": True},
-                    {"name": "PnL", "value": f"${pnl_usd:+.2f} USD ({pnl_sol:+.4f} SOL)", "inline": True},
-                    {"name": "Verkaufskurs", "value": f"${current_price:.6f} (In: ${entry_price:.6f})", "inline": False},
-                    {"name": "Haltedauer", "value": f"{age_minutes:.1f} Minuten", "inline": True},
-                    {"name": "Aktuelle Bankroll", "value": f"{cur_sol:.4f} SOL (~${cur_usd:.2f})", "inline": True},
-                    {"name": "Performance", "value": f"{wins}W / {losses}L", "inline": True}
-                ],
-                "footer": {"text": "Solana Paper Bot"},
-                "timestamp": datetime.now(timezone.utc).isoformat()
-            })
-        else:
-            live_open_info.append({
-                "symbol": symbol,
-                "entry": entry_price,
-                "peak": current_peak,
-                "current": current_price,
-                "change": pct_change,
-                "sl_level": current_sl,
-                "age_min": age_minutes
-            })
+                # Reale Netzwerk- & DEX-Gebühren
+                dex_fee_sol = (sol_inv + gross_return_sol) * (DEX_FEE_PCT / 2.0)
+                total_fees = FIXED_PRIORITY_FEES_SOL + dex_fee_sol
+                net_pnl_sol = raw_pnl_sol - total_fees
+                net_pnl_usd = net_pnl_sol * sol_price
 
-    df.to_csv(CSV_FILE, index=False)
-    return live_open_info
+                trade["status"] = "CLOSED"
+                trade["exit_time"] = now.strftime("%Y-%m-%d %H:%M:%S")
+                trade["signal_exit_usd"] = f"{current_signal_price:.8f}"
+                trade["simulated_exit_usd"] = f"{simulated_exit:.8f}"
+                trade["exit_slip_pct"] = f"-{actual_sell_slip*100:.2f}%"
+                trade["raw_pnl_sol"] = f"{raw_pnl_sol:.4f}"
+                trade["fees_sol"] = f"{total_fees:.4f}"
+                trade["net_pnl_sol"] = f"{net_pnl_sol:.4f}"
+                trade["net_pnl_usd"] = f"{net_pnl_usd:.2f}"
+                trade["exit_reason"] = exit_reason
 
-def print_status_log(live_positions):
-    cur_sol, cur_usd, wins, losses = get_current_stats()
-    now_str = get_utc_now().strftime("%H:%M:%S UTC")
+                write_trades(trades)
+                
+                stats = get_current_stats(trades, sol_price)
+                desc = (
+                    f"**Symbol:** {trade['symbol']}\n"
+                    f"**Grund:** {exit_reason}\n"
+                    f"**Netto PnL:** {net_pnl_sol:+.4f} SOL ({net_pnl_usd:+.2f} USD)\n"
+                    f"**Reibungsabzüge:** Fees: -{total_fees:.4f} SOL | Slip: -{actual_sell_slip*100:.2f}%\n"
+                    f"━━━━━━━━━━━━━━━━━━\n"
+                    f"**Bankroll:** {stats['current_sol']:.4f} SOL (${stats['current_usd']:.2f})\n"
+                    f"**Stats:** {stats['wins']}W / {stats['losses']}L ({stats['winrate']:.1f}%)\n"
+                    f"**Gezahlte Tx-Fees gesamt:** {stats['total_fees_sol']:.4f} SOL"
+                )
+                color = 0x2ecc71 if net_pnl_sol > 0 else 0xe74c3c
+                send_discord_alert(f"Trade Closed: {trade['symbol']}", desc, color)
+                print(f"[EXIT REALISTISCH] {trade['symbol']} | {exit_reason} | Net: {net_pnl_sol:+.4f} SOL | Fee: {total_fees:.4f} SOL")
 
-    stats_str = f"Stats: {wins}W/{losses}L | Bankroll: {cur_sol:.4f} SOL (~${cur_usd:.2f})"
-    open_summary = f"Offen ({len(live_positions)}): " + ", ".join(
-        [f"{p['symbol']} ({p['change']*100:+.1f}%)" for p in live_positions]
-    ) if live_positions else "Keine offenen Positionen"
+        except Exception as e:
+            print(f"Fehler bei Trade-Update {trade.get('symbol')}: {e}")
 
-    print(f"[{now_str}] {stats_str} | {open_summary}")
+    return trades
 
-# ==========================================
-# AUSFÜHRUNG
-# ==========================================
+def main():
+    print("=== Solana Paper Bot v2 (Realitäts-Simulation Aktiv) ===")
+    send_discord_alert(
+        "Bot Neu Gestartet (Realitäts-Modus)", 
+        "Alle alten Daten verworfen.\n"
+        "Startkapital: **5,0000 SOL**\n"
+        "Dynamische Slippage: Entry (-0,5% bis +4,0%), Exit (-0,5% bis -4,5%)\n"
+        "Tx-Kosten: 0,006 SOL Priority + 1% DEX Fee pro Trade."
+    )
+
+    while True:
+        try:
+            sol_price = get_sol_price()
+            trades = read_trades()
+            trades = scan_and_enter(trades, sol_price)
+            trades = manage_open_trades(trades, sol_price)
+            time.sleep(12)
+        except KeyboardInterrupt:
+            break
+        except Exception as e:
+            print(f"Loop-Fehler: {e}")
+            time.sleep(10)
+
 if __name__ == "__main__":
-    init_csv()
-    print("🚀 Solana Paper Trading Bot gestartet...")
-    if DISCORD_WEBHOOK_URL:
-        print("🔔 Discord-Benachrichtigungen aktiv.")
-    else:
-        print("⚠️ Kein Discord Webhook konfiguriert (DISCORD_WEBHOOK_URL ist leer).")
-
-    last_scan_time = 0
-    last_log_time = 0
-
-    try:
-        while True:
-            now_ts = time.time()
-
-            # 1. Token-Suche im 15s-Takt
-            if now_ts - last_scan_time >= SCAN_INTERVAL_SECONDS:
-                scan_and_enter_trades()
-                last_scan_time = now_ts
-
-            # 2. Exits im 4s-Takt prüfen
-            live_data = resolve_and_fetch_live()
-
-            # 3. Status-Log alle 30s
-            if now_ts - last_log_time >= 30:
-                print_status_log(live_data)
-                last_log_time = now_ts
-
-            active_interval = FAST_CHECK_INTERVAL_SECONDS if len(live_data) > 0 else 10
-            time.sleep(active_interval)
-
-    except KeyboardInterrupt:
-        print("\n⏹️ Bot beendet.")
+    main()
