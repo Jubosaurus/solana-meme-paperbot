@@ -32,7 +32,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install requests
 
-      - name: Pull Latest Changes
+      - name: Configure Git
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
@@ -42,21 +42,14 @@ jobs:
         env:
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
         run: |
-          # Führt den Bot direkt aus; beendet sich nach 5 Stunden selbst
           python bot.py
 
-      - name: Commit and Push Updated CSVs
-        if: always()  # Läuft garantiert immer, selbst wenn vorher etwas abgebrochen wird!
+      - name: Final Backup Push
+        if: always()
         run: |
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git add solana_paper_trades_v2.csv rejected_rugs_tracking.csv || true
-          
           if git status --porcelain | grep -qE "solana_paper_trades_v2.csv|rejected_rugs_tracking.csv"; then
-            git commit -m "Auto-Update: Trades & Rug-Muster CSVs aktualisiert [skip ci]"
+            git commit -m "Final Session Push [skip ci]" || true
             git pull origin main --rebase || true
-            git push origin main
-            echo "CSVs erfolgreich ins Repository gepusht."
-          else
-            echo "Keine Änderungen zum Committen vorhanden."
+            git push origin main || true
           fi
