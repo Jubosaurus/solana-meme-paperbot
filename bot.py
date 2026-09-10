@@ -12,31 +12,35 @@ TRADE_SIZE_SOL = 0.25
 MAX_OPEN_TRADES = int(STARTING_SOL / TRADE_SIZE_SOL)  # Max 20 parallele Slots
 DISCORD_WEBHOOK_URL = os.environ.get("DISCORD_WEBHOOK_URL")
 
-# Realistische, variable Slippage-Korridore (Empirische Solana-Microcap-Werte)
-SLIPPAGE_BUY_MIN_PCT = -0.005         # Best-Case Buy: 0,5% günstiger (seltene Gegen-Tx im selben Slot)
-SLIPPAGE_BUY_MAX_PCT = 0.040          # Worst-Case Buy: 4,0% teurer (Momentum-Slippage)
-SLIPPAGE_MAX_TOLERANCE_PCT = 0.045    # Reject-Grenze: Orderabbruch bei > 4,5% Abweichung
+# Realistische, variable Slippage-Korridore
+SLIPPAGE_BUY_MIN_PCT = -0.005         # Best-Case Buy: 0,5% günstiger
+SLIPPAGE_BUY_MAX_PCT = 0.040          # Worst-Case Buy: 4,0% teurer
+SLIPPAGE_MAX_TOLERANCE_PCT = 0.045    # Reject bei > 4,5% Drift
 
-SLIPPAGE_SELL_MIN_PCT = 0.005         # Best-Case Sell: nur 0,5% unter Signalpreis
-SLIPPAGE_SELL_MAX_PCT = 0.045         # Worst-Case Sell: 4,5% unter Signalpreis (Verkauf in fallende Liquidität)
+SLIPPAGE_SELL_MIN_PCT = 0.005         # Best-Case Sell: nur 0,5% unter Signal
+SLIPPAGE_SELL_MAX_PCT = 0.045         # Worst-Case Sell: 4,5% unter Signal
 
 # Feste Transaktions- & DEX-Kosten
-FIXED_PRIORITY_FEES_SOL = 0.006       # 0.003 SOL Buy + 0.003 SOL Sell Priority/Jito Fee
-DEX_FEE_PCT = 0.010                   # 0,5% Swap-Gebühr beim Kauf + 0,5% beim Verkauf
+FIXED_PRIORITY_FEES_SOL = 0.006       # 0.003 SOL Buy + 0.003 SOL Sell Priority Fee
+DEX_FEE_PCT = 0.010                   # 0,5% DEX-Fee Buy + 0,5% Sell
 
 # Strategie-Parameter
 TAKE_PROFIT_PCT = 0.50                # +50% TP
 STOP_LOSS_PCT = -0.15                 # -15% SL
-TRAILING_TRIGGER_PCT = 0.20           # Trailing SL aktiviert ab +20%
-TRAILING_OFFSET_PCT = 0.10            # Trailing Abstand 10% vom Peak
-BREAK_EVEN_TRIGGER_PCT = 0.15         # SL auf Break-Even ab +15%
-MAX_HOLD_SECONDS = 900                # 15 Minuten Time-Limit
+TRAILING_TRIGGER_PCT = 0.20           # Trailing SL ab +20%
+TRAILING_OFFSET_PCT = 0.10            # 10% Abstand vom Peak
+BREAK_EVEN_TRIGGER_PCT = 0.15         # Break-Even ab +15%
+MAX_HOLD_SECONDS = 900                # 15 Min Timeout
 
 CSV_HEADERS = [
-    "token_address", "pair_address", "symbol", "entry_time", "signal_price_usd",
-    "simulated_entry_usd", "entry_slip_pct", "peak_price_usd", "sol_invested", 
-    "amount_tokens", "status", "exit_time", "signal_exit_usd", "simulated_exit_usd",
-    "exit_slip_pct", "raw_pnl_sol", "fees_sol", "net_pnl_sol", "net_pnl_usd", "exit_reason"
+    "token_address", "pair_address", "symbol", "dex_id",
+    "entry_time", "pair_age_hours", "socials_count",
+    "entry_liquidity_usd", "entry_fdv_usd", "entry_vol_m5", "vol_to_liq_ratio",
+    "entry_buys_m5", "entry_sells_m5", "entry_buy_ratio_m5", "price_change_m5_pct",
+    "signal_price_usd", "simulated_entry_usd", "entry_slip_pct", "sol_invested", "amount_tokens",
+    "peak_price_usd", "peak_gain_pct", "max_drawdown_pct", "hold_duration_seconds",
+    "status", "exit_time", "signal_exit_usd", "simulated_exit_usd", "exit_slip_pct", "exit_reason",
+    "raw_pnl_sol", "fees_sol", "net_pnl_sol", "net_pnl_usd"
 ]
 
 def get_sol_price():
@@ -65,7 +69,7 @@ def send_discord_alert(title, description, color=0x3498db):
     try:
         requests.post(DISCORD_WEBHOOK_URL, json=payload, timeout=5)
     except Exception as e:
-        print(f"Discord Webhook Fehler: {e}")
+        print(f"Discord Fehler: {e}")
 
 def init_csv():
     if not os.path.exists(CSV_FILE):
@@ -123,6 +127,7 @@ def scan_and_enter(trades, sol_price):
             return trades
 
         existing_tokens = {t["token_address"] for t in trades}
+        now_dt = datetime.now(timezone.utc)
 
         for item in res:
             if open_count >= MAX_OPEN_TRADES:
@@ -144,17 +149,29 @@ def scan_and_enter(trades, sol_price):
             price_usd = float(pair.get("priceUsd") or 0.0)
             liquidity = float(pair.get("liquidity", {}).get("usd") or 0.0)
             vol_5m = float(pair.get("volume", {}).get("m5") or 0.0)
+            fdv_usd = float(pair.get("fdv") or 0.0)
             tx_5m = pair.get("txns", {}).get("m5", {})
             buys_5m = tx_5m.get("buys", 0)
             sells_5m = tx_5m.get("sells", 0)
+            price_change_m5 = float(pair.get("priceChange", {}).get("m5") or 0.0)
 
             # Filterkriterien
             if liquidity < 15000 or vol_5m < 3000 or (buys_5m + sells_5m < 15):
                 continue
-            if buys_5m / (buys_5m + sells_5m) < 0.55 or price_usd <= 0.0:
+            buy_ratio = buys_5m / (buys_5m + sells_5m)
+            if buy_ratio < 0.55 or price_usd <= 0.0:
                 continue
 
-            # Realistische variable Entry-Slippage
+            # Pool-Alter in Stunden berechnen
+            created_at_ms = pair.get("pairCreatedAt")
+            pair_age_hours = 0.0
+            if created_at_ms:
+                pair_age_hours = round((now_dt.timestamp() - (created_at_ms / 1000.0)) / 3600.0, 2)
+
+            socials_count = len(pair.get("info", {}).get("socials", []))
+            vol_to_liq = round(vol_5m / liquidity, 2) if liquidity > 0 else 0.0
+
+            # Variable Entry-Slippage
             actual_buy_slip = random.uniform(SLIPPAGE_BUY_MIN_PCT, SLIPPAGE_BUY_MAX_PCT)
             if actual_buy_slip > SLIPPAGE_MAX_TOLERANCE_PCT:
                 print(f"[REJECT] {pair.get('baseToken', {}).get('symbol')}: Slippage drift too high ({actual_buy_slip*100:.2f}%)")
@@ -168,30 +185,56 @@ def scan_and_enter(trades, sol_price):
                 "token_address": token_addr,
                 "pair_address": pair.get("pairAddress"),
                 "symbol": pair.get("baseToken", {}).get("symbol", "UNKNOWN"),
-                "entry_time": datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S"),
+                "dex_id": pair.get("dexId", "unknown"),
+                "entry_time": now_dt.strftime("%Y-%m-%d %H:%M:%S"),
+                "pair_age_hours": pair_age_hours,
+                "socials_count": socials_count,
+                "entry_liquidity_usd": round(liquidity, 2),
+                "entry_fdv_usd": round(fdv_usd, 2),
+                "entry_vol_m5": round(vol_5m, 2),
+                "vol_to_liq_ratio": vol_to_liq,
+                "entry_buys_m5": buys_5m,
+                "entry_sells_m5": sells_5m,
+                "entry_buy_ratio_m5": f"{buy_ratio*100:.1f}%",
+                "price_change_m5_pct": f"{price_change_m5:+.1f}%",
                 "signal_price_usd": f"{price_usd:.8f}",
                 "simulated_entry_usd": f"{simulated_entry:.8f}",
-                "entry_slip_pct": f"{actual_buy_slip*100:.2f}%",
-                "peak_price_usd": f"{simulated_entry:.8f}",
+                "entry_slip_pct": f"{actual_buy_slip*100:+.2f}%",
                 "sol_invested": TRADE_SIZE_SOL,
                 "amount_tokens": tokens_bought,
+                "peak_price_usd": f"{simulated_entry:.8f}",
+                "peak_gain_pct": "0.0%",
+                "max_drawdown_pct": "0.0%",
+                "hold_duration_seconds": 0,
                 "status": "OPEN",
                 "exit_time": "",
                 "signal_exit_usd": "",
                 "simulated_exit_usd": "",
                 "exit_slip_pct": "",
+                "exit_reason": "",
                 "raw_pnl_sol": "0.0",
                 "fees_sol": "0.0",
                 "net_pnl_sol": "0.0",
-                "net_pnl_usd": "0.0",
-                "exit_reason": ""
+                "net_pnl_usd": "0.0"
             }
 
             trades.append(new_trade)
             open_count += 1
             existing_tokens.add(token_addr)
             write_trades(trades)
-            print(f"[ENTRY REALISTISCH] {new_trade['symbol']} | Fill: ${simulated_entry:.6f} (Slippage: {actual_buy_slip*100:+.2f}%)")
+            print(f"[ENTRY] {new_trade['symbol']} | Fill: ${simulated_entry:.6f} ({actual_buy_slip*100:+.2f}%)")
+
+            # Discord Alert bei Kauf
+            desc = (
+                f"**Symbol:** {new_trade['symbol']} ({new_trade['dex_id']})\n"
+                f"**Fill-Kurs:** ${simulated_entry:.8f} (Slippage: {actual_buy_slip*100:+.2f}%)\n"
+                f"**Liq:** ${liquidity:,.0f} | **FDV:** ${fdv_usd:,.0f}\n"
+                f"**5m Vol:** ${vol_5m:,.0f} | **Buy-Ratio:** {buy_ratio*100:.1f}%\n"
+                f"**Pool-Alter:** {pair_age_hours:.1f}h | **Socials:** {socials_count}\n"
+                f"━━━━━━━━━━━━━━━━━━\n"
+                f"Offene Positionen: {open_count}/{MAX_OPEN_TRADES}"
+            )
+            send_discord_alert(f"🟢 Buy Executed: {new_trade['symbol']}", desc, 0x3498db)
 
     except Exception as e:
         print(f"Fehler bei Scan: {e}")
@@ -219,14 +262,23 @@ def manage_open_trades(trades, sol_price):
                 continue
 
             entry_sim = float(trade["simulated_entry_usd"])
-            peak = max(float(trade["peak_price_usd"]), current_signal_price)
+            
+            # Peak & Max Drawdown dynamisch tracken
+            peak = max(float(trade.get("peak_price_usd", entry_sim)), current_signal_price)
             trade["peak_price_usd"] = f"{peak:.8f}"
+            peak_gain = (peak - entry_sim) / entry_sim
+            trade["peak_gain_pct"] = f"{peak_gain*100:+.1f}%"
+
+            # Drawdown vom Einstieg
+            current_drawdown = (current_signal_price - entry_sim) / entry_sim
+            prev_max_dd = float(trade.get("max_drawdown_pct", "0.0%").replace("%", "")) / 100.0
+            if current_drawdown < prev_max_dd:
+                trade["max_drawdown_pct"] = f"{current_drawdown*100:.1f}%"
 
             price_change_raw = (current_signal_price - entry_sim) / entry_sim
-            peak_change = (peak - entry_sim) / entry_sim
-
             entry_dt = datetime.strptime(trade["entry_time"], "%Y-%m-%d %H:%M:%S").replace(tzinfo=timezone.utc)
-            held_seconds = (now - entry_dt).total_seconds()
+            held_seconds = int((now - entry_dt).total_seconds())
+            trade["hold_duration_seconds"] = held_seconds
 
             exit_triggered = False
             exit_reason = ""
@@ -237,10 +289,10 @@ def manage_open_trades(trades, sol_price):
             elif price_change_raw <= STOP_LOSS_PCT:
                 exit_triggered = True
                 exit_reason = f"SL_HIT ({price_change_raw*100:.1f}%)"
-            elif peak_change >= TRAILING_TRIGGER_PCT and current_signal_price <= peak * (1.0 - TRAILING_OFFSET_PCT):
+            elif peak_gain >= TRAILING_TRIGGER_PCT and current_signal_price <= peak * (1.0 - TRAILING_OFFSET_PCT):
                 exit_triggered = True
                 exit_reason = f"TRAILING_SL (+{price_change_raw*100:.1f}%)"
-            elif peak_change >= BREAK_EVEN_TRIGGER_PCT and price_change_raw <= 0.0:
+            elif peak_gain >= BREAK_EVEN_TRIGGER_PCT and price_change_raw <= 0.0:
                 exit_triggered = True
                 exit_reason = f"BREAK_EVEN ({price_change_raw*100:.1f}%)"
             elif held_seconds >= MAX_HOLD_SECONDS:
@@ -281,9 +333,10 @@ def manage_open_trades(trades, sol_price):
                 stats = get_current_stats(trades, sol_price)
                 desc = (
                     f"**Symbol:** {trade['symbol']}\n"
-                    f"**Grund:** {exit_reason}\n"
+                    f"**Grund:** {exit_reason} (Dauer: {held_seconds}s)\n"
                     f"**Netto PnL:** {net_pnl_sol:+.4f} SOL ({net_pnl_usd:+.2f} USD)\n"
-                    f"**Reibungsabzüge:** Fees: -{total_fees:.4f} SOL | Slip: -{actual_sell_slip*100:.2f}%\n"
+                    f"**Abzüge:** Fees: -{total_fees:.4f} SOL | Slip: -{actual_sell_slip*100:.2f}%\n"
+                    f"**Max Gain:** {trade.get('peak_gain_pct')} | **Max DD:** {trade.get('max_drawdown_pct')}\n"
                     f"━━━━━━━━━━━━━━━━━━\n"
                     f"**Bankroll:** {stats['current_sol']:.4f} SOL (${stats['current_usd']:.2f})\n"
                     f"**Stats:** {stats['wins']}W / {stats['losses']}L ({stats['winrate']:.1f}%)\n"
@@ -291,7 +344,7 @@ def manage_open_trades(trades, sol_price):
                 )
                 color = 0x2ecc71 if net_pnl_sol > 0 else 0xe74c3c
                 send_discord_alert(f"Trade Closed: {trade['symbol']}", desc, color)
-                print(f"[EXIT REALISTISCH] {trade['symbol']} | {exit_reason} | Net: {net_pnl_sol:+.4f} SOL | Fee: {total_fees:.4f} SOL")
+                print(f"[EXIT] {trade['symbol']} | {exit_reason} | Net: {net_pnl_sol:+.4f} SOL | Fee: {total_fees:.4f} SOL")
 
         except Exception as e:
             print(f"Fehler bei Trade-Update {trade.get('symbol')}: {e}")
@@ -299,13 +352,13 @@ def manage_open_trades(trades, sol_price):
     return trades
 
 def main():
-    print("=== Solana Paper Bot v2 (Realitäts-Simulation Aktiv) ===")
+    print("=== Solana Paper Bot v2 (Erweiterte Realitäts-Simulation) ===")
     send_discord_alert(
-        "Bot Neu Gestartet (Realitäts-Modus)", 
-        "Alle alten Daten verworfen.\n"
+        "Bot Neu Gestartet (Vollständige Simulation)", 
+        "Alle Datenpunkte & Filterkriterien aktiv.\n"
         "Startkapital: **5,0000 SOL**\n"
-        "Dynamische Slippage: Entry (-0,5% bis +4,0%), Exit (-0,5% bis -4,5%)\n"
-        "Tx-Kosten: 0,006 SOL Priority + 1% DEX Fee pro Trade."
+        "Tracking: Alter, Socials, Drawdowns, Duration, Slippage & Fees.\n"
+        "Live-Benachrichtigung: Bei jedem Kauf 🟢 und Verkauf 🔴."
     )
 
     while True:
