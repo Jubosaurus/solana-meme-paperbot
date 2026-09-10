@@ -12,6 +12,12 @@ TRADE_SIZE_SOL = 0.25
 MAX_OPEN_TRADES = int(STARTING_SOL / TRADE_SIZE_SOL)  # Max 20 parallele Slots
 DISCORD_WEBHOOK_URL = os.environ.get("DISCORD_WEBHOOK_URL")
 
+# Farbschema für Discord (Hex-Werte als Integer)
+COLOR_BUY = 0x00B4D8          # Electric Cyan für Einstiege
+COLOR_EXIT_WIN = 0x10B981     # Emerald Green für Gewinne
+COLOR_EXIT_LOSS = 0xEF4444    # Crimson Red für Verluste
+COLOR_EXIT_NEUTRAL = 0xF59E0B # Amber Gold für Break-Even
+
 # Realistische, variable Slippage-Korridore
 SLIPPAGE_BUY_MIN_PCT = -0.005         # Best-Case Buy: 0,5% günstiger
 SLIPPAGE_BUY_MAX_PCT = 0.040          # Worst-Case Buy: 4,0% teurer
@@ -31,15 +37,17 @@ TRAILING_TRIGGER_PCT = 0.20           # Trailing SL ab +20%
 TRAILING_OFFSET_PCT = 0.10            # 10% Abstand vom Peak
 BREAK_EVEN_TRIGGER_PCT = 0.15         # Break-Even ab +15%
 MAX_HOLD_SECONDS = 900                # 15 Min Timeout
+RUG_LIQUIDITY_DROP_THRESHOLD = -0.40  # Notverkauf wenn Liquidität um >40% fällt
 
 CSV_HEADERS = [
-    "token_address", "pair_address", "symbol", "dex_id",
+    "token_address", "pair_address", "symbol", "dex_id", "trade_num_for_token",
     "entry_time", "pair_age_hours", "socials_count",
     "entry_liquidity_usd", "entry_fdv_usd", "entry_vol_m5", "vol_to_liq_ratio",
     "entry_buys_m5", "entry_sells_m5", "entry_buy_ratio_m5", "price_change_m5_pct",
     "signal_price_usd", "simulated_entry_usd", "entry_slip_pct", "sol_invested", "amount_tokens",
     "peak_price_usd", "peak_gain_pct", "max_drawdown_pct", "hold_duration_seconds",
-    "status", "exit_time", "signal_exit_usd", "simulated_exit_usd", "exit_slip_pct", "exit_reason",
+    "status", "exit_time", "signal_exit_usd", "simulated_exit_usd", "exit_slip_pct",
+    "exit_liquidity_usd", "liq_change_pct", "exit_reason",
     "raw_pnl_sol", "fees_sol", "net_pnl_sol", "net_pnl_usd"
 ]
 
@@ -55,17 +63,19 @@ def get_sol_price():
     except Exception:
         return 100.0
 
-def send_discord_alert(title, description, color=0x3498db):
+def send_discord_alert(title, description, color=0x3498db, chart_url=None):
     if not DISCORD_WEBHOOK_URL:
         return
-    payload = {
-        "embeds": [{
-            "title": title,
-            "description": description,
-            "color": color,
-            "timestamp": datetime.now(timezone.utc).isoformat()
-        }]
+    embed = {
+        "title": title,
+        "description": description,
+        "color": color,
+        "timestamp": datetime.now(timezone.utc).isoformat()
     }
+    if chart_url:
+        embed["url"] = chart_url  # Klickbarer Titel
+    
+    payload = {"embeds": [embed]}
     try:
         requests.post(DISCORD_WEBHOOK_URL, json=payload, timeout=5)
     except Exception as e:
@@ -116,9 +126,11 @@ def get_current_stats(trades, sol_price):
     }
 
 def scan_and_enter(trades, sol_price):
-    open_count = len([t for t in trades if t.get("status") == "OPEN"])
-    if open_count >= MAX_OPEN_TRADES:
+    open_trades = [t for t in trades if t.get("status") == "OPEN"]
+    if len(open_trades) >= MAX_OPEN_TRADES:
         return trades
+
+    active_tokens = {t["token_address"] for t in open_trades}
 
     try:
         url = "https://api.dexscreener.com/token-profiles/latest/v1"
@@ -126,17 +138,16 @@ def scan_and_enter(trades, sol_price):
         if not isinstance(res, list):
             return trades
 
-        existing_tokens = {t["token_address"] for t in trades}
         now_dt = datetime.now(timezone.utc)
 
         for item in res:
-            if open_count >= MAX_OPEN_TRADES:
+            if len([t for t in trades if t.get("status") == "OPEN"]) >= MAX_OPEN_TRADES:
                 break
             if item.get("chainId") != "solana":
                 continue
             
             token_addr = item.get("tokenAddress")
-            if token_addr in existing_tokens:
+            if token_addr in active_tokens:
                 continue
 
             pair_url = f"https://api.dexscreener.com/latest/dex/tokens/{token_addr}"
@@ -146,6 +157,7 @@ def scan_and_enter(trades, sol_price):
                 continue
 
             pair = pairs[0]
+            pair_addr = pair.get("pairAddress")
             price_usd = float(pair.get("priceUsd") or 0.0)
             liquidity = float(pair.get("liquidity", {}).get("usd") or 0.0)
             vol_5m = float(pair.get("volume", {}).get("m5") or 0.0)
@@ -162,7 +174,8 @@ def scan_and_enter(trades, sol_price):
             if buy_ratio < 0.55 or price_usd <= 0.0:
                 continue
 
-            # Pool-Alter in Stunden berechnen
+            token_history_count = len([t for t in trades if t.get("token_address") == token_addr]) + 1
+
             created_at_ms = pair.get("pairCreatedAt")
             pair_age_hours = 0.0
             if created_at_ms:
@@ -183,9 +196,10 @@ def scan_and_enter(trades, sol_price):
 
             new_trade = {
                 "token_address": token_addr,
-                "pair_address": pair.get("pairAddress"),
+                "pair_address": pair_addr,
                 "symbol": pair.get("baseToken", {}).get("symbol", "UNKNOWN"),
                 "dex_id": pair.get("dexId", "unknown"),
+                "trade_num_for_token": token_history_count,
                 "entry_time": now_dt.strftime("%Y-%m-%d %H:%M:%S"),
                 "pair_age_hours": pair_age_hours,
                 "socials_count": socials_count,
@@ -211,6 +225,8 @@ def scan_and_enter(trades, sol_price):
                 "signal_exit_usd": "",
                 "simulated_exit_usd": "",
                 "exit_slip_pct": "",
+                "exit_liquidity_usd": "",
+                "liq_change_pct": "",
                 "exit_reason": "",
                 "raw_pnl_sol": "0.0",
                 "fees_sol": "0.0",
@@ -219,22 +235,23 @@ def scan_and_enter(trades, sol_price):
             }
 
             trades.append(new_trade)
-            open_count += 1
-            existing_tokens.add(token_addr)
+            active_tokens.add(token_addr)
             write_trades(trades)
-            print(f"[ENTRY] {new_trade['symbol']} | Fill: ${simulated_entry:.6f} ({actual_buy_slip*100:+.2f}%)")
+            print(f"[ENTRY] {new_trade['symbol']} (#{token_history_count}) | Fill: ${simulated_entry:.6f} ({actual_buy_slip*100:+.2f}%)")
 
-            # Discord Alert bei Kauf
+            chart_url = f"https://dexscreener.com/solana/{pair_addr}"
+            current_open = len([t for t in trades if t.get("status") == "OPEN"])
             desc = (
-                f"**Symbol:** {new_trade['symbol']} ({new_trade['dex_id']})\n"
+                f"**Symbol:** [{new_trade['symbol']}]({chart_url}) ({new_trade['dex_id']}) | Trade #{token_history_count}\n"
                 f"**Fill-Kurs:** ${simulated_entry:.8f} (Slippage: {actual_buy_slip*100:+.2f}%)\n"
                 f"**Liq:** ${liquidity:,.0f} | **FDV:** ${fdv_usd:,.0f}\n"
                 f"**5m Vol:** ${vol_5m:,.0f} | **Buy-Ratio:** {buy_ratio*100:.1f}%\n"
                 f"**Pool-Alter:** {pair_age_hours:.1f}h | **Socials:** {socials_count}\n"
                 f"━━━━━━━━━━━━━━━━━━\n"
-                f"Offene Positionen: {open_count}/{MAX_OPEN_TRADES}"
+                f"📈 **[DexScreener Live-Chart öffnen]({chart_url})**\n"
+                f"Offene Positionen: {current_open}/{MAX_OPEN_TRADES}"
             )
-            send_discord_alert(f"🟢 Buy Executed: {new_trade['symbol']}", desc, 0x3498db)
+            send_discord_alert(f"🔵 Buy Order: {new_trade['symbol']}", desc, COLOR_BUY, chart_url)
 
     except Exception as e:
         print(f"Fehler bei Scan: {e}")
@@ -258,18 +275,20 @@ def manage_open_trades(trades, sol_price):
                 continue
 
             current_signal_price = float(pairs[0].get("priceUsd") or 0.0)
+            current_liquidity = float(pairs[0].get("liquidity", {}).get("usd") or 0.0)
             if current_signal_price <= 0.0:
                 continue
 
             entry_sim = float(trade["simulated_entry_usd"])
+            entry_liq = float(trade.get("entry_liquidity_usd") or 1.0)
             
-            # Peak & Max Drawdown dynamisch tracken
+            liq_change = (current_liquidity - entry_liq) / entry_liq if entry_liq > 0 else 0.0
+            
             peak = max(float(trade.get("peak_price_usd", entry_sim)), current_signal_price)
             trade["peak_price_usd"] = f"{peak:.8f}"
             peak_gain = (peak - entry_sim) / entry_sim
             trade["peak_gain_pct"] = f"{peak_gain*100:+.1f}%"
 
-            # Drawdown vom Einstieg
             current_drawdown = (current_signal_price - entry_sim) / entry_sim
             prev_max_dd = float(trade.get("max_drawdown_pct", "0.0%").replace("%", "")) / 100.0
             if current_drawdown < prev_max_dd:
@@ -283,7 +302,11 @@ def manage_open_trades(trades, sol_price):
             exit_triggered = False
             exit_reason = ""
 
-            if price_change_raw >= TAKE_PROFIT_PCT:
+            # 1. Notausstieg bei Liquiditäts-Kollaps (>40% Drop)
+            if liq_change <= RUG_LIQUIDITY_DROP_THRESHOLD:
+                exit_triggered = True
+                exit_reason = f"RUG_LIQ_DROP ({liq_change*100:.1f}%)"
+            elif price_change_raw >= TAKE_PROFIT_PCT:
                 exit_triggered = True
                 exit_reason = f"TP_HIT (+{price_change_raw*100:.1f}%)"
             elif price_change_raw <= STOP_LOSS_PCT:
@@ -322,6 +345,8 @@ def manage_open_trades(trades, sol_price):
                 trade["signal_exit_usd"] = f"{current_signal_price:.8f}"
                 trade["simulated_exit_usd"] = f"{simulated_exit:.8f}"
                 trade["exit_slip_pct"] = f"-{actual_sell_slip*100:.2f}%"
+                trade["exit_liquidity_usd"] = round(current_liquidity, 2)
+                trade["liq_change_pct"] = f"{liq_change*100:+.1f}%"
                 trade["raw_pnl_sol"] = f"{raw_pnl_sol:.4f}"
                 trade["fees_sol"] = f"{total_fees:.4f}"
                 trade["net_pnl_sol"] = f"{net_pnl_sol:.4f}"
@@ -331,19 +356,32 @@ def manage_open_trades(trades, sol_price):
                 write_trades(trades)
                 
                 stats = get_current_stats(trades, sol_price)
+                chart_url = f"https://dexscreener.com/solana/{pair_addr}"
+
+                # Farblogik für den Exit
+                if net_pnl_sol > 0.001:
+                    embed_color = COLOR_EXIT_WIN
+                    title_prefix = "🟢 Trade Win"
+                elif net_pnl_sol < -0.001:
+                    embed_color = COLOR_EXIT_LOSS
+                    title_prefix = "🔴 Trade Loss"
+                else:
+                    embed_color = COLOR_EXIT_NEUTRAL
+                    title_prefix = "🟡 Trade Neutral"
+
                 desc = (
-                    f"**Symbol:** {trade['symbol']}\n"
-                    f"**Grund:** {exit_reason} (Dauer: {held_seconds}s)\n"
-                    f"**Netto PnL:** {net_pnl_sol:+.4f} SOL ({net_pnl_usd:+.2f} USD)\n"
+                    f"**Symbol:** [{trade['symbol']}]({chart_url}) | {trade.get('exit_reason')} (Dauer: {held_seconds}s)\n"
+                    f"**Netto PnL:** **{net_pnl_sol:+.4f} SOL** ({net_pnl_usd:+.2f} USD)\n"
+                    f"**Liq beim Exit:** ${current_liquidity:,.0f} ({liq_change*100:+.1f}%)\n"
                     f"**Abzüge:** Fees: -{total_fees:.4f} SOL | Slip: -{actual_sell_slip*100:.2f}%\n"
                     f"**Max Gain:** {trade.get('peak_gain_pct')} | **Max DD:** {trade.get('max_drawdown_pct')}\n"
                     f"━━━━━━━━━━━━━━━━━━\n"
-                    f"**Bankroll:** {stats['current_sol']:.4f} SOL (${stats['current_usd']:.2f})\n"
+                    f"📈 **[DexScreener Chart analysieren]({chart_url})**\n"
+                    f"**Bankroll:** **{stats['current_sol']:.4f} SOL** (${stats['current_usd']:.2f})\n"
                     f"**Stats:** {stats['wins']}W / {stats['losses']}L ({stats['winrate']:.1f}%)\n"
                     f"**Gezahlte Tx-Fees gesamt:** {stats['total_fees_sol']:.4f} SOL"
                 )
-                color = 0x2ecc71 if net_pnl_sol > 0 else 0xe74c3c
-                send_discord_alert(f"Trade Closed: {trade['symbol']}", desc, color)
+                send_discord_alert(f"{title_prefix}: {trade['symbol']}", desc, embed_color, chart_url)
                 print(f"[EXIT] {trade['symbol']} | {exit_reason} | Net: {net_pnl_sol:+.4f} SOL | Fee: {total_fees:.4f} SOL")
 
         except Exception as e:
@@ -354,11 +392,11 @@ def manage_open_trades(trades, sol_price):
 def main():
     print("=== Solana Paper Bot v2 (Erweiterte Realitäts-Simulation) ===")
     send_discord_alert(
-        "Bot Neu Gestartet (Vollständige Simulation)", 
+        "Bot Aktiviert (Vollständige Simulation)", 
         "Alle Datenpunkte & Filterkriterien aktiv.\n"
         "Startkapital: **5,0000 SOL**\n"
-        "Tracking: Alter, Socials, Drawdowns, Duration, Slippage & Fees.\n"
-        "Live-Benachrichtigung: Bei jedem Kauf 🟢 und Verkauf 🔴."
+        "Features: Direkte DexScreener-Links, Chart-Audits, Rug-Schutz & Re-Entry-Tracking.\n"
+        "Farbschema: 🔵 Kauf | 🟢 Gewinn | 🔴 Verlust | 🟡 Neutral."
     )
 
     while True:
