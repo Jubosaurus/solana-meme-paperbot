@@ -3,10 +3,8 @@ name: Solana Paper Trading Bot
 on:
   workflow_dispatch:
   schedule:
-    # Startet alle 6 Stunden automatisch
     - cron: '0 */6 * * *'
 
-# Verhindert parallele Instanzen: Nur ein Bot darf aktiv sein
 concurrency:
   group: solana-trading-bot
   cancel-in-progress: false
@@ -14,7 +12,7 @@ concurrency:
 jobs:
   run-bot:
     runs-on: ubuntu-latest
-    timeout-minutes: 360  # Maximal 6 Stunden Gesamtlaufzeit
+    timeout-minutes: 360
 
     steps:
       - name: Checkout Repository
@@ -40,32 +38,20 @@ jobs:
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git pull origin main --rebase || true
 
-      - name: Run Trading Bot Loop (5.5 Stunden)
+      - name: Run Trading Bot (5 Stunden)
         env:
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
         run: |
-          # Führt den Bot im Hintergrund aus und stoppt ihn sauber nach 19800 Sekunden (5,5 Std.)
-          python bot.py &
-          BOT_PID=$!
-          echo "Bot läuft unter PID $BOT_PID..."
-          
-          # 5,5 Stunden (19.800 Sekunden) laufen lassen
-          sleep 19800 || true
-          
-          echo "Stoppe Bot nach 5,5 Stunden für Git-Push..."
-          kill -SIGINT $BOT_PID 2>/dev/null || kill -SIGTERM $BOT_PID 2>/dev/null || true
-          wait $BOT_PID 2>/dev/null || true
-          echo "Bot sauber beendet."
+          # Führt den Bot direkt aus; beendet sich nach 5 Stunden selbst
+          python bot.py
 
       - name: Commit and Push Updated CSVs
+        if: always()  # Läuft garantiert immer, selbst wenn vorher etwas abgebrochen wird!
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          
-          # Beide CSVs vormerken: Deine Trades und das Rug-Schatten-Tracking
           git add solana_paper_trades_v2.csv rejected_rugs_tracking.csv || true
           
-          # Nur committen und pushen, wenn neue Daten vorhanden sind
           if git status --porcelain | grep -qE "solana_paper_trades_v2.csv|rejected_rugs_tracking.csv"; then
             git commit -m "Auto-Update: Trades & Rug-Muster CSVs aktualisiert [skip ci]"
             git pull origin main --rebase || true
