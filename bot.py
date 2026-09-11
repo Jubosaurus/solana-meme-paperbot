@@ -16,11 +16,12 @@ MAX_OPEN_TRADES = int(STARTING_SOL / TRADE_SIZE_SOL)  # Max 20 Slots
 MAX_TRACKED_REJECTS = 15                              # Max 15 parallele Schatten-Beobachtungen
 DISCORD_WEBHOOK_URL = os.environ.get("DISCORD_WEBHOOK_URL")
 
-# Schutzregeln & kalibrierte Anti-Peak-Filter
+# Schutzregeln & kalibrierte Filter
 MAX_TRADES_PER_TOKEN = 1              # Jeder Token darf exakt 1x gehandelt werden
-MIN_PAIR_AGE_HOURS = 0.35             # ~21 Minuten: Sniper-Welle vorbei, Trend noch aktiv
+MIN_PAIR_AGE_HOURS = 0.35             # ~21 Minuten: Sniper-Welle vorbei
 MIN_PRICE_CHANGE_M5 = 0.0             # Stabiler Boden oder leichtes Momentum (>= 0%)
 MAX_PRICE_CHANGE_M5 = 25.0            # Anti-FOMO: Kerzen > +25% werden verworfen
+MIN_BUY_RATIO = 0.62                  # NEU: Min. 62% Buy-Ratio (starker Kaufdruck)
 MIN_LIQ_TO_FDV_RATIO = 0.03           # Min. 3% Liquidität im Verhältnis zum FDV
 
 # RugCheck Sicherheitsgrenzen
@@ -46,17 +47,18 @@ DEX_FEE_PCT = 0.010                   # 0,5% Buy + 0,5% Sell DEX Fee
 
 # Strategie-Parameter
 TAKE_PROFIT_PCT = 0.50                # Fester TP bei +50%
-STOP_LOSS_PCT = -0.15                 # SL bei -15%
+STOP_LOSS_PCT = -0.20                 # NEU: SL auf -20% erweitert (gegen Shakeouts)
+MIN_HOLD_BEFORE_SL = 30               # NEU: 30s Puffer gegen sofortiges Ausstoppen im Wick
 TRAILING_TRIGGER_PCT = 0.20           # Trailing SL ab +20%
 TRAILING_OFFSET_PCT = 0.10            # 10% Abstand vom Peak
 BREAK_EVEN_TRIGGER_PCT = 0.15         # Break-Even ab +15%
 MAX_HOLD_SECONDS = 900                # 15 Min Timeout
-RUG_LIQUIDITY_DROP_THRESHOLD = -0.40  # Notverkauf wenn Liq um >40% fällt
+RUG_LIQUIDITY_DROP_THRESHOLD = -0.40  # Sofortiger Notverkauf wenn Liq um >40% fällt
 
 # Tracking-Zeiten & Session-Dauer
 POST_EXIT_CHECK_SECONDS = 900         # 15 Min nach Trade: Genau 1x Endkurs prüfen
 REJECT_OBSERVE_SECONDS = 900          # 15 Min Schatten-Tracking für Rejects
-SESSION_DURATION_SECONDS = 18000      # 5 Stunden Laufzeit (verhindert 6h-Timeout)
+SESSION_DURATION_SECONDS = 18000      # 5 Stunden Laufzeit
 
 HEADERS_TRADES = [
     "token_address", "pair_address", "symbol", "dex_id", "trade_num_for_token",
@@ -259,18 +261,20 @@ def scan_and_enter(trades, rejects, sol_price):
             if liquidity < 15000 or vol_5m < 3000 or (buys_5m + sells_5m < 15):
                 continue
             buy_ratio = buys_5m / (buys_5m + sells_5m)
-            if buy_ratio < 0.55 or price_usd <= 0.0:
+            
+            # 3. Verschärfter Kaufdruck-Filter (mind. 62% Buys)
+            if buy_ratio < MIN_BUY_RATIO or price_usd <= 0.0:
                 continue
 
-            # 3. Kalibrierter Anti-FOMO & Momentum Filter (0.0% bis +25.0%)
+            # 4. Anti-FOMO & Momentum (0.0% bis +25.0%)
             if price_change_m5 < MIN_PRICE_CHANGE_M5 or price_change_m5 > MAX_PRICE_CHANGE_M5:
                 continue
 
-            # 4. Liq zu FDV Verhältnis
+            # 5. Liq zu FDV Stabilität
             if fdv_usd > 0 and (liquidity / fdv_usd) < MIN_LIQ_TO_FDV_RATIO:
                 continue
 
-            # 5. Sicherheits-Audit
+            # 6. Sicherheits-Audit
             is_safe, rc_score, safety_reason, risk_flags = check_token_safety(token_addr)
             if not is_safe:
                 if token_addr not in already_rejected_tokens and len([r for r in rejects if r.get("status") == "OBSERVING"]) < MAX_TRACKED_REJECTS:
@@ -362,7 +366,7 @@ def scan_and_enter(trades, rejects, sol_price):
             write_csv(CSV_TRADES, trades, HEADERS_TRADES)
             
             git_push_updates(f"Trade Entry: {new_trade['symbol']}")
-            print(f"[ENTRY] {new_trade['symbol']} | Fill: ${simulated_entry:.6f} | Alter: {pair_age_hours:.1f}h")
+            print(f"[ENTRY] {new_trade['symbol']} | Fill: ${simulated_entry:.6f} | Buy-Ratio: {buy_ratio*100:.1f}%")
 
             chart_url = f"https://dexscreener.com/solana/{pair_addr}"
             current_open = len([t for t in trades if t.get("status") == "OPEN"])
@@ -370,7 +374,8 @@ def scan_and_enter(trades, rejects, sol_price):
                 f"**Symbol:** [{new_trade['symbol']}]({chart_url}) ({new_trade['dex_id']})\n"
                 f"**Fill-Kurs:** ${simulated_entry:.8f} (Slippage: {actual_buy_slip*100:+.2f}%)\n"
                 f"**Liq:** ${liquidity:,.0f} | **FDV:** ${fdv_usd:,.0f}\n"
-                f"**5m Momentum:** {price_change_m5:+.1f}% | **Pool-Alter:** {pair_age_hours:.1f}h\n"
+                f"**Buy-Ratio:** {buy_ratio*100:.1f}% (Starkes Kaufübergewicht)\n"
+                f"**5m Momentum:** {price_change_m5:+.1f}% | **Alter:** {pair_age_hours:.1f}h\n"
                 f"**RugCheck Score:** `{rc_score}`\n"
                 f"━━━━━━━━━━━━━━━━━━\n"
                 f"📈 **[DexScreener Live-Chart öffnen]({chart_url})**\n"
@@ -428,13 +433,15 @@ def manage_open_trades(trades, sol_price):
             exit_triggered = False
             exit_reason = ""
 
+            # 1. Sofortiger Notausstieg bei Liquiditätsabzug (greift ab Sekunde 1)
             if liq_change <= RUG_LIQUIDITY_DROP_THRESHOLD:
                 exit_triggered = True
                 exit_reason = f"RUG_LIQ_DROP ({liq_change*100:.1f}%)"
             elif price_change_raw >= TAKE_PROFIT_PCT:
                 exit_triggered = True
                 exit_reason = f"TP_HIT (+{price_change_raw*100:.1f}%)"
-            elif price_change_raw <= STOP_LOSS_PCT:
+            # 2. Stop-Loss (-20%) mit 30s-Puffer gegen Sofort-Wicks
+            elif price_change_raw <= STOP_LOSS_PCT and held_seconds >= MIN_HOLD_BEFORE_SL:
                 exit_triggered = True
                 exit_reason = f"SL_HIT ({price_change_raw*100:.1f}%)"
             elif held_seconds >= 480 and price_change_raw >= 0.25 and price_change_m5 <= 0.0:
@@ -625,14 +632,14 @@ def manage_shadow_rejects(rejects):
     return rejects
 
 def main():
-    print("=== Solana Paper Bot v2 (Live Sofort-Push & Schutzfilter) ===")
+    print("=== Solana Paper Bot v2 (Kalibrierte Filter & Shakeout-Schutz) ===")
     send_discord_alert(
-        "Bot Update: Optimierte Einstiegsfilter", 
-        "Parameter:\n"
-        "• Pool-Alter: mind. ~21 Min (0.35h)\n"
-        "• 5m Momentum: 0.0% bis +25.0% (keine Riesenkerzen)\n"
-        "• Sofort-Push bei Trade-Eröffnung & Exit\n"
-        "• 15m Post-Exit Tracking aktiv"
+        "Bot Update: Kalibrierte Filter Aktiviert", 
+        "Optimierungen:\n"
+        "• Buy-Ratio: mind. 62% (starkes Kaufübergewicht)\n"
+        "• Stop-Loss: -20% (mehr Atempause für Runner)\n"
+        "• Shakeout-Puffer: 30s Wick-Schutz nach Kauf\n"
+        "• Liq-Notbremse (-40%) bleibt ab Sekunde 1 aktiv"
     )
 
     start_time = time.time()
