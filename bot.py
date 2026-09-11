@@ -13,52 +13,50 @@ CSV_REJECTS = "rejected_rugs_tracking.csv"
 STARTING_SOL = 5.0000
 TRADE_SIZE_SOL = 0.25
 MAX_OPEN_TRADES = int(STARTING_SOL / TRADE_SIZE_SOL)  # Max 20 Slots
-MAX_TRACKED_REJECTS = 15                              # Max 15 parallele Schatten-Beobachtungen
+MAX_TRACKED_REJECTS = 15                              # Max 15 Schatten-Beobachtungen
 DISCORD_WEBHOOK_URL = os.environ.get("DISCORD_WEBHOOK_URL")
 
-# Schutzregeln & kalibrierte Filter
-MAX_TRADES_PER_TOKEN = 1              # Jeder Token darf exakt 1x gehandelt werden
-MIN_PAIR_AGE_HOURS = 0.35             # ~21 Minuten: Sniper-Welle vorbei
-MIN_PRICE_CHANGE_M5 = 0.0             # Stabiler Boden oder leichtes Momentum (>= 0%)
-MAX_PRICE_CHANGE_M5 = 25.0            # Anti-FOMO: Kerzen > +25% werden verworfen
-MIN_BUY_RATIO = 0.62                  # NEU: Min. 62% Buy-Ratio (starker Kaufdruck)
-MIN_LIQ_TO_FDV_RATIO = 0.03           # Min. 3% Liquidität im Verhältnis zum FDV
+# --- FILTER-REGELN: BUY-SPIKE & TRANSAKTIONS-DICHTE ---
+ALLOWED_DEXES = {"raydium", "meteora"} # PumpSwap komplett geblacklistet!
+MIN_PAIR_AGE_HOURS = 0.50              # Mind. 30 Minuten alt (Sniper-Phase vorbei)
+MIN_LIQUIDITY_USD = 25000.0            # Mind. $25k Liq gegen Slippage-Wicks
+MIN_VOL_M5_USD = 8000.0                # Starkes 5m-Volumen
+MIN_BUYS_M5 = 40                       # Mind. 40 Käufe in 5 Minuten (echte Dichte)
+MIN_BUY_RATIO = 0.68                   # Mind. 68% der Trades müssen Buys sein
+MIN_PRICE_CHANGE_M5 = 0.5              # Bestätigtes positives Momentum
+MAX_PRICE_CHANGE_M5 = 30.0             # Keine überhitzten Riesenkerzen
+MIN_LIQ_TO_FDV_RATIO = 0.03            # Min. 3% Liquidität im Verhältnis zum FDV
 
 # RugCheck Sicherheitsgrenzen
-RUGCHECK_MAX_ALLOWED_SCORE = 3500     # Score > 3500 gilt als hohes Risiko
-MAX_SINGLE_HOLDER_PCT = 15.0          # Max. 15% Supply für eine Einzel-Wallet
+RUGCHECK_MAX_ALLOWED_SCORE = 3500      # Hohes Risiko filtern
+MAX_TRADES_PER_TOKEN = 1               # Jeder Token exakt 1x
 
-# Farbschema für Discord
-COLOR_BUY = 0x00B4D8          # Electric Cyan für Einstiege
-COLOR_EXIT_WIN = 0x10B981     # Emerald Green für Gewinne
-COLOR_EXIT_LOSS = 0xEF4444    # Crimson Red für Verluste
-COLOR_EXIT_NEUTRAL = 0xF59E0B # Amber Gold für Break-Even
-
-# Slippage-Modellierung
+# Slippage & Gebühren
 SLIPPAGE_BUY_MIN_PCT = -0.005
-SLIPPAGE_BUY_MAX_PCT = 0.040
-SLIPPAGE_MAX_TOLERANCE_PCT = 0.045
+SLIPPAGE_BUY_MAX_PCT = 0.035
+SLIPPAGE_MAX_TOLERANCE_PCT = 0.040
 SLIPPAGE_SELL_MIN_PCT = 0.005
-SLIPPAGE_SELL_MAX_PCT = 0.045
+SLIPPAGE_SELL_MAX_PCT = 0.035
+FIXED_PRIORITY_FEES_SOL = 0.006        # 0.003 Buy + 0.003 Sell
+DEX_FEE_PCT = 0.010                    # 1% DEX Gebühr
 
-# Transaktions- & DEX-Kosten
-FIXED_PRIORITY_FEES_SOL = 0.006       # 0.003 Buy + 0.003 Sell Priority Fee
-DEX_FEE_PCT = 0.010                   # 0,5% Buy + 0,5% Sell DEX Fee
+# Strategie-Parameter: TP1 + Runner Trailing
+TP1_GAIN_PCT = 0.35                    # Bei +35% wird die Hälfte gesichert
+STOP_LOSS_PCT = -0.18                  # Anfänglicher SL bei -18%
+MIN_HOLD_BEFORE_SL = 30                # 30s Wick-Schutz
+TRAILING_OFFSET_PCT = 0.12             # 12% Abstand für den Runner-Peak
+MAX_HOLD_SECONDS = 1200                # 20 Min Maximal-Haltedauer
+RUG_LIQUIDITY_DROP_THRESHOLD = -0.40   # Notbremse ab Sekunde 1
 
-# Strategie-Parameter
-TAKE_PROFIT_PCT = 0.50                # Fester TP bei +50%
-STOP_LOSS_PCT = -0.20                 # NEU: SL auf -20% erweitert (gegen Shakeouts)
-MIN_HOLD_BEFORE_SL = 30               # NEU: 30s Puffer gegen sofortiges Ausstoppen im Wick
-TRAILING_TRIGGER_PCT = 0.20           # Trailing SL ab +20%
-TRAILING_OFFSET_PCT = 0.10            # 10% Abstand vom Peak
-BREAK_EVEN_TRIGGER_PCT = 0.15         # Break-Even ab +15%
-MAX_HOLD_SECONDS = 900                # 15 Min Timeout
-RUG_LIQUIDITY_DROP_THRESHOLD = -0.40  # Sofortiger Notverkauf wenn Liq um >40% fällt
+# Tracking & Session
+POST_EXIT_CHECK_SECONDS = 900
+REJECT_OBSERVE_SECONDS = 900
+SESSION_DURATION_SECONDS = 18000       # 5 Stunden
 
-# Tracking-Zeiten & Session-Dauer
-POST_EXIT_CHECK_SECONDS = 900         # 15 Min nach Trade: Genau 1x Endkurs prüfen
-REJECT_OBSERVE_SECONDS = 900          # 15 Min Schatten-Tracking für Rejects
-SESSION_DURATION_SECONDS = 18000      # 5 Stunden Laufzeit
+COLOR_BUY = 0x00B4D8
+COLOR_EXIT_WIN = 0x10B981
+COLOR_EXIT_LOSS = 0xEF4444
+COLOR_EXIT_NEUTRAL = 0xF59E0B
 
 HEADERS_TRADES = [
     "token_address", "pair_address", "symbol", "dex_id", "trade_num_for_token",
@@ -67,7 +65,7 @@ HEADERS_TRADES = [
     "entry_buys_m5", "entry_sells_m5", "entry_buy_ratio_m5", "price_change_m5_pct",
     "signal_price_usd", "simulated_entry_usd", "entry_slip_pct", "sol_invested", "amount_tokens",
     "peak_price_usd", "peak_gain_pct", "max_drawdown_pct", "hold_duration_seconds",
-    "status", "exit_time", "signal_exit_usd", "simulated_exit_usd", "exit_slip_pct",
+    "tp1_triggered", "status", "exit_time", "signal_exit_usd", "simulated_exit_usd", "exit_slip_pct",
     "exit_liquidity_usd", "liq_change_pct", "exit_reason",
     "raw_pnl_sol", "fees_sol", "net_pnl_sol", "net_pnl_usd",
     "post_exit_price_15m", "post_exit_change_pct", "post_exit_verdict"
@@ -83,7 +81,6 @@ HEADERS_REJECTS = [
 ]
 
 def git_push_updates(commit_msg="Update CSV data [skip ci]"):
-    """Pusht geänderte CSV-Dateien sofort live ins GitHub-Repository."""
     try:
         subprocess.run(["git", "add", CSV_TRADES, CSV_REJECTS], check=False)
         status = subprocess.run(["git", "status", "--porcelain"], capture_output=True, text=True)
@@ -91,9 +88,9 @@ def git_push_updates(commit_msg="Update CSV data [skip ci]"):
             subprocess.run(["git", "commit", "-m", commit_msg], check=False)
             subprocess.run(["git", "pull", "origin", "main", "--rebase"], check=False)
             subprocess.run(["git", "push", "origin", "main"], check=False)
-            print(f"[GIT] Sofort-Push erfolgreich: {commit_msg}")
+            print(f"[GIT] Push erfolgreich: {commit_msg}")
     except Exception as e:
-        print(f"[GIT-WARNUNG] Push fehlgeschlagen: {e}")
+        print(f"[GIT-WARNUNG] Push Fehler: {e}")
 
 def get_sol_price():
     try:
@@ -118,10 +115,8 @@ def send_discord_alert(title, description, color=0x3498db, chart_url=None):
     }
     if chart_url:
         embed["url"] = chart_url
-    
-    payload = {"embeds": [embed]}
     try:
-        requests.post(DISCORD_WEBHOOK_URL, json=payload, timeout=5)
+        requests.post(DISCORD_WEBHOOK_URL, json={"embeds": [embed]}, timeout=5)
     except Exception as e:
         print(f"Discord Fehler: {e}")
 
@@ -166,20 +161,16 @@ def check_token_safety(token_address):
 
             for r in risks:
                 name = r.get("name", "")
-                desc = r.get("description", "")
                 if "Mint Authority" in name:
-                    return False, score, "Mint Authority noch aktiv", "; ".join(risk_names)
+                    return False, score, "Mint Authority aktiv", "; ".join(risk_names)
                 if "Freeze Authority" in name:
-                    return False, score, "Freeze Authority noch aktiv", "; ".join(risk_names)
+                    return False, score, "Freeze Authority aktiv", "; ".join(risk_names)
                 if "Single holder ownership" in name:
-                    return False, score, f"Groß-Holder: {desc}", "; ".join(risk_names)
-                if "Top 10 holders" in name and "danger" in r.get("level", ""):
-                    return False, score, "Top 10 Wallets halten zu viel Supply", "; ".join(risk_names)
+                    return False, score, "Groß-Holder Risiko", "; ".join(risk_names)
 
             return True, score, "RugCheck OK", "; ".join(risk_names)
     except Exception:
         pass
-
     return True, 0, "Audit Skipped", "None"
 
 def get_current_stats(trades, sol_price):
@@ -239,6 +230,12 @@ def scan_and_enter(trades, rejects, sol_price):
                 continue
 
             pair = pairs[0]
+            dex_id = pair.get("dexId", "").lower()
+            
+            # 1. PUMPSWAP-AUSSCHLUSS: Nur Raydium und Meteora erlaubt
+            if dex_id not in ALLOWED_DEXES:
+                continue
+
             pair_addr = pair.get("pairAddress")
             price_usd = float(pair.get("priceUsd") or 0.0)
             liquidity = float(pair.get("liquidity", {}).get("usd") or 0.0)
@@ -249,7 +246,7 @@ def scan_and_enter(trades, rejects, sol_price):
             sells_5m = tx_5m.get("sells", 0)
             price_change_m5 = float(pair.get("priceChange", {}).get("m5") or 0.0)
 
-            # 1. Pool-Alter prüfen: Mind. 0.35h (~21 Min alt)
+            # 2. Pool-Alter prüfen: Mind. 30 Minuten alt (Sniper-Dump vorbei)
             created_at_ms = pair.get("pairCreatedAt")
             if not created_at_ms:
                 continue
@@ -257,20 +254,23 @@ def scan_and_enter(trades, rejects, sol_price):
             if pair_age_hours < MIN_PAIR_AGE_HOURS:
                 continue
 
-            # 2. Basis-Filter
-            if liquidity < 15000 or vol_5m < 3000 or (buys_5m + sells_5m < 15):
-                continue
-            buy_ratio = buys_5m / (buys_5m + sells_5m)
-            
-            # 3. Verschärfter Kaufdruck-Filter (mind. 62% Buys)
-            if buy_ratio < MIN_BUY_RATIO or price_usd <= 0.0:
+            # 3. Mindest-Liquidität: Mind. $25k gegen Slippage-Wicks
+            if liquidity < MIN_LIQUIDITY_USD:
                 continue
 
-            # 4. Anti-FOMO & Momentum (0.0% bis +25.0%)
+            # 4. BUY-SPIKE & TRANSAKTIONS-DICHTE
+            if buys_5m < MIN_BUYS_M5 or vol_5m < MIN_VOL_M5_USD:
+                continue
+
+            total_tx_5m = buys_5m + sells_5m
+            buy_ratio = (buys_5m / total_tx_5m) if total_tx_5m > 0 else 0.0
+            if buy_ratio < MIN_BUY_RATIO:
+                continue
+
+            # 5. Gesundes Momentum (+0.5% bis +30.0%)
             if price_change_m5 < MIN_PRICE_CHANGE_M5 or price_change_m5 > MAX_PRICE_CHANGE_M5:
                 continue
 
-            # 5. Liq zu FDV Stabilität
             if fdv_usd > 0 and (liquidity / fdv_usd) < MIN_LIQ_TO_FDV_RATIO:
                 continue
 
@@ -321,7 +321,7 @@ def scan_and_enter(trades, rejects, sol_price):
                 "token_address": token_addr,
                 "pair_address": pair_addr,
                 "symbol": pair.get("baseToken", {}).get("symbol", "UNKNOWN"),
-                "dex_id": pair.get("dexId", "unknown"),
+                "dex_id": dex_id,
                 "trade_num_for_token": past_trades_count + 1,
                 "entry_time": now_dt.strftime("%Y-%m-%d %H:%M:%S"),
                 "pair_age_hours": pair_age_hours,
@@ -344,6 +344,7 @@ def scan_and_enter(trades, rejects, sol_price):
                 "peak_gain_pct": "0.0%",
                 "max_drawdown_pct": "0.0%",
                 "hold_duration_seconds": 0,
+                "tp1_triggered": "NO",
                 "status": "OPEN",
                 "exit_time": "",
                 "signal_exit_usd": "",
@@ -365,23 +366,22 @@ def scan_and_enter(trades, rejects, sol_price):
             active_open_tokens.add(token_addr)
             write_csv(CSV_TRADES, trades, HEADERS_TRADES)
             
-            git_push_updates(f"Trade Entry: {new_trade['symbol']}")
-            print(f"[ENTRY] {new_trade['symbol']} | Fill: ${simulated_entry:.6f} | Buy-Ratio: {buy_ratio*100:.1f}%")
+            git_push_updates(f"Trade Entry: {new_trade['symbol']} ({dex_id})")
+            print(f"[ENTRY] {new_trade['symbol']} on {dex_id} | Buys(5m): {buys_5m} ({buy_ratio*100:.1f}%) | Vol: ${vol_5m:,.0f}")
 
             chart_url = f"https://dexscreener.com/solana/{pair_addr}"
             current_open = len([t for t in trades if t.get("status") == "OPEN"])
             desc = (
-                f"**Symbol:** [{new_trade['symbol']}]({chart_url}) ({new_trade['dex_id']})\n"
-                f"**Fill-Kurs:** ${simulated_entry:.8f} (Slippage: {actual_buy_slip*100:+.2f}%)\n"
-                f"**Liq:** ${liquidity:,.0f} | **FDV:** ${fdv_usd:,.0f}\n"
-                f"**Buy-Ratio:** {buy_ratio*100:.1f}% (Starkes Kaufübergewicht)\n"
-                f"**5m Momentum:** {price_change_m5:+.1f}% | **Alter:** {pair_age_hours:.1f}h\n"
-                f"**RugCheck Score:** `{rc_score}`\n"
+                f"**Symbol:** [{new_trade['symbol']}]({chart_url}) ({dex_id.upper()})\n"
+                f"**Fill-Kurs:** ${simulated_entry:.8f} (Slip: {actual_buy_slip*100:+.2f}%)\n"
+                f"**Transaktionen (5m):** 🟢 {buys_5m} Buys / 🔴 {sells_5m} Sells (**{buy_ratio*100:.1f}%**)\n"
+                f"**5m Volumen:** ${vol_5m:,.0f} | **Liq:** ${liquidity:,.0f}\n"
+                f"**Alter:** {pair_age_hours:.1f}h | **5m Momentum:** {price_change_m5:+.1f}%\n"
                 f"━━━━━━━━━━━━━━━━━━\n"
                 f"📈 **[DexScreener Live-Chart öffnen]({chart_url})**\n"
                 f"Offene Positionen: {current_open}/{MAX_OPEN_TRADES}"
             )
-            send_discord_alert(f"🔵 Buy Order: {new_trade['symbol']}", desc, COLOR_BUY, chart_url)
+            send_discord_alert(f"🚀 Buy Spike: {new_trade['symbol']}", desc, COLOR_BUY, chart_url)
 
     except Exception as e:
         print(f"Fehler bei Scan: {e}")
@@ -407,7 +407,6 @@ def manage_open_trades(trades, sol_price):
             pair = pairs[0]
             current_signal_price = float(pair.get("priceUsd") or 0.0)
             current_liquidity = float(pair.get("liquidity", {}).get("usd") or 0.0)
-            price_change_m5 = float(pair.get("priceChange", {}).get("m5") or 0.0)
             if current_signal_price <= 0.0:
                 continue
 
@@ -430,29 +429,31 @@ def manage_open_trades(trades, sol_price):
             held_seconds = int((now - entry_dt).total_seconds())
             trade["hold_duration_seconds"] = held_seconds
 
+            # TEILVERKAUF TP1 (+35%): Sichert 50% ab und setzt SL auf Break-Even
+            if price_change_raw >= TP1_GAIN_PCT and trade.get("tp1_triggered") != "YES":
+                trade["tp1_triggered"] = "YES"
+                print(f"[TP1 HIT] {trade['symbol']} bei +35% erreicht! Runner aktiv.")
+
             exit_triggered = False
             exit_reason = ""
 
-            # 1. Sofortiger Notausstieg bei Liquiditätsabzug (greift ab Sekunde 1)
+            # 1. Notbremse bei Liq-Abzug (ab Sekunde 1)
             if liq_change <= RUG_LIQUIDITY_DROP_THRESHOLD:
                 exit_triggered = True
                 exit_reason = f"RUG_LIQ_DROP ({liq_change*100:.1f}%)"
-            elif price_change_raw >= TAKE_PROFIT_PCT:
+            # 2. SL nach TP1 (Break-Even geschützt)
+            elif trade.get("tp1_triggered") == "YES" and price_change_raw <= 0.02:
                 exit_triggered = True
-                exit_reason = f"TP_HIT (+{price_change_raw*100:.1f}%)"
-            # 2. Stop-Loss (-20%) mit 30s-Puffer gegen Sofort-Wicks
+                exit_reason = "RUNNER_BE_EXIT (+2%)"
+            # 3. Trailing SL für den Runner (12% Abstand vom Peak)
+            elif trade.get("tp1_triggered") == "YES" and current_signal_price <= peak * (1.0 - TRAILING_OFFSET_PCT):
+                exit_triggered = True
+                exit_reason = f"RUNNER_TRAILED (+{price_change_raw*100:.1f}%)"
+            # 4. Standard Stop-Loss mit 30s Wick-Puffer
             elif price_change_raw <= STOP_LOSS_PCT and held_seconds >= MIN_HOLD_BEFORE_SL:
                 exit_triggered = True
                 exit_reason = f"SL_HIT ({price_change_raw*100:.1f}%)"
-            elif held_seconds >= 480 and price_change_raw >= 0.25 and price_change_m5 <= 0.0:
-                exit_triggered = True
-                exit_reason = f"EARLY_TP_SECURED (+{price_change_raw*100:.1f}%)"
-            elif peak_gain >= TRAILING_TRIGGER_PCT and current_signal_price <= peak * (1.0 - TRAILING_OFFSET_PCT):
-                exit_triggered = True
-                exit_reason = f"TRAILING_SL (+{price_change_raw*100:.1f}%)"
-            elif peak_gain >= BREAK_EVEN_TRIGGER_PCT and price_change_raw <= 0.0:
-                exit_triggered = True
-                exit_reason = f"BREAK_EVEN ({price_change_raw*100:.1f}%)"
+            # 5. Zeitlimit
             elif held_seconds >= MAX_HOLD_SECONDS:
                 exit_triggered = True
                 exit_reason = f"TIME_EXPIRED ({price_change_raw*100:.1f}%)"
@@ -463,7 +464,14 @@ def manage_open_trades(trades, sol_price):
                 tokens = float(trade["amount_tokens"])
                 sol_inv = float(trade["sol_invested"])
 
-                gross_return_usd = tokens * simulated_exit
+                # Falls TP1 getriggert war, wurde die Hälfte zu +35% verkauft, die andere Hälfte jetzt
+                if trade.get("tp1_triggered") == "YES":
+                    tp1_exit_price = entry_sim * (1.0 + TP1_GAIN_PCT) * (1.0 - actual_sell_slip)
+                    half_tokens = tokens / 2.0
+                    gross_return_usd = (half_tokens * tp1_exit_price) + (half_tokens * simulated_exit)
+                else:
+                    gross_return_usd = tokens * simulated_exit
+
                 gross_return_sol = gross_return_usd / sol_price
                 raw_pnl_sol = gross_return_sol - sol_inv
 
@@ -502,11 +510,10 @@ def manage_open_trades(trades, sol_price):
                     title_prefix = "🟡 Trade Neutral"
 
                 desc = (
-                    f"**Symbol:** [{trade['symbol']}]({chart_url}) | {trade.get('exit_reason')} (Dauer: {held_seconds}s)\n"
+                    f"**Symbol:** [{trade['symbol']}]({chart_url}) | {exit_reason} (Dauer: {held_seconds}s)\n"
                     f"**Netto PnL:** **{net_pnl_sol:+.4f} SOL** ({net_pnl_usd:+.2f} USD)\n"
                     f"**Liq beim Exit:** ${current_liquidity:,.0f} ({liq_change*100:+.1f}%)\n"
-                    f"**Abzüge:** Fees: -{total_fees:.4f} SOL | Slip: -{actual_sell_slip*100:.2f}%\n"
-                    f"**Max Gain:** {trade.get('peak_gain_pct')} | **Max DD:** {trade.get('max_drawdown_pct')}\n"
+                    f"**Peak Gain:** {trade.get('peak_gain_pct')} | **Max DD:** {trade.get('max_drawdown_pct')}\n"
                     f"━━━━━━━━━━━━━━━━━━\n"
                     f"📈 **[DexScreener Chart analysieren]({chart_url})**\n"
                     f"**Bankroll:** **{stats['current_sol']:.4f} SOL** (${stats['current_usd']:.2f})\n"
@@ -550,12 +557,12 @@ def manage_post_exit_checks(trades):
                             
                             if change_pct <= -25.0:
                                 trade["post_exit_verdict"] = "SAVED_BY_EXIT"
-                            elif change_pct >= 30.0:
+                            elif change_pct >= 35.0:
                                 trade["post_exit_verdict"] = "MISSED_FURTHER_PUMP"
                             else:
                                 trade["post_exit_verdict"] = "SIDEWAYS"
                                 
-                            print(f"[POST-EXIT] {trade['symbol']} nach 15m: {change_pct:+.1f}% -> {trade['post_exit_verdict']}")
+                            print(f"[POST-EXIT] {trade['symbol']} 15m: {change_pct:+.1f}% -> {trade['post_exit_verdict']}")
                             updated = True
             except Exception:
                 pass
@@ -622,24 +629,21 @@ def manage_shadow_rejects(rejects):
                 else:
                     item["final_verdict"] = "SLOW_BLEED_SIDEWAYS"
 
-                print(f"[SHADOW-END] {item['symbol']} | Urteil: {item['final_verdict']}")
-
             write_csv(CSV_REJECTS, rejects, HEADERS_REJECTS)
-
         except Exception:
             pass
 
     return rejects
 
 def main():
-    print("=== Solana Paper Bot v2 (Kalibrierte Filter & Shakeout-Schutz) ===")
+    print("=== Solana Paper Bot v3 (Buy-Spike & Transaction Density) ===")
     send_discord_alert(
-        "Bot Update: Kalibrierte Filter Aktiviert", 
-        "Optimierungen:\n"
-        "• Buy-Ratio: mind. 62% (starkes Kaufübergewicht)\n"
-        "• Stop-Loss: -20% (mehr Atempause für Runner)\n"
-        "• Shakeout-Puffer: 30s Wick-Schutz nach Kauf\n"
-        "• Liq-Notbremse (-40%) bleibt ab Sekunde 1 aktiv"
+        "Bot Reset: Buy-Spike Strategie Aktiv", 
+        "Setup:\n"
+        "• Startkapital: 5.0000 SOL (Reset)\n"
+        "• DEXes: Nur Raydium & Meteora (PumpSwap geblacklistet)\n"
+        "• Trigger: Min. 40 Buys(5m) & 68% Buy-Ratio & $8k Vol\n"
+        "• Exit: TP1 (+35% Teilverkauf) + Trailing Runner bis ins Unendliche"
     )
 
     start_time = time.time()
