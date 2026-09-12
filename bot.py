@@ -11,29 +11,29 @@ CSV_TRADES = "solana_paper_trades_v2.csv"
 CSV_REJECTS = "rejected_rugs_tracking.csv"
 
 STARTING_SOL = 5.0000
-MAX_ALLOCATION_PER_COIN_SOL = 0.25  # 5% Portfolio-Regel (Phase 3)
+MAX_ALLOCATION_PER_COIN_SOL = 0.25  # 5% Portfolio-Regel (Phase 3)[span_0](start_span)[span_0](end_span)
 MAX_OPEN_TRADES = int(STARTING_SOL / MAX_ALLOCATION_PER_COIN_SOL)
 MAX_TRACKED_REJECTS = 15
 DISCORD_WEBHOOK_URL = os.environ.get("DISCORD_WEBHOOK_URL")
 
 # --- PARAMETER AUS DEM LEITFADEN ---
-# Phase 1 & 2: Tokenomics & Liquidität
-MIN_MCAP_USD = 70000.0              # $70k FDV / Market Cap
-MAX_MCAP_USD = 11000000.0           # $11M FDV / Market Cap
-MIN_LIQ_TO_MCAP_RATIO = 0.10        # LP muss mind. 10% der MCap betragen
-MIN_VOL24H_TO_MCAP_RATIO = 0.05     # 24h-Volumen mind. 5% der MCap
+# Phase 1 & 2: Tokenomics & Liquidität[span_1](start_span)[span_1](end_span)
+MIN_MCAP_USD = 70000.0              # $70k FDV / Market Cap[span_2](start_span)[span_2](end_span)
+MAX_MCAP_USD = 11000000.0           # $11M FDV / Market Cap[span_3](start_span)[span_3](end_span)
+MIN_LIQ_TO_MCAP_RATIO = 0.10        # LP muss mind. 10% der MCap betragen[span_4](start_span)[span_4](end_span)
+MIN_VOL24H_TO_MCAP_RATIO = 0.05     # 24h-Volumen mind. 5% der MCap[span_5](start_span)[span_5](end_span)
 
-# Phase 3: Chart Breakout
-MIN_VOLUME_SURGE_MULTIPLIER = 2.0   # 5m-Volumen mind. 2x Durchschnitt
+# Phase 3: Chart Breakout[span_6](start_span)[span_6](end_span)
+MIN_VOLUME_SURGE_MULTIPLIER = 2.0   # 5m-Volumen mind. 2x Durchschnitt[span_7](start_span)[span_7](end_span)
 
-# Phase 3: Tiered Entry (DCA 20% / 40% / 40%)
-DCA_SCOUT_PCT = 0.20                # 0.05 SOL Scout-Position
-DCA_DIP_PCT = 0.40                  # 0.10 SOL Dip-Kauf
-DCA_MOMENTUM_PCT = 0.40             # 0.10 SOL Breakout-Add
+# Phase 3: Tiered Entry (DCA 20% / 40% / 40%)[span_8](start_span)[span_8](end_span)
+DCA_SCOUT_PCT = 0.20                # 0.05 SOL Scout-Position[span_9](start_span)[span_9](end_span)
+DCA_DIP_PCT = 0.40                  # 0.10 SOL Dip-Kauf[span_10](start_span)[span_10](end_span)
+DCA_MOMENTUM_PCT = 0.40             # 0.10 SOL Breakout-Add[span_11](start_span)[span_11](end_span)
 
-# Phase 4: Staged Profit-Taking & Stops
-STOP_LOSS_HARD_PCT = -0.40          # Hard Stop bei -40%
-TRAILING_STOP_OFFSET_PCT = 0.20     # Trailing Stop bei -20% vom lokalen High
+# Phase 4: Staged Profit-Taking & Stops[span_12](start_span)[span_12](end_span)
+STOP_LOSS_HARD_PCT = -0.40          # Hard Stop bei -40%[span_13](start_span)[span_13](end_span)
+TRAILING_STOP_OFFSET_PCT = 0.20     # Trailing Stop bei -20% vom lokalen High[span_14](start_span)[span_14](end_span)
 TIME_STOP_SECONDS = 18000           # Session-Timeout
 
 # Slippage & Gebühren
@@ -130,6 +130,26 @@ def write_csv(filename, data, headers):
         writer.writeheader()
         writer.writerows(data)
 
+def get_current_stats(trades, sol_price):
+    closed = [t for t in trades if t.get("status") == "CLOSED"]
+    net_pnl_sol = sum(float(t.get("net_pnl_sol", 0.0) or 0.0) for t in closed)
+    total_fees_sol = sum(float(t.get("fees_sol", 0.0) or 0.0) for t in closed)
+    wins = len([t for t in closed if float(t.get("net_pnl_sol", 0.0) or 0.0) > 0])
+    losses = len([t for t in closed if float(t.get("net_pnl_sol", 0.0) or 0.0) <= 0])
+    current_sol = STARTING_SOL + net_pnl_sol
+    current_usd = current_sol * sol_price
+    winrate = (wins / len(closed) * 100) if closed else 0.0
+    return {
+        "current_sol": current_sol,
+        "current_usd": current_usd,
+        "net_pnl_sol": net_pnl_sol,
+        "total_fees_sol": total_fees_sol,
+        "wins": wins,
+        "losses": losses,
+        "total_trades": len(closed),
+        "winrate": winrate
+    }
+
 def audit_token_security(token_address):
     """Prüft Phase 2 Kriterien: Mint, Freeze, Top-10-Holder, Honeypot-Risiken."""
     try:
@@ -198,22 +218,22 @@ def scan_and_enter(trades, rejects, sol_price):
             vol_5m = float(pair.get("volume", {}).get("m5") or 0.0)
             price_usd = float(pair.get("priceUsd") or 0.0)
 
-            # 1. Phase 1: MCap Filter ($70k bis $11M)
+            # 1. Phase 1: MCap Filter ($70k bis $11M)[span_15](start_span)[span_15](end_span)
             if mcap < MIN_MCAP_USD or mcap > MAX_MCAP_USD or price_usd <= 0.0:
                 continue
 
-            # 2. Phase 2: LP-Größe (mind. 10% der MCap) & 24h-Volumen (mind. 5% der MCap)
+            # 2. Phase 2: LP-Größe (mind. 10% der MCap) & 24h-Volumen (mind. 5% der MCap)[span_16](start_span)[span_16](end_span)
             if (liquidity / mcap) < MIN_LIQ_TO_MCAP_RATIO:
                 continue
             if (vol_24h / mcap) < MIN_VOL24H_TO_MCAP_RATIO:
                 continue
 
-            # 3. Phase 3: Volume Surge (5m-Volumen mind. 2x Durchschnitt der letzten Stunde)
+            # 3. Phase 3: Volume Surge (5m-Volumen mind. 2x Durchschnitt der letzten Stunde)[span_17](start_span)[span_17](end_span)
             expected_avg_5m_vol = (vol_1h / 12.0) if vol_1h > 0 else 0.0
             if expected_avg_5m_vol > 0 and vol_5m < (expected_avg_5m_vol * MIN_VOLUME_SURGE_MULTIPLIER):
                 continue
 
-            # 4. Phase 2: Contract-Sicherheit
+            # 4. Phase 2: Contract-Sicherheit[span_18](start_span)[span_18](end_span)
             is_safe, rc_score, reason = audit_token_security(token_addr)
             if not is_safe:
                 rejects.append({
@@ -231,7 +251,7 @@ def scan_and_enter(trades, rejects, sol_price):
                 write_csv(CSV_REJECTS, rejects, HEADERS_REJECTS)
                 continue
 
-            # Phase 3: Scout Position (20% Allokation = 0.05 SOL)
+            # Phase 3: Scout Position (20% Allokation = 0.05 SOL)[span_19](start_span)[span_19](end_span)
             scout_sol = MAX_ALLOCATION_PER_COIN_SOL * DCA_SCOUT_PCT
             actual_buy_slip = random.uniform(SLIPPAGE_BUY_MIN_PCT, SLIPPAGE_BUY_MAX_PCT)
             sim_entry = price_usd * (1.0 + actual_buy_slip)
@@ -252,7 +272,7 @@ def scan_and_enter(trades, rejects, sol_price):
                 "tokens_total_bought": tokens_scout,
                 "tokens_remaining": tokens_scout,
                 "sol_realized": 0.0,
-                "dca_stage": 1,  # 1 = Scout gekauft
+                "dca_stage": 1,  # 1 = Scout gekauft[span_20](start_span)[span_20](end_span)
                 "stage_profit_level": 0,
                 "peak_price_usd": f"{sim_entry:.8f}",
                 "peak_gain_pct": "0.0%",
@@ -274,6 +294,7 @@ def scan_and_enter(trades, rejects, sol_price):
             write_csv(CSV_TRADES, trades, HEADERS_TRADES)
             git_push_updates(f"Scout Entry: {new_trade['symbol']}")
 
+            stats = get_current_stats(trades, sol_price)
             chart_url = f"https://dexscreener.com/solana/{new_trade['pair_address']}"
             desc = (
                 f"**Symbol:** [{new_trade['symbol']}]({chart_url})\n"
@@ -281,7 +302,9 @@ def scan_and_enter(trades, rejects, sol_price):
                 f"**Vol Surge:** 5m ${vol_5m:,.0f} vs Avg ${(expected_avg_5m_vol):,.0f}\n"
                 f"**DCA Status:** Tranche 1/3 (Scout: {scout_sol:.2f} SOL @ ${sim_entry:.8f})\n"
                 f"━━━━━━━━━━━━━━━━━━\n"
-                f"📈 **[DexScreener Chart]({chart_url})**"
+                f"📈 **[DexScreener Chart]({chart_url})**\n"
+                f"💰 **Bankroll:** **{stats['current_sol']:.4f} SOL** (${stats['current_usd']:.2f})\n"
+                f"📊 **Performance:** {stats['wins']}W / {stats['losses']}L ({stats['winrate']:.1f}%)"
             )
             send_discord_alert(f"🎯 Scout Position: {new_trade['symbol']}", desc, COLOR_BUY, chart_url)
 
@@ -330,8 +353,8 @@ def manage_open_trades(trades, sol_price):
             actual_slip = random.uniform(SLIPPAGE_SELL_MIN_PCT, SLIPPAGE_SELL_MAX_PCT)
             sim_price = current_price * (1.0 - actual_slip)
 
-            # --- PHASE 3: TIERED DCA BUY-LOGIK ---
-            # Tranche 2 (Dip Buying, 40% = 0.10 SOL): Kauf bei -20% bis -35% Rücksetzer
+            # --- PHASE 3: TIERED DCA BUY-LOGIK[span_21](start_span)[span_21](end_span) ---
+            # Tranche 2 (Dip Buying, 40% = 0.10 SOL): Kauf bei -20% bis -35% Rücksetzer[span_22](start_span)[span_22](end_span)
             if dca_stage == 1 and current_pnl_pct <= -0.20 and current_pnl_pct >= -0.35:
                 dip_sol = MAX_ALLOCATION_PER_COIN_SOL * DCA_DIP_PCT
                 buy_slip = random.uniform(SLIPPAGE_BUY_MIN_PCT, SLIPPAGE_BUY_MAX_PCT)
@@ -350,7 +373,7 @@ def manage_open_trades(trades, sol_price):
                 write_csv(CSV_TRADES, trades, HEADERS_TRADES)
                 print(f"[DCA DIP HIT] {trade['symbol']} nachgekauft @ -20%! Neuer Avg: ${new_avg_price:.8f}")
 
-            # Tranche 3 (Momentum Confirmation, 40% = 0.10 SOL): Aufstocken bei Ausbruch (+15%)
+            # Tranche 3 (Momentum Confirmation, 40% = 0.10 SOL): Aufstocken bei Ausbruch (+15%)[span_23](start_span)[span_23](end_span)
             elif dca_stage < 3 and current_pnl_pct >= 0.15:
                 mom_sol = MAX_ALLOCATION_PER_COIN_SOL * DCA_MOMENTUM_PCT
                 buy_slip = random.uniform(SLIPPAGE_BUY_MIN_PCT, SLIPPAGE_BUY_MAX_PCT)
@@ -369,8 +392,8 @@ def manage_open_trades(trades, sol_price):
                 write_csv(CSV_TRADES, trades, HEADERS_TRADES)
                 print(f"[DCA MOMENTUM HIT] {trade['symbol']} Breakout bestätigt! Position voll auf 0.25 SOL.")
 
-            # --- PHASE 4: 4-TIER STAGED PROFIT-TAKING ---
-            # 1. Stufe: 2x (+100%) -> Initial Investment komplett rausnehmen (50% der Gesamt-Tokens verkaufen)
+            # --- PHASE 4: 4-TIER STAGED PROFIT-TAKING[span_24](start_span)[span_24](end_span) ---
+            # 1. Stufe: 2x (+100%) -> Initial Investment komplett rausnehmen (50% der Gesamt-Tokens verkaufen)[span_25](start_span)[span_25](end_span)
             if current_pnl_pct >= 1.00 and profit_level < 1:
                 sell_tokens = float(trade["tokens_total_bought"]) * 0.50
                 realized = (sell_tokens * sim_price) / sol_price
@@ -380,7 +403,7 @@ def manage_open_trades(trades, sol_price):
                 write_csv(CSV_TRADES, trades, HEADERS_TRADES)
                 print(f"[STAGE 1: 2x HIT] {trade['symbol']} Initial Investment raus!")
 
-            # 2. Stufe: 5x (+400%) -> 25% des aktuellen Restbestands verkaufen
+            # 2. Stufe: 5x (+400%) -> 25% des aktuellen Restbestands verkaufen[span_26](start_span)[span_26](end_span)
             elif current_pnl_pct >= 4.00 and profit_level < 2:
                 sell_tokens = float(trade["tokens_remaining"]) * 0.25
                 realized = (sell_tokens * sim_price) / sol_price
@@ -390,7 +413,7 @@ def manage_open_trades(trades, sol_price):
                 write_csv(CSV_TRADES, trades, HEADERS_TRADES)
                 print(f"[STAGE 2: 5x HIT] {trade['symbol']} 25% gesichert!")
 
-            # 3. Stufe: 10x (+900%) -> Weitere 25% des aktuellen Restbestands verkaufen
+            # 3. Stufe: 10x (+900%) -> Weitere 25% des aktuellen Restbestands verkaufen[span_27](start_span)[span_27](end_span)
             elif current_pnl_pct >= 9.00 and profit_level < 3:
                 sell_tokens = float(trade["tokens_remaining"]) * 0.25
                 realized = (sell_tokens * sim_price) / sol_price
@@ -400,15 +423,15 @@ def manage_open_trades(trades, sol_price):
                 write_csv(CSV_TRADES, trades, HEADERS_TRADES)
                 print(f"[STAGE 3: 10x HIT] {trade['symbol']} Life-Changing Tier gesichert!")
 
-            # --- PHASE 4: STOP-LOSS & FULL-EXIT REGELN ---
+            # --- PHASE 4: STOP-LOSS & FULL-EXIT REGELN[span_28](start_span)[span_28](end_span) ---
             full_exit = False
             exit_reason = ""
 
-            # Hard Stop: -40% ab gewichtetem Einstieg
+            # Hard Stop: -40% ab gewichtetem Einstieg[span_29](start_span)[span_29](end_span)
             if current_pnl_pct <= STOP_LOSS_HARD_PCT:
                 full_exit = True
                 exit_reason = f"HARD_STOP ({current_pnl_pct*100:.1f}%)"
-            # Trailing Stop: Sobald >20% im Gewinn, Ausstieg bei -20% unter Peak
+            # Trailing Stop: Sobald >20% im Gewinn, Ausstieg bei -20% unter Peak[span_30](start_span)[span_30](end_span)
             elif peak_gain >= 0.20 and current_price <= peak * (1.0 - TRAILING_STOP_OFFSET_PCT):
                 full_exit = True
                 exit_reason = "TRAILING_STOP (-20% from Peak)"
@@ -441,6 +464,7 @@ def manage_open_trades(trades, sol_price):
                 write_csv(CSV_TRADES, trades, HEADERS_TRADES)
                 git_push_updates(f"Exit: {trade['symbol']} ({exit_reason})")
 
+                stats = get_current_stats(trades, sol_price)
                 chart_url = f"https://dexscreener.com/solana/{pair_addr}"
                 color = COLOR_EXIT_WIN if net_pnl > 0 else COLOR_EXIT_LOSS
                 desc = (
@@ -449,7 +473,10 @@ def manage_open_trades(trades, sol_price):
                     f"**Investiert:** {invested_sol:.3f} SOL | **DCA Stufen:** {trade['dca_stage']}/3\n"
                     f"**Peak Gain:** {trade.get('peak_gain_pct')}\n"
                     f"━━━━━━━━━━━━━━━━━━\n"
-                    f"📈 **[DexScreener Chart]({chart_url})**"
+                    f"📈 **[DexScreener Chart]({chart_url})**\n"
+                    f"💰 **Bankroll:** **{stats['current_sol']:.4f} SOL** (${stats['current_usd']:.2f})\n"
+                    f"📊 **Performance:** {stats['wins']}W / {stats['losses']}L ({stats['winrate']:.1f}%)\n"
+                    f"💸 **Gezahlte Tx-Fees gesamt:** {stats['total_fees_sol']:.4f} SOL"
                 )
                 send_discord_alert(f"Trade Closed: {trade['symbol']}", desc, color, chart_url)
 
