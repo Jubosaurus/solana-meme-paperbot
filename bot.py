@@ -11,25 +11,30 @@ CSV_TRADES = "solana_paper_trades_v2.csv"
 CSV_REJECTS = "rejected_rugs_tracking.csv"
 
 STARTING_SOL = 5.0000
-TRADE_SIZE_SOL = 0.25
-MAX_OPEN_TRADES = int(STARTING_SOL / TRADE_SIZE_SOL)  # Max 20 Slots
-MAX_TRACKED_REJECTS = 15                              # Max 15 Schatten-Beobachtungen
+MAX_ALLOCATION_PER_COIN_SOL = 0.25  # 5% Portfolio-Regel (Phase 3)
+MAX_OPEN_TRADES = int(STARTING_SOL / MAX_ALLOCATION_PER_COIN_SOL)
+MAX_TRACKED_REJECTS = 15
 DISCORD_WEBHOOK_URL = os.environ.get("DISCORD_WEBHOOK_URL")
 
-# --- FILTER-REGELN: BUY-SPIKE & TRANSAKTIONS-DICHTE ---
-ALLOWED_DEXES = {"raydium", "meteora"} # PumpSwap komplett geblacklistet!
-MIN_PAIR_AGE_HOURS = 0.50              # Mind. 30 Minuten alt (Sniper-Phase vorbei)
-MIN_LIQUIDITY_USD = 25000.0            # Mind. $25k Liq gegen Slippage-Wicks
-MIN_VOL_M5_USD = 8000.0                # Starkes 5m-Volumen
-MIN_BUYS_M5 = 40                       # Mind. 40 Käufe in 5 Minuten (echte Dichte)
-MIN_BUY_RATIO = 0.68                   # Mind. 68% der Trades müssen Buys sein
-MIN_PRICE_CHANGE_M5 = 0.5              # Bestätigtes positives Momentum
-MAX_PRICE_CHANGE_M5 = 30.0             # Keine überhitzten Riesenkerzen
-MIN_LIQ_TO_FDV_RATIO = 0.03            # Min. 3% Liquidität im Verhältnis zum FDV
+# --- PARAMETER AUS DEM LEITFADEN ---
+# Phase 1 & 2: Tokenomics & Liquidität
+MIN_MCAP_USD = 70000.0              # $70k FDV / Market Cap
+MAX_MCAP_USD = 11000000.0           # $11M FDV / Market Cap
+MIN_LIQ_TO_MCAP_RATIO = 0.10        # LP muss mind. 10% der MCap betragen
+MIN_VOL24H_TO_MCAP_RATIO = 0.05     # 24h-Volumen mind. 5% der MCap
 
-# RugCheck Sicherheitsgrenzen
-RUGCHECK_MAX_ALLOWED_SCORE = 3500      # Hohes Risiko filtern
-MAX_TRADES_PER_TOKEN = 1               # Jeder Token exakt 1x
+# Phase 3: Chart Breakout
+MIN_VOLUME_SURGE_MULTIPLIER = 2.0   # 5m-Volumen mind. 2x Durchschnitt
+
+# Phase 3: Tiered Entry (DCA 20% / 40% / 40%)
+DCA_SCOUT_PCT = 0.20                # 0.05 SOL Scout-Position
+DCA_DIP_PCT = 0.40                  # 0.10 SOL Dip-Kauf
+DCA_MOMENTUM_PCT = 0.40             # 0.10 SOL Breakout-Add
+
+# Phase 4: Staged Profit-Taking & Stops
+STOP_LOSS_HARD_PCT = -0.40          # Hard Stop bei -40%
+TRAILING_STOP_OFFSET_PCT = 0.20     # Trailing Stop bei -20% vom lokalen High
+TIME_STOP_SECONDS = 18000           # Session-Timeout
 
 # Slippage & Gebühren
 SLIPPAGE_BUY_MIN_PCT = -0.005
@@ -37,47 +42,27 @@ SLIPPAGE_BUY_MAX_PCT = 0.035
 SLIPPAGE_MAX_TOLERANCE_PCT = 0.040
 SLIPPAGE_SELL_MIN_PCT = 0.005
 SLIPPAGE_SELL_MAX_PCT = 0.035
-FIXED_PRIORITY_FEES_SOL = 0.006        # 0.003 Buy + 0.003 Sell
-DEX_FEE_PCT = 0.010                    # 1% DEX Gebühr
-
-# Strategie-Parameter: TP1 + Runner Trailing
-TP1_GAIN_PCT = 0.35                    # Bei +35% wird die Hälfte gesichert
-STOP_LOSS_PCT = -0.18                  # Anfänglicher SL bei -18%
-MIN_HOLD_BEFORE_SL = 30                # 30s Wick-Schutz
-TRAILING_OFFSET_PCT = 0.12             # 12% Abstand für den Runner-Peak
-MAX_HOLD_SECONDS = 1200                # 20 Min Maximal-Haltedauer
-RUG_LIQUIDITY_DROP_THRESHOLD = -0.40   # Notbremse ab Sekunde 1
-
-# Tracking & Session
-POST_EXIT_CHECK_SECONDS = 900
-REJECT_OBSERVE_SECONDS = 900
-SESSION_DURATION_SECONDS = 18000       # 5 Stunden
+FIXED_PRIORITY_FEES_SOL = 0.006
+DEX_FEE_PCT = 0.010
+SESSION_DURATION_SECONDS = 18000
 
 COLOR_BUY = 0x00B4D8
 COLOR_EXIT_WIN = 0x10B981
 COLOR_EXIT_LOSS = 0xEF4444
-COLOR_EXIT_NEUTRAL = 0xF59E0B
 
 HEADERS_TRADES = [
-    "token_address", "pair_address", "symbol", "dex_id", "trade_num_for_token",
-    "entry_time", "pair_age_hours", "socials_count", "rugcheck_score",
-    "entry_liquidity_usd", "entry_fdv_usd", "entry_vol_m5", "vol_to_liq_ratio",
-    "entry_buys_m5", "entry_sells_m5", "entry_buy_ratio_m5", "price_change_m5_pct",
-    "signal_price_usd", "simulated_entry_usd", "entry_slip_pct", "sol_invested", "amount_tokens",
+    "token_address", "pair_address", "symbol", "dex_id", "entry_time",
+    "entry_fdv_usd", "entry_liquidity_usd", "entry_vol24h_usd", "rugcheck_score",
+    "avg_entry_price_usd", "total_sol_invested", "tokens_total_bought",
+    "tokens_remaining", "sol_realized", "dca_stage", "stage_profit_level",
     "peak_price_usd", "peak_gain_pct", "max_drawdown_pct", "hold_duration_seconds",
-    "tp1_triggered", "status", "exit_time", "signal_exit_usd", "simulated_exit_usd", "exit_slip_pct",
-    "exit_liquidity_usd", "liq_change_pct", "exit_reason",
-    "raw_pnl_sol", "fees_sol", "net_pnl_sol", "net_pnl_usd",
-    "post_exit_price_15m", "post_exit_change_pct", "post_exit_verdict"
+    "status", "exit_time", "signal_exit_usd", "simulated_exit_usd", "exit_reason",
+    "raw_pnl_sol", "fees_sol", "net_pnl_sol", "net_pnl_usd"
 ]
 
 HEADERS_REJECTS = [
     "token_address", "pair_address", "symbol", "reject_time", "rejection_reason",
-    "rugcheck_score", "risk_flags",
-    "initial_price_usd", "initial_liq_usd", "initial_fdv_usd",
-    "peak_price_usd", "peak_gain_pct", "max_drawdown_pct",
-    "final_price_usd", "final_liq_usd", "liq_change_pct", "final_price_change_pct",
-    "observed_seconds", "final_verdict", "status"
+    "rugcheck_score", "initial_price_usd", "initial_liq_usd", "initial_fdv_usd", "status"
 ]
 
 def git_push_updates(commit_msg="Update CSV data [skip ci]"):
@@ -88,9 +73,8 @@ def git_push_updates(commit_msg="Update CSV data [skip ci]"):
             subprocess.run(["git", "commit", "-m", commit_msg], check=False)
             subprocess.run(["git", "pull", "origin", "main", "--rebase"], check=False)
             subprocess.run(["git", "push", "origin", "main"], check=False)
-            print(f"[GIT] Push erfolgreich: {commit_msg}")
     except Exception as e:
-        print(f"[GIT-WARNUNG] Push Fehler: {e}")
+        print(f"[GIT-ERROR] {e}")
 
 def get_sol_price():
     try:
@@ -117,8 +101,8 @@ def send_discord_alert(title, description, color=0x3498db, chart_url=None):
         embed["url"] = chart_url
     try:
         requests.post(DISCORD_WEBHOOK_URL, json={"embeds": [embed]}, timeout=5)
-    except Exception as e:
-        print(f"Discord Fehler: {e}")
+    except Exception:
+        pass
 
 def init_csvs():
     if not os.path.exists(CSV_TRADES):
@@ -146,7 +130,8 @@ def write_csv(filename, data, headers):
         writer.writeheader()
         writer.writerows(data)
 
-def check_token_safety(token_address):
+def audit_token_security(token_address):
+    """Prüft Phase 2 Kriterien: Mint, Freeze, Top-10-Holder, Honeypot-Risiken."""
     try:
         rc_url = f"https://api.rugcheck.xyz/v1/tokens/{token_address}/report/summary"
         rc_res = requests.get(rc_url, timeout=4)
@@ -154,52 +139,31 @@ def check_token_safety(token_address):
             data = rc_res.json()
             score = data.get("score", 0)
             risks = data.get("risks", [])
-            risk_names = [r.get("name", "") for r in risks]
-            
-            if score > RUGCHECK_MAX_ALLOWED_SCORE:
-                return False, score, f"Score zu hoch ({score})", "; ".join(risk_names)
 
             for r in risks:
                 name = r.get("name", "")
+                level = r.get("level", "")
                 if "Mint Authority" in name:
-                    return False, score, "Mint Authority aktiv", "; ".join(risk_names)
+                    return False, score, "Hidden Mint Authority aktiv"
                 if "Freeze Authority" in name:
-                    return False, score, "Freeze Authority aktiv", "; ".join(risk_names)
-                if "Single holder ownership" in name:
-                    return False, score, "Groß-Holder Risiko", "; ".join(risk_names)
+                    return False, score, "Freeze Authority aktiv"
+                if "Top 10 holders" in name and "danger" in level:
+                    return False, score, "Top 10 Wallets halten >40% Supply"
+                if "Transfer Fee" in name or "Tax" in name:
+                    return False, score, "Zu hohe Buy/Sell-Tax"
 
-            return True, score, "RugCheck OK", "; ".join(risk_names)
+            return True, score, "Audit Passed"
     except Exception:
         pass
-    return True, 0, "Audit Skipped", "None"
-
-def get_current_stats(trades, sol_price):
-    closed = [t for t in trades if t.get("status") == "CLOSED"]
-    net_pnl_sol = sum(float(t.get("net_pnl_sol", 0.0) or 0.0) for t in closed)
-    total_fees_sol = sum(float(t.get("fees_sol", 0.0) or 0.0) for t in closed)
-    wins = len([t for t in closed if float(t.get("net_pnl_sol", 0.0) or 0.0) > 0])
-    losses = len([t for t in closed if float(t.get("net_pnl_sol", 0.0) or 0.0) <= 0])
-    current_sol = STARTING_SOL + net_pnl_sol
-    current_usd = current_sol * sol_price
-    winrate = (wins / len(closed) * 100) if closed else 0.0
-    return {
-        "current_sol": current_sol,
-        "current_usd": current_usd,
-        "net_pnl_sol": net_pnl_sol,
-        "total_fees_sol": total_fees_sol,
-        "wins": wins,
-        "losses": losses,
-        "total_trades": len(closed),
-        "winrate": winrate
-    }
+    return True, 0, "Audit Skipped"
 
 def scan_and_enter(trades, rejects, sol_price):
     open_trades = [t for t in trades if t.get("status") == "OPEN"]
     if len(open_trades) >= MAX_OPEN_TRADES:
         return trades, rejects
 
-    active_open_tokens = {t["token_address"] for t in open_trades}
-    already_rejected_tokens = {r["token_address"] for r in rejects}
+    active_tokens = {t["token_address"] for t in open_trades}
+    now_dt = datetime.now(timezone.utc)
 
     try:
         url = "https://api.dexscreener.com/token-profiles/latest/v1"
@@ -207,20 +171,17 @@ def scan_and_enter(trades, rejects, sol_price):
         if not isinstance(res, list):
             return trades, rejects
 
-        now_dt = datetime.now(timezone.utc)
-
         for item in res:
             if len([t for t in trades if t.get("status") == "OPEN"]) >= MAX_OPEN_TRADES:
                 break
             if item.get("chainId") != "solana":
                 continue
-            
+
             token_addr = item.get("tokenAddress")
-            if token_addr in active_open_tokens:
+            if token_addr in active_tokens:
                 continue
 
-            past_trades_count = len([t for t in trades if t.get("token_address") == token_addr])
-            if past_trades_count >= MAX_TRADES_PER_TOKEN:
+            if any(t.get("token_address") == token_addr for t in trades):
                 continue
 
             pair_url = f"https://api.dexscreener.com/latest/dex/tokens/{token_addr}"
@@ -230,161 +191,102 @@ def scan_and_enter(trades, rejects, sol_price):
                 continue
 
             pair = pairs[0]
-            dex_id = pair.get("dexId", "").lower()
-            
-            # 1. PUMPSWAP-AUSSCHLUSS: Nur Raydium und Meteora erlaubt
-            if dex_id not in ALLOWED_DEXES:
-                continue
-
-            pair_addr = pair.get("pairAddress")
-            price_usd = float(pair.get("priceUsd") or 0.0)
+            mcap = float(pair.get("fdv") or pair.get("marketCap") or 0.0)
             liquidity = float(pair.get("liquidity", {}).get("usd") or 0.0)
+            vol_24h = float(pair.get("volume", {}).get("h24") or 0.0)
+            vol_1h = float(pair.get("volume", {}).get("h1") or 0.0)
             vol_5m = float(pair.get("volume", {}).get("m5") or 0.0)
-            fdv_usd = float(pair.get("fdv") or 0.0)
-            tx_5m = pair.get("txns", {}).get("m5", {})
-            buys_5m = tx_5m.get("buys", 0)
-            sells_5m = tx_5m.get("sells", 0)
-            price_change_m5 = float(pair.get("priceChange", {}).get("m5") or 0.0)
+            price_usd = float(pair.get("priceUsd") or 0.0)
 
-            # 2. Pool-Alter prüfen: Mind. 30 Minuten alt (Sniper-Dump vorbei)
-            created_at_ms = pair.get("pairCreatedAt")
-            if not created_at_ms:
-                continue
-            pair_age_hours = round((now_dt.timestamp() - (created_at_ms / 1000.0)) / 3600.0, 2)
-            if pair_age_hours < MIN_PAIR_AGE_HOURS:
+            # 1. Phase 1: MCap Filter ($70k bis $11M)
+            if mcap < MIN_MCAP_USD or mcap > MAX_MCAP_USD or price_usd <= 0.0:
                 continue
 
-            # 3. Mindest-Liquidität: Mind. $25k gegen Slippage-Wicks
-            if liquidity < MIN_LIQUIDITY_USD:
+            # 2. Phase 2: LP-Größe (mind. 10% der MCap) & 24h-Volumen (mind. 5% der MCap)
+            if (liquidity / mcap) < MIN_LIQ_TO_MCAP_RATIO:
+                continue
+            if (vol_24h / mcap) < MIN_VOL24H_TO_MCAP_RATIO:
                 continue
 
-            # 4. BUY-SPIKE & TRANSAKTIONS-DICHTE
-            if buys_5m < MIN_BUYS_M5 or vol_5m < MIN_VOL_M5_USD:
+            # 3. Phase 3: Volume Surge (5m-Volumen mind. 2x Durchschnitt der letzten Stunde)
+            expected_avg_5m_vol = (vol_1h / 12.0) if vol_1h > 0 else 0.0
+            if expected_avg_5m_vol > 0 and vol_5m < (expected_avg_5m_vol * MIN_VOLUME_SURGE_MULTIPLIER):
                 continue
 
-            total_tx_5m = buys_5m + sells_5m
-            buy_ratio = (buys_5m / total_tx_5m) if total_tx_5m > 0 else 0.0
-            if buy_ratio < MIN_BUY_RATIO:
-                continue
-
-            # 5. Gesundes Momentum (+0.5% bis +30.0%)
-            if price_change_m5 < MIN_PRICE_CHANGE_M5 or price_change_m5 > MAX_PRICE_CHANGE_M5:
-                continue
-
-            if fdv_usd > 0 and (liquidity / fdv_usd) < MIN_LIQ_TO_FDV_RATIO:
-                continue
-
-            # 6. Sicherheits-Audit
-            is_safe, rc_score, safety_reason, risk_flags = check_token_safety(token_addr)
+            # 4. Phase 2: Contract-Sicherheit
+            is_safe, rc_score, reason = audit_token_security(token_addr)
             if not is_safe:
-                if token_addr not in already_rejected_tokens and len([r for r in rejects if r.get("status") == "OBSERVING"]) < MAX_TRACKED_REJECTS:
-                    reject_entry = {
-                        "token_address": token_addr,
-                        "pair_address": pair_addr,
-                        "symbol": pair.get("baseToken", {}).get("symbol", "UNKNOWN"),
-                        "reject_time": now_dt.strftime("%Y-%m-%d %H:%M:%S"),
-                        "rejection_reason": safety_reason,
-                        "rugcheck_score": rc_score,
-                        "risk_flags": risk_flags,
-                        "initial_price_usd": f"{price_usd:.8f}",
-                        "initial_liq_usd": round(liquidity, 2),
-                        "initial_fdv_usd": round(fdv_usd, 2),
-                        "peak_price_usd": f"{price_usd:.8f}",
-                        "peak_gain_pct": "0.0%",
-                        "max_drawdown_pct": "0.0%",
-                        "final_price_usd": "",
-                        "final_liq_usd": "",
-                        "liq_change_pct": "",
-                        "final_price_change_pct": "",
-                        "observed_seconds": 0,
-                        "final_verdict": "",
-                        "status": "OBSERVING"
-                    }
-                    rejects.append(reject_entry)
-                    already_rejected_tokens.add(token_addr)
-                    write_csv(CSV_REJECTS, rejects, HEADERS_REJECTS)
-                    git_push_updates(f"Reject Shadow Track: {reject_entry['symbol']}")
+                rejects.append({
+                    "token_address": token_addr,
+                    "pair_address": pair.get("pairAddress"),
+                    "symbol": pair.get("baseToken", {}).get("symbol", "UNKNOWN"),
+                    "reject_time": now_dt.strftime("%Y-%m-%d %H:%M:%S"),
+                    "rejection_reason": reason,
+                    "rugcheck_score": rc_score,
+                    "initial_price_usd": f"{price_usd:.8f}",
+                    "initial_liq_usd": round(liquidity, 2),
+                    "initial_fdv_usd": round(mcap, 2),
+                    "status": "REJECTED"
+                })
+                write_csv(CSV_REJECTS, rejects, HEADERS_REJECTS)
                 continue
 
-            socials_count = len(pair.get("info", {}).get("socials", []))
-            vol_to_liq = round(vol_5m / liquidity, 2) if liquidity > 0 else 0.0
-
+            # Phase 3: Scout Position (20% Allokation = 0.05 SOL)
+            scout_sol = MAX_ALLOCATION_PER_COIN_SOL * DCA_SCOUT_PCT
             actual_buy_slip = random.uniform(SLIPPAGE_BUY_MIN_PCT, SLIPPAGE_BUY_MAX_PCT)
-            if actual_buy_slip > SLIPPAGE_MAX_TOLERANCE_PCT:
-                continue
-
-            simulated_entry = price_usd * (1.0 + actual_buy_slip)
-            invested_usd = TRADE_SIZE_SOL * sol_price
-            tokens_bought = invested_usd / simulated_entry
+            sim_entry = price_usd * (1.0 + actual_buy_slip)
+            tokens_scout = (scout_sol * sol_price) / sim_entry
 
             new_trade = {
                 "token_address": token_addr,
-                "pair_address": pair_addr,
+                "pair_address": pair.get("pairAddress"),
                 "symbol": pair.get("baseToken", {}).get("symbol", "UNKNOWN"),
-                "dex_id": dex_id,
-                "trade_num_for_token": past_trades_count + 1,
+                "dex_id": pair.get("dexId", "unknown"),
                 "entry_time": now_dt.strftime("%Y-%m-%d %H:%M:%S"),
-                "pair_age_hours": pair_age_hours,
-                "socials_count": socials_count,
-                "rugcheck_score": rc_score,
+                "entry_fdv_usd": round(mcap, 2),
                 "entry_liquidity_usd": round(liquidity, 2),
-                "entry_fdv_usd": round(fdv_usd, 2),
-                "entry_vol_m5": round(vol_5m, 2),
-                "vol_to_liq_ratio": vol_to_liq,
-                "entry_buys_m5": buys_5m,
-                "entry_sells_m5": sells_5m,
-                "entry_buy_ratio_m5": f"{buy_ratio*100:.1f}%",
-                "price_change_m5_pct": f"{price_change_m5:+.1f}%",
-                "signal_price_usd": f"{price_usd:.8f}",
-                "simulated_entry_usd": f"{simulated_entry:.8f}",
-                "entry_slip_pct": f"{actual_buy_slip*100:+.2f}%",
-                "sol_invested": TRADE_SIZE_SOL,
-                "amount_tokens": tokens_bought,
-                "peak_price_usd": f"{simulated_entry:.8f}",
+                "entry_vol24h_usd": round(vol_24h, 2),
+                "rugcheck_score": rc_score,
+                "avg_entry_price_usd": f"{sim_entry:.8f}",
+                "total_sol_invested": f"{scout_sol:.4f}",
+                "tokens_total_bought": tokens_scout,
+                "tokens_remaining": tokens_scout,
+                "sol_realized": 0.0,
+                "dca_stage": 1,  # 1 = Scout gekauft
+                "stage_profit_level": 0,
+                "peak_price_usd": f"{sim_entry:.8f}",
                 "peak_gain_pct": "0.0%",
                 "max_drawdown_pct": "0.0%",
                 "hold_duration_seconds": 0,
-                "tp1_triggered": "NO",
                 "status": "OPEN",
                 "exit_time": "",
                 "signal_exit_usd": "",
                 "simulated_exit_usd": "",
-                "exit_slip_pct": "",
-                "exit_liquidity_usd": "",
-                "liq_change_pct": "",
                 "exit_reason": "",
                 "raw_pnl_sol": "0.0",
                 "fees_sol": "0.0",
                 "net_pnl_sol": "0.0",
-                "net_pnl_usd": "0.0",
-                "post_exit_price_15m": "",
-                "post_exit_change_pct": "",
-                "post_exit_verdict": ""
+                "net_pnl_usd": "0.0"
             }
 
             trades.append(new_trade)
-            active_open_tokens.add(token_addr)
+            active_tokens.add(token_addr)
             write_csv(CSV_TRADES, trades, HEADERS_TRADES)
-            
-            git_push_updates(f"Trade Entry: {new_trade['symbol']} ({dex_id})")
-            print(f"[ENTRY] {new_trade['symbol']} on {dex_id} | Buys(5m): {buys_5m} ({buy_ratio*100:.1f}%) | Vol: ${vol_5m:,.0f}")
+            git_push_updates(f"Scout Entry: {new_trade['symbol']}")
 
-            chart_url = f"https://dexscreener.com/solana/{pair_addr}"
-            current_open = len([t for t in trades if t.get("status") == "OPEN"])
+            chart_url = f"https://dexscreener.com/solana/{new_trade['pair_address']}"
             desc = (
-                f"**Symbol:** [{new_trade['symbol']}]({chart_url}) ({dex_id.upper()})\n"
-                f"**Fill-Kurs:** ${simulated_entry:.8f} (Slip: {actual_buy_slip*100:+.2f}%)\n"
-                f"**Transaktionen (5m):** 🟢 {buys_5m} Buys / 🔴 {sells_5m} Sells (**{buy_ratio*100:.1f}%**)\n"
-                f"**5m Volumen:** ${vol_5m:,.0f} | **Liq:** ${liquidity:,.0f}\n"
-                f"**Alter:** {pair_age_hours:.1f}h | **5m Momentum:** {price_change_m5:+.1f}%\n"
+                f"**Symbol:** [{new_trade['symbol']}]({chart_url})\n"
+                f"**MCap:** ${mcap:,.0f} | **LP:** ${liquidity:,.0f} ({(liquidity/mcap)*100:.1f}%)\n"
+                f"**Vol Surge:** 5m ${vol_5m:,.0f} vs Avg ${(expected_avg_5m_vol):,.0f}\n"
+                f"**DCA Status:** Tranche 1/3 (Scout: {scout_sol:.2f} SOL @ ${sim_entry:.8f})\n"
                 f"━━━━━━━━━━━━━━━━━━\n"
-                f"📈 **[DexScreener Live-Chart öffnen]({chart_url})**\n"
-                f"Offene Positionen: {current_open}/{MAX_OPEN_TRADES}"
+                f"📈 **[DexScreener Chart]({chart_url})**"
             )
-            send_discord_alert(f"🚀 Buy Spike: {new_trade['symbol']}", desc, COLOR_BUY, chart_url)
+            send_discord_alert(f"🎯 Scout Position: {new_trade['symbol']}", desc, COLOR_BUY, chart_url)
 
     except Exception as e:
-        print(f"Fehler bei Scan: {e}")
+        print(f"Scan Fehler: {e}")
 
     return trades, rejects
 
@@ -404,274 +306,191 @@ def manage_open_trades(trades, sol_price):
             if not pairs:
                 continue
 
-            pair = pairs[0]
-            current_signal_price = float(pair.get("priceUsd") or 0.0)
-            current_liquidity = float(pair.get("liquidity", {}).get("usd") or 0.0)
-            if current_signal_price <= 0.0:
+            current_price = float(pairs[0].get("priceUsd") or 0.0)
+            if current_price <= 0.0:
                 continue
 
-            entry_sim = float(trade["simulated_entry_usd"])
-            entry_liq = float(trade.get("entry_liquidity_usd") or 1.0)
-            liq_change = (current_liquidity - entry_liq) / entry_liq if entry_liq > 0 else 0.0
-            
-            peak = max(float(trade.get("peak_price_usd", entry_sim)), current_signal_price)
+            avg_entry = float(trade["avg_entry_price_usd"])
+            total_invested_sol = float(trade["total_sol_invested"])
+            tokens_tot = float(trade["tokens_total_bought"])
+            tokens_rem = float(trade["tokens_remaining"])
+            dca_stage = int(trade.get("dca_stage", 1))
+            profit_level = int(trade.get("stage_profit_level", 0))
+
+            peak = max(float(trade.get("peak_price_usd", avg_entry)), current_price)
             trade["peak_price_usd"] = f"{peak:.8f}"
-            peak_gain = (peak - entry_sim) / entry_sim
+            peak_gain = (peak - avg_entry) / avg_entry
             trade["peak_gain_pct"] = f"{peak_gain*100:+.1f}%"
 
-            current_drawdown = (current_signal_price - entry_sim) / entry_sim
-            prev_max_dd = float(trade.get("max_drawdown_pct", "0.0%").replace("%", "")) / 100.0
-            if current_drawdown < prev_max_dd:
-                trade["max_drawdown_pct"] = f"{current_drawdown*100:.1f}%"
-
-            price_change_raw = (current_signal_price - entry_sim) / entry_sim
+            current_pnl_pct = (current_price - avg_entry) / avg_entry
             entry_dt = datetime.strptime(trade["entry_time"], "%Y-%m-%d %H:%M:%S").replace(tzinfo=timezone.utc)
             held_seconds = int((now - entry_dt).total_seconds())
             trade["hold_duration_seconds"] = held_seconds
 
-            # TEILVERKAUF TP1 (+35%): Sichert 50% ab und setzt SL auf Break-Even
-            if price_change_raw >= TP1_GAIN_PCT and trade.get("tp1_triggered") != "YES":
-                trade["tp1_triggered"] = "YES"
-                print(f"[TP1 HIT] {trade['symbol']} bei +35% erreicht! Runner aktiv.")
+            actual_slip = random.uniform(SLIPPAGE_SELL_MIN_PCT, SLIPPAGE_SELL_MAX_PCT)
+            sim_price = current_price * (1.0 - actual_slip)
 
-            exit_triggered = False
+            # --- PHASE 3: TIERED DCA BUY-LOGIK ---
+            # Tranche 2 (Dip Buying, 40% = 0.10 SOL): Kauf bei -20% bis -35% Rücksetzer
+            if dca_stage == 1 and current_pnl_pct <= -0.20 and current_pnl_pct >= -0.35:
+                dip_sol = MAX_ALLOCATION_PER_COIN_SOL * DCA_DIP_PCT
+                buy_slip = random.uniform(SLIPPAGE_BUY_MIN_PCT, SLIPPAGE_BUY_MAX_PCT)
+                dip_fill = current_price * (1.0 + buy_slip)
+                dip_tokens = (dip_sol * sol_price) / dip_fill
+
+                new_total_tokens = tokens_tot + dip_tokens
+                new_total_sol = total_invested_sol + dip_sol
+                new_avg_price = (new_total_sol * sol_price) / new_total_tokens
+
+                trade["total_sol_invested"] = f"{new_total_sol:.4f}"
+                trade["tokens_total_bought"] = new_total_tokens
+                trade["tokens_remaining"] = tokens_rem + dip_tokens
+                trade["avg_entry_price_usd"] = f"{new_avg_price:.8f}"
+                trade["dca_stage"] = 2
+                write_csv(CSV_TRADES, trades, HEADERS_TRADES)
+                print(f"[DCA DIP HIT] {trade['symbol']} nachgekauft @ -20%! Neuer Avg: ${new_avg_price:.8f}")
+
+            # Tranche 3 (Momentum Confirmation, 40% = 0.10 SOL): Aufstocken bei Ausbruch (+15%)
+            elif dca_stage < 3 and current_pnl_pct >= 0.15:
+                mom_sol = MAX_ALLOCATION_PER_COIN_SOL * DCA_MOMENTUM_PCT
+                buy_slip = random.uniform(SLIPPAGE_BUY_MIN_PCT, SLIPPAGE_BUY_MAX_PCT)
+                mom_fill = current_price * (1.0 + buy_slip)
+                mom_tokens = (mom_sol * sol_price) / mom_fill
+
+                new_total_tokens = float(trade["tokens_total_bought"]) + mom_tokens
+                new_total_sol = float(trade["total_sol_invested"]) + mom_sol
+                new_avg_price = (new_total_sol * sol_price) / new_total_tokens
+
+                trade["total_sol_invested"] = f"{new_total_sol:.4f}"
+                trade["tokens_total_bought"] = new_total_tokens
+                trade["tokens_remaining"] = float(trade["tokens_remaining"]) + mom_tokens
+                trade["avg_entry_price_usd"] = f"{new_avg_price:.8f}"
+                trade["dca_stage"] = 3
+                write_csv(CSV_TRADES, trades, HEADERS_TRADES)
+                print(f"[DCA MOMENTUM HIT] {trade['symbol']} Breakout bestätigt! Position voll auf 0.25 SOL.")
+
+            # --- PHASE 4: 4-TIER STAGED PROFIT-TAKING ---
+            # 1. Stufe: 2x (+100%) -> Initial Investment komplett rausnehmen (50% der Gesamt-Tokens verkaufen)
+            if current_pnl_pct >= 1.00 and profit_level < 1:
+                sell_tokens = float(trade["tokens_total_bought"]) * 0.50
+                realized = (sell_tokens * sim_price) / sol_price
+                trade["tokens_remaining"] = float(trade["tokens_remaining"]) - sell_tokens
+                trade["sol_realized"] = float(trade["sol_realized"]) + realized
+                trade["stage_profit_level"] = 1
+                write_csv(CSV_TRADES, trades, HEADERS_TRADES)
+                print(f"[STAGE 1: 2x HIT] {trade['symbol']} Initial Investment raus!")
+
+            # 2. Stufe: 5x (+400%) -> 25% des aktuellen Restbestands verkaufen
+            elif current_pnl_pct >= 4.00 and profit_level < 2:
+                sell_tokens = float(trade["tokens_remaining"]) * 0.25
+                realized = (sell_tokens * sim_price) / sol_price
+                trade["tokens_remaining"] = float(trade["tokens_remaining"]) - sell_tokens
+                trade["sol_realized"] = float(trade["sol_realized"]) + realized
+                trade["stage_profit_level"] = 2
+                write_csv(CSV_TRADES, trades, HEADERS_TRADES)
+                print(f"[STAGE 2: 5x HIT] {trade['symbol']} 25% gesichert!")
+
+            # 3. Stufe: 10x (+900%) -> Weitere 25% des aktuellen Restbestands verkaufen
+            elif current_pnl_pct >= 9.00 and profit_level < 3:
+                sell_tokens = float(trade["tokens_remaining"]) * 0.25
+                realized = (sell_tokens * sim_price) / sol_price
+                trade["tokens_remaining"] = float(trade["tokens_remaining"]) - sell_tokens
+                trade["sol_realized"] = float(trade["sol_realized"]) + realized
+                trade["stage_profit_level"] = 3
+                write_csv(CSV_TRADES, trades, HEADERS_TRADES)
+                print(f"[STAGE 3: 10x HIT] {trade['symbol']} Life-Changing Tier gesichert!")
+
+            # --- PHASE 4: STOP-LOSS & FULL-EXIT REGELN ---
+            full_exit = False
             exit_reason = ""
 
-            # 1. Notbremse bei Liq-Abzug (ab Sekunde 1)
-            if liq_change <= RUG_LIQUIDITY_DROP_THRESHOLD:
-                exit_triggered = True
-                exit_reason = f"RUG_LIQ_DROP ({liq_change*100:.1f}%)"
-            # 2. SL nach TP1 (Break-Even geschützt)
-            elif trade.get("tp1_triggered") == "YES" and price_change_raw <= 0.02:
-                exit_triggered = True
-                exit_reason = "RUNNER_BE_EXIT (+2%)"
-            # 3. Trailing SL für den Runner (12% Abstand vom Peak)
-            elif trade.get("tp1_triggered") == "YES" and current_signal_price <= peak * (1.0 - TRAILING_OFFSET_PCT):
-                exit_triggered = True
-                exit_reason = f"RUNNER_TRAILED (+{price_change_raw*100:.1f}%)"
-            # 4. Standard Stop-Loss mit 30s Wick-Puffer
-            elif price_change_raw <= STOP_LOSS_PCT and held_seconds >= MIN_HOLD_BEFORE_SL:
-                exit_triggered = True
-                exit_reason = f"SL_HIT ({price_change_raw*100:.1f}%)"
-            # 5. Zeitlimit
-            elif held_seconds >= MAX_HOLD_SECONDS:
-                exit_triggered = True
-                exit_reason = f"TIME_EXPIRED ({price_change_raw*100:.1f}%)"
+            # Hard Stop: -40% ab gewichtetem Einstieg
+            if current_pnl_pct <= STOP_LOSS_HARD_PCT:
+                full_exit = True
+                exit_reason = f"HARD_STOP ({current_pnl_pct*100:.1f}%)"
+            # Trailing Stop: Sobald >20% im Gewinn, Ausstieg bei -20% unter Peak
+            elif peak_gain >= 0.20 and current_price <= peak * (1.0 - TRAILING_STOP_OFFSET_PCT):
+                full_exit = True
+                exit_reason = "TRAILING_STOP (-20% from Peak)"
+            # Time Stop: Session Timeout
+            elif held_seconds >= TIME_STOP_SECONDS:
+                full_exit = True
+                exit_reason = f"TIME_STOP ({current_pnl_pct*100:.1f}%)"
 
-            if exit_triggered:
-                actual_sell_slip = random.uniform(SLIPPAGE_SELL_MIN_PCT, SLIPPAGE_SELL_MAX_PCT)
-                simulated_exit = current_signal_price * (1.0 - actual_sell_slip)
-                tokens = float(trade["amount_tokens"])
-                sol_inv = float(trade["sol_invested"])
+            if full_exit:
+                rem_tok = float(trade["tokens_remaining"])
+                rem_sol = ((rem_tok * sim_price) / sol_price) if rem_tok > 0 else 0.0
+                total_realized_sol = float(trade["sol_realized"]) + rem_sol
+                invested_sol = float(trade["total_sol_invested"])
 
-                # Falls TP1 getriggert war, wurde die Hälfte zu +35% verkauft, die andere Hälfte jetzt
-                if trade.get("tp1_triggered") == "YES":
-                    tp1_exit_price = entry_sim * (1.0 + TP1_GAIN_PCT) * (1.0 - actual_sell_slip)
-                    half_tokens = tokens / 2.0
-                    gross_return_usd = (half_tokens * tp1_exit_price) + (half_tokens * simulated_exit)
-                else:
-                    gross_return_usd = tokens * simulated_exit
-
-                gross_return_sol = gross_return_usd / sol_price
-                raw_pnl_sol = gross_return_sol - sol_inv
-
-                dex_fee_sol = (sol_inv + gross_return_sol) * (DEX_FEE_PCT / 2.0)
-                total_fees = FIXED_PRIORITY_FEES_SOL + dex_fee_sol
-                net_pnl_sol = raw_pnl_sol - total_fees
-                net_pnl_usd = net_pnl_sol * sol_price
+                raw_pnl = total_realized_sol - invested_sol
+                total_fees = FIXED_PRIORITY_FEES_SOL + ((invested_sol + total_realized_sol) * (DEX_FEE_PCT / 2.0))
+                net_pnl = raw_pnl - total_fees
 
                 trade["status"] = "CLOSED"
                 trade["exit_time"] = now.strftime("%Y-%m-%d %H:%M:%S")
-                trade["signal_exit_usd"] = f"{current_signal_price:.8f}"
-                trade["simulated_exit_usd"] = f"{simulated_exit:.8f}"
-                trade["exit_slip_pct"] = f"-{actual_sell_slip*100:.2f}%"
-                trade["exit_liquidity_usd"] = round(current_liquidity, 2)
-                trade["liq_change_pct"] = f"{liq_change*100:+.1f}%"
-                trade["raw_pnl_sol"] = f"{raw_pnl_sol:.4f}"
-                trade["fees_sol"] = f"{total_fees:.4f}"
-                trade["net_pnl_sol"] = f"{net_pnl_sol:.4f}"
-                trade["net_pnl_usd"] = f"{net_pnl_usd:.2f}"
+                trade["signal_exit_usd"] = f"{current_price:.8f}"
+                trade["simulated_exit_usd"] = f"{sim_price:.8f}"
                 trade["exit_reason"] = exit_reason
+                trade["raw_pnl_sol"] = f"{raw_pnl:.4f}"
+                trade["fees_sol"] = f"{total_fees:.4f}"
+                trade["net_pnl_sol"] = f"{net_pnl:.4f}"
+                trade["net_pnl_usd"] = f"{net_pnl * sol_price:.2f}"
+                trade["tokens_remaining"] = 0.0
 
                 write_csv(CSV_TRADES, trades, HEADERS_TRADES)
-                git_push_updates(f"Trade Exit: {trade['symbol']} ({exit_reason})")
+                git_push_updates(f"Exit: {trade['symbol']} ({exit_reason})")
 
-                stats = get_current_stats(trades, sol_price)
                 chart_url = f"https://dexscreener.com/solana/{pair_addr}"
-
-                if net_pnl_sol > 0.001:
-                    embed_color = COLOR_EXIT_WIN
-                    title_prefix = "🟢 Trade Win"
-                elif net_pnl_sol < -0.001:
-                    embed_color = COLOR_EXIT_LOSS
-                    title_prefix = "🔴 Trade Loss"
-                else:
-                    embed_color = COLOR_EXIT_NEUTRAL
-                    title_prefix = "🟡 Trade Neutral"
-
+                color = COLOR_EXIT_WIN if net_pnl > 0 else COLOR_EXIT_LOSS
                 desc = (
-                    f"**Symbol:** [{trade['symbol']}]({chart_url}) | {exit_reason} (Dauer: {held_seconds}s)\n"
-                    f"**Netto PnL:** **{net_pnl_sol:+.4f} SOL** ({net_pnl_usd:+.2f} USD)\n"
-                    f"**Liq beim Exit:** ${current_liquidity:,.0f} ({liq_change*100:+.1f}%)\n"
-                    f"**Peak Gain:** {trade.get('peak_gain_pct')} | **Max DD:** {trade.get('max_drawdown_pct')}\n"
+                    f"**Symbol:** [{trade['symbol']}]({chart_url}) | {exit_reason}\n"
+                    f"**Net PnL:** **{net_pnl:+.4f} SOL** ({net_pnl*sol_price:+.2f} USD)\n"
+                    f"**Investiert:** {invested_sol:.3f} SOL | **DCA Stufen:** {trade['dca_stage']}/3\n"
+                    f"**Peak Gain:** {trade.get('peak_gain_pct')}\n"
                     f"━━━━━━━━━━━━━━━━━━\n"
-                    f"📈 **[DexScreener Chart analysieren]({chart_url})**\n"
-                    f"**Bankroll:** **{stats['current_sol']:.4f} SOL** (${stats['current_usd']:.2f})\n"
-                    f"**Stats:** {stats['wins']}W / {stats['losses']}L ({stats['winrate']:.1f}%)\n"
-                    f"**Gezahlte Tx-Fees gesamt:** {stats['total_fees_sol']:.4f} SOL"
+                    f"📈 **[DexScreener Chart]({chart_url})**"
                 )
-                send_discord_alert(f"{title_prefix}: {trade['symbol']}", desc, embed_color, chart_url)
-                print(f"[EXIT] {trade['symbol']} | {exit_reason} | Net: {net_pnl_sol:+.4f} SOL")
+                send_discord_alert(f"Trade Closed: {trade['symbol']}", desc, color, chart_url)
 
         except Exception as e:
-            print(f"Fehler bei Trade-Update {trade.get('symbol')}: {e}")
+            print(f"Trade Update Fehler: {e}")
 
     return trades
-
-def manage_post_exit_checks(trades):
-    now = datetime.now(timezone.utc)
-    updated = False
-
-    for trade in trades:
-        if trade.get("status") == "CLOSED" and not trade.get("post_exit_price_15m"):
-            exit_time_str = trade.get("exit_time")
-            if not exit_time_str:
-                continue
-            try:
-                exit_dt = datetime.strptime(exit_time_str, "%Y-%m-%d %H:%M:%S").replace(tzinfo=timezone.utc)
-                seconds_since_exit = (now - exit_dt).total_seconds()
-                
-                if seconds_since_exit >= POST_EXIT_CHECK_SECONDS:
-                    pair_addr = trade.get("pair_address")
-                    url = f"https://api.dexscreener.com/latest/dex/pairs/solana/{pair_addr}"
-                    res = requests.get(url, timeout=4).json()
-                    pairs = res.get("pairs")
-                    if pairs:
-                        current_price = float(pairs[0].get("priceUsd") or 0.0)
-                        exit_price = float(trade.get("simulated_exit_usd") or 0.0)
-                        
-                        if current_price > 0 and exit_price > 0:
-                            change_pct = ((current_price - exit_price) / exit_price) * 100.0
-                            trade["post_exit_price_15m"] = f"{current_price:.8f}"
-                            trade["post_exit_change_pct"] = f"{change_pct:+.1f}%"
-                            
-                            if change_pct <= -25.0:
-                                trade["post_exit_verdict"] = "SAVED_BY_EXIT"
-                            elif change_pct >= 35.0:
-                                trade["post_exit_verdict"] = "MISSED_FURTHER_PUMP"
-                            else:
-                                trade["post_exit_verdict"] = "SIDEWAYS"
-                                
-                            print(f"[POST-EXIT] {trade['symbol']} 15m: {change_pct:+.1f}% -> {trade['post_exit_verdict']}")
-                            updated = True
-            except Exception:
-                pass
-
-    if updated:
-        write_csv(CSV_TRADES, trades, HEADERS_TRADES)
-        git_push_updates("Post-Exit Update [skip ci]")
-
-    return trades
-
-def manage_shadow_rejects(rejects):
-    observing = [r for r in rejects if r.get("status") == "OBSERVING"]
-    if not observing:
-        return rejects
-
-    now = datetime.now(timezone.utc)
-
-    for item in observing:
-        try:
-            pair_addr = item.get("pair_address")
-            url = f"https://api.dexscreener.com/latest/dex/pairs/solana/{pair_addr}"
-            res = requests.get(url, timeout=4).json()
-            pairs = res.get("pairs")
-            if not pairs:
-                continue
-
-            current_price = float(pairs[0].get("priceUsd") or 0.0)
-            current_liq = float(pairs[0].get("liquidity", {}).get("usd") or 0.0)
-            init_price = float(item["initial_price_usd"])
-            init_liq = float(item["initial_liq_usd"])
-
-            reject_dt = datetime.strptime(item["reject_time"], "%Y-%m-%d %H:%M:%S").replace(tzinfo=timezone.utc)
-            observed_sec = int((now - reject_dt).total_seconds())
-            item["observed_seconds"] = observed_sec
-
-            if current_price > 0 and init_price > 0:
-                peak = max(float(item.get("peak_price_usd", init_price)), current_price)
-                item["peak_price_usd"] = f"{peak:.8f}"
-                peak_gain = (peak - init_price) / init_price
-                item["peak_gain_pct"] = f"{peak_gain*100:+.1f}%"
-
-                curr_drawdown = (current_price - init_price) / init_price
-                prev_dd = float(item.get("max_drawdown_pct", "0.0%").replace("%", "")) / 100.0
-                if curr_drawdown < prev_dd:
-                    item["max_drawdown_pct"] = f"{curr_drawdown*100:.1f}%"
-
-            if observed_sec >= REJECT_OBSERVE_SECONDS:
-                item["status"] = "COMPLETED"
-                item["final_price_usd"] = f"{current_price:.8f}"
-                item["final_liq_usd"] = round(current_liq, 2)
-                
-                liq_change = ((current_liq - init_liq) / init_liq) * 100.0 if init_liq > 0 else 0.0
-                price_change = ((current_price - init_price) / init_price) * 100.0 if init_price > 0 else 0.0
-                
-                item["liq_change_pct"] = f"{liq_change:+.1f}%"
-                item["final_price_change_pct"] = f"{price_change:+.1f}%"
-
-                if liq_change <= -50.0:
-                    item["final_verdict"] = "CONFIRMED_HARD_RUG"
-                elif price_change <= -60.0:
-                    item["final_verdict"] = "DEV_DUMP_OR_CRASH"
-                elif price_change >= 40.0:
-                    item["final_verdict"] = "FALSE_POSITIVE_PUMPED"
-                else:
-                    item["final_verdict"] = "SLOW_BLEED_SIDEWAYS"
-
-            write_csv(CSV_REJECTS, rejects, HEADERS_REJECTS)
-        except Exception:
-            pass
-
-    return rejects
 
 def main():
-    print("=== Solana Paper Bot v3 (Buy-Spike & Transaction Density) ===")
+    print("=== Solana Ultimate Strategy Bot (Vollständige Implementierung) ===")
     send_discord_alert(
-        "Bot Reset: Buy-Spike Strategie Aktiv", 
-        "Setup:\n"
-        "• Startkapital: 5.0000 SOL (Reset)\n"
-        "• DEXes: Nur Raydium & Meteora (PumpSwap geblacklistet)\n"
-        "• Trigger: Min. 40 Buys(5m) & 68% Buy-Ratio & $8k Vol\n"
-        "• Exit: TP1 (+35% Teilverkauf) + Trailing Runner bis ins Unendliche"
+        "🚀 2026 Ultimate Strategy Bot gestartet",
+        "Vollständiges Setup aktiv:\n"
+        "• MCap: $70k - $11M | LP >= 10% | 24h Vol >= 5%\n"
+        "• Chart-Trigger: 5m Vol >= 2x 1h-Durchschnitt\n"
+        "• Tiered DCA: 20% Scout -> 40% Dip (-20%) -> 40% Breakout (+15%)\n"
+        "• Staged Exits: 2x (Initial Out), 5x, 10x, Moon-Bag Trailing\n"
+        "• Stops: -40% Hard Stop & -20% Trailing Stop"
     )
 
     start_time = time.time()
-
     while True:
         try:
             if time.time() - start_time >= SESSION_DURATION_SECONDS:
-                print("5 Stunden erreicht. Beende Session...")
                 break
 
             sol_price = get_sol_price()
             trades = read_csv(CSV_TRADES, HEADERS_TRADES)
             rejects = read_csv(CSV_REJECTS, HEADERS_REJECTS)
-            
+
             trades, rejects = scan_and_enter(trades, rejects, sol_price)
             trades = manage_open_trades(trades, sol_price)
-            trades = manage_post_exit_checks(trades)
-            rejects = manage_shadow_rejects(rejects)
-            
+
             time.sleep(12)
         except KeyboardInterrupt:
             break
         except Exception as e:
-            print(f"Loop-Fehler: {e}")
+            print(f"Loop Fehler: {e}")
             time.sleep(10)
 
     git_push_updates("Session Clean Exit Push")
-    print("Session beendet.")
 
 if __name__ == "__main__":
     main()
