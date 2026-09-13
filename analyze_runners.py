@@ -1,6 +1,7 @@
 import os
 import csv
 import time
+import subprocess
 import requests
 from datetime import datetime, timezone
 
@@ -14,15 +15,26 @@ HEADERS_RUNNERS = [
     "jup_price_impact_pct", "rugcheck_score"
 ]
 
-SOLANA_RPC_URL = "https://api.mainnet-beta.solana.com"
 WSOL_MINT = "So11111111111111111111111111111111111111112"
+
+def git_push_csv():
+    try:
+        subprocess.run(["git", "config", "--global", "user.name", "github-actions[bot]"], check=False)
+        subprocess.run(["git", "config", "--global", "user.email", "github-actions[bot]@users.noreply.github.com"], check=False)
+        subprocess.run(["git", "add", CSV_RUNNERS], check=False)
+        status = subprocess.run(["git", "status", "--porcelain"], capture_output=True, text=True)
+        if status.stdout.strip():
+            subprocess.run(["git", "commit", "-m", "Update runner patterns data [skip ci]"], check=False)
+            subprocess.run(["git", "pull", "origin", "main", "--rebase"], check=False)
+            subprocess.run(["git", "push", "origin", "main"], check=False)
+    except Exception as err:
+        print(f"[GIT ERROR] {err}")
 
 def init_csv():
     if not os.path.exists(CSV_RUNNERS):
         with open(CSV_RUNNERS, mode="w", newline="", encoding="utf-8") as f:
             csv.writer(f).writerow(HEADERS_RUNNERS)
 
-# --- 1. GECKOTERMINAL: HISTORISCHE 1M-KERZEN (SPIKE & DIP) ---
 def get_gecko_ohlcv_pattern(pool_address):
     url = f"https://api.geckoterminal.com/api/v2/networks/solana/pools/{pool_address}/ohlcv/minute?limit=60"
     headers = {"Accept": "application/json;version=20230302", "User-Agent": "Mozilla/5.0"}
@@ -49,41 +61,22 @@ def get_gecko_ohlcv_pattern(pool_address):
     except Exception:
         return 0.0, 0.0
 
-# --- 2. SOLANA ON-CHAIN RPC: TOP 10 HOLDER ANTEIL (ROHWERT-BASIERT) ---
-def get_onchain_holder_concentration(token_mint):
+def audit_runner_and_holders(token_addr):
+    """Zieht RugCheck-Score UND kumulierten Top-10-Holder-Anteil."""
+    score = "N/A"
+    top10_pct = 0.0
     try:
-        headers = {"Content-Type": "application/json"}
-        # Gesamt-Supply abfragen
-        supply_payload = {
-            "jsonrpc": "2.0", "id": 1,
-            "method": "getTokenSupply",
-            "params": [token_mint]
-        }
-        r_sup = requests.post(SOLANA_RPC_URL, json=supply_payload, headers=headers, timeout=5).json()
-        val_sup = r_sup.get("result", {}).get("value", {})
-        total_supply = float(val_sup.get("amount") or 0.0)
+        r = requests.get(f"https://api.rugcheck.xyz/v1/tokens/{token_addr}/report/summary", timeout=6)
+        if r.status_code == 200:
+            data = r.json()
+            score = data.get("score", 0)
+            holders = data.get("topHolders", [])
+            if holders:
+                top10_pct = sum(float(h.get("pct", 0.0) or 0.0) for h in holders[:10])
+    except Exception:
+        pass
+    return score, round(top10_pct, 1)
 
-        if total_supply <= 0:
-            return 0.0
-
-        # Größte Token-Accounts abfragen
-        accounts_payload = {
-            "jsonrpc": "2.0", "id": 2,
-            "method": "getTokenLargestAccounts",
-            "params": [token_mint]
-        }
-        r_acc = requests.post(SOLANA_RPC_URL, json=accounts_payload, headers=headers, timeout=5).json()
-        accounts = r_acc.get("result", {}).get("value", [])
-
-        # Top 10 Accounts über ganzzahligen Raw-Amount aufsummieren
-        top10_sum = sum(float(a.get("amount") or 0.0) for a in accounts[:10])
-        pct = (top10_sum / total_supply) * 100.0
-        return round(pct, 1)
-    except Exception as e:
-        print(f"[RPC ERROR] {e}")
-        return 0.0
-
-# --- 3. JUPITER AGGREGATOR: PRICE IMPACT SIMULATION (0.25 SOL BUY) ---
 def get_jupiter_price_impact(token_mint):
     try:
         url = f"https://quote-api.jup.ag/v6/quote?inputMint={WSOL_MINT}&outputMint={token_mint}&amount=250000000&slippageBps=100"
@@ -96,24 +89,12 @@ def get_jupiter_price_impact(token_mint):
         pass
     return -1.0
 
-# --- 4. RUGCHECK: SECURITY AUDIT ---
-def audit_runner(token_addr):
-    try:
-        r = requests.get(f"https://api.rugcheck.xyz/v1/tokens/{token_addr}/report/summary", timeout=5)
-        if r.status_code == 200:
-            return r.json().get("score", 0)
-    except Exception:
-        pass
-    return "N/A"
-
-# --- 5. MULTI-DISCOVERY: DEXSCREENER + GECKOTERMINAL ---
 def get_top_solana_runners():
     headers = {"User-Agent": "Mozilla/5.0"}
     tokens = set()
     now_ts = datetime.now(timezone.utc).timestamp()
     discovered = []
 
-    # Quelle A: GeckoTerminal Trending Pools auf Solana
     try:
         gt_url = "https://api.geckoterminal.com/api/v2/networks/solana/trending_pools"
         gt_res = requests.get(gt_url, headers={"Accept": "application/json;version=20230302", "User-Agent": "Mozilla/5.0"}, timeout=6)
@@ -124,10 +105,9 @@ def get_top_solana_runners():
                 base_token_id = rel.get("base_token", {}).get("data", {}).get("id", "")
                 if base_token_id.startswith("solana_"):
                     tokens.add(base_token_id.replace("solana_", ""))
-    except Exception as e:
-        print(f"[GT DISCOVERY ERROR] {e}")
+    except Exception:
+        pass
 
-    # Quelle B: DexScreener Boosts & Profiles
     endpoints = [
         "https://api.dexscreener.com/token-boosts/top/v1",
         "https://api.dexscreener.com/token-boosts/latest/v1",
@@ -144,8 +124,6 @@ def get_top_solana_runners():
                             tokens.add(addr)
         except Exception:
             pass
-
-    print(f"[DISCOVERY] {len(tokens)} Token-Adressen identifiziert. Frage Marktdaten ab...")
 
     token_list = list(tokens)[:120]
     for i in range(0, len(token_list), 30):
@@ -185,8 +163,8 @@ def get_top_solana_runners():
                     "liq": float(p.get("liquidity", {}).get("usd") or 0.0),
                     "vol_24h": float(p.get("volume", {}).get("h24") or 0.0),
                 })
-        except Exception as e:
-            print(f"[BATCH ERROR] {e}")
+        except Exception:
+            continue
 
     discovered.sort(key=lambda x: x["gain_24h"], reverse=True)
     return discovered[:5]
@@ -195,29 +173,20 @@ def save_and_report():
     init_csv()
     runners = get_top_solana_runners()
     if not runners:
-        print("Keine Runner gefunden, die die Kriterien erfüllen.")
+        print("Keine Runner gefunden.")
         return
 
-    print(f"[ANALYSE] Analysiere Top {len(runners)} Runner...")
     now_iso = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
     fields_text = ""
 
     with open(CSV_RUNNERS, mode="a", newline="", encoding="utf-8") as f:
         writer = csv.writer(f)
         for r in runners:
-            print(f" -> Prüfe On-Chain-Metriken für {r['symbol']} (+{r['gain_24h']:,.0f}%)...")
-            # 1. GeckoTerminal OHLCV
             max_gain, deepest_dip = get_gecko_ohlcv_pattern(r["pair_addr"])
             time.sleep(0.5)
 
-            # 2. Solana RPC Top 10 Holder
-            top10_holders = get_onchain_holder_concentration(r["token_addr"])
-
-            # 3. Jupiter Price Impact
+            rc_score, top10_holders = audit_runner_and_holders(r["token_addr"])
             price_impact = get_jupiter_price_impact(r["token_addr"])
-
-            # 4. RugCheck
-            rc_score = audit_runner(r["token_addr"])
 
             writer.writerow([
                 now_iso, r["symbol"], r["token_addr"], r["pair_addr"], r["dex"],
@@ -246,7 +215,9 @@ def save_and_report():
         }
         requests.post(DISCORD_WEBHOOK_URL, json={"embeds": [embed]}, timeout=5)
 
+    git_push_csv()
+
 if __name__ == "__main__":
     print("Starte Deep On-Chain Analyse...")
     save_and_report()
-    print("Fertig. Daten in CSV gespeichert & Discord benachrichtigt.")
+    print("Fertig. Daten archiviert & Discord benachrichtigt.")
