@@ -25,7 +25,7 @@ def init_csv():
 # --- 1. GECKOTERMINAL: HISTORISCHE 1M-KERZEN (SPIKE & DIP) ---
 def get_gecko_ohlcv_pattern(pool_address):
     url = f"https://api.geckoterminal.com/api/v2/networks/solana/pools/{pool_address}/ohlcv/minute?limit=60"
-    headers = {"Accept": "application/json;version=20230302"}
+    headers = {"Accept": "application/json;version=20230302", "User-Agent": "Mozilla/5.0"}
     try:
         res = requests.get(url, headers=headers, timeout=6)
         if res.status_code != 200:
@@ -35,7 +35,7 @@ def get_gecko_ohlcv_pattern(pool_address):
         if not ohlcv_list:
             return 0.0, 0.0
 
-        ohlcv_list.reverse() # chronologisch
+        ohlcv_list.reverse()
         open_price = float(ohlcv_list[0][1])
         if open_price <= 0:
             return 0.0, 0.0
@@ -53,7 +53,6 @@ def get_gecko_ohlcv_pattern(pool_address):
 def get_onchain_holder_concentration(token_mint):
     try:
         headers = {"Content-Type": "application/json"}
-        # Supply abfragen
         supply_payload = {
             "jsonrpc": "2.0", "id": 1,
             "method": "getTokenSupply",
@@ -65,7 +64,6 @@ def get_onchain_holder_concentration(token_mint):
         if total_supply <= 0:
             return 0.0
 
-        # Top 20 Accounts abfragen
         accounts_payload = {
             "jsonrpc": "2.0", "id": 2,
             "method": "getTokenLargestAccounts",
@@ -74,17 +72,15 @@ def get_onchain_holder_concentration(token_mint):
         r_acc = requests.post(SOLANA_RPC_URL, json=accounts_payload, headers=headers, timeout=5).json()
         accounts = r_acc.get("result", {}).get("value", [])
 
-        # Top 10 addieren
         top10_sum = sum(float(a.get("uiAmount") or 0.0) for a in accounts[:10])
         pct = (top10_sum / total_supply) * 100.0
         return round(pct, 1)
     except Exception:
         return 0.0
 
-# --- 3. JUPITER AGGREGATOR: ECHTER PRICE IMPACT TEST (0.25 SOL BUY) ---
+# --- 3. JUPITER AGGREGATOR: PRICE IMPACT SIMULATION (0.25 SOL BUY) ---
 def get_jupiter_price_impact(token_mint):
     try:
-        # 0.25 SOL in Lamports = 250,000,000
         url = f"https://quote-api.jup.ag/v6/quote?inputMint={WSOL_MINT}&outputMint={token_mint}&amount=250000000&slippageBps=100"
         res = requests.get(url, timeout=5)
         if res.status_code == 200:
@@ -93,7 +89,7 @@ def get_jupiter_price_impact(token_mint):
             return round(impact, 2)
     except Exception:
         pass
-    return -1.0 # Wenn nicht über Jupiter routing-fähig
+    return -1.0
 
 # --- 4. RUGCHECK: SECURITY AUDIT ---
 def audit_runner(token_addr):
@@ -105,16 +101,33 @@ def audit_runner(token_addr):
         pass
     return "N/A"
 
-# --- 5. DEXSCREENER: SCOUTING & BATCHING ---
+# --- 5. MULTI-DISCOVERY: DEXSCREENER + GECKOTERMINAL ---
 def get_top_solana_runners():
     headers = {"User-Agent": "Mozilla/5.0"}
+    tokens = set()
+    now_ts = datetime.now(timezone.utc).timestamp()
     discovered = []
-    
+
+    # Quelle A: GeckoTerminal Trending Pools auf Solana
+    try:
+        gt_url = "https://api.geckoterminal.com/api/v2/networks/solana/trending_pools"
+        gt_res = requests.get(gt_url, headers={"Accept": "application/json;version=20230302", "User-Agent": "Mozilla/5.0"}, timeout=6)
+        if gt_res.status_code == 200:
+            gt_data = gt_res.json().get("data", [])
+            for item in gt_data:
+                rel = item.get("relationships", {})
+                base_token_id = rel.get("base_token", {}).get("data", {}).get("id", "")
+                if base_token_id.startswith("solana_"):
+                    tokens.add(base_token_id.replace("solana_", ""))
+    except Exception as e:
+        print(f"[GT DISCOVERY ERROR] {e}")
+
+    # Quelle B: DexScreener Boosts & Search
     endpoints = [
         "https://api.dexscreener.com/token-boosts/top/v1",
         "https://api.dexscreener.com/token-boosts/latest/v1",
+        "https://api.dexscreener.com/token-profiles/latest/v1",
     ]
-    tokens = set()
     for url in endpoints:
         try:
             r = requests.get(url, headers=headers, timeout=5)
@@ -127,9 +140,9 @@ def get_top_solana_runners():
         except Exception:
             pass
 
-    token_list = list(tokens)[:60]
-    now_ts = datetime.now(timezone.utc).timestamp()
-    
+    print(f"[DISCOVERY] {len(tokens)} Token-Adressen identifiziert. Frage Marktdaten ab...")
+
+    token_list = list(tokens)[:120]
     for i in range(0, len(token_list), 30):
         batch = token_list[i:i+30]
         try:
@@ -140,37 +153,39 @@ def get_top_solana_runners():
             for p in pairs:
                 if p.get("chainId") != "solana":
                     continue
-                
-                dex_id = p.get("dexId", "").lower()
+
                 quote = p.get("quoteToken", {}).get("symbol", "").upper()
-                if dex_id not in ["raydium", "meteora"] or quote not in ["SOL", "WSOL"]:
+                if quote not in ["SOL", "WSOL", "USDC", "USDT"]:
                     continue
 
                 created_at = p.get("pairCreatedAt")
                 if not created_at:
                     continue
                 age_hours = (now_ts - (created_at / 1000.0)) / 3600.0
-                if age_hours < 1.5 or age_hours > 48.0:
+                # Realistische Range für Runner: 30 Minuten bis 72 Stunden
+                if age_hours < 0.5 or age_hours > 72.0:
                     continue
 
                 gain_24h = float(p.get("priceChange", {}).get("h24") or 0.0)
-                if gain_24h < 200.0:
+                # Schwelle ab +100% (absteigend sortiert nach den stärksten)
+                if gain_24h < 100.0:
                     continue
 
                 discovered.append({
                     "symbol": p.get("baseToken", {}).get("symbol", "UNKNOWN"),
                     "token_addr": p.get("baseToken", {}).get("address"),
                     "pair_addr": p.get("pairAddress"),
-                    "dex": dex_id.upper(),
+                    "dex": p.get("dexId", "DEX").upper(),
                     "age_h": round(age_hours, 1),
                     "gain_24h": gain_24h,
                     "mcap": float(p.get("fdv") or p.get("marketCap") or 0.0),
                     "liq": float(p.get("liquidity", {}).get("usd") or 0.0),
                     "vol_24h": float(p.get("volume", {}).get("h24") or 0.0),
                 })
-        except Exception:
-            continue
+        except Exception as e:
+            print(f"[BATCH ERROR] {e}")
 
+    # Nach höchstem 24h-Gewinn sortieren
     discovered.sort(key=lambda x: x["gain_24h"], reverse=True)
     return discovered[:5]
 
@@ -181,23 +196,25 @@ def save_and_report():
         print("Keine Runner gefunden, die die Kriterien erfüllen.")
         return
 
+    print(f"[ANALYSE] Analysiere Top {len(runners)} Runner...")
     now_iso = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
     fields_text = ""
 
     with open(CSV_RUNNERS, mode="a", newline="", encoding="utf-8") as f:
         writer = csv.writer(f)
         for r in runners:
+            print(f" -> Prüfe On-Chain-Metriken für {r['symbol']} (+{r['gain_24h']:,.0f}%)...")
             # 1. GeckoTerminal OHLCV
             max_gain, deepest_dip = get_gecko_ohlcv_pattern(r["pair_addr"])
             time.sleep(0.5)
 
-            # 2. Solana RPC Holder Concentration
+            # 2. Solana RPC Top 10 Holder
             top10_holders = get_onchain_holder_concentration(r["token_addr"])
 
             # 3. Jupiter Price Impact
             price_impact = get_jupiter_price_impact(r["token_addr"])
 
-            # 4. RugCheck Audit
+            # 4. RugCheck
             rc_score = audit_runner(r["token_addr"])
 
             writer.writerow([
@@ -218,9 +235,9 @@ def save_and_report():
                 f"───────────────────\n"
             )
 
-    if DISCORD_WEBHOOK_URL:
+    if DISCORD_WEBHOOK_URL and fields_text:
         embed = {
-            "title": "🔍 Deep On-Chain Pattern-Analyse (5-API Synthese)",
+            "title": "🔍 Deep On-Chain Pattern-Analyse (Top Runner)",
             "description": fields_text,
             "color": 0x6366F1,
             "timestamp": datetime.now(timezone.utc).isoformat()
