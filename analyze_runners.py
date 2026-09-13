@@ -49,21 +49,24 @@ def get_gecko_ohlcv_pattern(pool_address):
     except Exception:
         return 0.0, 0.0
 
-# --- 2. SOLANA ON-CHAIN RPC: TOP 10 HOLDER ANTEIL ---
+# --- 2. SOLANA ON-CHAIN RPC: TOP 10 HOLDER ANTEIL (ROHWERT-BASIERT) ---
 def get_onchain_holder_concentration(token_mint):
     try:
         headers = {"Content-Type": "application/json"}
+        # Gesamt-Supply abfragen
         supply_payload = {
             "jsonrpc": "2.0", "id": 1,
             "method": "getTokenSupply",
             "params": [token_mint]
         }
         r_sup = requests.post(SOLANA_RPC_URL, json=supply_payload, headers=headers, timeout=5).json()
-        total_supply = float(r_sup.get("result", {}).get("value", {}).get("uiAmount") or 0.0)
+        val_sup = r_sup.get("result", {}).get("value", {})
+        total_supply = float(val_sup.get("amount") or 0.0)
 
         if total_supply <= 0:
             return 0.0
 
+        # Größte Token-Accounts abfragen
         accounts_payload = {
             "jsonrpc": "2.0", "id": 2,
             "method": "getTokenLargestAccounts",
@@ -72,10 +75,12 @@ def get_onchain_holder_concentration(token_mint):
         r_acc = requests.post(SOLANA_RPC_URL, json=accounts_payload, headers=headers, timeout=5).json()
         accounts = r_acc.get("result", {}).get("value", [])
 
-        top10_sum = sum(float(a.get("uiAmount") or 0.0) for a in accounts[:10])
+        # Top 10 Accounts über ganzzahligen Raw-Amount aufsummieren
+        top10_sum = sum(float(a.get("amount") or 0.0) for a in accounts[:10])
         pct = (top10_sum / total_supply) * 100.0
         return round(pct, 1)
-    except Exception:
+    except Exception as e:
+        print(f"[RPC ERROR] {e}")
         return 0.0
 
 # --- 3. JUPITER AGGREGATOR: PRICE IMPACT SIMULATION (0.25 SOL BUY) ---
@@ -122,7 +127,7 @@ def get_top_solana_runners():
     except Exception as e:
         print(f"[GT DISCOVERY ERROR] {e}")
 
-    # Quelle B: DexScreener Boosts & Search
+    # Quelle B: DexScreener Boosts & Profiles
     endpoints = [
         "https://api.dexscreener.com/token-boosts/top/v1",
         "https://api.dexscreener.com/token-boosts/latest/v1",
@@ -162,12 +167,10 @@ def get_top_solana_runners():
                 if not created_at:
                     continue
                 age_hours = (now_ts - (created_at / 1000.0)) / 3600.0
-                # Realistische Range für Runner: 30 Minuten bis 72 Stunden
                 if age_hours < 0.5 or age_hours > 72.0:
                     continue
 
                 gain_24h = float(p.get("priceChange", {}).get("h24") or 0.0)
-                # Schwelle ab +100% (absteigend sortiert nach den stärksten)
                 if gain_24h < 100.0:
                     continue
 
@@ -185,7 +188,6 @@ def get_top_solana_runners():
         except Exception as e:
             print(f"[BATCH ERROR] {e}")
 
-    # Nach höchstem 24h-Gewinn sortieren
     discovered.sort(key=lambda x: x["gain_24h"], reverse=True)
     return discovered[:5]
 
@@ -223,7 +225,7 @@ def save_and_report():
                 max_gain, deepest_dip, top10_holders, price_impact, rc_score
             ])
 
-            impact_str = f"{price_impact}%" if price_impact >= 0 else "Nicht geroutet"
+            impact_str = f"{price_impact}%" if price_impact >= 0 else "Nicht geroutet (Bonding-Curve/Inaktiv)"
             chart_url = f"https://dexscreener.com/solana/{r['pair_addr']}"
             fields_text += (
                 f"🚀 **[{r['symbol']}]({chart_url})** ({r['dex']}) | **+{r['gain_24h']:,.0f}%**\n"
