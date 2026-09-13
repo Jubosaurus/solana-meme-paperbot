@@ -16,8 +16,9 @@ MAX_OPEN_TRADES = int(STARTING_SOL / MAX_ALLOCATION_PER_COIN_SOL)
 MAX_TRACKED_REJECTS = 15
 DISCORD_WEBHOOK_URL = os.environ.get("DISCORD_WEBHOOK_URL")
 
-# --- FILTER- & STRATEGIE-PARAMETER (Synthese aus allen Leitfäden) ---
+# --- FILTER- & STRATEGIE-PARAMETER (Washed & FXM Synthese) ---
 ALLOWED_DEXES = {"raydium", "meteora"}  # Kein PumpSwap (Bonding-Curves blockiert)[span_1](start_span)[span_1](end_span)
+ALLOWED_QUOTE_SYMBOLS = {"SOL", "WSOL"} # Zwingend SOL-Pairs (keine Sub-Tokens wie STONK)
 MIN_PAIR_AGE_HOURS = 1.5                # Mind. 1.5h alt (Sniper & Dev-Dumps vorbei)[span_2](start_span)[span_2](end_span)
 MIN_MCAP_USD = 150000.0                 # Washed Sweet Spot: $150k bis $3.5M[span_3](start_span)[span_3](end_span)
 MAX_MCAP_USD = 3500000.0
@@ -45,7 +46,7 @@ SLIPPAGE_SELL_MIN_PCT = 0.005
 SLIPPAGE_SELL_MAX_PCT = 0.030
 FIXED_PRIORITY_FEES_SOL = 0.006
 DEX_FEE_PCT = 0.010
-SESSION_DURATION_SECONDS = 18000
+SESSION_DURATION_SECONDS = 12600        # 3.5 Stunden saubere Session-Dauer
 
 COLOR_BUY = 0x00B4D8
 COLOR_EXIT_WIN = 0x10B981
@@ -177,10 +178,8 @@ def audit_token_security(token_address):
     return False, 0, "Audit fehlgeschlagen"
 
 def fetch_discovery_tokens():
-    """Multi-API Scanner: Sammelt Kandidaten über mehrere DexScreener-Endpunkte."""
     token_addresses = set()
     headers = {"User-Agent": "Mozilla/5.0"}
-
     endpoints = [
         ("https://api.dexscreener.com/token-profiles/latest/v1", True),
         ("https://api.dexscreener.com/token-boosts/latest/v1", True),
@@ -219,6 +218,7 @@ def scan_and_enter(trades, rejects, sol_price):
         return trades, rejects
 
     active_tokens = {t["token_address"] for t in open_trades}
+    known_tokens = {t.get("token_address") for t in trades}
     now_dt = datetime.now(timezone.utc)
 
     try:
@@ -226,118 +226,136 @@ def scan_and_enter(trades, rejects, sol_price):
         if not candidate_tokens:
             return trades, rejects
 
-        for token_addr in candidate_tokens:
+        # Filtere bekannte Tokens vorab heraus
+        tokens_to_check = [addr for addr in candidate_tokens if addr not in active_tokens and addr not in known_tokens]
+
+        # In 30er-Batches abfragen (verhindert HTTP 429 Rate Limits)
+        batch_size = 30
+        for i in range(0, min(len(tokens_to_check), 90), batch_size):
             if len([t for t in trades if t.get("status") == "OPEN"]) >= MAX_OPEN_TRADES:
                 break
 
-            if token_addr in active_tokens or any(t.get("token_address") == token_addr for t in trades):
+            batch = tokens_to_check[i:i + batch_size]
+            batch_url = f"https://api.dexscreener.com/latest/dex/tokens/{','.join(batch)}"
+            batch_res = requests.get(batch_url, timeout=6)
+            if batch_res.status_code != 200:
                 continue
 
-            pair_url = f"https://api.dexscreener.com/latest/dex/tokens/{token_addr}"
-            pair_res = requests.get(pair_url, timeout=5)
-            if pair_res.status_code != 200:
-                continue
+            pairs = batch_res.json().get("pairs") or []
+            # Gruppiere Paare nach Token
+            pairs_by_token = {}
+            for p in pairs:
+                base_addr = p.get("baseToken", {}).get("address")
+                if base_addr:
+                    pairs_by_token.setdefault(base_addr, []).append(p)
 
-            pairs = pair_res.json().get("pairs", [])
-            if not pairs:
-                continue
+            for token_addr, token_pairs in pairs_by_token.items():
+                if len([t for t in trades if t.get("status") == "OPEN"]) >= MAX_OPEN_TRADES:
+                    break
+                if token_addr in active_tokens or token_addr in known_tokens:
+                    continue
 
-            pair = pairs[0]
-            dex_id = pair.get("dexId", "").lower()
+                # Bevorzuge Raydium/Meteora SOL-Paare
+                selected_pair = None
+                for p in token_pairs:
+                    dex_id = p.get("dexId", "").lower()
+                    quote_sym = p.get("quoteToken", {}).get("symbol", "").upper()
+                    if dex_id in ALLOWED_DEXES and quote_sym in ALLOWED_QUOTE_SYMBOLS:
+                        selected_pair = p
+                        break
 
-            # 1. Nur Raydium & Meteora (kein PumpSwap)[span_13](start_span)[span_13](end_span)
-            if dex_id not in ALLOWED_DEXES:
-                continue
+                if not selected_pair:
+                    continue
 
-            # 2. Mindestalter 1.5 Stunden bleibt strikt bestehen[span_14](start_span)[span_14](end_span)
-            created_at_ms = pair.get("pairCreatedAt")
-            if not created_at_ms:
-                continue
-            pair_age_hours = (now_dt.timestamp() - (created_at_ms / 1000.0)) / 3600.0
-            if pair_age_hours < MIN_PAIR_AGE_HOURS:
-                continue
+                pair = selected_pair
+                dex_id = pair.get("dexId", "").lower()
 
-            mcap = float(pair.get("fdv") or pair.get("marketCap") or 0.0)
-            liquidity = float(pair.get("liquidity", {}).get("usd") or 0.0)
-            vol_24h = float(pair.get("volume", {}).get("h24") or 0.0)
-            vol_1h = float(pair.get("volume", {}).get("h1") or 0.0)
-            vol_5m = float(pair.get("volume", {}).get("m5") or 0.0)
-            buys_5m = pair.get("txns", {}).get("m5", {}).get("buys", 0)
-            price_usd = float(pair.get("priceUsd") or 0.0)
+                created_at_ms = pair.get("pairCreatedAt")
+                if not created_at_ms:
+                    continue
+                pair_age_hours = (now_dt.timestamp() - (created_at_ms / 1000.0)) / 3600.0
+                if pair_age_hours < MIN_PAIR_AGE_HOURS:
+                    continue
 
-            # 3. Washed Sweet Spot MCap ($150k - $3.5M)[span_15](start_span)[span_15](end_span)
-            if mcap < MIN_MCAP_USD or mcap > MAX_MCAP_USD or price_usd <= 0.0:
-                continue
-            if (liquidity / mcap) < MIN_LIQ_TO_MCAP_RATIO or (vol_24h / mcap) < MIN_VOL24H_TO_MCAP_RATIO:
-                continue
+                mcap = float(pair.get("fdv") or pair.get("marketCap") or 0.0)
+                liquidity = float(pair.get("liquidity", {}).get("usd") or 0.0)
+                vol_24h = float(pair.get("volume", {}).get("h24") or 0.0)
+                vol_1h = float(pair.get("volume", {}).get("h1") or 0.0)
+                vol_5m = float(pair.get("volume", {}).get("m5") or 0.0)
+                buys_5m = pair.get("txns", {}).get("m5", {}).get("buys", 0)
+                price_usd = float(pair.get("priceUsd") or 0.0)
 
-            # 4. Volume Surge Trigger & Transaktions-Dichte[span_16](start_span)[span_16](end_span)[span_17](start_span)[span_17](end_span)
-            expected_avg_5m_vol = (vol_1h / 12.0) if vol_1h > 0 else 0.0
-            if expected_avg_5m_vol > 0 and vol_5m < (expected_avg_5m_vol * MIN_VOLUME_SURGE_MULTIPLIER):
-                continue
-            if buys_5m < MIN_BUYS_5M:
-                continue
+                if mcap < MIN_MCAP_USD or mcap > MAX_MCAP_USD or price_usd <= 0.0:
+                    continue
+                if (liquidity / mcap) < MIN_LIQ_TO_MCAP_RATIO or (vol_24h / mcap) < MIN_VOL24H_TO_MCAP_RATIO:
+                    continue
 
-            # 5. Sicherheitsaudit
-            is_safe, rc_score, reason = audit_token_security(token_addr)
-            if not is_safe:
-                continue
+                expected_avg_5m_vol = (vol_1h / 12.0) if vol_1h > 0 else 0.0
+                if expected_avg_5m_vol > 0 and vol_5m < (expected_avg_5m_vol * MIN_VOLUME_SURGE_MULTIPLIER):
+                    continue
+                if buys_5m < MIN_BUYS_5M:
+                    continue
 
-            scout_sol = MAX_ALLOCATION_PER_COIN_SOL * DCA_SCOUT_PCT
-            actual_buy_slip = random.uniform(SLIPPAGE_BUY_MIN_PCT, SLIPPAGE_BUY_MAX_PCT)
-            sim_entry = price_usd * (1.0 + actual_buy_slip)
-            tokens_scout = (scout_sol * sol_price) / sim_entry
+                is_safe, rc_score, reason = audit_token_security(token_addr)
+                if not is_safe:
+                    continue
 
-            new_trade = {
-                "token_address": token_addr,
-                "pair_address": pair.get("pairAddress"),
-                "symbol": pair.get("baseToken", {}).get("symbol", "UNKNOWN"),
-                "dex_id": dex_id,
-                "entry_time": now_dt.strftime("%Y-%m-%d %H:%M:%S"),
-                "entry_fdv_usd": round(mcap, 2),
-                "entry_liquidity_usd": round(liquidity, 2),
-                "entry_vol24h_usd": round(vol_24h, 2),
-                "rugcheck_score": rc_score,
-                "avg_entry_price_usd": f"{sim_entry:.8f}",
-                "total_sol_invested": f"{scout_sol:.4f}",
-                "tokens_total_bought": tokens_scout,
-                "tokens_remaining": tokens_scout,
-                "sol_realized": 0.0,
-                "dca_stage": 1,
-                "stage_profit_level": 0,
-                "peak_price_usd": f"{sim_entry:.8f}",
-                "peak_gain_pct": "0.0%",
-                "max_drawdown_pct": "0.0%",
-                "hold_duration_seconds": 0,
-                "status": "OPEN",
-                "exit_time": "",
-                "signal_exit_usd": "",
-                "simulated_exit_usd": "",
-                "exit_reason": "",
-                "raw_pnl_sol": "0.0",
-                "fees_sol": "0.0",
-                "net_pnl_sol": "0.0",
-                "net_pnl_usd": "0.0"
-            }
+                scout_sol = MAX_ALLOCATION_PER_COIN_SOL * DCA_SCOUT_PCT
+                actual_buy_slip = random.uniform(SLIPPAGE_BUY_MIN_PCT, SLIPPAGE_BUY_MAX_PCT)
+                sim_entry = price_usd * (1.0 + actual_buy_slip)
+                tokens_scout = (scout_sol * sol_price) / sim_entry
 
-            trades.append(new_trade)
-            active_tokens.add(token_addr)
-            write_csv(CSV_TRADES, trades, HEADERS_TRADES)
-            git_push_updates(f"Scout Entry: {new_trade['symbol']}")
+                new_trade = {
+                    "token_address": token_addr,
+                    "pair_address": pair.get("pairAddress"),
+                    "symbol": pair.get("baseToken", {}).get("symbol", "UNKNOWN"),
+                    "dex_id": dex_id,
+                    "entry_time": now_dt.strftime("%Y-%m-%d %H:%M:%S"),
+                    "entry_fdv_usd": round(mcap, 2),
+                    "entry_liquidity_usd": round(liquidity, 2),
+                    "entry_vol24h_usd": round(vol_24h, 2),
+                    "rugcheck_score": rc_score,
+                    "avg_entry_price_usd": f"{sim_entry:.8f}",
+                    "total_sol_invested": f"{scout_sol:.4f}",
+                    "tokens_total_bought": tokens_scout,
+                    "tokens_remaining": tokens_scout,
+                    "sol_realized": 0.0,
+                    "dca_stage": 1,
+                    "stage_profit_level": 0,
+                    "peak_price_usd": f"{sim_entry:.8f}",
+                    "peak_gain_pct": "0.0%",
+                    "max_drawdown_pct": "0.0%",
+                    "hold_duration_seconds": 0,
+                    "status": "OPEN",
+                    "exit_time": "",
+                    "signal_exit_usd": "",
+                    "simulated_exit_usd": "",
+                    "exit_reason": "",
+                    "raw_pnl_sol": "0.0",
+                    "fees_sol": "0.0",
+                    "net_pnl_sol": "0.0",
+                    "net_pnl_usd": "0.0"
+                }
 
-            stats = get_current_stats(trades, sol_price)
-            chart_url = f"https://dexscreener.com/solana/{new_trade['pair_address']}"
-            desc = (
-                f"**Symbol:** [{new_trade['symbol']}]({chart_url}) ({dex_id.upper()})\n"
-                f"**MCap:** ${mcap:,.0f} | **LP:** ${liquidity:,.0f} | **Alter:** {pair_age_hours:.1f}h\n"
-                f"**Vol Surge:** 5m ${vol_5m:,.0f} (Buys: {buys_5m})\n"
-                f"**Scout:** {scout_sol:.4f} SOL @ ${sim_entry:.8f}\n"
-                f"━━━━━━━━━━━━━━━━━━\n"
-                f"📈 **[DexScreener Live-Chart]({chart_url})**\n"
-                f"💰 **Bankroll:** **{stats['current_sol']:.4f} SOL** (${stats['current_usd']:.2f})\n"
-                f"📊 **Stats:** {stats['wins']}W / {stats['losses']}L ({stats['winrate']:.1f}%)"
-            )
-            send_discord_alert(f"🎯 Scout Entry: {new_trade['symbol']}", desc, COLOR_BUY, chart_url)
+                trades.append(new_trade)
+                active_tokens.add(token_addr)
+                known_tokens.add(token_addr)
+                write_csv(CSV_TRADES, trades, HEADERS_TRADES)
+                git_push_updates(f"Scout Entry: {new_trade['symbol']}")
+
+                stats = get_current_stats(trades, sol_price)
+                chart_url = f"https://dexscreener.com/solana/{new_trade['pair_address']}"
+                desc = (
+                    f"**Symbol:** [{new_trade['symbol']}]({chart_url}) ({dex_id.upper()})\n"
+                    f"**MCap:** ${mcap:,.0f} | **LP:** ${liquidity:,.0f} | **Alter:** {pair_age_hours:.1f}h\n"
+                    f"**Vol Surge:** 5m ${vol_5m:,.0f} (Buys: {buys_5m})\n"
+                    f"**Scout:** {scout_sol:.4f} SOL @ ${sim_entry:.8f}\n"
+                    f"━━━━━━━━━━━━━━━━━━\n"
+                    f"📈 **[DexScreener Live-Chart]({chart_url})**\n"
+                    f"💰 **Bankroll:** **{stats['current_sol']:.4f} SOL** (${stats['current_usd']:.2f})\n"
+                    f"📊 **Stats:** {stats['wins']}W / {stats['losses']}L ({stats['winrate']:.1f}%)"
+                )
+                send_discord_alert(f"🎯 Scout Entry: {new_trade['symbol']}", desc, COLOR_BUY, chart_url)
 
     except Exception as e:
         print(f"[SCAN ERROR] {e}")
@@ -353,14 +371,30 @@ def manage_open_trades(trades, sol_price):
 
     for trade in open_trades:
         try:
+            token_addr = trade.get("token_address")
             pair_addr = trade.get("pair_address")
-            url = f"https://api.dexscreener.com/latest/dex/pairs/solana/{pair_addr}"
-            res = requests.get(url, timeout=5).json()
-            pairs = res.get("pairs")
-            if not pairs:
-                continue
+            current_price = 0.0
 
-            current_price = float(pairs[0].get("priceUsd") or 0.0)
+            # 1. Kurs primär über Token-Adresse holen (robusteste Methode)
+            if token_addr:
+                t_url = f"https://api.dexscreener.com/latest/dex/tokens/{token_addr}"
+                t_res = requests.get(t_url, timeout=5).json()
+                pairs = t_res.get("pairs") or []
+                for p in pairs:
+                    if p.get("pairAddress") == pair_addr or p.get("quoteToken", {}).get("symbol") in ALLOWED_QUOTE_SYMBOLS:
+                        current_price = float(p.get("priceUsd") or 0.0)
+                        break
+                if current_price == 0.0 and pairs:
+                    current_price = float(pairs[0].get("priceUsd") or 0.0)
+
+            # 2. Fallback über Pair-Adresse
+            if current_price <= 0.0 and pair_addr:
+                p_url = f"https://api.dexscreener.com/latest/dex/pairs/solana/{pair_addr}"
+                p_res = requests.get(p_url, timeout=5).json()
+                pairs = p_res.get("pairs") or []
+                if pairs:
+                    current_price = float(pairs[0].get("priceUsd") or 0.0)
+
             if current_price <= 0.0:
                 continue
 
@@ -384,7 +418,7 @@ def manage_open_trades(trades, sol_price):
             actual_slip = random.uniform(SLIPPAGE_SELL_MIN_PCT, SLIPPAGE_SELL_MAX_PCT)
             sim_price = current_price * (1.0 - actual_slip)
 
-            # DCA Stufe 2 (Dip): Nur zulässig, wenn noch kein Profit realisiert wurde[span_18](start_span)[span_18](end_span)
+            # --- DCA TRADING-LOGIK (Nur wenn noch kein Profit realisiert wurde)[span_13](start_span)[span_13](end_span) ---
             if profit_level == 0 and dca_stage == 1 and -0.22 <= current_pnl_pct <= -0.15:
                 dip_sol = MAX_ALLOCATION_PER_COIN_SOL * DCA_DIP_PCT
                 buy_slip = random.uniform(SLIPPAGE_BUY_MIN_PCT, SLIPPAGE_BUY_MAX_PCT)
@@ -403,7 +437,6 @@ def manage_open_trades(trades, sol_price):
                 write_csv(CSV_TRADES, trades, HEADERS_TRADES)
                 print(f"[DCA DIP] {trade['symbol']} nachgekauft! Neuer Avg: ${new_avg:.8f}")
 
-            # DCA Stufe 3 (Breakout/Momentum)[span_19](start_span)[span_19](end_span)
             elif profit_level == 0 and dca_stage < 3 and current_pnl_pct >= 0.15:
                 mom_sol = MAX_ALLOCATION_PER_COIN_SOL * DCA_MOMENTUM_PCT
                 buy_slip = random.uniform(SLIPPAGE_BUY_MIN_PCT, SLIPPAGE_BUY_MAX_PCT)
@@ -422,11 +455,11 @@ def manage_open_trades(trades, sol_price):
                 write_csv(CSV_TRADES, trades, HEADERS_TRADES)
                 print(f"[DCA MOMENTUM] {trade['symbol']} Breakout voll aufgestockt!")
 
-            # Staged Take-Profit[span_20](start_span)[span_20](end_span)[span_21](start_span)[span_21](end_span)
+            # --- STAGED PROFIT TAKING[span_14](start_span)[span_14](end_span)[span_15](start_span)[span_15](end_span) ---
             if current_pnl_pct >= 0.80 and profit_level < 1:
-                sell_tokens = tokens_rem * 0.50
+                sell_tokens = float(trade["tokens_total_bought"]) * 0.50
                 realized = (sell_tokens * sim_price) / sol_price
-                trade["tokens_remaining"] = tokens_rem - sell_tokens
+                trade["tokens_remaining"] = float(trade["tokens_remaining"]) - sell_tokens
                 trade["sol_realized"] = float(trade["sol_realized"]) + realized
                 trade["stage_profit_level"] = 1
                 write_csv(CSV_TRADES, trades, HEADERS_TRADES)
@@ -441,7 +474,7 @@ def manage_open_trades(trades, sol_price):
                 write_csv(CSV_TRADES, trades, HEADERS_TRADES)
                 print(f"[STAGE 2: 4x HIT] {trade['symbol']} +300% gesichert!")
 
-            # Exit Checks[span_22](start_span)[span_22](end_span)[span_23](start_span)[span_23](end_span)
+            # --- EXITS & STOPS[span_16](start_span)[span_16](end_span)[span_17](start_span)[span_17](end_span) ---
             full_exit = False
             exit_reason = ""
 
@@ -504,17 +537,15 @@ def manage_open_trades(trades, sol_price):
     return trades
 
 def main():
-    print("=== Solana Synthese Bot (Multi-Endpoint Discovery Aktiv) ===")
+    print("=== Solana Synthese Bot (Batch-Scanner & SOL-Quote-Fix Aktiv) ===")
     send_discord_alert(
-        "🚀 Synthese-Strategie gestartet (Multi-Scanner)",
+        "🚀 Synthese-Strategie neugestartet",
         "Setup aktiv:\n"
-        "• DEX: Nur Raydium & Meteora (Kein PumpSwap)[span_24](start_span)[span_24](end_span)\n"
-        "• Sweet Spot: $150k - $3.5M MCap & Alter >= 1.5h[span_25](start_span)[span_25](end_span)\n"
-        "• Scanner: Multi-Endpoint Discovery (Profiles, Boosts, Search)\n"
-        "• Trigger: 5m Vol >= 2x 1h-Avg & min. 35 Buys[span_26](start_span)[span_26](end_span)[span_27](start_span)[span_27](end_span)\n"
-        "• DCA: 25% Scout -> 35% Dip -> 40% Momentum[span_28](start_span)[span_28](end_span)\n"
-        "• Trailing-Stop: Aktivierung erst ab +35% (Break-Even geschützt)[span_29](start_span)[span_29](end_span)\n"
-        "• Hard Stop: -22%[span_30](start_span)[span_30](end_span)"
+        "• DEX: Nur Raydium & Meteora (reine SOL-Paare)[span_18](start_span)[span_18](end_span)\n"
+        "• Sweet Spot: $150k - $3.5M MCap & Alter >= 1.5h[span_19](start_span)[span_19](end_span)\n"
+        "• Scanner: 30er-Batching (keine HTTP-429 Rate-Limits)\n"
+        "• Robust Price Tracking: Direkter Token-Fallback für CLMM-Pools\n"
+        "• Stops: -22% Hard Stop & +35% Trailing-Profit[span_20](start_span)[span_20](end_span)"
     )
 
     start_time = time.time()
