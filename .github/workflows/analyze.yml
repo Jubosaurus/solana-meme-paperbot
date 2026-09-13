@@ -1,0 +1,27 @@
+name: Runner Pattern Analyzer
+
+on:
+  workflow_dispatch: # Manuell per Knopfdruck
+  schedule:
+    - cron: '0 */6 * * *' # Alle 6 Stunden
+
+jobs:
+  analyze:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install Dependencies
+        run: pip install requests
+
+      - name: Run Pattern Analysis
+        env:
+          PYTHONUNBUFFERED: "1"
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+        run: python analyze_runners.py
