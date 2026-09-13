@@ -3,7 +3,7 @@ name: Smart Money Profiler
 on:
   workflow_dispatch:
   schedule:
-    - cron: '30 */6 * * *' # Läuft 30 Min nach dem Runner Analyzer
+    - cron: '30 */6 * * *'
 
 jobs:
   profile:
@@ -23,5 +23,6 @@ jobs:
       - name: Run Smart Money Profiler
         env:
           PYTHONUNBUFFERED: "1"
+          DISCORD_SMART_MONEY_WEBHOOK: ${{ secrets.DISCORD_SMART_MONEY_WEBHOOK }}
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
         run: python find_smart_traders.py
