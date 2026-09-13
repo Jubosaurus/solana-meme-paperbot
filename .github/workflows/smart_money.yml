@@ -1,0 +1,27 @@
+name: Smart Money Profiler
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '30 */6 * * *' # Läuft 30 Min nach dem Runner Analyzer
+
+jobs:
+  profile:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install Dependencies
+        run: pip install requests
+
+      - name: Run Smart Money Profiler
+        env:
+          PYTHONUNBUFFERED: "1"
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+        run: python find_smart_traders.py
