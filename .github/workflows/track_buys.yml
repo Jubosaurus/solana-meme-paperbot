@@ -1,0 +1,28 @@
+name: Track Smart Wallet Buys
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '*/15 * * * *'
+
+jobs:
+  track:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install Dependencies
+        run: pip install requests
+
+      - name: Run Wallet Tracker
+        env:
+          PYTHONUNBUFFERED: "1"
+          DISCORD_SMART_MONEY_WEBHOOK: ${{ secrets.DISCORD_SMART_MONEY_WEBHOOK }}
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+        run: python track_smart_wallet_buys.py
