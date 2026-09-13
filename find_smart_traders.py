@@ -7,7 +7,7 @@ from datetime import datetime, timezone
 
 CSV_RUNNERS = "runner_patterns.csv"
 CSV_SMART_WALLETS = "smart_wallets.csv"
-DISCORD_WEBHOOK_URL = os.environ.get("DISCORD_WEBHOOK_URL")
+DISCORD_WEBHOOK_URL = os.environ.get("DISCORD_SMART_MONEY_WEBHOOK") or os.environ.get("DISCORD_WEBHOOK_URL")
 
 HEADERS_WALLETS = [
     "first_spotted", "wallet_address", "token_found_on", "buy_delay_min",
@@ -44,13 +44,11 @@ def get_known_wallets():
     return known
 
 def get_recent_runners_from_csv():
-    """Liest die letzten analysierten Runner-Pools aus runner_patterns.csv."""
     if not os.path.exists(CSV_RUNNERS):
         return []
     pools = []
     with open(CSV_RUNNERS, mode="r", encoding="utf-8") as f:
         reader = list(csv.DictReader(f))
-        # Nimm die letzten 10 Runner
         for row in reversed(reader[-10:]):
             pools.append({
                 "symbol": row.get("symbol"),
@@ -61,7 +59,6 @@ def get_recent_runners_from_csv():
     return pools
 
 def get_wallet_activity_metrics(wallet_address):
-    """Prüft über Solana Public RPC die Aktivität der Wallet."""
     try:
         payload = {
             "jsonrpc": "2.0", "id": 1,
@@ -87,13 +84,11 @@ def scan_smart_traders():
 
     print(f"[SMART MONEY] Untersuche Top-Trader für {len(runners)} Runner...")
     qualified_traders = []
-    headers = {"User-Agent": "Mozilla/5.0"}
 
     for r in runners:
         token_addr = r["token_addr"]
         symbol = r["symbol"]
         
-        # 1. Top-Holders & Traders aus RugCheck Audit extrahieren
         try:
             rc_res = requests.get(f"https://api.rugcheck.xyz/v1/tokens/{token_addr}/report", timeout=6)
             if rc_res.status_code != 200:
@@ -109,20 +104,18 @@ def scan_smart_traders():
             if not wallet or wallet in known_wallets or wallet == creator:
                 continue
 
-            pct = float(holder.get("pct", 0.0) or 0.0)
+            pct = float(holder.get("pct", 0.0) or holder.get("percentage", 0.0) or 0.0)
             # Ausschluss von Cabal-Whales (> 12% des gesamten Supplies)
             if pct > 12.0:
                 continue
 
-            # RPC Profiling: Ist es ein echter aktiver Account oder eine Einweg-Wallet?
             tx_count = get_wallet_activity_metrics(wallet)
             time.sleep(0.3)
 
+            # Mindestens 10 Transaktionen (Ausschluss frischer Throwaway-Bots)
             if tx_count < 10:
-                # Frische Throwaway-Wallet -> meiden
                 continue
 
-            # Qualifizierte 'Healthy Swing' Wallet
             now_iso = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
             entry = {
                 "first_spotted": now_iso,
@@ -148,7 +141,6 @@ def scan_smart_traders():
             if len(qualified_traders) >= 4:
                 break
 
-    # Discord Reporting
     if DISCORD_WEBHOOK_URL and qualified_traders:
         fields_text = ""
         for t in qualified_traders:
