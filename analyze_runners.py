@@ -62,17 +62,18 @@ def get_gecko_ohlcv_pattern(pool_address):
         return 0.0, 0.0
 
 def audit_runner_and_holders(token_addr):
-    """Zieht RugCheck-Score UND kumulierten Top-10-Holder-Anteil."""
+    """Zieht RugCheck-Score UND kumulierten Top-10-Holder-Anteil aus dem Full-Report."""
     score = "N/A"
     top10_pct = 0.0
     try:
-        r = requests.get(f"https://api.rugcheck.xyz/v1/tokens/{token_addr}/report/summary", timeout=6)
+        # Full Report liefert das topHolders-Array
+        r = requests.get(f"https://api.rugcheck.xyz/v1/tokens/{token_addr}/report", timeout=7)
         if r.status_code == 200:
             data = r.json()
             score = data.get("score", 0)
             holders = data.get("topHolders", [])
             if holders:
-                top10_pct = sum(float(h.get("pct", 0.0) or 0.0) for h in holders[:10])
+                top10_pct = sum(float(h.get("pct", 0.0) or h.get("percentage", 0.0) or 0.0) for h in holders[:10])
     except Exception:
         pass
     return score, round(top10_pct, 1)
