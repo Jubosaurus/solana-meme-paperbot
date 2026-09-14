@@ -8,21 +8,51 @@ from datetime import datetime, timezone
 PORTFOLIO_FILE = "portfolio.json"
 DISCORD_WEBHOOK_URL = os.environ.get("DISCORD_WEBHOOK_URL")
 
-# --- Position Management (TP / SL) ---
-SL_PCT = -18.0          # Stop Loss bei -18%
-TP1_PCT = 40.0          # Take Profit 1 bei +40%
-TP2_PCT = 100.0         # Moonbag / TP2 bei +100%
-MAX_HOLD_HOURS = 4.0    # Position nach 4h glattstellen
-MAX_OPEN_POSITIONS = 3  # Parallele Trades
+# --- Risikomanagement & Scout-Settings (aus deinem Screenshot) ---
+SCOUT_SIZE_SOL = 0.0625  # Genau wie auf deinem Screenshot
+SIMULATED_FEE_SOL = 0.002 # Geschätzte Tx-Gebühr pro Trade (Buy + Sell)
+SL_PCT = -20.0           # Hard Stop
+TP1_PCT = 40.0           # Take Profit 1
+TP2_PCT = 100.0          # Moonbag TP
+MAX_HOLD_HOURS = 4.0     # Max Haltedauer
+MAX_OPEN_POSITIONS = 3   # Max parallele Trades
+SOL_USD_PRICE = 100.0    # Fallback-Preis zur Umrechnung
+
+def get_sol_usd_price():
+    try:
+        r = requests.get("https://api.dexscreener.com/latest/dex/tokens/So11111111111111111111111111111111111111112", timeout=4)
+        if r.status_code == 200:
+            pairs = r.json().get("pairs") or []
+            if pairs:
+                return float(pairs[0].get("priceUsd") or 100.0)
+    except Exception:
+        pass
+    return 100.0
 
 def load_portfolio():
     if os.path.exists(PORTFOLIO_FILE):
         try:
             with open(PORTFOLIO_FILE, "r", encoding="utf-8") as f:
-                return json.load(f)
+                data = json.load(f)
+                if "bankroll_sol" not in data:
+                    data["bankroll_sol"] = 5.3991
+                if "total_fees_sol" not in data:
+                    data["total_fees_sol"] = 0.0407
+                if "wins" not in data:
+                    data["wins"] = 3
+                if "losses" not in data:
+                    data["losses"] = 1
+                return data
         except Exception:
             pass
-    return {"open_positions": {}, "closed_positions": []}
+    return {
+        "bankroll_sol": 5.3991,
+        "total_fees_sol": 0.0407,
+        "wins": 3,
+        "losses": 1,
+        "open_positions": {},
+        "closed_positions": []
+    }
 
 def save_portfolio(data):
     with open(PORTFOLIO_FILE, "w", encoding="utf-8") as f:
@@ -35,13 +65,13 @@ def git_push_portfolio():
         subprocess.run(["git", "add", PORTFOLIO_FILE], check=False)
         status = subprocess.run(["git", "status", "--porcelain"], capture_output=True, text=True)
         if status.stdout.strip():
-            subprocess.run(["git", "commit", "-m", "Update pure TikTok paper trades [skip ci]"], check=False)
+            subprocess.run(["git", "commit", "-m", "Update paper bot portfolio state [skip ci]"], check=False)
             subprocess.run(["git", "pull", "origin", "main", "--rebase"], check=False)
             subprocess.run(["git", "push", "origin", "main"], check=False)
     except Exception as err:
         print(f"[GIT ERROR] {err}")
 
-def send_discord(title, desc, color):
+def send_discord_raw(title, desc, color):
     if not DISCORD_WEBHOOK_URL:
         return
     embed = {
@@ -55,9 +85,16 @@ def send_discord(title, desc, color):
     except Exception as e:
         print(f"[DISCORD ERROR] {e}")
 
+def get_stats_str(portfolio):
+    w = portfolio.get("wins", 0)
+    l = portfolio.get("losses", 0)
+    total = w + l
+    wr = (w / total * 100.0) if total > 0 else 0.0
+    return f"{w}W / {l}L ({wr:.1f}%)"
+
 def check_3_momentum_metrics(pair):
     """
-    Der 5-Sekunden-Pre-Entry-Check aus dem Transkript:
+    TikTok 5-Sekunden Pre-Entry Check:
     1. Mehr Buys als Sells in 5m
     2. Positiver 5m Preistrend
     3. Frisches 5m Volumen
@@ -67,28 +104,26 @@ def check_3_momentum_metrics(pair):
     sells_m5 = int(txns_m5.get("sells", 0) or 0)
     
     if buys_m5 <= sells_m5 or buys_m5 < 3:
-        return False, f"Zu schwach ({buys_m5}B/{sells_m5}S)"
+        return False, 0, 0.0
 
     change_m5 = float(pair.get("priceChange", {}).get("m5", 0.0) or 0.0)
     if change_m5 <= 0.0:
-        return False, f"Rote 5m Kerze ({change_m5:.1f}%)"
+        return False, 0, 0.0
 
     vol_m5 = float(pair.get("volume", {}).get("m5", 0.0) or 0.0)
     vol_h1 = float(pair.get("volume", {}).get("h1", 0.0) or 1.0)
     if (vol_m5 / max(vol_h1, 1.0)) < 0.10 and vol_m5 < 1000:
-        return False, "Kein 5m Momentum Spike"
+        return False, 0, 0.0
 
-    return True, f"+{change_m5:.1f}% 5m | {buys_m5}B/{sells_m5}S"
+    return True, buys_m5, vol_m5
 
 def classify_and_filter_token(pair, has_paid_profile):
-    """Exakte Filterung der drei TikTok-Spalten."""
+    """100% reine TikTok 3-Spalten-Logik"""
     info = pair.get("info") or {}
     socials = info.get("socials") or []
     websites = info.get("websites") or []
-    
-    # Grundregel: Mindestens ein Social-Link
     if len(socials) == 0 and len(websites) == 0:
-        return None, "Keine Socials"
+        return None, 0, 0.0
 
     mcap = float(pair.get("fdv") or pair.get("marketCap") or 0.0)
     vol_h24 = float(pair.get("volume", {}).get("h24") or 0.0)
@@ -96,32 +131,31 @@ def classify_and_filter_token(pair, has_paid_profile):
     age_min = (time.time() * 1000 - pair_created) / (1000 * 60) if pair_created else 9999
     dex_id = pair.get("dexId", "").lower()
 
-    # --- SPALTE 1: MIGRATED ---
-    # Mind. 1 Social, mind. 30k MCap, mind. 3 SOL Fees (Dex Profile / Paid DEX)
+    # Spalte 1: Migrated (Raydium / DEX Graduation)
     if mcap >= 30000 and (dex_id in ["raydium", "meteora"] or has_paid_profile):
-        passed, note = check_3_momentum_metrics(pair)
+        passed, buys_5m, vol_5m = check_3_momentum_metrics(pair)
         if passed:
-            return "Spalte 1: Migrated", note
+            return "MIGRATED", buys_5m, vol_5m
 
-    # --- SPALTE 2: MID-BONDING ---
-    # Mind. 1 Social, mind. 20k MCap, Alter max. 600 Min (10h), mind. 2 SOL Fees
+    # Spalte 2: Mid-Bonding (Kurz vor Graduation, Alter max 600m)
     if mcap >= 20000 and age_min <= 600 and (has_paid_profile or dex_id == "pumpswap"):
-        passed, note = check_3_momentum_metrics(pair)
+        passed, buys_5m, vol_5m = check_3_momentum_metrics(pair)
         if passed:
-            return "Spalte 2: Mid-Bonding", note
+            return "MID-BONDING", buys_5m, vol_5m
 
-    # --- SPALTE 3: EARLY DEGEN ---
-    # Mind. 1 Social, MCap 6k-60k, Volumen mind. 3k, mind. 0.1 SOL Fees
+    # Spalte 3: Early Degen (Pump.fun Start, 6k-60k, Vol >= 3k)
     if 6000 <= mcap <= 60000 and vol_h24 >= 3000:
-        passed, note = check_3_momentum_metrics(pair)
+        passed, buys_5m, vol_5m = check_3_momentum_metrics(pair)
         if passed:
-            return "Spalte 3: Early Degen", note
+            return "EARLY DEGEN", buys_5m, vol_5m
 
-    return None, "Kein Match"
+    return None, 0, 0.0
 
-def scan_and_enter(portfolio):
+def scan_and_enter(portfolio, sol_price):
     open_pos = portfolio["open_positions"]
-    if len(open_pos) >= MAX_OPEN_POSITIONS:
+    bankroll = portfolio.get("bankroll_sol", 5.0)
+
+    if len(open_pos) >= MAX_OPEN_POSITIONS or bankroll < SCOUT_SIZE_SOL:
         return
 
     candidates = {}
@@ -138,8 +172,7 @@ def scan_and_enter(portfolio):
                 addr = p.get("baseToken", {}).get("address")
                 if addr and addr not in candidates:
                     candidates[addr] = False
-    except Exception as e:
-        print(f"[FETCH ERROR] {e}")
+    except Exception:
         return
 
     for token_addr, has_paid_profile in candidates.items():
@@ -157,41 +190,56 @@ def scan_and_enter(portfolio):
         except Exception:
             continue
 
-        col_name, momentum_note = classify_and_filter_token(pair, has_paid_profile)
+        col_name, buys_5m, vol_5m = classify_and_filter_token(pair, has_paid_profile)
         if col_name:
             symbol = pair.get("baseToken", {}).get("symbol", "TOKEN")
+            dex_name = pair.get("dexId", "DEX").upper()
             price_usd = float(pair.get("priceUsd") or 0.0)
             mcap = float(pair.get("fdv") or pair.get("marketCap") or 0.0)
+            liq = float(pair.get("liquidity", {}).get("usd") or 0.0)
+            pair_created = pair.get("pairCreatedAt", 0)
+            age_h = (time.time() * 1000 - pair_created) / (1000 * 3600) if pair_created else 0.0
             pair_url = f"https://dexscreener.com/solana/{pair.get('pairAddress')}"
 
             if price_usd <= 0:
                 continue
 
+            # Scout-Kauf buchen
+            portfolio["bankroll_sol"] = round(bankroll - SCOUT_SIZE_SOL, 4)
+            bankroll_usd = portfolio["bankroll_sol"] * sol_price
+
             open_pos[token_addr] = {
                 "symbol": symbol,
+                "dex": dex_name,
                 "entry_price": price_usd,
                 "highest_price": price_usd,
                 "entry_time": time.time(),
-                "setup": col_name,
+                "invested_sol": SCOUT_SIZE_SOL,
                 "url": pair_url,
                 "mcap_at_entry": mcap
             }
 
-            print(f" -> KAUF: ${symbol} ({col_name}) @ ${price_usd:.8f}")
-            send_discord(
-                f"🟢 Paper Entry: ${symbol} ({col_name})",
-                f"• **Entry:** ${price_usd:.8f}\n"
-                f"• **MCap:** ${mcap:,.0f}\n"
-                f"• **Pre-Entry Check:** {momentum_note}\n"
-                f"• **Chart:** [DexScreener]({pair_url})",
-                0x10B981
+            # Exaktes Format aus dem Screenshot
+            desc = (
+                f"**Symbol:** {symbol} ({dex_name})\n"
+                f"**MCap:** ${mcap:,.0f} | **LP:** ${liq:,.0f} | **Alter:** {age_h:.1f}h\n"
+                f"**Vol Surge:** 5m ${vol_5m:,.0f} (Buys: {buys_5m})\n"
+                f"**Scout:** {SCOUT_SIZE_SOL} SOL @ ${price_usd:.8f}\n"
+                f"-------------------\n"
+                f"[📈 DexScreener Live-Chart]({pair_url})\n"
+                f"💰 **Bankroll:** {portfolio['bankroll_sol']:.4f} SOL (${bankroll_usd:.2f})\n"
+                f"📊 **Stats:** {get_stats_str(portfolio)}"
             )
+
+            send_discord_raw(f"🎯 Scout Entry: {symbol}", desc, 0x3B82F6)
             save_portfolio(portfolio)
             break
 
-def manage_positions(portfolio):
+def manage_positions(portfolio, sol_price):
     open_pos = portfolio["open_positions"]
     closed = portfolio["closed_positions"]
+    bankroll = portfolio.get("bankroll_sol", 5.0)
+    total_fees = portfolio.get("total_fees_sol", 0.0407)
     to_remove = []
 
     for addr, pos in open_pos.items():
@@ -212,41 +260,66 @@ def manage_positions(portfolio):
         entry_price = pos["entry_price"]
         pnl_pct = ((curr_price - entry_price) / entry_price) * 100.0
         hold_hours = (time.time() - pos["entry_time"]) / 3600.0
+        invested_sol = pos.get("invested_sol", SCOUT_SIZE_SOL)
 
         if curr_price > pos.get("highest_price", entry_price):
             pos["highest_price"] = curr_price
 
+        peak_pct = ((pos["highest_price"] - entry_price) / entry_price) * 100.0
+
         exit_reason = None
         if pnl_pct <= SL_PCT:
-            exit_reason = f"🛑 Stop Loss ({pnl_pct:.1f}%)"
+            exit_reason = "HARD_STOP"
         elif pnl_pct >= TP2_PCT:
-            exit_reason = f"🎯 Moonbag Take Profit ({pnl_pct:.1f}%)"
+            exit_reason = "MOONBAG_TP"
         elif pnl_pct >= TP1_PCT:
-            exit_reason = f"💰 Take Profit 1 ({pnl_pct:.1f}%)"
+            exit_reason = "TP1_TRIGGER"
         elif hold_hours >= MAX_HOLD_HOURS:
-            exit_reason = f"⏱️ Max Hold ({pnl_pct:.1f}%)"
+            exit_reason = "TIMEOUT_EXIT"
 
         if exit_reason:
-            print(f" -> EXIT: ${pos['symbol']} | {exit_reason}")
+            pnl_sol = invested_sol * (pnl_pct / 100.0) - SIMULATED_FEE_SOL
+            pnl_usd = pnl_sol * sol_price
+            payout_sol = invested_sol + pnl_sol
+            bankroll = round(bankroll + payout_sol, 4)
+            total_fees = round(total_fees + SIMULATED_FEE_SOL, 4)
+
+            portfolio["bankroll_sol"] = bankroll
+            portfolio["total_fees_sol"] = total_fees
+
+            if pnl_sol > 0:
+                portfolio["wins"] = portfolio.get("wins", 0) + 1
+                color = 0x10B981
+            else:
+                portfolio["losses"] = portfolio.get("losses", 0) + 1
+                color = 0xEF4444
+
+            bankroll_usd = bankroll * sol_price
+            stats_str = get_stats_str(portfolio)
+
+            # Exaktes Format aus dem Screenshot
+            desc = (
+                f"**Symbol:** {pos['symbol']} | {exit_reason} ({pnl_pct:+.1f}%)\n"
+                f"**Net PnL:** {pnl_sol:+.4f} SOL ({pnl_usd:+.2f} USD)\n"
+                f"**Investiert:** {invested_sol:.3f} SOL | **Peak Gain:** +{peak_pct:.1f}%\n"
+                f"-------------------\n"
+                f"[📈 DexScreener Live-Chart]({pos.get('url')})\n"
+                f"💰 **Bankroll:** {bankroll:.4f} SOL (${bankroll_usd:.2f})\n"
+                f"📊 **Stats:** {stats_str}\n"
+                f"💸 **Gezahlte Tx-Fees gesamt:** {total_fees:.4f} SOL"
+            )
+
+            send_discord_raw(f"Trade Closed: {pos['symbol']}", desc, color)
+
             closed.append({
                 "symbol": pos["symbol"],
                 "token_address": addr,
-                "setup": pos.get("setup", "Standard"),
                 "pnl_pct": round(pnl_pct, 2),
+                "pnl_sol": round(pnl_sol, 4),
                 "exit_reason": exit_reason,
                 "closed_at": datetime.now(timezone.utc).isoformat()
             })
             to_remove.append(addr)
-
-            color = 0x10B981 if pnl_pct > 0 else 0xEF4444
-            send_discord(
-                f"🔴 Paper Exit: ${pos['symbol']} | {exit_reason}",
-                f"• **PnL:** {pnl_pct:+.1f}%\n"
-                f"• **Setup:** {pos.get('setup')}\n"
-                f"• **Preise:** ${entry_price:.8f} $\\rightarrow$ ${curr_price:.8f}\n"
-                f"• **Chart:** [DexScreener]({pos.get('url')})",
-                color
-            )
 
     for addr in to_remove:
         del open_pos[addr]
@@ -256,9 +329,9 @@ def manage_positions(portfolio):
 
 def run_loop():
     start_time = time.time()
-    max_duration_seconds = 5 * 3600 - 300  # 4 Stunden 55 Minuten
+    max_duration_seconds = 5 * 3600 - 300  # 4h 55m
 
-    print("🚀 [START] Bot läuft in 5-Stunden-Dauerschleife...")
+    print("🚀 [START] Bot läuft mit gewohntem Discord-Layout & TikTok-Filtern...")
 
     while True:
         elapsed = time.time() - start_time
@@ -267,9 +340,10 @@ def run_loop():
             break
 
         try:
+            sol_price = get_sol_usd_price()
             portfolio = load_portfolio()
-            manage_positions(portfolio)
-            scan_and_enter(portfolio)
+            manage_positions(portfolio, sol_price)
+            scan_and_enter(portfolio, sol_price)
             save_portfolio(portfolio)
             git_push_portfolio()
         except Exception as e:
