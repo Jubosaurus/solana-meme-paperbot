@@ -8,13 +8,12 @@ from datetime import datetime, timezone
 PORTFOLIO_FILE = "portfolio.json"
 DISCORD_WEBHOOK_URL = os.environ.get("DISCORD_WEBHOOK_URL")
 
-# --- Trade & Risikomanagement Parameter ---
+# --- Position Management (TP / SL) ---
 SL_PCT = -18.0          # Stop Loss bei -18%
 TP1_PCT = 40.0          # Take Profit 1 bei +40%
-TP2_PCT = 100.0         # Moonbag / Take Profit 2 bei +100%
-MAX_HOLD_HOURS = 4.0    # Maximale Haltedauer ohne TP/SL
-MAX_OPEN_POSITIONS = 3  # Parallele Trades begrenzen
-MAX_RUGCHECK_SCORE = 500 # Sicherheitsgrenze für RugCheck
+TP2_PCT = 100.0         # Moonbag / TP2 bei +100%
+MAX_HOLD_HOURS = 4.0    # Position nach 4h glattstellen
+MAX_OPEN_POSITIONS = 3  # Parallele Trades
 
 def load_portfolio():
     if os.path.exists(PORTFOLIO_FILE):
@@ -36,7 +35,7 @@ def git_push_portfolio():
         subprocess.run(["git", "add", PORTFOLIO_FILE], check=False)
         status = subprocess.run(["git", "status", "--porcelain"], capture_output=True, text=True)
         if status.stdout.strip():
-            subprocess.run(["git", "commit", "-m", "Update bot portfolio state [skip ci]"], check=False)
+            subprocess.run(["git", "commit", "-m", "Update pure TikTok paper trades [skip ci]"], check=False)
             subprocess.run(["git", "pull", "origin", "main", "--rebase"], check=False)
             subprocess.run(["git", "push", "origin", "main"], check=False)
     except Exception as err:
@@ -56,81 +55,63 @@ def send_discord(title, desc, color):
     except Exception as e:
         print(f"[DISCORD ERROR] {e}")
 
-def check_rugcheck_safety(token_address):
-    """Sicherheits-Check via RugCheck API."""
-    try:
-        res = requests.get(f"https://api.rugcheck.xyz/v1/tokens/{token_address}/report", timeout=6)
-        if res.status_code == 200:
-            data = res.json()
-            score = data.get("score", 9999)
-            if score > MAX_RUGCHECK_SCORE:
-                return False, f"RugCheck Score zu hoch ({score})"
-            
-            # Prüfe Top 10 Holder Konzentration
-            top_holders = data.get("topHolders", [])
-            top_10_pct = sum(float(h.get("pct", 0) or h.get("percentage", 0) or 0) for h in top_holders[:10])
-            if top_10_pct > 35.0:
-                return False, f"Top 10 halten {top_10_pct:.1f}% (Cabal-Gefahr)"
-            
-            return True, f"Score {score} (Clean)"
-    except Exception:
-        pass
-    # Falls RugCheck API hakt, nicht blockieren
-    return True, "RugCheck Bypass (API Timeout)"
-
 def check_3_momentum_metrics(pair):
     """
-    Der geforderte 5-Sekunden Pre-Entry Check:
-    1. Mehr Buys als Sells in den letzten 5 Minuten
-    2. Positiver 5m Preistrend (Grüne Kerze)
+    Der 5-Sekunden-Pre-Entry-Check aus dem Transkript:
+    1. Mehr Buys als Sells in 5m
+    2. Positiver 5m Preistrend
     3. Frisches 5m Volumen
     """
     txns_m5 = pair.get("txns", {}).get("m5", {})
-    buys_m5 = txns_m5.get("buys", 0)
-    sells_m5 = txns_m5.get("sells", 0)
+    buys_m5 = int(txns_m5.get("buys", 0) or 0)
+    sells_m5 = int(txns_m5.get("sells", 0) or 0)
     
     if buys_m5 <= sells_m5 or buys_m5 < 3:
-        return False, "Zu schwacher Käuferdruck (5m Buys <= Sells)"
+        return False, f"Zu schwach ({buys_m5}B/{sells_m5}S)"
 
     change_m5 = float(pair.get("priceChange", {}).get("m5", 0.0) or 0.0)
     if change_m5 <= 0.0:
-        return False, "Negativer 5m Preistrend"
+        return False, f"Rote 5m Kerze ({change_m5:.1f}%)"
 
     vol_m5 = float(pair.get("volume", {}).get("m5", 0.0) or 0.0)
     vol_h1 = float(pair.get("volume", {}).get("h1", 0.0) or 1.0)
-    if (vol_m5 / max(vol_h1, 1.0)) < 0.10 and vol_m5 < 1200:
-        return False, "Kein frischer Volumen-Spike"
+    if (vol_m5 / max(vol_h1, 1.0)) < 0.10 and vol_m5 < 1000:
+        return False, "Kein 5m Momentum Spike"
 
     return True, f"+{change_m5:.1f}% 5m | {buys_m5}B/{sells_m5}S"
 
-def classify_and_filter_token(pair):
-    """Prüft die Kriterien der 3 Spalten."""
+def classify_and_filter_token(pair, has_paid_profile):
+    """Exakte Filterung der drei TikTok-Spalten."""
     info = pair.get("info") or {}
     socials = info.get("socials") or []
     websites = info.get("websites") or []
+    
+    # Grundregel: Mindestens ein Social-Link
     if len(socials) == 0 and len(websites) == 0:
         return None, "Keine Socials"
 
     mcap = float(pair.get("fdv") or pair.get("marketCap") or 0.0)
-    liq = float(pair.get("liquidity", {}).get("usd") or 0.0)
     vol_h24 = float(pair.get("volume", {}).get("h24") or 0.0)
     pair_created = pair.get("pairCreatedAt", 0)
     age_min = (time.time() * 1000 - pair_created) / (1000 * 60) if pair_created else 9999
     dex_id = pair.get("dexId", "").lower()
 
-    # --- SPALTE 1: Migrated (DEX / Raydium / Meteora) ---
-    if mcap >= 30000 and (liq >= 10000 or dex_id in ["raydium", "meteora"]):
+    # --- SPALTE 1: MIGRATED ---
+    # Mind. 1 Social, mind. 30k MCap, mind. 3 SOL Fees (Dex Profile / Paid DEX)
+    if mcap >= 30000 and (dex_id in ["raydium", "meteora"] or has_paid_profile):
         passed, note = check_3_momentum_metrics(pair)
         if passed:
             return "Spalte 1: Migrated", note
 
-    # --- SPALTE 2: Mid-Bonding (Kurz vor Graduation) ---
-    if mcap >= 20000 and age_min <= 600 and liq >= 3500:
+    # --- SPALTE 2: MID-BONDING ---
+    # Mind. 1 Social, mind. 20k MCap, Alter max. 600 Min (10h), mind. 2 SOL Fees
+    if mcap >= 20000 and age_min <= 600 and (has_paid_profile or dex_id == "pumpswap"):
         passed, note = check_3_momentum_metrics(pair)
         if passed:
             return "Spalte 2: Mid-Bonding", note
 
-    # --- SPALTE 3: Early Degen (Pump.fun Startzone) ---
+    # --- SPALTE 3: EARLY DEGEN ---
+    # Mind. 1 Social, MCap 6k-60k, Volumen mind. 3k, mind. 0.1 SOL Fees
     if 6000 <= mcap <= 60000 and vol_h24 >= 3000:
         passed, note = check_3_momentum_metrics(pair)
         if passed:
@@ -141,32 +122,27 @@ def classify_and_filter_token(pair):
 def scan_and_enter(portfolio):
     open_pos = portfolio["open_positions"]
     if len(open_pos) >= MAX_OPEN_POSITIONS:
-        print(f"[LIMIT] Bereits {len(open_pos)} offene Positionen.")
         return
 
-    print("[BOT SCAN] Suche nach Einstiegen über 3-Spalten-Matrix...")
-    candidates = []
-
+    candidates = {}
     try:
-        # Frische Profile & Boosts von DexScreener
         r_profiles = requests.get("https://api.dexscreener.com/token-profiles/latest/v1", timeout=6)
         if r_profiles.status_code == 200:
             for item in r_profiles.json():
                 if item.get("chainId") == "solana":
-                    candidates.append(item.get("tokenAddress"))
+                    candidates[item.get("tokenAddress")] = True
 
-        # Trendende Solana-Pairs ergänzen
         r_pairs = requests.get("https://api.dexscreener.com/latest/dex/search?q=solana", timeout=6)
         if r_pairs.status_code == 200:
-            for p in r_pairs.json().get("pairs", [])[:30]:
+            for p in r_pairs.json().get("pairs", [])[:35]:
                 addr = p.get("baseToken", {}).get("address")
                 if addr and addr not in candidates:
-                    candidates.append(addr)
+                    candidates[addr] = False
     except Exception as e:
         print(f"[FETCH ERROR] {e}")
         return
 
-    for token_addr in candidates:
+    for token_addr, has_paid_profile in candidates.items():
         if token_addr in open_pos:
             continue
 
@@ -181,18 +157,11 @@ def scan_and_enter(portfolio):
         except Exception:
             continue
 
-        col_name, momentum_note = classify_and_filter_token(pair)
+        col_name, momentum_note = classify_and_filter_token(pair, has_paid_profile)
         if col_name:
-            # Sicherheitscheck vorschalten
-            is_safe, safety_msg = check_rugcheck_safety(token_addr)
-            if not is_safe:
-                print(f" -> Skip {token_addr[:6]}...: {safety_msg}")
-                continue
-
             symbol = pair.get("baseToken", {}).get("symbol", "TOKEN")
             price_usd = float(pair.get("priceUsd") or 0.0)
             mcap = float(pair.get("fdv") or pair.get("marketCap") or 0.0)
-            liq = float(pair.get("liquidity", {}).get("usd") or 0.0)
             pair_url = f"https://dexscreener.com/solana/{pair.get('pairAddress')}"
 
             if price_usd <= 0:
@@ -212,9 +181,8 @@ def scan_and_enter(portfolio):
             send_discord(
                 f"🟢 Paper Entry: ${symbol} ({col_name})",
                 f"• **Entry:** ${price_usd:.8f}\n"
-                f"• **MCap:** ${mcap:,.0f} | **LP:** ${liq:,.0f}\n"
-                f"• **Momentum:** {momentum_note}\n"
-                f"• **Security:** {safety_msg}\n"
+                f"• **MCap:** ${mcap:,.0f}\n"
+                f"• **Pre-Entry Check:** {momentum_note}\n"
                 f"• **Chart:** [DexScreener]({pair_url})",
                 0x10B981
             )
@@ -286,12 +254,28 @@ def manage_positions(portfolio):
     if to_remove:
         save_portfolio(portfolio)
 
-def main():
-    portfolio = load_portfolio()
-    manage_positions(portfolio)
-    scan_and_enter(portfolio)
-    save_portfolio(portfolio)
-    git_push_portfolio()
+def run_loop():
+    start_time = time.time()
+    max_duration_seconds = 5 * 3600 - 300  # 4 Stunden 55 Minuten
+
+    print("🚀 [START] Bot läuft in 5-Stunden-Dauerschleife...")
+
+    while True:
+        elapsed = time.time() - start_time
+        if elapsed >= max_duration_seconds:
+            print(f"⏱️ [ENDE] 5-Stunden-Schicht beendet ({elapsed/3600:.2f}h).")
+            break
+
+        try:
+            portfolio = load_portfolio()
+            manage_positions(portfolio)
+            scan_and_enter(portfolio)
+            save_portfolio(portfolio)
+            git_push_portfolio()
+        except Exception as e:
+            print(f"[LOOP ERROR] {e}")
+
+        time.sleep(35)
 
 if __name__ == "__main__":
-    main()
+    run_loop()
