@@ -1,15 +1,5 @@
 {
   "open_positions": {
-    "25zrhpHif2nxwH3dYraqAA64AeRdRj2keo1oNpsdpump": {
-      "symbol": "PUMPATHON",
-      "dex": "PUMPSWAP",
-      "entry_price": 3.982e-05,
-      "highest_price": 6.178e-05,
-      "entry_time": 1789416549.4618342,
-      "invested_sol": 0.2,
-      "url": "https://dexscreener.com/solana/CrYT2LM5FdQaiFoin16fGCP2eszE2U8mToq2ZMJb2dqZ",
-      "mcap_at_entry": 39820.0
-    },
     "B3STjzr94bn61TF9qXhAiK98HwypNoyMc8tr78f3QuCQ": {
       "symbol": "FINE",
       "dex": "RAYDIUM",
@@ -29,6 +19,16 @@
       "invested_sol": 0.2,
       "url": "https://dexscreener.com/solana/yogcrF4Y7hsyyJHXagVpdiJfVGqdq7YP3C84Zw9pZhf",
       "mcap_at_entry": 6723.08
+    },
+    "boDoUbtgp4DuUuJBTf3J6cPXabf9k8rC1Wi1PuGpump": {
+      "symbol": "HYBRID",
+      "dex": "PUMPFUN",
+      "entry_price": 9.722e-06,
+      "highest_price": 9.722e-06,
+      "entry_time": 1789416699.918811,
+      "invested_sol": 0.2,
+      "url": "https://dexscreener.com/solana/AfsFB5kkfZMBuSm3k5E8gnhDAP69GLv2MLqf6dMLDXSL",
+      "mcap_at_entry": 9722.81
     }
   },
   "closed_positions": [
@@ -583,10 +583,18 @@
       "pnl_sol": -0.0162,
       "exit_reason": "HARD_STOP (-22.7%)",
       "closed_at": "2026-09-14T20:07:47.670196+00:00"
+    },
+    {
+      "symbol": "PUMPATHON",
+      "token_address": "25zrhpHif2nxwH3dYraqAA64AeRdRj2keo1oNpsdpump",
+      "pnl_pct": 21.47,
+      "pnl_sol": 0.0409,
+      "exit_reason": "TRAILING_TP (+21.5%)",
+      "closed_at": "2026-09-14T20:11:39.370605+00:00"
     }
   ],
-  "bankroll_sol": 4.4214,
-  "total_fees_sol": 0.1767,
-  "wins": 25,
+  "bankroll_sol": 4.4623,
+  "total_fees_sol": 0.1787,
+  "wins": 26,
   "losses": 47
 }
