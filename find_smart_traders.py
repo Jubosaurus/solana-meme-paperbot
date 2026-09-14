@@ -28,7 +28,7 @@ def git_push_csv():
         subprocess.run(["git", "add", CSV_SMART_WALLETS], check=False)
         status = subprocess.run(["git", "status", "--porcelain"], capture_output=True, text=True)
         if status.stdout.strip():
-            subprocess.run(["git", "commit", "-m", "Update smart wallets database [skip ci]"], check=False)
+            subprocess.run(["git", "commit", "-m", "Expand smart wallets pool [skip ci]"], check=False)
             subprocess.run(["git", "pull", "origin", "main", "--rebase"], check=False)
             subprocess.run(["git", "push", "origin", "main"], check=False)
     except Exception as err:
@@ -40,22 +40,32 @@ def get_known_wallets():
         with open(CSV_SMART_WALLETS, mode="r", encoding="utf-8") as f:
             reader = csv.DictReader(f)
             for row in reader:
-                known.add(row.get("wallet_address"))
+                addr = row.get("wallet_address")
+                if addr:
+                    known.add(addr)
     return known
 
-def get_recent_runners_from_csv():
+def get_all_runners_from_csv():
     if not os.path.exists(CSV_RUNNERS):
         return []
     pools = []
     with open(CSV_RUNNERS, mode="r", encoding="utf-8") as f:
         reader = list(csv.DictReader(f))
-        for row in reversed(reader[-10:]):
+        # Priorisiere Runner mit den höchsten Kursgewinnen
+        for row in reader:
+            try:
+                gain = float(row.get("gain_24h_pct", 0.0) or 0.0)
+            except ValueError:
+                gain = 0.0
             pools.append({
                 "symbol": row.get("symbol"),
                 "token_addr": row.get("token_address"),
                 "pair_addr": row.get("pair_address"),
+                "gain": gain,
                 "age_h": float(row.get("age_hours") or 0.0)
             })
+    # Sortiere nach Performance
+    pools.sort(key=lambda x: x["gain"], reverse=True)
     return pools
 
 def get_wallet_activity_metrics(wallet_address):
@@ -63,7 +73,7 @@ def get_wallet_activity_metrics(wallet_address):
         payload = {
             "jsonrpc": "2.0", "id": 1,
             "method": "getSignaturesForAddress",
-            "params": [wallet_address, {"limit": 40}]
+            "params": [wallet_address, {"limit": 30}]
         }
         res = requests.post(SOLANA_RPC_URL, json=payload, headers={"Content-Type": "application/json"}, timeout=6)
         if res.status_code == 200:
@@ -76,14 +86,14 @@ def get_wallet_activity_metrics(wallet_address):
 def scan_smart_traders():
     init_csv()
     known_wallets = get_known_wallets()
-    runners = get_recent_runners_from_csv()
+    runners = get_all_runners_from_csv()
 
     if not runners:
         print("Keine Runner-Daten in runner_patterns.csv vorhanden.")
         return
 
-    print(f"[SMART MONEY] Untersuche Top-Trader für {len(runners)} Runner...")
-    qualified_traders = []
+    print(f"[SMART MONEY] Durchsuche {len(runners)} Top-Runner nach profitablen Wallets...")
+    new_traders = []
 
     for r in runners:
         token_addr = r["token_addr"]
@@ -99,21 +109,23 @@ def scan_smart_traders():
         except Exception:
             continue
 
-        for holder in top_holders[:15]:
+        # Top 30 Holder pro Runner scannen
+        for holder in top_holders[:30]:
             wallet = holder.get("address")
             if not wallet or wallet in known_wallets or wallet == creator:
                 continue
 
             pct = float(holder.get("pct", 0.0) or holder.get("percentage", 0.0) or 0.0)
-            # Ausschluss von Cabal-Whales (> 12% des gesamten Supplies)
-            if pct > 12.0:
+            
+            # Filter 1: Keine Cabal-Whales / Devs mit riesigen Supply-Blöcken (> 10%)
+            if pct > 10.0 or pct < 0.2:
                 continue
 
+            # Filter 2: Mindest-Aktivität (echte Trading-Wallet, kein Einmal-Bot)
             tx_count = get_wallet_activity_metrics(wallet)
-            time.sleep(0.3)
+            time.sleep(0.2)
 
-            # Mindestens 10 Transaktionen (Ausschluss frischer Throwaway-Bots)
-            if tx_count < 10:
+            if tx_count < 8:
                 continue
 
             now_iso = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
@@ -123,11 +135,11 @@ def scan_smart_traders():
                 "token_found_on": symbol,
                 "buy_delay_min": ">15m",
                 "est_holding_min": "Swing (>30m)",
-                "trade_pnl_usd": "Top Holder (Clean)",
+                "trade_pnl_usd": f"Runner +{r['gain']:,.0f}%",
                 "wallet_tx_count": tx_count,
                 "classification": "Organic Accumulator"
             }
-            qualified_traders.append(entry)
+            new_traders.append(entry)
             known_wallets.add(wallet)
 
             with open(CSV_SMART_WALLETS, mode="a", newline="", encoding="utf-8") as f:
@@ -137,24 +149,24 @@ def scan_smart_traders():
                     entry["wallet_tx_count"], entry["classification"]
                 ])
 
-            print(f" -> Gesunder Trader gefunden: {wallet[:6]}...{wallet[-4:]} auf ${symbol}")
-            if len(qualified_traders) >= 4:
-                break
+            print(f" -> Neuer Trader entdeckt: {wallet[:6]}...{wallet[-4:]} auf ${symbol} (+{r['gain']:,.0f}%) | {tx_count} Tx")
 
-    if DISCORD_WEBHOOK_URL and qualified_traders:
+    print(f"[STATUS] {len(new_traders)} neue Trader zur Datenbank hinzugefügt. Gesamtbestand: {len(known_wallets)} Wallets.")
+
+    # Discord Reporting (Batch-Zusammenfassung)
+    if DISCORD_WEBHOOK_URL and new_traders:
         fields_text = ""
-        for t in qualified_traders:
+        for t in new_traders[:10]:  # Zeige die ersten 10 im Discord, um Nachrichten-Limits einzuhalten
             solscan_url = f"https://solscan.io/account/{t['wallet_address']}"
             fields_text += (
                 f"👤 **[{t['wallet_address'][:6]}...{t['wallet_address'][-4:]}]({solscan_url})**\n"
-                f"• **Gefunden bei:** ${t['token_found_on']}\n"
-                f"• **Typ:** {t['classification']} | **Aktivität:** {t['wallet_tx_count']}+ Tx\n"
-                f"• **Verhalten:** Moderater Supply-Anteil, kein Throwaway-Bot\n"
+                f"• **Runner:** ${t['token_found_on']} ({t['trade_pnl_usd']})\n"
+                f"• **Aktivität:** {t['wallet_tx_count']}+ Tx | Typ: {t['classification']}\n"
                 f"───────────────────\n"
             )
 
         embed = {
-            "title": "🧠 Smart Money Scouting: Gesunde Trader-Wallets",
+            "title": f"🧠 Smart Money Trichter erweitert (+{len(new_traders)} neue Wallets)",
             "description": fields_text,
             "color": 0x3B82F6,
             "timestamp": datetime.now(timezone.utc).isoformat()
