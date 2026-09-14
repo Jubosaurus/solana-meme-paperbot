@@ -9,16 +9,6 @@
       "url": "https://dexscreener.com/solana/J5BNUBDKaSGt2FtEqnMn6mWHK4WJN7ZXs9UTkiu5J7J7",
       "mcap_at_entry": 149601.0
     },
-    "8Mf5xKCqW6uPurqkJ5y6EP5Cd8D6CdVvEjPLH25Cpump": {
-      "symbol": "Peg",
-      "dex": "PUMPSWAP",
-      "entry_price": 2.457e-05,
-      "highest_price": 2.665e-05,
-      "entry_time": 1789405999.9158163,
-      "invested_sol": 0.0625,
-      "url": "https://dexscreener.com/solana/9NsMCgTyYMHm5XFQvtkDuEvSMfhQHmkkqGmbb5grEVoH",
-      "mcap_at_entry": 24574.0
-    },
     "CMCPJ4g6Deqtaf8FkvCk1dubbw2k87SRWWwRqiVJpump": {
       "symbol": "GOLDGOOSE",
       "dex": "PUMPSWAP",
@@ -28,6 +18,16 @@
       "invested_sol": 0.0625,
       "url": "https://dexscreener.com/solana/6NmUNWmuu5CkRyfGhg3gceToDCnna2xZ9q5DgnhdVqXM",
       "mcap_at_entry": 194407.0
+    },
+    "ATKCLK7co6bEjgMe37DrA3uv2oPsfr3JD4pnSo3xpump": {
+      "symbol": "$WISH",
+      "dex": "PUMPSWAP",
+      "entry_price": 0.00013,
+      "highest_price": 0.00013,
+      "entry_time": 1789406153.7604303,
+      "invested_sol": 0.0625,
+      "url": "https://dexscreener.com/solana/G8Vy7aveAu8dSygnpMq1d52RitJwVF1HoC4z5bzUsJu1",
+      "mcap_at_entry": 130087.0
     }
   },
   "closed_positions": [
@@ -118,10 +118,18 @@
       "pnl_sol": 0.025,
       "exit_reason": "TP1_TRIGGER",
       "closed_at": "2026-09-14T17:15:13.943221+00:00"
+    },
+    {
+      "symbol": "Peg",
+      "token_address": "8Mf5xKCqW6uPurqkJ5y6EP5Cd8D6CdVvEjPLH25Cpump",
+      "pnl_pct": -33.29,
+      "pnl_sol": -0.0228,
+      "exit_reason": "HARD_STOP",
+      "closed_at": "2026-09-14T17:15:53.049035+00:00"
     }
   ],
-  "bankroll_sol": 5.3738,
-  "total_fees_sol": 0.0607,
+  "bankroll_sol": 5.351,
+  "total_fees_sol": 0.0627,
   "wins": 9,
-  "losses": 5
+  "losses": 6
 }
