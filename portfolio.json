@@ -1,22 +1,23 @@
 {
   "open_positions": {
-    "8Mf5xKCqW6uPurqkJ5y6EP5Cd8D6CdVvEjPLH25Cpump": {
-      "symbol": "Peg",
-      "entry_price": 2.837e-05,
-      "highest_price": 3.602e-05,
-      "entry_time": 1789404857.8267543,
-      "setup": "Spalte 2: Mid-Bonding",
-      "url": "https://dexscreener.com/solana/FYQVkoz4YDrnBdHagE1LgUAZDHEcL51uonZLAduotDWn",
-      "mcap_at_entry": 28373.93
-    },
     "CT9YFpaLeugv5BCXTo7ZmM6ad1eGhQgx9hReAy6RJnC8": {
       "symbol": "BCAT",
       "entry_price": 0.0001504,
-      "highest_price": 0.000152,
+      "highest_price": 0.0001527,
       "entry_time": 1789404990.3185027,
       "setup": "Spalte 1: Migrated",
       "url": "https://dexscreener.com/solana/J5BNUBDKaSGt2FtEqnMn6mWHK4WJN7ZXs9UTkiu5J7J7",
       "mcap_at_entry": 149601.0
+    },
+    "ATKCLK7co6bEjgMe37DrA3uv2oPsfr3JD4pnSo3xpump": {
+      "symbol": "$WISH",
+      "dex": "PUMPSWAP",
+      "entry_price": 7.841e-05,
+      "highest_price": 7.841e-05,
+      "entry_time": 1789405108.59272,
+      "invested_sol": 0.0625,
+      "url": "https://dexscreener.com/solana/G8Vy7aveAu8dSygnpMq1d52RitJwVF1HoC4z5bzUsJu1",
+      "mcap_at_entry": 78413.0
     }
   },
   "closed_positions": [
@@ -27,10 +28,18 @@
       "pnl_pct": -23.47,
       "exit_reason": "\ud83d\uded1 Stop Loss (-23.5%)",
       "closed_at": "2026-09-14T16:54:55.312245+00:00"
+    },
+    {
+      "symbol": "Peg",
+      "token_address": "8Mf5xKCqW6uPurqkJ5y6EP5Cd8D6CdVvEjPLH25Cpump",
+      "pnl_pct": 46.14,
+      "pnl_sol": 0.0268,
+      "exit_reason": "TP1_TRIGGER",
+      "closed_at": "2026-09-14T16:58:28.369017+00:00"
     }
   ],
-  "bankroll_sol": 5.3991,
-  "total_fees_sol": 0.0407,
-  "wins": 3,
+  "bankroll_sol": 5.4259,
+  "total_fees_sol": 0.0427,
+  "wins": 4,
   "losses": 1
 }
