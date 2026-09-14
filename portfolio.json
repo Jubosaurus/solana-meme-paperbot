@@ -1,15 +1,5 @@
 {
   "open_positions": {
-    "7Vv1veMsBcBWAiSP1JTkRKvNeWmwf5Z7KbQuuKH1pump": {
-      "symbol": "PS500",
-      "dex": "PUMPSWAP",
-      "entry_price": 7.51e-05,
-      "highest_price": 8.625e-05,
-      "entry_time": 1789416847.457099,
-      "invested_sol": 0.2,
-      "url": "https://dexscreener.com/solana/FttBL57hVwM9DvRwRUrtBM1wWs8HMuTF8JxKj5g5rXb2",
-      "mcap_at_entry": 75104.0
-    },
     "DRWuunuTMziMTZQcyxc4DcYtETZ9vAEBmnqZzQdwpump": {
       "symbol": "WORTHLESS",
       "dex": "PUMPFUN",
@@ -29,6 +19,16 @@
       "invested_sol": 0.2,
       "url": "https://dexscreener.com/solana/E2187xKG5pGt7ZdhU4221b9a9ittMwucMm2C2ztmr8Pd",
       "mcap_at_entry": 75223.0
+    },
+    "8fJjPjFc9PpvXMHf5YKxNMvAsxnP7yZ4FWPALCeFpump": {
+      "symbol": "Stuart",
+      "dex": "PUMPFUN",
+      "entry_price": 2.002e-05,
+      "highest_price": 2.002e-05,
+      "entry_time": 1789417153.5307174,
+      "invested_sol": 0.2,
+      "url": "https://dexscreener.com/solana/B8Aa2k218HQ97TmXRKg6PHF6z4xu3P3oct4N77rGgK6m",
+      "mcap_at_entry": 20025.76
     }
   },
   "closed_positions": [
@@ -615,10 +615,18 @@
       "pnl_sol": 0.0494,
       "exit_reason": "TRAILING_TP (+25.7%)",
       "closed_at": "2026-09-14T20:16:05.835633+00:00"
+    },
+    {
+      "symbol": "PS500",
+      "token_address": "7Vv1veMsBcBWAiSP1JTkRKvNeWmwf5Z7KbQuuKH1pump",
+      "pnl_pct": -21.58,
+      "pnl_sol": -0.0452,
+      "exit_reason": "HARD_STOP (-21.6%)",
+      "closed_at": "2026-09-14T20:19:13.103345+00:00"
     }
   ],
-  "bankroll_sol": 4.3848,
-  "total_fees_sol": 0.1847,
+  "bankroll_sol": 4.3396,
+  "total_fees_sol": 0.1867,
   "wins": 27,
-  "losses": 49
+  "losses": 50
 }
