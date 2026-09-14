@@ -8,15 +8,15 @@ from datetime import datetime, timezone
 PORTFOLIO_FILE = "portfolio.json"
 DISCORD_WEBHOOK_URL = os.environ.get("DISCORD_WEBHOOK_URL")
 
-# --- Risikomanagement & Scout-Settings (aus deinem Screenshot) ---
-SCOUT_SIZE_SOL = 0.0625  # Genau wie auf deinem Screenshot
-SIMULATED_FEE_SOL = 0.002 # Geschätzte Tx-Gebühr pro Trade (Buy + Sell)
-SL_PCT = -20.0           # Hard Stop
-TP1_PCT = 40.0           # Take Profit 1
-TP2_PCT = 100.0          # Moonbag TP
-MAX_HOLD_HOURS = 4.0     # Max Haltedauer
-MAX_OPEN_POSITIONS = 3   # Max parallele Trades
-SOL_USD_PRICE = 100.0    # Fallback-Preis zur Umrechnung
+# --- Risikomanagement & Trade-Settings ---
+SCOUT_SIZE_SOL = 0.20     # Auf 0.20 SOL angehoben (ca. 20-25 €)
+SIMULATED_FEE_SOL = 0.002  # Realistische Swap- & Priority-Gebühr pro Trade
+SL_PCT = -20.0            # Dein bewährter Hard-Stop bleibt exakt so!
+TRAILING_ACTIVATION = 35.0 # Trailing startet, sobald der Coin +35% erreicht
+TRAILING_DISTANCE = 15.0  # Fällt er 15% vom Höchststand (Peak), wird Gewinn mitgenommen
+MAX_HOLD_HOURS = 4.0      # Max Haltedauer
+MAX_OPEN_POSITIONS = 3    # Max parallele Trades
+SOL_USD_PRICE = 100.0     # Fallback-Preis
 
 def get_sol_usd_price():
     try:
@@ -35,21 +35,21 @@ def load_portfolio():
             with open(PORTFOLIO_FILE, "r", encoding="utf-8") as f:
                 data = json.load(f)
                 if "bankroll_sol" not in data:
-                    data["bankroll_sol"] = 5.3991
+                    data["bankroll_sol"] = 4.9824
                 if "total_fees_sol" not in data:
-                    data["total_fees_sol"] = 0.0407
+                    data["total_fees_sol"] = 0.1427
                 if "wins" not in data:
-                    data["wins"] = 3
+                    data["wins"] = 18
                 if "losses" not in data:
-                    data["losses"] = 1
+                    data["losses"] = 37
                 return data
         except Exception:
             pass
     return {
-        "bankroll_sol": 5.3991,
-        "total_fees_sol": 0.0407,
-        "wins": 3,
-        "losses": 1,
+        "bankroll_sol": 4.9824,
+        "total_fees_sol": 0.1427,
+        "wins": 18,
+        "losses": 37,
         "open_positions": {},
         "closed_positions": []
     }
@@ -93,12 +93,6 @@ def get_stats_str(portfolio):
     return f"{w}W / {l}L ({wr:.1f}%)"
 
 def check_3_momentum_metrics(pair):
-    """
-    TikTok 5-Sekunden Pre-Entry Check:
-    1. Mehr Buys als Sells in 5m
-    2. Positiver 5m Preistrend
-    3. Frisches 5m Volumen
-    """
     txns_m5 = pair.get("txns", {}).get("m5", {})
     buys_m5 = int(txns_m5.get("buys", 0) or 0)
     sells_m5 = int(txns_m5.get("sells", 0) or 0)
@@ -118,7 +112,6 @@ def check_3_momentum_metrics(pair):
     return True, buys_m5, vol_m5
 
 def classify_and_filter_token(pair, has_paid_profile):
-    """100% reine TikTok 3-Spalten-Logik"""
     info = pair.get("info") or {}
     socials = info.get("socials") or []
     websites = info.get("websites") or []
@@ -131,19 +124,16 @@ def classify_and_filter_token(pair, has_paid_profile):
     age_min = (time.time() * 1000 - pair_created) / (1000 * 60) if pair_created else 9999
     dex_id = pair.get("dexId", "").lower()
 
-    # Spalte 1: Migrated (Raydium / DEX Graduation)
     if mcap >= 30000 and (dex_id in ["raydium", "meteora"] or has_paid_profile):
         passed, buys_5m, vol_5m = check_3_momentum_metrics(pair)
         if passed:
             return "MIGRATED", buys_5m, vol_5m
 
-    # Spalte 2: Mid-Bonding (Kurz vor Graduation, Alter max 600m)
     if mcap >= 20000 and age_min <= 600 and (has_paid_profile or dex_id == "pumpswap"):
         passed, buys_5m, vol_5m = check_3_momentum_metrics(pair)
         if passed:
             return "MID-BONDING", buys_5m, vol_5m
 
-    # Spalte 3: Early Degen (Pump.fun Start, 6k-60k, Vol >= 3k)
     if 6000 <= mcap <= 60000 and vol_h24 >= 3000:
         passed, buys_5m, vol_5m = check_3_momentum_metrics(pair)
         if passed:
@@ -204,7 +194,6 @@ def scan_and_enter(portfolio, sol_price):
             if price_usd <= 0:
                 continue
 
-            # Scout-Kauf buchen
             portfolio["bankroll_sol"] = round(bankroll - SCOUT_SIZE_SOL, 4)
             bankroll_usd = portfolio["bankroll_sol"] * sol_price
 
@@ -219,12 +208,11 @@ def scan_and_enter(portfolio, sol_price):
                 "mcap_at_entry": mcap
             }
 
-            # Exaktes Format aus dem Screenshot
             desc = (
                 f"**Symbol:** {symbol} ({dex_name})\n"
                 f"**MCap:** ${mcap:,.0f} | **LP:** ${liq:,.0f} | **Alter:** {age_h:.1f}h\n"
                 f"**Vol Surge:** 5m ${vol_5m:,.0f} (Buys: {buys_5m})\n"
-                f"**Scout:** {SCOUT_SIZE_SOL} SOL @ ${price_usd:.8f}\n"
+                f"**Scout:** {SCOUT_SIZE_SOL:.4f} SOL @ ${price_usd:.8f}\n"
                 f"-------------------\n"
                 f"[📈 DexScreener Live-Chart]({pair_url})\n"
                 f"💰 **Bankroll:** {portfolio['bankroll_sol']:.4f} SOL (${bankroll_usd:.2f})\n"
@@ -239,7 +227,7 @@ def manage_positions(portfolio, sol_price):
     open_pos = portfolio["open_positions"]
     closed = portfolio["closed_positions"]
     bankroll = portfolio.get("bankroll_sol", 5.0)
-    total_fees = portfolio.get("total_fees_sol", 0.0407)
+    total_fees = portfolio.get("total_fees_sol", 0.1427)
     to_remove = []
 
     for addr, pos in open_pos.items():
@@ -262,20 +250,26 @@ def manage_positions(portfolio, sol_price):
         hold_hours = (time.time() - pos["entry_time"]) / 3600.0
         invested_sol = pos.get("invested_sol", SCOUT_SIZE_SOL)
 
+        # Höchstkurs tracken
         if curr_price > pos.get("highest_price", entry_price):
             pos["highest_price"] = curr_price
 
         peak_pct = ((pos["highest_price"] - entry_price) / entry_price) * 100.0
 
         exit_reason = None
+
+        # 1. Hard Stop (-20%)
         if pnl_pct <= SL_PCT:
-            exit_reason = "HARD_STOP"
-        elif pnl_pct >= TP2_PCT:
-            exit_reason = "MOONBAG_TP"
-        elif pnl_pct >= TP1_PCT:
-            exit_reason = "TP1_TRIGGER"
+            exit_reason = f"HARD_STOP ({pnl_pct:.1f}%)"
+
+        # 2. Trailing Stop (Gewinne maximieren!)
+        # Aktiviert ab +35%. Fällt der Kurs 15% unter das bisherige Hoch -> Profit sichern!
+        elif peak_pct >= TRAILING_ACTIVATION and (peak_pct - pnl_pct) >= TRAILING_DISTANCE:
+            exit_reason = f"TRAILING_TP (+{pnl_pct:.1f}%)"
+
+        # 3. Timeout nach 4h
         elif hold_hours >= MAX_HOLD_HOURS:
-            exit_reason = "TIMEOUT_EXIT"
+            exit_reason = f"TIMEOUT_EXIT ({pnl_pct:.1f}%)"
 
         if exit_reason:
             pnl_sol = invested_sol * (pnl_pct / 100.0) - SIMULATED_FEE_SOL
@@ -297,9 +291,8 @@ def manage_positions(portfolio, sol_price):
             bankroll_usd = bankroll * sol_price
             stats_str = get_stats_str(portfolio)
 
-            # Exaktes Format aus dem Screenshot
             desc = (
-                f"**Symbol:** {pos['symbol']} | {exit_reason} ({pnl_pct:+.1f}%)\n"
+                f"**Symbol:** {pos['symbol']} | {exit_reason}\n"
                 f"**Net PnL:** {pnl_sol:+.4f} SOL ({pnl_usd:+.2f} USD)\n"
                 f"**Investiert:** {invested_sol:.3f} SOL | **Peak Gain:** +{peak_pct:.1f}%\n"
                 f"-------------------\n"
@@ -331,7 +324,7 @@ def run_loop():
     start_time = time.time()
     max_duration_seconds = 5 * 3600 - 300  # 4h 55m
 
-    print("🚀 [START] Bot läuft mit gewohntem Discord-Layout & TikTok-Filtern...")
+    print("🚀 [START] Bot läuft mit Trailing-TP, -20% SL und 0.20 SOL Scout...")
 
     while True:
         elapsed = time.time() - start_time
