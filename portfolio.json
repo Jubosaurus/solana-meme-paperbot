@@ -1,15 +1,5 @@
 {
   "open_positions": {
-    "boDoUbtgp4DuUuJBTf3J6cPXabf9k8rC1Wi1PuGpump": {
-      "symbol": "HYBRID",
-      "dex": "PUMPFUN",
-      "entry_price": 9.722e-06,
-      "highest_price": 1.405e-05,
-      "entry_time": 1789416699.918811,
-      "invested_sol": 0.2,
-      "url": "https://dexscreener.com/solana/AfsFB5kkfZMBuSm3k5E8gnhDAP69GLv2MLqf6dMLDXSL",
-      "mcap_at_entry": 9722.81
-    },
     "7Vv1veMsBcBWAiSP1JTkRKvNeWmwf5Z7KbQuuKH1pump": {
       "symbol": "PS500",
       "dex": "PUMPSWAP",
@@ -24,11 +14,21 @@
       "symbol": "WORTHLESS",
       "dex": "PUMPFUN",
       "entry_price": 9.22e-06,
-      "highest_price": 9.22e-06,
+      "highest_price": 1.18e-05,
       "entry_time": 1789416927.4222019,
       "invested_sol": 0.2,
       "url": "https://dexscreener.com/solana/BqVnFy2S9id6TPU4C3a1n5DiuKeZBu8LrthbFo9aCrk4",
       "mcap_at_entry": 9220.46
+    },
+    "DjrtmQM3tQj51YDCrMYETG8PF4crqy9nLUyE5CEGpump": {
+      "symbol": "CatDamon",
+      "dex": "PUMPSWAP",
+      "entry_price": 7.522e-05,
+      "highest_price": 7.522e-05,
+      "entry_time": 1789416966.282519,
+      "invested_sol": 0.2,
+      "url": "https://dexscreener.com/solana/E2187xKG5pGt7ZdhU4221b9a9ittMwucMm2C2ztmr8Pd",
+      "mcap_at_entry": 75223.0
     }
   },
   "closed_positions": [
@@ -607,10 +607,18 @@
       "pnl_sol": -0.0721,
       "exit_reason": "HARD_STOP (-35.1%)",
       "closed_at": "2026-09-14T20:14:44.886386+00:00"
+    },
+    {
+      "symbol": "HYBRID",
+      "token_address": "boDoUbtgp4DuUuJBTf3J6cPXabf9k8rC1Wi1PuGpump",
+      "pnl_pct": 25.69,
+      "pnl_sol": 0.0494,
+      "exit_reason": "TRAILING_TP (+25.7%)",
+      "closed_at": "2026-09-14T20:16:05.835633+00:00"
     }
   ],
-  "bankroll_sol": 4.3354,
-  "total_fees_sol": 0.1827,
-  "wins": 26,
+  "bankroll_sol": 4.3848,
+  "total_fees_sol": 0.1847,
+  "wins": 27,
   "losses": 49
 }
