@@ -4,21 +4,11 @@
       "symbol": "SEMI",
       "dex": "PUMPSWAP",
       "entry_price": 0.0001786,
-      "highest_price": 0.0002164,
+      "highest_price": 0.0002413,
       "entry_time": 1789419445.5136223,
       "invested_sol": 0.2,
       "url": "https://dexscreener.com/solana/6YVUURci62Kezbc3dZ61A6gcYjYymahAdZzaxH1nxNrN",
       "mcap_at_entry": 178665.0
-    },
-    "D9WxeEFrj2NonxUzz2JiPKD7Dzi3CcX5iM5U3aXipump": {
-      "symbol": "BUZZ",
-      "dex": "PUMPFUN",
-      "entry_price": 1.238e-05,
-      "highest_price": 1.58e-05,
-      "entry_time": 1789419482.8194618,
-      "invested_sol": 0.2,
-      "url": "https://dexscreener.com/solana/5PTbmaRGFTvB5JRVPs58r8Kef3gsuUP3fSeTfm92s2VS",
-      "mcap_at_entry": 12389.65
     },
     "H1q6vF9X2ewo7XxqJ2qb2uTdwkjDLAWF1Y3SefRAUTGZ": {
       "symbol": "WET",
@@ -29,6 +19,16 @@
       "invested_sol": 0.2,
       "url": "https://dexscreener.com/solana/8dAEnVvvbHPoh5fAGrGcMqH75r5wwN1qbHn2FRRcJzqQ",
       "mcap_at_entry": 1180637.0
+    },
+    "J7tUbaLvtPV1hDLyLCnThgNktof8DEGJu5vXr7QXpump": {
+      "symbol": "Bank",
+      "dex": "PUMPFUN",
+      "entry_price": 2.63e-05,
+      "highest_price": 2.63e-05,
+      "entry_time": 1789419671.5371573,
+      "invested_sol": 0.2,
+      "url": "https://dexscreener.com/solana/BaQL7ujgMGvJjMhFw4SSwkF9bPLyESHWMqJ3CtW9yZdc",
+      "mcap_at_entry": 26300.18
     }
   },
   "closed_positions": [
@@ -719,10 +719,18 @@
       "pnl_sol": 0.1115,
       "exit_reason": "TRAILING_TP (+56.7%)",
       "closed_at": "2026-09-14T21:00:32.461877+00:00"
+    },
+    {
+      "symbol": "BUZZ",
+      "token_address": "D9WxeEFrj2NonxUzz2JiPKD7Dzi3CcX5iM5U3aXipump",
+      "pnl_pct": -74.4,
+      "pnl_sol": -0.1508,
+      "exit_reason": "HARD_STOP (-74.4%)",
+      "closed_at": "2026-09-14T21:01:11.266696+00:00"
     }
   ],
-  "bankroll_sol": 4.187,
-  "total_fees_sol": 0.2107,
+  "bankroll_sol": 4.0362,
+  "total_fees_sol": 0.2127,
   "wins": 32,
-  "losses": 57
+  "losses": 58
 }
