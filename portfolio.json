@@ -1,30 +1,9 @@
 {
-  "bankroll_sol": 4.3277,
-  "total_fees_sol": 0.088,
-  "wins": 18,
-  "losses": 26,
-  "open_positions": {
-    "7xwPE6M7h19FT5U7pd6HejjNmrh3rDSMFCoAwibVCRwT": {
-      "symbol": "PAIDCAT",
-      "dex": "PUMPSWAP",
-      "entry_price": 0.0002532,
-      "highest_price": 0.0003426,
-      "entry_time": 1789511005.9339013,
-      "invested_sol": 0.2,
-      "url": "https://dexscreener.com/solana/EhjoDnxpZEzaU1hFSAG22tog4Z8x36feVAxTyfNAkTZg",
-      "mcap_at_entry": 253241.0
-    },
-    "933HLc6SPfxkFwiPXwCksmcSHvVBDzeC4A1SafRVpaid": {
-      "symbol": "BOT",
-      "dex": "PUMPSWAP",
-      "entry_price": 0.0001165,
-      "highest_price": 0.0002812,
-      "entry_time": 1789511086.9176798,
-      "invested_sol": 0.2,
-      "url": "https://dexscreener.com/solana/HTaCLiSzmgpQXcAPEQcFrMJtqxQa2gWdYJRwg731SaDp",
-      "mcap_at_entry": 116539.0
-    }
-  },
+  "bankroll_sol": 4.8703,
+  "total_fees_sol": 0.092,
+  "wins": 19,
+  "losses": 27,
+  "open_positions": {},
   "closed_positions": [
     {
       "symbol": "DWH",
@@ -377,6 +356,22 @@
       "pnl_sol": -0.0457,
       "exit_reason": "HARD_STOP (-21.8%)",
       "closed_at": "2026-09-15T22:19:30.880995+00:00"
+    },
+    {
+      "symbol": "PAIDCAT",
+      "token_address": "7xwPE6M7h19FT5U7pd6HejjNmrh3rDSMFCoAwibVCRwT",
+      "pnl_pct": -4.78,
+      "pnl_sol": -0.0116,
+      "exit_reason": "BREAKEVEN_STOP (+-4.8%)",
+      "closed_at": "2026-09-15T22:27:23.615460+00:00"
+    },
+    {
+      "symbol": "BOT",
+      "token_address": "933HLc6SPfxkFwiPXwCksmcSHvVBDzeC4A1SafRVpaid",
+      "pnl_pct": 78.11,
+      "pnl_sol": 0.1542,
+      "exit_reason": "TRAILING_TP (+78.1%)",
+      "closed_at": "2026-09-15T22:27:23.867344+00:00"
     }
   ],
   "trade_history_cooldown": {
