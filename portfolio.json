@@ -1,31 +1,30 @@
 {
-  "bankroll_sol": 4.6,
-  "total_fees_sol": 0.0,
-  "wins": 0,
+  "bankroll_sol": 4.8927,
+  "total_fees_sol": 0.002,
+  "wins": 1,
   "losses": 0,
   "open_positions": {
-    "2d4xZo72fDfFQaHTzqH3yJXWSnyEbh2H99EqJiUPpump": {
-      "symbol": "DWH",
-      "dex": "PUMPSWAP",
-      "entry_price": 0.0001276,
-      "highest_price": 0.0002264,
-      "entry_time": 1789474250.6553948,
-      "invested_sol": 0.2,
-      "url": "https://dexscreener.com/solana/2REW1vZaTkfYmFcJZ3ypabniFz9Eqw5ne8DGmfqyuoNG",
-      "mcap_at_entry": 120431.0
-    },
     "8npjmNyDuFzhmAqRu4qdWXcL6XEy98u3aH5dUUFAb86b": {
       "symbol": "KEVINFART",
       "dex": "RAYDIUM",
       "entry_price": 6.956e-05,
-      "highest_price": 7.101e-05,
+      "highest_price": 7.135e-05,
       "entry_time": 1789474683.3850205,
       "invested_sol": 0.2,
       "url": "https://dexscreener.com/solana/4dsqzghyKoci4JJTymQKLfJQRBw4F8zm4bTJ3gisymF7",
       "mcap_at_entry": 69562.0
     }
   },
-  "closed_positions": [],
+  "closed_positions": [
+    {
+      "symbol": "DWH",
+      "token_address": "2d4xZo72fDfFQaHTzqH3yJXWSnyEbh2H99EqJiUPpump",
+      "pnl_pct": 47.34,
+      "pnl_sol": 0.0927,
+      "exit_reason": "TRAILING_TP (+47.3%)",
+      "closed_at": "2026-09-15T12:23:53.651577+00:00"
+    }
+  ],
   "trade_history_cooldown": {
     "2d4xZo72fDfFQaHTzqH3yJXWSnyEbh2H99EqJiUPpump": 1789474250.6553948,
     "8npjmNyDuFzhmAqRu4qdWXcL6XEy98u3aH5dUUFAb86b": 1789474683.3850205
