@@ -1,25 +1,5 @@
 {
   "open_positions": {
-    "2mcnaLdgjUdnMKeTN5rrW9srcan6qKkxgqv3Bc6LhoLd": {
-      "symbol": "HOLD",
-      "dex": "METEORADBC",
-      "entry_price": 2.213e-05,
-      "highest_price": 3.493e-05,
-      "entry_time": 1789459651.4731007,
-      "invested_sol": 0.2,
-      "url": "https://dexscreener.com/solana/9M3CLgvYHVZ5a7KzCNMM9uuB5dNBy8HB6A2t8MjFNoUi",
-      "mcap_at_entry": 22138.91
-    },
-    "tu2hWwnX5ETba9DmYE5RFmCRRLuPPVryVivwv1kzQKq": {
-      "symbol": "Dumocrat",
-      "dex": "PUMPFUN",
-      "entry_price": 1.951e-05,
-      "highest_price": 2.106e-05,
-      "entry_time": 1789459985.0497918,
-      "invested_sol": 0.2,
-      "url": "https://dexscreener.com/solana/3AJkkikFriuJGQW3tN4VaDS7TaLnaLCsjS5NxE3mrweW",
-      "mcap_at_entry": 19513.17
-    },
     "FQ7vo2soP5BjZm1Cx2K9TFNvXo7c6594RvAtRscTD8At": {
       "symbol": "MIMIKYU",
       "dex": "RAYDIUM",
@@ -29,6 +9,16 @@
       "invested_sol": 0.2,
       "url": "https://dexscreener.com/solana/8Y49AuzeVYe4mZeb6RTzjDPcmMZRtuf7NRojD7nXugU7",
       "mcap_at_entry": 14090.0
+    },
+    "7uXXwdYZ5j6tMVSkG7fxp84zZWUDE1oYMK2gZEdapump": {
+      "symbol": "SOL",
+      "dex": "PUMPFUN",
+      "entry_price": 6.11e-06,
+      "highest_price": 6.11e-06,
+      "entry_time": 1789460320.1196609,
+      "invested_sol": 0.2,
+      "url": "https://dexscreener.com/solana/6LeEci4EmmM8rtHwDddadg5XVq17Ao8EKWyPkmrAyVHr",
+      "mcap_at_entry": 6110.8
     }
   },
   "closed_positions": [
@@ -1495,10 +1485,26 @@
       "pnl_sol": -0.0519,
       "exit_reason": "HARD_STOP (-25.0%)",
       "closed_at": "2026-09-15T08:15:35.121442+00:00"
+    },
+    {
+      "symbol": "HOLD",
+      "token_address": "2mcnaLdgjUdnMKeTN5rrW9srcan6qKkxgqv3Bc6LhoLd",
+      "pnl_pct": 32.72,
+      "pnl_sol": 0.0634,
+      "exit_reason": "TRAILING_TP (+32.7%)",
+      "closed_at": "2026-09-15T08:18:39.402729+00:00"
+    },
+    {
+      "symbol": "Dumocrat",
+      "token_address": "tu2hWwnX5ETba9DmYE5RFmCRRLuPPVryVivwv1kzQKq",
+      "pnl_pct": -21.58,
+      "pnl_sol": -0.0452,
+      "exit_reason": "HARD_STOP (-21.6%)",
+      "closed_at": "2026-09-15T08:18:39.775629+00:00"
     }
   ],
-  "bankroll_sol": 1.2406,
-  "total_fees_sol": 0.4047,
-  "wins": 56,
-  "losses": 130
+  "bankroll_sol": 1.4588,
+  "total_fees_sol": 0.4087,
+  "wins": 57,
+  "losses": 131
 }
