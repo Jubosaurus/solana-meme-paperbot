@@ -8,17 +8,25 @@ from datetime import datetime, timezone
 PORTFOLIO_FILE = "portfolio.json"
 DISCORD_WEBHOOK_URL = os.environ.get("DISCORD_WEBHOOK_URL")
 
-# --- Risikomanagement & Trade Settings ---
+# --- Risikomanagement & Exit-Settings ---
 SCOUT_SIZE_SOL = 0.20          # 0.20 SOL Einsatz
 SIMULATED_FEE_SOL = 0.002      # Swap- & Priority-Gebühr pro Trade
-SL_PCT = -20.0                 # Hard Stop
-TRAILING_ACTIVATION = 35.0      # Trailing startet ab +35%
-TRAILING_DISTANCE = 15.0       # 15% Abstand zum Höchstkurs
+SL_PCT = -20.0                 # Stufe 0: Hard Stop (-20.0%)
+
+# Stufe 1: Breakeven-Schutz (lässt Bouncebacks Raum, verhindert Minus-Dumps)
+BREAKEVEN_TRIGGER_PEAK = 28.0  # Aktiviert, sobald Coin mindestens +28% erreicht hat
+BREAKEVEN_STOP_FLOOR = 4.0     # Zieht den Floor auf +4.0% hoch
+
+# Stufe 2: Volles Trailing für Runner
+TRAILING_ACTIVATION = 40.0     # Aktiviert ab +40% Allzeithoch
+TRAILING_DISTANCE = 15.0       # 15% Abstand zum Allzeithoch
+
 MAX_HOLD_HOURS = 4.0           # Max Haltedauer
 MAX_OPEN_POSITIONS = 3         # Max parallele Trades
 TOKEN_COOLDOWN_MINUTES = 120   # 2 Stunden Sperre für denselben Token
-MAX_RUGCHECK_SCORE = 600       # Strengerer RugCheck Score
-MAX_TOP10_HOLDER_PCT = 35.0    # Kumulierter Grenzwert für Top 10
+MIN_LIQUIDITY_USD = 12000.0    # Schutz vor -97% Slippage-Rugs wie $DONALD und $CHICK
+MAX_RUGCHECK_SCORE = 600       # RugCheck Limit
+MAX_TOP10_HOLDER_PCT = 35.0    # Schutz vor Dev-Konzentration
 
 def get_sol_usd_price():
     try:
@@ -70,7 +78,7 @@ def git_push_portfolio():
         subprocess.run(["git", "add", PORTFOLIO_FILE], check=False)
         status = subprocess.run(["git", "status", "--porcelain"], capture_output=True, text=True)
         if status.stdout.strip():
-            subprocess.run(["git", "commit", "-m", "Update bot state & anti-rug tracking [skip ci]"], check=False)
+            subprocess.run(["git", "commit", "-m", "Update bot state, breakeven-ladder & LP check [skip ci]"], check=False)
             subprocess.run(["git", "pull", "origin", "main", "--rebase"], check=False)
             subprocess.run(["git", "push", "origin", "main"], check=False)
     except Exception as err:
@@ -128,9 +136,6 @@ def verify_social_links(pair):
     return False, "Ungültiger oder toter Link"
 
 def check_advanced_rug_safety(token_address):
-    """
-    Erkennt Serial Deployer (3000+ Launches) und Bundled Supply ('DEV 22').
-    """
     try:
         res = requests.get(f"https://api.rugcheck.xyz/v1/tokens/{token_address}/report", timeout=5)
         if res.status_code == 200:
@@ -139,29 +144,24 @@ def check_advanced_rug_safety(token_address):
             if score > MAX_RUGCHECK_SCORE:
                 return False, f"Score {score} zu hoch"
 
-            # Top 10 Holder Konzentration
             top_holders = data.get("topHolders", [])
             top_10_pct = sum(float(h.get("pct", 0) or h.get("percentage", 0) or 0) for h in top_holders[:10])
             if top_10_pct > MAX_TOP10_HOLDER_PCT:
                 return False, f"Top 10 halten {top_10_pct:.1f}% Supply"
 
-            # Risiken & Flags auslesen
             risks = data.get("risks", [])
             for r in risks:
                 name = (r.get("name") or "").lower()
                 desc = (r.get("description") or "").lower()
                 level = (r.get("level") or "").lower()
 
-                # 1. Serial Deployer Erkennung
                 if "creator" in name or "deployer" in name or "creator" in desc:
                     if "high volume" in desc or "many tokens" in desc or level == "danger":
                         return False, "Serial Deployer erkannt"
 
-                # 2. Bundled Supply & Sybil Wallets ('DEV 22')
                 if "bundled" in name or "insider" in name or "bundled" in desc or "cluster" in desc:
                     return False, "Bundled Supply / Insider-Cluster ('DEV 22')"
 
-                # 3. Freeze & Mint Authority
                 if "freeze authority" in name or "mint authority" in name:
                     return False, "Authority nicht widerrufen"
 
@@ -181,7 +181,7 @@ def check_bullish_structure(pair):
     change_m5 = float(pair.get("priceChange", {}).get("m5", 0.0) or 0.0)
     change_h1 = float(pair.get("priceChange", {}).get("h1", 0.0) or 0.0)
     
-    # Schutz vor Forced-Migration-Dumps: Extreme Single-Candle Spikes meiden
+    # Schutz vor Forced-Migration Single-Spikes
     if change_m5 > 250.0:
         return False, 0, 0.0
 
@@ -199,11 +199,17 @@ def check_bullish_structure(pair):
 def classify_and_filter_token(pair, has_paid_profile):
     mcap = float(pair.get("fdv") or pair.get("marketCap") or 0.0)
     vol_h24 = float(pair.get("volume", {}).get("h24") or 0.0)
+    liq = float(pair.get("liquidity", {}).get("usd") or 0.0)
     pair_created = pair.get("pairCreatedAt", 0)
     age_min = (time.time() * 1000 - pair_created) / (1000 * 60) if pair_created else 9999
     dex_id = pair.get("dexId", "").lower()
 
-    if mcap >= 30000 and (dex_id in ["raydium", "meteora"] or has_paid_profile):
+    # WICHTIG: Mindestliquiditäts-Check schützt vor -97% Orderbuch-Vakuum
+    is_graduated = dex_id in ["raydium", "meteora"]
+    if not is_graduated and liq < MIN_LIQUIDITY_USD:
+        return None, 0, 0.0
+
+    if mcap >= 30000 and (is_graduated or has_paid_profile):
         passed, buys_5m, vol_5m = check_bullish_structure(pair)
         if passed:
             return "MIGRATED", buys_5m, vol_5m
@@ -282,7 +288,7 @@ def scan_and_enter(portfolio, sol_price):
     if not valid_candidates:
         return
 
-    # PVP-Deduplizierung: Bei gleichem Ticker nur die höchste MCap wählen
+    # PVP-Deduplizierung: Höchste MCap pro Ticker
     best_by_ticker = {}
     for c in valid_candidates:
         sym = c["symbol"]
@@ -295,12 +301,10 @@ def scan_and_enter(portfolio, sol_price):
         pair = pick["pair"]
         token_addr = pick["address"]
 
-        # Social Link Prüfung
         links_ok, _ = verify_social_links(pair)
         if not links_ok:
             continue
 
-        # Erweiterte RugCheck-Prüfung gegen Serial Deployer & Bundles
         is_safe, safety_msg = check_advanced_rug_safety(token_addr)
         if not is_safe:
             print(f"🚫 [BLOCK RUG] ${pick['symbol']}: {safety_msg}")
@@ -381,10 +385,20 @@ def manage_positions(portfolio, sol_price):
         peak_pct = ((pos["highest_price"] - entry_price) / entry_price) * 100.0
 
         exit_reason = None
-        if pnl_pct <= SL_PCT:
-            exit_reason = f"HARD_STOP ({pnl_pct:.1f}%)"
-        elif peak_pct >= TRAILING_ACTIVATION and (peak_pct - pnl_pct) >= TRAILING_DISTANCE:
+
+        # Stufe 2: Volles Trailing für Runner (Peak >= +40% und 15% Pullback)
+        if peak_pct >= TRAILING_ACTIVATION and (peak_pct - pnl_pct) >= TRAILING_DISTANCE:
             exit_reason = f"TRAILING_TP (+{pnl_pct:.1f}%)"
+
+        # Stufe 1: Breakeven-Schutz (Peak war >= +28%, fällt aber auf Floor <= +4% ab)
+        elif peak_pct >= BREAKEVEN_TRIGGER_PEAK and pnl_pct <= BREAKEVEN_STOP_FLOOR:
+            exit_reason = f"BREAKEVEN_STOP (+{pnl_pct:.1f}%)"
+
+        # Stufe 0: Regulärer Hard Stop bei -20%
+        elif pnl_pct <= SL_PCT:
+            exit_reason = f"HARD_STOP ({pnl_pct:.1f}%)"
+
+        # Max Haltedauer
         elif hold_hours >= MAX_HOLD_HOURS:
             exit_reason = f"TIMEOUT_EXIT ({pnl_pct:.1f}%)"
 
@@ -441,7 +455,7 @@ def run_loop():
     start_time = time.time()
     max_duration_seconds = 5 * 3600 - 300
 
-    print("🚀 [START] Bot läuft mit Anti-Serial-Deployer, Anti-Bundle & PVP-Check...")
+    print("🚀 [START] Bot läuft mit 2-Stufen-Exit (Breakeven + Trailing) und 12k-LP-Filter...")
 
     while True:
         elapsed = time.time() - start_time
