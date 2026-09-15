@@ -8,15 +8,17 @@ from datetime import datetime, timezone
 PORTFOLIO_FILE = "portfolio.json"
 DISCORD_WEBHOOK_URL = os.environ.get("DISCORD_WEBHOOK_URL")
 
-# --- Risikomanagement & Trade-Settings ---
-SCOUT_SIZE_SOL = 0.20     # Auf 0.20 SOL angehoben (ca. 20-25 €)
-SIMULATED_FEE_SOL = 0.002  # Realistische Swap- & Priority-Gebühr pro Trade
-SL_PCT = -20.0            # Dein bewährter Hard-Stop bleibt exakt so!
-TRAILING_ACTIVATION = 35.0 # Trailing startet, sobald der Coin +35% erreicht
-TRAILING_DISTANCE = 15.0  # Fällt er 15% vom Höchststand (Peak), wird Gewinn mitgenommen
-MAX_HOLD_HOURS = 4.0      # Max Haltedauer
-MAX_OPEN_POSITIONS = 3    # Max parallele Trades
-SOL_USD_PRICE = 100.0     # Fallback-Preis
+# --- Risikomanagement & Viral Sniping Settings ---
+SCOUT_SIZE_SOL = 0.20          # 0.20 SOL Einsatz
+SIMULATED_FEE_SOL = 0.002      # Swap- & Priority-Gebühr pro Trade
+SL_PCT = -20.0                 # Hard Stop
+TRAILING_ACTIVATION = 35.0      # Trailing startet ab +35%
+TRAILING_DISTANCE = 15.0       # 15% Abstand zum Höchstkurs
+MAX_HOLD_HOURS = 4.0           # Max Haltedauer
+MAX_OPEN_POSITIONS = 3         # Max parallele Trades
+TOKEN_COOLDOWN_MINUTES = 120   # 2 Stunden Sperre für denselben Token
+MAX_RUGCHECK_SCORE = 650       # RugCheck Limit
+MAX_TOP10_HOLDER_PCT = 38.0    # Schutz vor Dev-Dumps
 
 def get_sol_usd_price():
     try:
@@ -35,23 +37,26 @@ def load_portfolio():
             with open(PORTFOLIO_FILE, "r", encoding="utf-8") as f:
                 data = json.load(f)
                 if "bankroll_sol" not in data:
-                    data["bankroll_sol"] = 4.9824
+                    data["bankroll_sol"] = 5.0
                 if "total_fees_sol" not in data:
-                    data["total_fees_sol"] = 0.1427
+                    data["total_fees_sol"] = 0.0
                 if "wins" not in data:
-                    data["wins"] = 18
+                    data["wins"] = 0
                 if "losses" not in data:
-                    data["losses"] = 37
+                    data["losses"] = 0
+                if "trade_history_cooldown" not in data:
+                    data["trade_history_cooldown"] = {}
                 return data
         except Exception:
             pass
     return {
-        "bankroll_sol": 4.9824,
-        "total_fees_sol": 0.1427,
-        "wins": 18,
-        "losses": 37,
+        "bankroll_sol": 5.0,
+        "total_fees_sol": 0.0,
+        "wins": 0,
+        "losses": 0,
         "open_positions": {},
-        "closed_positions": []
+        "closed_positions": [],
+        "trade_history_cooldown": {}
     }
 
 def save_portfolio(data):
@@ -65,7 +70,7 @@ def git_push_portfolio():
         subprocess.run(["git", "add", PORTFOLIO_FILE], check=False)
         status = subprocess.run(["git", "status", "--porcelain"], capture_output=True, text=True)
         if status.stdout.strip():
-            subprocess.run(["git", "commit", "-m", "Update paper bot portfolio state [skip ci]"], check=False)
+            subprocess.run(["git", "commit", "-m", "Update bot portfolio & PVP state [skip ci]"], check=False)
             subprocess.run(["git", "pull", "origin", "main", "--rebase"], check=False)
             subprocess.run(["git", "push", "origin", "main"], check=False)
     except Exception as err:
@@ -92,50 +97,108 @@ def get_stats_str(portfolio):
     wr = (w / total * 100.0) if total > 0 else 0.0
     return f"{w}W / {l}L ({wr:.1f}%)"
 
-def check_3_momentum_metrics(pair):
+def verify_social_links(pair):
+    """
+    TikTok-Regel: 'A broken link is a death sentence'
+    Prüft, ob mindestens ein hinterlegter Link erreichbar ist.
+    """
+    info = pair.get("info") or {}
+    links = []
+    for soc in info.get("socials", []):
+        url = soc.get("url")
+        if url:
+            links.append(url)
+    for site in info.get("websites", []):
+        url = site.get("url")
+        if url:
+            links.append(url)
+
+    if not links:
+        return False, "Keine Social Links hinterlegt"
+
+    headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"}
+    for link in links[:3]:
+        try:
+            resp = requests.head(link, timeout=3.5, headers=headers, allow_redirects=True)
+            if resp.status_code < 400:
+                return True, "Social Link aktiv"
+        except Exception:
+            try:
+                resp = requests.get(link, timeout=3.5, headers=headers, stream=True)
+                if resp.status_code < 400:
+                    return True, "Social Link aktiv"
+            except Exception:
+                continue
+
+    return False, "Toter oder ungültiger Social-Link"
+
+def check_rug_safety(token_address):
+    try:
+        res = requests.get(f"https://api.rugcheck.xyz/v1/tokens/{token_address}/report", timeout=5)
+        if res.status_code == 200:
+            data = res.json()
+            score = data.get("score", 0)
+            if score > MAX_RUGCHECK_SCORE:
+                return False, f"Score {score} zu hoch"
+
+            top_holders = data.get("topHolders", [])
+            top_10_pct = sum(float(h.get("pct", 0) or h.get("percentage", 0) or 0) for h in top_holders[:10])
+            if top_10_pct > MAX_TOP10_HOLDER_PCT:
+                return False, f"Top 10 halten {top_10_pct:.1f}%"
+
+            return True, "Clean"
+    except Exception:
+        pass
+    return True, "Bypass"
+
+def check_bullish_structure(pair):
+    """
+    TikTok-Regel: 'Clean bullish chart structure with higher lows & rising holders'
+    """
     txns_m5 = pair.get("txns", {}).get("m5", {})
     buys_m5 = int(txns_m5.get("buys", 0) or 0)
     sells_m5 = int(txns_m5.get("sells", 0) or 0)
     
-    if buys_m5 <= sells_m5 or buys_m5 < 3:
+    # 1. Momentum & Käuferdominanz
+    if buys_m5 <= sells_m5 or buys_m5 < 4:
         return False, 0, 0.0
 
     change_m5 = float(pair.get("priceChange", {}).get("m5", 0.0) or 0.0)
-    if change_m5 <= 0.0:
+    change_h1 = float(pair.get("priceChange", {}).get("h1", 0.0) or 0.0)
+    
+    # Verhindert Einstieg in freie Fallmesser (-30% in 1h trotz kleinem 5m Bip)
+    if change_m5 <= 0.0 or change_h1 <= -25.0:
         return False, 0, 0.0
 
     vol_m5 = float(pair.get("volume", {}).get("m5", 0.0) or 0.0)
     vol_h1 = float(pair.get("volume", {}).get("h1", 0.0) or 1.0)
-    if (vol_m5 / max(vol_h1, 1.0)) < 0.10 and vol_m5 < 1000:
+    if (vol_m5 / max(vol_h1, 1.0)) < 0.10 and vol_m5 < 1200:
         return False, 0, 0.0
 
     return True, buys_m5, vol_m5
 
 def classify_and_filter_token(pair, has_paid_profile):
-    info = pair.get("info") or {}
-    socials = info.get("socials") or []
-    websites = info.get("websites") or []
-    if len(socials) == 0 and len(websites) == 0:
-        return None, 0, 0.0
-
     mcap = float(pair.get("fdv") or pair.get("marketCap") or 0.0)
     vol_h24 = float(pair.get("volume", {}).get("h24") or 0.0)
     pair_created = pair.get("pairCreatedAt", 0)
     age_min = (time.time() * 1000 - pair_created) / (1000 * 60) if pair_created else 9999
     dex_id = pair.get("dexId", "").lower()
 
+    # Spalte 1: Migrated
     if mcap >= 30000 and (dex_id in ["raydium", "meteora"] or has_paid_profile):
-        passed, buys_5m, vol_5m = check_3_momentum_metrics(pair)
+        passed, buys_5m, vol_5m = check_bullish_structure(pair)
         if passed:
             return "MIGRATED", buys_5m, vol_5m
 
+    # Spalte 2: Mid-Bonding
     if mcap >= 20000 and age_min <= 600 and (has_paid_profile or dex_id == "pumpswap"):
-        passed, buys_5m, vol_5m = check_3_momentum_metrics(pair)
+        passed, buys_5m, vol_5m = check_bullish_structure(pair)
         if passed:
             return "MID-BONDING", buys_5m, vol_5m
 
+    # Spalte 3: Early Degen
     if 6000 <= mcap <= 60000 and vol_h24 >= 3000:
-        passed, buys_5m, vol_5m = check_3_momentum_metrics(pair)
+        passed, buys_5m, vol_5m = check_bullish_structure(pair)
         if passed:
             return "EARLY DEGEN", buys_5m, vol_5m
 
@@ -144,6 +207,7 @@ def classify_and_filter_token(pair, has_paid_profile):
 def scan_and_enter(portfolio, sol_price):
     open_pos = portfolio["open_positions"]
     bankroll = portfolio.get("bankroll_sol", 5.0)
+    cooldowns = portfolio.get("trade_history_cooldown", {})
 
     if len(open_pos) >= MAX_OPEN_POSITIONS or bankroll < SCOUT_SIZE_SOL:
         return
@@ -158,15 +222,21 @@ def scan_and_enter(portfolio, sol_price):
 
         r_pairs = requests.get("https://api.dexscreener.com/latest/dex/search?q=solana", timeout=6)
         if r_pairs.status_code == 200:
-            for p in r_pairs.json().get("pairs", [])[:35]:
+            for p in r_pairs.json().get("pairs", [])[:40]:
                 addr = p.get("baseToken", {}).get("address")
                 if addr and addr not in candidates:
                     candidates[addr] = False
     except Exception:
         return
 
+    now_ts = time.time()
+    valid_candidates = []
+
+    # Schritt 1: Alle Paare laden und Cooldown prüfen
     for token_addr, has_paid_profile in candidates.items():
         if token_addr in open_pos:
+            continue
+        if (now_ts - cooldowns.get(token_addr, 0)) < (TOKEN_COOLDOWN_MINUTES * 60):
             continue
 
         try:
@@ -182,52 +252,97 @@ def scan_and_enter(portfolio, sol_price):
 
         col_name, buys_5m, vol_5m = classify_and_filter_token(pair, has_paid_profile)
         if col_name:
-            symbol = pair.get("baseToken", {}).get("symbol", "TOKEN")
-            dex_name = pair.get("dexId", "DEX").upper()
-            price_usd = float(pair.get("priceUsd") or 0.0)
             mcap = float(pair.get("fdv") or pair.get("marketCap") or 0.0)
-            liq = float(pair.get("liquidity", {}).get("usd") or 0.0)
-            pair_created = pair.get("pairCreatedAt", 0)
-            age_h = (time.time() * 1000 - pair_created) / (1000 * 3600) if pair_created else 0.0
-            pair_url = f"https://dexscreener.com/solana/{pair.get('pairAddress')}"
+            symbol = pair.get("baseToken", {}).get("symbol", "").strip().upper()
+            valid_candidates.append({
+                "address": token_addr,
+                "pair": pair,
+                "col_name": col_name,
+                "buys_5m": buys_5m,
+                "vol_5m": vol_5m,
+                "mcap": mcap,
+                "symbol": symbol
+            })
 
-            if price_usd <= 0:
-                continue
+    if not valid_candidates:
+        return
 
-            portfolio["bankroll_sol"] = round(bankroll - SCOUT_SIZE_SOL, 4)
-            bankroll_usd = portfolio["bankroll_sol"] * sol_price
+    # Schritt 2: PVP-Deduplizierung nach Ticker ('start with the biggest one in market cap')
+    # Gruppiere nach Symbol und nimm bei Duplikaten nur den mit der höchsten MCap
+    best_by_ticker = {}
+    for c in valid_candidates:
+        sym = c["symbol"]
+        if sym not in best_by_ticker or c["mcap"] > best_by_ticker[sym]["mcap"]:
+            best_by_ticker[sym] = c
 
-            open_pos[token_addr] = {
-                "symbol": symbol,
-                "dex": dex_name,
-                "entry_price": price_usd,
-                "highest_price": price_usd,
-                "entry_time": time.time(),
-                "invested_sol": SCOUT_SIZE_SOL,
-                "url": pair_url,
-                "mcap_at_entry": mcap
-            }
+    # Sortiere alle finalen Kandidaten nach MCap absteigend
+    sorted_picks = sorted(best_by_ticker.values(), key=lambda x: x["mcap"], reverse=True)
 
-            desc = (
-                f"**Symbol:** {symbol} ({dex_name})\n"
-                f"**MCap:** ${mcap:,.0f} | **LP:** ${liq:,.0f} | **Alter:** {age_h:.1f}h\n"
-                f"**Vol Surge:** 5m ${vol_5m:,.0f} (Buys: {buys_5m})\n"
-                f"**Scout:** {SCOUT_SIZE_SOL:.4f} SOL @ ${price_usd:.8f}\n"
-                f"-------------------\n"
-                f"[📈 DexScreener Live-Chart]({pair_url})\n"
-                f"💰 **Bankroll:** {portfolio['bankroll_sol']:.4f} SOL (${bankroll_usd:.2f})\n"
-                f"📊 **Stats:** {get_stats_str(portfolio)}"
-            )
+    # Schritt 3: Social-Link-Check & RugCheck auf den stärksten Pick anwenden
+    for pick in sorted_picks:
+        pair = pick["pair"]
+        token_addr = pick["address"]
 
-            send_discord_raw(f"🎯 Scout Entry: {symbol}", desc, 0x3B82F6)
-            save_portfolio(portfolio)
-            break
+        # 1. Social-Link-Echtheitsprüfung
+        links_ok, link_msg = verify_social_links(pair)
+        if not links_ok:
+            print(f"🚫 [DEAD LINK] ${pick['symbol']}: {link_msg}")
+            continue
+
+        # 2. RugCheck Sicherheitscheck
+        is_safe, safety_msg = check_rug_safety(token_addr)
+        if not is_safe:
+            print(f"🚫 [RUG SUSPECT] ${pick['symbol']}: {safety_msg}")
+            continue
+
+        # Ausgewählter PVP-Gewinner wird gekauft
+        symbol = pick["symbol"]
+        col_name = pick["col_name"]
+        price_usd = float(pair.get("priceUsd") or 0.0)
+        dex_name = pair.get("dexId", "DEX").upper()
+        liq = float(pair.get("liquidity", {}).get("usd") or 0.0)
+        pair_created = pair.get("pairCreatedAt", 0)
+        age_h = (now_ts * 1000 - pair_created) / (1000 * 3600) if pair_created else 0.0
+        pair_url = f"https://dexscreener.com/solana/{pair.get('pairAddress')}"
+
+        if price_usd <= 0:
+            continue
+
+        portfolio["bankroll_sol"] = round(bankroll - SCOUT_SIZE_SOL, 4)
+        bankroll_usd = portfolio["bankroll_sol"] * sol_price
+        cooldowns[token_addr] = now_ts
+
+        open_pos[token_addr] = {
+            "symbol": symbol,
+            "dex": dex_name,
+            "entry_price": price_usd,
+            "highest_price": price_usd,
+            "entry_time": now_ts,
+            "invested_sol": SCOUT_SIZE_SOL,
+            "url": pair_url,
+            "mcap_at_entry": pick["mcap"]
+        }
+
+        desc = (
+            f"**Symbol:** {symbol} ({dex_name})\n"
+            f"**MCap:** ${pick['mcap']:,.0f} | **LP:** ${liq:,.0f} | **Alter:** {age_h:.1f}h\n"
+            f"**Vol Surge:** 5m ${pick['vol_5m']:,.0f} (Buys: {pick['buys_5m']})\n"
+            f"**Scout:** {SCOUT_SIZE_SOL:.4f} SOL @ ${price_usd:.8f}\n"
+            f"-------------------\n"
+            f"[📈 DexScreener Live-Chart]({pair_url})\n"
+            f"💰 **Bankroll:** {portfolio['bankroll_sol']:.4f} SOL (${bankroll_usd:.2f})\n"
+            f"📊 **Stats:** {get_stats_str(portfolio)}"
+        )
+
+        send_discord_raw(f"🎯 Scout Entry: {symbol}", desc, 0x3B82F6)
+        save_portfolio(portfolio)
+        break
 
 def manage_positions(portfolio, sol_price):
     open_pos = portfolio["open_positions"]
     closed = portfolio["closed_positions"]
     bankroll = portfolio.get("bankroll_sol", 5.0)
-    total_fees = portfolio.get("total_fees_sol", 0.1427)
+    total_fees = portfolio.get("total_fees_sol", 0.0)
     to_remove = []
 
     for addr, pos in open_pos.items():
@@ -250,24 +365,16 @@ def manage_positions(portfolio, sol_price):
         hold_hours = (time.time() - pos["entry_time"]) / 3600.0
         invested_sol = pos.get("invested_sol", SCOUT_SIZE_SOL)
 
-        # Höchstkurs tracken
         if curr_price > pos.get("highest_price", entry_price):
             pos["highest_price"] = curr_price
 
         peak_pct = ((pos["highest_price"] - entry_price) / entry_price) * 100.0
 
         exit_reason = None
-
-        # 1. Hard Stop (-20%)
         if pnl_pct <= SL_PCT:
             exit_reason = f"HARD_STOP ({pnl_pct:.1f}%)"
-
-        # 2. Trailing Stop (Gewinne maximieren!)
-        # Aktiviert ab +35%. Fällt der Kurs 15% unter das bisherige Hoch -> Profit sichern!
         elif peak_pct >= TRAILING_ACTIVATION and (peak_pct - pnl_pct) >= TRAILING_DISTANCE:
             exit_reason = f"TRAILING_TP (+{pnl_pct:.1f}%)"
-
-        # 3. Timeout nach 4h
         elif hold_hours >= MAX_HOLD_HOURS:
             exit_reason = f"TIMEOUT_EXIT ({pnl_pct:.1f}%)"
 
@@ -322,9 +429,9 @@ def manage_positions(portfolio, sol_price):
 
 def run_loop():
     start_time = time.time()
-    max_duration_seconds = 5 * 3600 - 300  # 4h 55m
+    max_duration_seconds = 5 * 3600 - 300
 
-    print("🚀 [START] Bot läuft mit Trailing-TP, -20% SL und 0.20 SOL Scout...")
+    print("🚀 [START] Bot läuft mit PVP-Deduplizierung & Social-Link-Check...")
 
     while True:
         elapsed = time.time() - start_time
