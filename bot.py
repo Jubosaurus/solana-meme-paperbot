@@ -8,7 +8,7 @@ from datetime import datetime, timezone
 PORTFOLIO_FILE = "portfolio.json"
 DISCORD_WEBHOOK_URL = os.environ.get("DISCORD_WEBHOOK_URL")
 
-# --- Risikomanagement & Viral Sniping Settings ---
+# --- Risikomanagement & Trade Settings ---
 SCOUT_SIZE_SOL = 0.20          # 0.20 SOL Einsatz
 SIMULATED_FEE_SOL = 0.002      # Swap- & Priority-Gebühr pro Trade
 SL_PCT = -20.0                 # Hard Stop
@@ -17,8 +17,8 @@ TRAILING_DISTANCE = 15.0       # 15% Abstand zum Höchstkurs
 MAX_HOLD_HOURS = 4.0           # Max Haltedauer
 MAX_OPEN_POSITIONS = 3         # Max parallele Trades
 TOKEN_COOLDOWN_MINUTES = 120   # 2 Stunden Sperre für denselben Token
-MAX_RUGCHECK_SCORE = 650       # RugCheck Limit
-MAX_TOP10_HOLDER_PCT = 38.0    # Schutz vor Dev-Dumps
+MAX_RUGCHECK_SCORE = 600       # Strengerer RugCheck Score
+MAX_TOP10_HOLDER_PCT = 35.0    # Kumulierter Grenzwert für Top 10
 
 def get_sol_usd_price():
     try:
@@ -70,7 +70,7 @@ def git_push_portfolio():
         subprocess.run(["git", "add", PORTFOLIO_FILE], check=False)
         status = subprocess.run(["git", "status", "--porcelain"], capture_output=True, text=True)
         if status.stdout.strip():
-            subprocess.run(["git", "commit", "-m", "Update bot portfolio & PVP state [skip ci]"], check=False)
+            subprocess.run(["git", "commit", "-m", "Update bot state & anti-rug tracking [skip ci]"], check=False)
             subprocess.run(["git", "pull", "origin", "main", "--rebase"], check=False)
             subprocess.run(["git", "push", "origin", "main"], check=False)
     except Exception as err:
@@ -98,10 +98,6 @@ def get_stats_str(portfolio):
     return f"{w}W / {l}L ({wr:.1f}%)"
 
 def verify_social_links(pair):
-    """
-    TikTok-Regel: 'A broken link is a death sentence'
-    Prüft, ob mindestens ein hinterlegter Link erreichbar ist.
-    """
     info = pair.get("info") or {}
     links = []
     for soc in info.get("socials", []):
@@ -114,25 +110,27 @@ def verify_social_links(pair):
             links.append(url)
 
     if not links:
-        return False, "Keine Social Links hinterlegt"
+        return False, "Keine Links hinterlegt"
 
     headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"}
     for link in links[:3]:
         try:
             resp = requests.head(link, timeout=3.5, headers=headers, allow_redirects=True)
             if resp.status_code < 400:
-                return True, "Social Link aktiv"
+                return True, "Aktiv"
         except Exception:
             try:
                 resp = requests.get(link, timeout=3.5, headers=headers, stream=True)
                 if resp.status_code < 400:
-                    return True, "Social Link aktiv"
+                    return True, "Aktiv"
             except Exception:
                 continue
+    return False, "Ungültiger oder toter Link"
 
-    return False, "Toter oder ungültiger Social-Link"
-
-def check_rug_safety(token_address):
+def check_advanced_rug_safety(token_address):
+    """
+    Erkennt Serial Deployer (3000+ Launches) und Bundled Supply ('DEV 22').
+    """
     try:
         res = requests.get(f"https://api.rugcheck.xyz/v1/tokens/{token_address}/report", timeout=5)
         if res.status_code == 200:
@@ -141,10 +139,31 @@ def check_rug_safety(token_address):
             if score > MAX_RUGCHECK_SCORE:
                 return False, f"Score {score} zu hoch"
 
+            # Top 10 Holder Konzentration
             top_holders = data.get("topHolders", [])
             top_10_pct = sum(float(h.get("pct", 0) or h.get("percentage", 0) or 0) for h in top_holders[:10])
             if top_10_pct > MAX_TOP10_HOLDER_PCT:
-                return False, f"Top 10 halten {top_10_pct:.1f}%"
+                return False, f"Top 10 halten {top_10_pct:.1f}% Supply"
+
+            # Risiken & Flags auslesen
+            risks = data.get("risks", [])
+            for r in risks:
+                name = (r.get("name") or "").lower()
+                desc = (r.get("description") or "").lower()
+                level = (r.get("level") or "").lower()
+
+                # 1. Serial Deployer Erkennung
+                if "creator" in name or "deployer" in name or "creator" in desc:
+                    if "high volume" in desc or "many tokens" in desc or level == "danger":
+                        return False, "Serial Deployer erkannt"
+
+                # 2. Bundled Supply & Sybil Wallets ('DEV 22')
+                if "bundled" in name or "insider" in name or "bundled" in desc or "cluster" in desc:
+                    return False, "Bundled Supply / Insider-Cluster ('DEV 22')"
+
+                # 3. Freeze & Mint Authority
+                if "freeze authority" in name or "mint authority" in name:
+                    return False, "Authority nicht widerrufen"
 
             return True, "Clean"
     except Exception:
@@ -152,21 +171,21 @@ def check_rug_safety(token_address):
     return True, "Bypass"
 
 def check_bullish_structure(pair):
-    """
-    TikTok-Regel: 'Clean bullish chart structure with higher lows & rising holders'
-    """
     txns_m5 = pair.get("txns", {}).get("m5", {})
     buys_m5 = int(txns_m5.get("buys", 0) or 0)
     sells_m5 = int(txns_m5.get("sells", 0) or 0)
     
-    # 1. Momentum & Käuferdominanz
     if buys_m5 <= sells_m5 or buys_m5 < 4:
         return False, 0, 0.0
 
     change_m5 = float(pair.get("priceChange", {}).get("m5", 0.0) or 0.0)
     change_h1 = float(pair.get("priceChange", {}).get("h1", 0.0) or 0.0)
     
-    # Verhindert Einstieg in freie Fallmesser (-30% in 1h trotz kleinem 5m Bip)
+    # Schutz vor Forced-Migration-Dumps: Extreme Single-Candle Spikes meiden
+    if change_m5 > 250.0:
+        return False, 0, 0.0
+
+    # Schutz vor freiem Fall
     if change_m5 <= 0.0 or change_h1 <= -25.0:
         return False, 0, 0.0
 
@@ -184,19 +203,16 @@ def classify_and_filter_token(pair, has_paid_profile):
     age_min = (time.time() * 1000 - pair_created) / (1000 * 60) if pair_created else 9999
     dex_id = pair.get("dexId", "").lower()
 
-    # Spalte 1: Migrated
     if mcap >= 30000 and (dex_id in ["raydium", "meteora"] or has_paid_profile):
         passed, buys_5m, vol_5m = check_bullish_structure(pair)
         if passed:
             return "MIGRATED", buys_5m, vol_5m
 
-    # Spalte 2: Mid-Bonding
     if mcap >= 20000 and age_min <= 600 and (has_paid_profile or dex_id == "pumpswap"):
         passed, buys_5m, vol_5m = check_bullish_structure(pair)
         if passed:
             return "MID-BONDING", buys_5m, vol_5m
 
-    # Spalte 3: Early Degen
     if 6000 <= mcap <= 60000 and vol_h24 >= 3000:
         passed, buys_5m, vol_5m = check_bullish_structure(pair)
         if passed:
@@ -232,7 +248,6 @@ def scan_and_enter(portfolio, sol_price):
     now_ts = time.time()
     valid_candidates = []
 
-    # Schritt 1: Alle Paare laden und Cooldown prüfen
     for token_addr, has_paid_profile in candidates.items():
         if token_addr in open_pos:
             continue
@@ -267,35 +282,30 @@ def scan_and_enter(portfolio, sol_price):
     if not valid_candidates:
         return
 
-    # Schritt 2: PVP-Deduplizierung nach Ticker ('start with the biggest one in market cap')
-    # Gruppiere nach Symbol und nimm bei Duplikaten nur den mit der höchsten MCap
+    # PVP-Deduplizierung: Bei gleichem Ticker nur die höchste MCap wählen
     best_by_ticker = {}
     for c in valid_candidates:
         sym = c["symbol"]
         if sym not in best_by_ticker or c["mcap"] > best_by_ticker[sym]["mcap"]:
             best_by_ticker[sym] = c
 
-    # Sortiere alle finalen Kandidaten nach MCap absteigend
     sorted_picks = sorted(best_by_ticker.values(), key=lambda x: x["mcap"], reverse=True)
 
-    # Schritt 3: Social-Link-Check & RugCheck auf den stärksten Pick anwenden
     for pick in sorted_picks:
         pair = pick["pair"]
         token_addr = pick["address"]
 
-        # 1. Social-Link-Echtheitsprüfung
-        links_ok, link_msg = verify_social_links(pair)
+        # Social Link Prüfung
+        links_ok, _ = verify_social_links(pair)
         if not links_ok:
-            print(f"🚫 [DEAD LINK] ${pick['symbol']}: {link_msg}")
             continue
 
-        # 2. RugCheck Sicherheitscheck
-        is_safe, safety_msg = check_rug_safety(token_addr)
+        # Erweiterte RugCheck-Prüfung gegen Serial Deployer & Bundles
+        is_safe, safety_msg = check_advanced_rug_safety(token_addr)
         if not is_safe:
-            print(f"🚫 [RUG SUSPECT] ${pick['symbol']}: {safety_msg}")
+            print(f"🚫 [BLOCK RUG] ${pick['symbol']}: {safety_msg}")
             continue
 
-        # Ausgewählter PVP-Gewinner wird gekauft
         symbol = pick["symbol"]
         col_name = pick["col_name"]
         price_usd = float(pair.get("priceUsd") or 0.0)
@@ -431,7 +441,7 @@ def run_loop():
     start_time = time.time()
     max_duration_seconds = 5 * 3600 - 300
 
-    print("🚀 [START] Bot läuft mit PVP-Deduplizierung & Social-Link-Check...")
+    print("🚀 [START] Bot läuft mit Anti-Serial-Deployer, Anti-Bundle & PVP-Check...")
 
     while True:
         elapsed = time.time() - start_time
