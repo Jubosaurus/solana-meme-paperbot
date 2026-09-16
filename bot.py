@@ -13,9 +13,9 @@ SCOUT_SIZE_SOL = 0.20          # 0.20 SOL Einsatz
 SIMULATED_FEE_SOL = 0.002      # Swap- & Priority-Gebühr pro Trade
 SL_PCT = -20.0                 # Stufe 0: Hard Stop (-20.0%)
 
-# Stufe 1: Breakeven-Schutz (lässt Bouncebacks Raum, verhindert Minus-Dumps)
+# Stufe 1: Breakeven-Schutz (lässt Raum für Bounces, sperrt Dumps ins Minus)
 BREAKEVEN_TRIGGER_PEAK = 28.0  # Aktiviert, sobald Coin mindestens +28% erreicht hat
-BREAKEVEN_STOP_FLOOR = 4.0     # Zieht den Floor auf +4.0% hoch
+BREAKEVEN_STOP_FLOOR = 4.0     # Zieht den Stop auf +4.0% hoch
 
 # Stufe 2: Volles Trailing für Runner
 TRAILING_ACTIVATION = 40.0     # Aktiviert ab +40% Allzeithoch
@@ -23,10 +23,13 @@ TRAILING_DISTANCE = 15.0       # 15% Abstand zum Allzeithoch
 
 MAX_HOLD_HOURS = 4.0           # Max Haltedauer
 MAX_OPEN_POSITIONS = 3         # Max parallele Trades
-TOKEN_COOLDOWN_MINUTES = 120   # 2 Stunden Sperre für denselben Token
-MIN_LIQUIDITY_USD = 12000.0    # Schutz vor -97% Slippage-Rugs wie $DONALD und $CHICK
+TOKEN_COOLDOWN_MINUTES = 120   # 2 Stunden Sperre für denselben Token nach Kauf
+MIN_LIQUIDITY_USD = 12000.0    # Schutz vor -97% Slippage-Rugs
 MAX_RUGCHECK_SCORE = 600       # RugCheck Limit
-MAX_TOP10_HOLDER_PCT = 35.0    # Schutz vor Dev-Konzentration
+MAX_TOP10_HOLDER_PCT = 35.0    # Schutz vor Dev-/Cabal-Konzentration
+
+# In-Memory Blacklist für Scams/Rugs während der Bot-Laufzeit
+scam_blacklist = {}  # {token_address: timestamp}
 
 def get_sol_usd_price():
     try:
@@ -78,7 +81,7 @@ def git_push_portfolio():
         subprocess.run(["git", "add", PORTFOLIO_FILE], check=False)
         status = subprocess.run(["git", "status", "--porcelain"], capture_output=True, text=True)
         if status.stdout.strip():
-            subprocess.run(["git", "commit", "-m", "Update bot state, breakeven-ladder & LP check [skip ci]"], check=False)
+            subprocess.run(["git", "commit", "-m", "Update bot state, portfolio & cooldowns [skip ci]"], check=False)
             subprocess.run(["git", "pull", "origin", "main", "--rebase"], check=False)
             subprocess.run(["git", "push", "origin", "main"], check=False)
     except Exception as err:
@@ -181,11 +184,9 @@ def check_bullish_structure(pair):
     change_m5 = float(pair.get("priceChange", {}).get("m5", 0.0) or 0.0)
     change_h1 = float(pair.get("priceChange", {}).get("h1", 0.0) or 0.0)
     
-    # Schutz vor Forced-Migration Single-Spikes
     if change_m5 > 250.0:
         return False, 0, 0.0
 
-    # Schutz vor freiem Fall
     if change_m5 <= 0.0 or change_h1 <= -25.0:
         return False, 0, 0.0
 
@@ -204,7 +205,6 @@ def classify_and_filter_token(pair, has_paid_profile):
     age_min = (time.time() * 1000 - pair_created) / (1000 * 60) if pair_created else 9999
     dex_id = pair.get("dexId", "").lower()
 
-    # WICHTIG: Mindestliquiditäts-Check schützt vor -97% Orderbuch-Vakuum
     is_graduated = dex_id in ["raydium", "meteora"]
     if not is_graduated and liq < MIN_LIQUIDITY_USD:
         return None, 0, 0.0
@@ -227,6 +227,7 @@ def classify_and_filter_token(pair, has_paid_profile):
     return None, 0, 0.0
 
 def scan_and_enter(portfolio, sol_price):
+    global scam_blacklist
     open_pos = portfolio["open_positions"]
     bankroll = portfolio.get("bankroll_sol", 5.0)
     cooldowns = portfolio.get("trade_history_cooldown", {})
@@ -244,7 +245,8 @@ def scan_and_enter(portfolio, sol_price):
 
         r_pairs = requests.get("https://api.dexscreener.com/latest/dex/search?q=solana", timeout=6)
         if r_pairs.status_code == 200:
-            for p in r_pairs.json().get("pairs", [])[:40]:
+            # Auf 50 erweitert, um nach gesperrten Scams genügend gesunde Alternativen zu haben
+            for p in r_pairs.json().get("pairs", [])[:50]:
                 addr = p.get("baseToken", {}).get("address")
                 if addr and addr not in candidates:
                     candidates[addr] = False
@@ -257,7 +259,11 @@ def scan_and_enter(portfolio, sol_price):
     for token_addr, has_paid_profile in candidates.items():
         if token_addr in open_pos:
             continue
+        # Cooldown für bereits getradete Token (2h)
         if (now_ts - cooldowns.get(token_addr, 0)) < (TOKEN_COOLDOWN_MINUTES * 60):
+            continue
+        # SCAM-BLACKLIST: Wurde dieser Token bereits als Rug erkannt? (2h Sperre)
+        if (now_ts - scam_blacklist.get(token_addr, 0)) < (TOKEN_COOLDOWN_MINUTES * 60):
             continue
 
         try:
@@ -288,7 +294,7 @@ def scan_and_enter(portfolio, sol_price):
     if not valid_candidates:
         return
 
-    # PVP-Deduplizierung: Höchste MCap pro Ticker
+    # PVP-Deduplizierung: Nur die höchste MCap pro Ticker
     best_by_ticker = {}
     for c in valid_candidates:
         sym = c["symbol"]
@@ -301,13 +307,17 @@ def scan_and_enter(portfolio, sol_price):
         pair = pick["pair"]
         token_addr = pick["address"]
 
+        # Social Link Prüfung
         links_ok, _ = verify_social_links(pair)
         if not links_ok:
+            scam_blacklist[token_addr] = now_ts  # Merken, damit er nicht erneut geprüft wird
             continue
 
+        # RugCheck Prüfung
         is_safe, safety_msg = check_advanced_rug_safety(token_addr)
         if not is_safe:
             print(f"🚫 [BLOCK RUG] ${pick['symbol']}: {safety_msg}")
+            scam_blacklist[token_addr] = now_ts  # Scammer für 2h sperren!
             continue
 
         symbol = pick["symbol"]
@@ -455,7 +465,7 @@ def run_loop():
     start_time = time.time()
     max_duration_seconds = 5 * 3600 - 300
 
-    print("🚀 [START] Bot läuft mit 2-Stufen-Exit (Breakeven + Trailing) und 12k-LP-Filter...")
+    print("🚀 [START] Bot läuft mit Scam-Blacklist, Breakeven-Stufen & 12k-LP-Filter...")
 
     while True:
         elapsed = time.time() - start_time
