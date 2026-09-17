@@ -1,24 +1,22 @@
 {
-  "bankroll_total_sol": 14.8,
+  "bankroll_total_sol": 14.9665,
   "strategies": {
     "CTO": {
-      "bankroll_sol": 4.8,
+      "bankroll_sol": 4.9665,
       "wins": 0,
-      "losses": 0,
-      "total_fees_sol": 0.0,
-      "open_positions": {
-        "7GPGqsfVK1gG88GuVEetrsVyDiikABTsj9B9aHEHpump": {
+      "losses": 1,
+      "total_fees_sol": 0.002,
+      "open_positions": {},
+      "closed_positions": [
+        {
           "symbol": "LOCKINU",
-          "dex": "PUMPSWAP",
-          "entry_price": 0.000197,
-          "highest_price": 0.0002411,
-          "entry_time": 1789672301.9003165,
-          "invested_sol": 0.2,
-          "url": "https://dexscreener.com/solana/F8sLh2baV3McR7VQorzdpcMzVAvE3sJovEeESe3oVGMH",
-          "mcap_at_entry": 190763.0
+          "strategy": "CTO",
+          "pnl_pct": -15.74,
+          "pnl_sol": -0.0335,
+          "exit_reason": "CTO_HARD_STOP (-15.7%)",
+          "closed_at": "2026-09-17T20:11:35.246099+00:00"
         }
-      },
-      "closed_positions": []
+      ]
     },
     "SMART_MONEY": {
       "bankroll_sol": 5.0,
