@@ -12,6 +12,7 @@ SCOUT_SIZE_SOL = 0.20
 SIMULATED_FEE_SOL = 0.002
 MAX_POSITIONS_PER_STRATEGY = 3
 TOKEN_COOLDOWN_MINUTES = 120
+MAX_HOLD_HOURS = 4.0
 
 # A: CTO Settings
 CTO_MIN_AGE_HOURS = 2.0
@@ -22,7 +23,7 @@ CTO_SL_PCT = -15.0
 CTO_TRAILING_ACT = 35.0
 CTO_TRAILING_DIST = 15.0
 
-# B: Smart Money
+# B: Smart Money (Wartet auf Wallet-Stream)
 SM_SL_PCT = -20.0
 SM_TRAILING_ACT = 40.0
 SM_TRAILING_DIST = 15.0
@@ -70,6 +71,7 @@ def load_portfolio():
                         },
                         "trade_history_cooldown": {}
                     }
+                data.setdefault("trade_history_cooldown", {})
                 return data
         except Exception:
             pass
@@ -128,7 +130,7 @@ def scan_cto(portfolio, sol_price):
     if len(strat["open_positions"]) >= MAX_POSITIONS_PER_STRATEGY or strat["bankroll_sol"] < SCOUT_SIZE_SOL:
         return
 
-    cooldowns = portfolio.get("trade_history_cooldown", {})
+    cooldowns = portfolio.setdefault("trade_history_cooldown", {})
     now_ts = time.time()
 
     try:
@@ -179,47 +181,15 @@ def scan_cto(portfolio, sol_price):
             break
 
 def scan_smart_money(portfolio, sol_price):
-    strat = portfolio["strategies"]["SMART_MONEY"]
-    if len(strat["open_positions"]) >= MAX_POSITIONS_PER_STRATEGY or strat["bankroll_sol"] < SCOUT_SIZE_SOL:
-        return
-
-    cooldowns = portfolio.get("trade_history_cooldown", {})
-    now_ts = time.time()
-
-    try:
-        r = requests.get("https://api.dexscreener.com/token-profiles/latest/v1", timeout=5)
-        if r.status_code != 200:
-            return
-        tokens = [i.get("tokenAddress") for i in r.json() if i.get("chainId") == "solana"][:20]
-    except Exception:
-        return
-
-    for token_addr in tokens:
-        if token_addr in strat["open_positions"]:
-            continue
-        if (now_ts - cooldowns.get(token_addr, 0)) < (TOKEN_COOLDOWN_MINUTES * 60):
-            continue
-
-        cluster = wallet_buy_tracker.get(token_addr, [])
-        if len(cluster) >= 2:
-            try:
-                res = requests.get(f"https://api.dexscreener.com/latest/dex/tokens/{token_addr}", timeout=5)
-                if res.status_code == 200 and res.json().get("pairs"):
-                    pair = res.json()["pairs"][0]
-                    w1 = str(cluster[0])[:4]
-                    w2 = str(cluster[1])[:4]
-                    reason_msg = f"Cluster (2+ Wallets: {w1}.. und {w2}..)"
-                    execute_entry(portfolio, "SMART_MONEY", token_addr, pair, sol_price, reason_msg)
-                    break
-            except Exception:
-                continue
+    # Wartet auf die Anbindung der Wallet-Pipeline
+    pass
 
 def scan_curve_scalp(portfolio, sol_price):
     strat = portfolio["strategies"]["SCALP_CURVE"]
     if len(strat["open_positions"]) >= MAX_POSITIONS_PER_STRATEGY or strat["bankroll_sol"] < SCOUT_SIZE_SOL:
         return
 
-    cooldowns = portfolio.get("trade_history_cooldown", {})
+    cooldowns = portfolio.setdefault("trade_history_cooldown", {})
     now_ts = time.time()
 
     try:
@@ -255,13 +225,13 @@ def execute_entry(portfolio, strat_name, token_addr, pair, sol_price, reason_des
     dex_name = pair.get("dexId", "DEX").upper()
     mcap = float(pair.get("fdv") or pair.get("marketCap") or 0.0)
     liq = float(pair.get("liquidity", {}).get("usd") or 0.0)
-    pair_url = "https://dexscreener.com/solana/" + str(pair.get("pairAddress"))
+    pair_url = f"https://dexscreener.com/solana/{pair.get('pairAddress')}"
 
     if price_usd <= 0 or price_usd > 1000.0:
         return
 
     strat["bankroll_sol"] = round(strat["bankroll_sol"] - SCOUT_SIZE_SOL, 4)
-    portfolio["trade_history_cooldown"][token_addr] = time.time()
+    portfolio.setdefault("trade_history_cooldown", {})[token_addr] = time.time()
 
     strat["open_positions"][token_addr] = {
         "symbol": symbol,
@@ -295,53 +265,56 @@ def manage_strategy_positions(portfolio, sol_price):
         to_remove = []
 
         for addr, pos in open_pos.items():
-            try:
-                res = requests.get(f"https://api.dexscreener.com/latest/dex/tokens/{addr}", timeout=5)
-                if res.status_code != 200:
-                    continue
-                pairs = res.json().get("pairs") or []
-                if not pairs:
-                    continue
-                curr_price = float(pairs[0].get("priceUsd") or 0.0)
-            except Exception:
-                continue
-
-            entry_price = pos["entry_price"]
-            raw_pnl_pct = ((curr_price - entry_price) / entry_price) * 100.0
-            pnl_pct = min(raw_pnl_pct, 400.0)
-
-            if curr_price > pos.get("highest_price", entry_price):
-                pos["highest_price"] = curr_price
-            peak_pct = min(((pos["highest_price"] - entry_price) / entry_price) * 100.0, 400.0)
-
             hold_hours = (time.time() - pos["entry_time"]) / 3600.0
             invested_sol = pos.get("invested_sol", SCOUT_SIZE_SOL)
-            exit_reason = None
+            curr_price = None
 
-            if strat_name == "CTO":
-                if peak_pct >= CTO_TRAILING_ACT and (peak_pct - pnl_pct) >= CTO_TRAILING_DIST:
-                    exit_reason = f"CTO_TRAILING_TP (+{pnl_pct:.1f}%)"
-                elif pnl_pct <= CTO_SL_PCT:
-                    exit_reason = f"CTO_HARD_STOP ({pnl_pct:.1f}%)"
+            try:
+                res = requests.get(f"https://api.dexscreener.com/latest/dex/tokens/{addr}", timeout=5)
+                if res.status_code == 200:
+                    pairs = res.json().get("pairs") or []
+                    if pairs:
+                        curr_price = float(pairs[0].get("priceUsd") or 0.0)
+            except Exception:
+                pass
 
-            elif strat_name == "SMART_MONEY":
-                if peak_pct >= SM_TRAILING_ACT and (peak_pct - pnl_pct) >= SM_TRAILING_DIST:
-                    exit_reason = f"SM_TRAILING_TP (+{pnl_pct:.1f}%)"
-                elif pnl_pct <= SM_SL_PCT:
-                    exit_reason = f"SM_HARD_STOP ({pnl_pct:.1f}%)"
+            # Dead-Token Check: Delisted / Pool entleert
+            if curr_price is None or curr_price <= 0:
+                if hold_hours >= MAX_HOLD_HOURS:
+                    exit_reason = "DEAD_TOKEN_TIMEOUT (-100.0%)"
+                    pnl_pct = -100.0
+                    peak_pct = 0.0
+                else:
+                    continue
+            else:
+                entry_price = pos["entry_price"]
+                raw_pnl_pct = ((curr_price - entry_price) / entry_price) * 100.0
+                pnl_pct = min(raw_pnl_pct, 400.0)
 
-            elif strat_name == "SCALP_CURVE":
-                mcap = float(pairs[0].get("fdv") or pairs[0].get("marketCap") or 0.0)
-                curve_pct = (mcap / 69000.0) * 100.0
-                if pnl_pct >= SCALP_TARGET_TP:
-                    exit_reason = f"SCALP_TP (+{pnl_pct:.1f}%)"
-                elif curve_pct >= SCALP_FORCE_EXIT_CURVE:
-                    exit_reason = f"CURVE_PRE_GRADUATION_EXIT ({pnl_pct:+.1f}%)"
-                elif pnl_pct <= SCALP_SL_PCT:
-                    exit_reason = f"SCALP_HARD_STOP ({pnl_pct:.1f}%)"
+                if curr_price > pos.get("highest_price", entry_price):
+                    pos["highest_price"] = curr_price
+                peak_pct = min(((pos["highest_price"] - entry_price) / entry_price) * 100.0, 400.0)
 
-            if hold_hours >= 4.0 and not exit_reason:
-                exit_reason = f"TIMEOUT ({pnl_pct:.1f}%)"
+                exit_reason = None
+
+                if strat_name == "CTO":
+                    if peak_pct >= CTO_TRAILING_ACT and (peak_pct - pnl_pct) >= CTO_TRAILING_DIST:
+                        exit_reason = f"CTO_TRAILING_TP (+{pnl_pct:.1f}%)"
+                    elif pnl_pct <= CTO_SL_PCT:
+                        exit_reason = f"CTO_HARD_STOP ({pnl_pct:.1f}%)"
+
+                elif strat_name == "SCALP_CURVE":
+                    mcap = float(pairs[0].get("fdv") or pairs[0].get("marketCap") or 0.0)
+                    curve_pct = (mcap / 69000.0) * 100.0
+                    if pnl_pct >= SCALP_TARGET_TP:
+                        exit_reason = f"SCALP_TP (+{pnl_pct:.1f}%)"
+                    elif curve_pct >= SCALP_FORCE_EXIT_CURVE:
+                        exit_reason = f"CURVE_PRE_GRADUATION_EXIT ({pnl_pct:+.1f}%)"
+                    elif pnl_pct <= SCALP_SL_PCT:
+                        exit_reason = f"SCALP_HARD_STOP ({pnl_pct:.1f}%)"
+
+                if hold_hours >= MAX_HOLD_HOURS and not exit_reason:
+                    exit_reason = f"TIMEOUT ({pnl_pct:.1f}%)"
 
             if exit_reason:
                 pnl_sol = invested_sol * (pnl_pct / 100.0) - SIMULATED_FEE_SOL
@@ -386,7 +359,7 @@ def run_loop():
     start_time = time.time()
     max_duration_seconds = 5 * 3600 - 300
 
-    print("🚀 [START] Multi-Strategy Bot aktiv (3x 5.0 SOL: CTO, Smart-Money, Scalp)...")
+    print("🚀 [START] Multi-Strategy Bot aktiv (CTO & Scalp)...")
 
     while True:
         elapsed = time.time() - start_time
