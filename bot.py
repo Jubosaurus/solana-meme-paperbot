@@ -14,22 +14,21 @@ SIMULATED_FEE_SOL = 0.002      # Swap- & Priority-Gebühr pro Trade
 SL_PCT = -20.0                 # Stufe 0: Hard Stop (-20.0%)
 
 # Stufe 1: Breakeven-Schutz (lässt Raum für Bounces, sperrt Dumps ins Minus)
-BREAKEVEN_TRIGGER_PEAK = 28.0  # Aktiviert, sobald Coin mindestens +28% erreicht hat
-BREAKEVEN_STOP_FLOOR = 4.0     # Zieht den Stop auf +4.0% hoch
+BREAKEVEN_TRIGGER_PEAK = 28.0  # Aktiv ab +28% Allzeithoch
+BREAKEVEN_STOP_FLOOR = 4.0     # Zieht Stop auf +4.0% hoch
 
 # Stufe 2: Volles Trailing für Runner
-TRAILING_ACTIVATION = 40.0     # Aktiviert ab +40% Allzeithoch
+TRAILING_ACTIVATION = 40.0     # Aktiv ab +40% Allzeithoch
 TRAILING_DISTANCE = 15.0       # 15% Abstand zum Allzeithoch
 
 MAX_HOLD_HOURS = 4.0           # Max Haltedauer
 MAX_OPEN_POSITIONS = 3         # Max parallele Trades
-TOKEN_COOLDOWN_MINUTES = 120   # 2 Stunden Sperre für denselben Token nach Kauf
-MIN_LIQUIDITY_USD = 12000.0    # Schutz vor -97% Slippage-Rugs
-MAX_RUGCHECK_SCORE = 600       # RugCheck Limit
-MAX_TOP10_HOLDER_PCT = 35.0    # Schutz vor Dev-/Cabal-Konzentration
+TOKEN_COOLDOWN_MINUTES = 120   # 2 Stunden Sperre für denselben Token
+MIN_LIQUIDITY_USD = 10000.0    # Mindestliquidität gegen Slippage-Rugs
+MAX_RUGCHECK_SCORE = 1200      # Blockiert 10.000er Rugs, lässt reale Pump.fun-Coins durch
+MAX_TOP10_HOLDER_PCT = 42.0    # Schutz vor Dev-/Cabal-Dumps
 
-# In-Memory Blacklist für Scams/Rugs während der Bot-Laufzeit
-scam_blacklist = {}  # {token_address: timestamp}
+scam_blacklist = {}  # In-Memory Blacklist: {token_address: timestamp}
 
 def get_sol_usd_price():
     try:
@@ -81,7 +80,7 @@ def git_push_portfolio():
         subprocess.run(["git", "add", PORTFOLIO_FILE], check=False)
         status = subprocess.run(["git", "status", "--porcelain"], capture_output=True, text=True)
         if status.stdout.strip():
-            subprocess.run(["git", "commit", "-m", "Update bot state, portfolio & cooldowns [skip ci]"], check=False)
+            subprocess.run(["git", "commit", "-m", "Update bot state & multi-feed scanner [skip ci]"], check=False)
             subprocess.run(["git", "pull", "origin", "main", "--rebase"], check=False)
             subprocess.run(["git", "push", "origin", "main"], check=False)
     except Exception as err:
@@ -126,12 +125,12 @@ def verify_social_links(pair):
     headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"}
     for link in links[:3]:
         try:
-            resp = requests.head(link, timeout=3.5, headers=headers, allow_redirects=True)
+            resp = requests.head(link, timeout=3.0, headers=headers, allow_redirects=True)
             if resp.status_code < 400:
                 return True, "Aktiv"
         except Exception:
             try:
-                resp = requests.get(link, timeout=3.5, headers=headers, stream=True)
+                resp = requests.get(link, timeout=3.0, headers=headers, stream=True)
                 if resp.status_code < 400:
                     return True, "Aktiv"
             except Exception:
@@ -163,10 +162,10 @@ def check_advanced_rug_safety(token_address):
                         return False, "Serial Deployer erkannt"
 
                 if "bundled" in name or "insider" in name or "bundled" in desc or "cluster" in desc:
-                    return False, "Bundled Supply / Insider-Cluster ('DEV 22')"
+                    return False, "Bundled Supply ('DEV 22')"
 
                 if "freeze authority" in name or "mint authority" in name:
-                    return False, "Authority nicht widerrufen"
+                    return False, "Authority aktiv"
 
             return True, "Clean"
     except Exception:
@@ -186,13 +185,12 @@ def check_bullish_structure(pair):
     
     if change_m5 > 250.0:
         return False, 0, 0.0
-
     if change_m5 <= 0.0 or change_h1 <= -25.0:
         return False, 0, 0.0
 
     vol_m5 = float(pair.get("volume", {}).get("m5", 0.0) or 0.0)
     vol_h1 = float(pair.get("volume", {}).get("h1", 0.0) or 1.0)
-    if (vol_m5 / max(vol_h1, 1.0)) < 0.10 and vol_m5 < 1200:
+    if (vol_m5 / max(vol_h1, 1.0)) < 0.08 and vol_m5 < 1000:
         return False, 0, 0.0
 
     return True, buys_m5, vol_m5
@@ -209,17 +207,17 @@ def classify_and_filter_token(pair, has_paid_profile):
     if not is_graduated and liq < MIN_LIQUIDITY_USD:
         return None, 0, 0.0
 
-    if mcap >= 30000 and (is_graduated or has_paid_profile):
+    if mcap >= 25000 and (is_graduated or has_paid_profile):
         passed, buys_5m, vol_5m = check_bullish_structure(pair)
         if passed:
             return "MIGRATED", buys_5m, vol_5m
 
-    if mcap >= 20000 and age_min <= 600 and (has_paid_profile or dex_id == "pumpswap"):
+    if mcap >= 18000 and age_min <= 720 and (has_paid_profile or dex_id == "pumpswap"):
         passed, buys_5m, vol_5m = check_bullish_structure(pair)
         if passed:
             return "MID-BONDING", buys_5m, vol_5m
 
-    if 6000 <= mcap <= 60000 and vol_h24 >= 3000:
+    if 7000 <= mcap <= 70000 and vol_h24 >= 3000:
         passed, buys_5m, vol_5m = check_bullish_structure(pair)
         if passed:
             return "EARLY DEGEN", buys_5m, vol_5m
@@ -236,22 +234,39 @@ def scan_and_enter(portfolio, sol_price):
         return
 
     candidates = {}
+
+    # FEED 1: Latest DEX Boosts (Echte Community-Trending Coins)
     try:
-        r_profiles = requests.get("https://api.dexscreener.com/token-profiles/latest/v1", timeout=6)
+        r_boosts = requests.get("https://api.dexscreener.com/token-boosts/latest/v1", timeout=5)
+        if r_boosts.status_code == 200:
+            for item in r_boosts.json():
+                if item.get("chainId") == "solana":
+                    candidates[item.get("tokenAddress")] = True
+    except Exception:
+        pass
+
+    # FEED 2: Latest Profiles (Paid DexScreener Ads)
+    try:
+        r_profiles = requests.get("https://api.dexscreener.com/token-profiles/latest/v1", timeout=5)
         if r_profiles.status_code == 200:
             for item in r_profiles.json():
                 if item.get("chainId") == "solana":
-                    candidates[item.get("tokenAddress")] = True
+                    addr = item.get("tokenAddress")
+                    if addr and addr not in candidates:
+                        candidates[addr] = True
+    except Exception:
+        pass
 
-        r_pairs = requests.get("https://api.dexscreener.com/latest/dex/search?q=solana", timeout=6)
+    # FEED 3: Raydium & Pump Fresh Pairs
+    try:
+        r_pairs = requests.get("https://api.dexscreener.com/latest/dex/search?q=raydium%20solana", timeout=5)
         if r_pairs.status_code == 200:
-            # Auf 50 erweitert, um nach gesperrten Scams genügend gesunde Alternativen zu haben
-            for p in r_pairs.json().get("pairs", [])[:50]:
+            for p in r_pairs.json().get("pairs", [])[:30]:
                 addr = p.get("baseToken", {}).get("address")
                 if addr and addr not in candidates:
                     candidates[addr] = False
     except Exception:
-        return
+        pass
 
     now_ts = time.time()
     valid_candidates = []
@@ -259,15 +274,13 @@ def scan_and_enter(portfolio, sol_price):
     for token_addr, has_paid_profile in candidates.items():
         if token_addr in open_pos:
             continue
-        # Cooldown für bereits getradete Token (2h)
         if (now_ts - cooldowns.get(token_addr, 0)) < (TOKEN_COOLDOWN_MINUTES * 60):
             continue
-        # SCAM-BLACKLIST: Wurde dieser Token bereits als Rug erkannt? (2h Sperre)
         if (now_ts - scam_blacklist.get(token_addr, 0)) < (TOKEN_COOLDOWN_MINUTES * 60):
             continue
 
         try:
-            res = requests.get(f"https://api.dexscreener.com/latest/dex/tokens/{token_addr}", timeout=6)
+            res = requests.get(f"https://api.dexscreener.com/latest/dex/tokens/{token_addr}", timeout=5)
             if res.status_code != 200:
                 continue
             pairs = res.json().get("pairs") or []
@@ -294,7 +307,7 @@ def scan_and_enter(portfolio, sol_price):
     if not valid_candidates:
         return
 
-    # PVP-Deduplizierung: Nur die höchste MCap pro Ticker
+    # PVP-Deduplizierung: Nur der stärkste Ticker nach MCap
     best_by_ticker = {}
     for c in valid_candidates:
         sym = c["symbol"]
@@ -307,17 +320,15 @@ def scan_and_enter(portfolio, sol_price):
         pair = pick["pair"]
         token_addr = pick["address"]
 
-        # Social Link Prüfung
         links_ok, _ = verify_social_links(pair)
         if not links_ok:
-            scam_blacklist[token_addr] = now_ts  # Merken, damit er nicht erneut geprüft wird
+            scam_blacklist[token_addr] = now_ts
             continue
 
-        # RugCheck Prüfung
         is_safe, safety_msg = check_advanced_rug_safety(token_addr)
         if not is_safe:
             print(f"🚫 [BLOCK RUG] ${pick['symbol']}: {safety_msg}")
-            scam_blacklist[token_addr] = now_ts  # Scammer für 2h sperren!
+            scam_blacklist[token_addr] = now_ts
             continue
 
         symbol = pick["symbol"]
@@ -371,7 +382,7 @@ def manage_positions(portfolio, sol_price):
 
     for addr, pos in open_pos.items():
         try:
-            res = requests.get(f"https://api.dexscreener.com/latest/dex/tokens/{addr}", timeout=6)
+            res = requests.get(f"https://api.dexscreener.com/latest/dex/tokens/{addr}", timeout=5)
             if res.status_code != 200:
                 continue
             pairs = res.json().get("pairs") or []
@@ -395,20 +406,12 @@ def manage_positions(portfolio, sol_price):
         peak_pct = ((pos["highest_price"] - entry_price) / entry_price) * 100.0
 
         exit_reason = None
-
-        # Stufe 2: Volles Trailing für Runner (Peak >= +40% und 15% Pullback)
         if peak_pct >= TRAILING_ACTIVATION and (peak_pct - pnl_pct) >= TRAILING_DISTANCE:
             exit_reason = f"TRAILING_TP (+{pnl_pct:.1f}%)"
-
-        # Stufe 1: Breakeven-Schutz (Peak war >= +28%, fällt aber auf Floor <= +4% ab)
         elif peak_pct >= BREAKEVEN_TRIGGER_PEAK and pnl_pct <= BREAKEVEN_STOP_FLOOR:
             exit_reason = f"BREAKEVEN_STOP (+{pnl_pct:.1f}%)"
-
-        # Stufe 0: Regulärer Hard Stop bei -20%
         elif pnl_pct <= SL_PCT:
             exit_reason = f"HARD_STOP ({pnl_pct:.1f}%)"
-
-        # Max Haltedauer
         elif hold_hours >= MAX_HOLD_HOURS:
             exit_reason = f"TIMEOUT_EXIT ({pnl_pct:.1f}%)"
 
@@ -465,7 +468,7 @@ def run_loop():
     start_time = time.time()
     max_duration_seconds = 5 * 3600 - 300
 
-    print("🚀 [START] Bot läuft mit Scam-Blacklist, Breakeven-Stufen & 12k-LP-Filter...")
+    print("🚀 [START] Bot läuft mit Multi-Feed (Boosts + Profiles + Raydium)...")
 
     while True:
         elapsed = time.time() - start_time
