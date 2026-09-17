@@ -1,23 +1,12 @@
 {
-  "bankroll_total_sol": 14.7665,
+  "bankroll_total_sol": 14.9287,
   "strategies": {
     "CTO": {
-      "bankroll_sol": 4.7665,
+      "bankroll_sol": 4.9287,
       "wins": 0,
-      "losses": 1,
-      "total_fees_sol": 0.002,
-      "open_positions": {
-        "CrrcQsPD5zNW2hEKhBy5ARP1haGBKAmoqsgD8dqPpump": {
-          "symbol": "SUUB",
-          "dex": "PUMPSWAP",
-          "entry_price": 8.605e-05,
-          "highest_price": 8.927e-05,
-          "entry_time": 1789685732.1479716,
-          "invested_sol": 0.2,
-          "url": "https://dexscreener.com/solana/Cs8i2JEMYYun9e15Ca9cq9UXGQ2uaML8nKLcEXkF5gxG",
-          "mcap_at_entry": 84555.0
-        }
-      },
+      "losses": 2,
+      "total_fees_sol": 0.004,
+      "open_positions": {},
       "closed_positions": [
         {
           "symbol": "LOCKINU",
@@ -26,6 +15,14 @@
           "pnl_sol": -0.0335,
           "exit_reason": "CTO_HARD_STOP (-15.7%)",
           "closed_at": "2026-09-17T20:11:35.246099+00:00"
+        },
+        {
+          "symbol": "SUUB",
+          "strategy": "CTO",
+          "pnl_pct": -17.92,
+          "pnl_sol": -0.0378,
+          "exit_reason": "CTO_HARD_STOP (-17.9%)",
+          "closed_at": "2026-09-17T23:12:33.918517+00:00"
         }
       ]
     },
