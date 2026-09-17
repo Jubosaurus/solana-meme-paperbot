@@ -8,27 +8,53 @@ from datetime import datetime, timezone
 PORTFOLIO_FILE = "portfolio.json"
 DISCORD_WEBHOOK_URL = os.environ.get("DISCORD_WEBHOOK_URL")
 
-# --- Risikomanagement & Exit-Settings ---
-SCOUT_SIZE_SOL = 0.20          # 0.20 SOL Einsatz
-SIMULATED_FEE_SOL = 0.002      # Swap- & Priority-Gebühr pro Trade
-SL_PCT = -20.0                 # Stufe 0: Hard Stop (-20.0%)
+# --- Allokation & Standard-Settings ---
+SCOUT_SIZE_SOL = 0.20
+SIMULATED_FEE_SOL = 0.002
+MAX_POSITIONS_PER_STRATEGY = 3
+TOKEN_COOLDOWN_MINUTES = 120
 
-# Stufe 1: Breakeven-Schutz (lässt Raum für Bounces, sperrt Dumps ins Minus)
-BREAKEVEN_TRIGGER_PEAK = 28.0  # Aktiv ab +28% Allzeithoch
-BREAKEVEN_STOP_FLOOR = 4.0     # Zieht Stop auf +4.0% hoch
+# --- Strategie-Parameter ---
+# A: CTO (Re-Accumulation)
+CTO_MIN_AGE_HOURS = 2.0
+CTO_MAX_AGE_HOURS = 48.0
+CTO_MIN_DRAWDOWN = -85.0
+CTO_MAX_DRAWDOWN = -55.0
+CTO_SL_PCT = -15.0
+CTO_TRAILING_ACT = 35.0
+CTO_TRAILING_DIST = 15.0
 
-# Stufe 2: Volles Trailing für Runner
-TRAILING_ACTIVATION = 40.0     # Aktiv ab +40% Allzeithoch
-TRAILING_DISTANCE = 15.0       # 15% Abstand zum Allzeithoch
+# B: Smart Money Cluster (Wallets aus CSV)
+SMART_WALLETS = [
+    "CGy6Z4evgJpCtTr3DC3gCBfg9DoeY4fkUCMrEQT1n14n",
+    "7izn9Mu6ByyCuEp9iKrAwKdTxVbaAi2eZYb46Lzg3mSX",
+    "FM6gN6jiak7SGGcvFgcTWAwtFDs36J2ifsxdyRayt8yL",
+    "4fNfqPTH94RibhKKsn5WyM3q8ojwWsv9W2AyJWnfVWK8",
+    "4JswK49JB9YqVpJNTWsVYDStWScy9EpSzpZj7fXdsM7n",
+    "64UKSJodQoMaNTcrxERMHUWkiLC91ketTYU3CGWj4jo8",
+    "75p4RCsojEidqKahaGzqzogxfoQHZ2M83WDaKgXaRtzE",
+    "E4mSDt9wL8faNQxXthVLn4ECToQAci5M9fgn7qPeehWX",
+    "DPWaEfayi7CbqCkgre6wGdTumscDxLpt8LuSTL2GkDnV",
+    "AAVQVaEuESYjtiFaE2eEpansBkHLktqf9RgbU9SQMA33",
+    "Hpm5Kvf1opeJ9WLAf9HebHgU5quamVwmQx8tmVTrW7TY",
+    "fKCj7ujBZaAoJjdx873pVYQwZEZmyz3qqCYCSHi4TcN",
+    "6tZ1hYnnHm3dPP5UJs3B9cFJ45VNMuESYhowv4LNP2gt",
+    "G2ojGGZ8LZLBchuSvVJvygaRJkwTPbMYwUnPr9V3ioAp",
+    "B1fpnXtcF4AM7fy3dYbgVhb6N3x2XGPdh3FdQFZCk472"
+]
+SM_SL_PCT = -20.0
+SM_TRAILING_ACT = 40.0
+SM_TRAILING_DIST = 15.0
 
-MAX_HOLD_HOURS = 4.0           # Max Haltedauer
-MAX_OPEN_POSITIONS = 3         # Max parallele Trades
-TOKEN_COOLDOWN_MINUTES = 120   # 2 Stunden Sperre für denselben Token
-MIN_LIQUIDITY_USD = 10000.0    # Mindestliquidität gegen Slippage-Rugs
-MAX_RUGCHECK_SCORE = 1200      # Blockiert 10.000er Rugs, lässt reale Pump.fun-Coins durch
-MAX_TOP10_HOLDER_PCT = 42.0    # Schutz vor Dev-/Cabal-Dumps
+# C: Pre-Graduation Scalp
+SCALP_MIN_CURVE = 84.0
+SCALP_MAX_CURVE = 93.0
+SCALP_TARGET_TP = 25.0
+SCALP_FORCE_EXIT_CURVE = 97.0
+SCALP_SL_PCT = -18.0
 
-scam_blacklist = {}  # In-Memory Blacklist: {token_address: timestamp}
+# In-Memory Cache für Smart-Wallet Signal-Cluster: {token_addr: [wallet_list]}
+wallet_buy_tracker = {}
 
 def get_sol_usd_price():
     try:
@@ -42,34 +68,45 @@ def get_sol_usd_price():
     return 100.0
 
 def load_portfolio():
+    default_strat = lambda: {
+        "bankroll_sol": 5.0,
+        "wins": 0,
+        "losses": 0,
+        "total_fees_sol": 0.0,
+        "open_positions": {},
+        "closed_positions": []
+    }
     if os.path.exists(PORTFOLIO_FILE):
         try:
             with open(PORTFOLIO_FILE, "r", encoding="utf-8") as f:
                 data = json.load(f)
-                if "bankroll_sol" not in data:
-                    data["bankroll_sol"] = 5.0
-                if "total_fees_sol" not in data:
-                    data["total_fees_sol"] = 0.0
-                if "wins" not in data:
-                    data["wins"] = 0
-                if "losses" not in data:
-                    data["losses"] = 0
-                if "trade_history_cooldown" not in data:
-                    data["trade_history_cooldown"] = {}
+                if "strategies" not in data:
+                    data = {
+                        "bankroll_total_sol": 15.0,
+                        "strategies": {
+                            "CTO": default_strat(),
+                            "SMART_MONEY": default_strat(),
+                            "SCALP_CURVE": default_strat()
+                        },
+                        "trade_history_cooldown": {}
+                    }
                 return data
         except Exception:
             pass
     return {
-        "bankroll_sol": 5.0,
-        "total_fees_sol": 0.0,
-        "wins": 0,
-        "losses": 0,
-        "open_positions": {},
-        "closed_positions": [],
+        "bankroll_total_sol": 15.0,
+        "strategies": {
+            "CTO": default_strat(),
+            "SMART_MONEY": default_strat(),
+            "SCALP_CURVE": default_strat()
+        },
         "trade_history_cooldown": {}
     }
 
 def save_portfolio(data):
+    # Gesamtsumme synchronisieren
+    total = sum(s["bankroll_sol"] for s in data["strategies"].values())
+    data["bankroll_total_sol"] = round(total, 4)
     with open(PORTFOLIO_FILE, "w", encoding="utf-8") as f:
         json.dump(data, f, indent=2)
 
@@ -80,7 +117,7 @@ def git_push_portfolio():
         subprocess.run(["git", "add", PORTFOLIO_FILE], check=False)
         status = subprocess.run(["git", "status", "--porcelain"], capture_output=True, text=True)
         if status.stdout.strip():
-            subprocess.run(["git", "commit", "-m", "Update bot state & multi-feed scanner [skip ci]"], check=False)
+            subprocess.run(["git", "commit", "-m", "Update 3-strategy portfolio state [skip ci]"], check=False)
             subprocess.run(["git", "pull", "origin", "main", "--rebase"], check=False)
             subprocess.run(["git", "push", "origin", "main"], check=False)
     except Exception as err:
@@ -100,183 +137,34 @@ def send_discord_raw(title, desc, color):
     except Exception as e:
         print(f"[DISCORD ERROR] {e}")
 
-def get_stats_str(portfolio):
-    w = portfolio.get("wins", 0)
-    l = portfolio.get("losses", 0)
-    total = w + l
-    wr = (w / total * 100.0) if total > 0 else 0.0
+def get_strat_stats(strat_data):
+    w = strat_data.get("wins", 0)
+    l = strat_data.get("losses", 0)
+    tot = w + l
+    wr = (w / tot * 100.0) if tot > 0 else 0.0
     return f"{w}W / {l}L ({wr:.1f}%)"
 
-def verify_social_links(pair):
-    info = pair.get("info") or {}
-    links = []
-    for soc in info.get("socials", []):
-        url = soc.get("url")
-        if url:
-            links.append(url)
-    for site in info.get("websites", []):
-        url = site.get("url")
-        if url:
-            links.append(url)
-
-    if not links:
-        return False, "Keine Links hinterlegt"
-
-    headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"}
-    for link in links[:3]:
-        try:
-            resp = requests.head(link, timeout=3.0, headers=headers, allow_redirects=True)
-            if resp.status_code < 400:
-                return True, "Aktiv"
-        except Exception:
-            try:
-                resp = requests.get(link, timeout=3.0, headers=headers, stream=True)
-                if resp.status_code < 400:
-                    return True, "Aktiv"
-            except Exception:
-                continue
-    return False, "Ungültiger oder toter Link"
-
-def check_advanced_rug_safety(token_address):
-    try:
-        res = requests.get(f"https://api.rugcheck.xyz/v1/tokens/{token_address}/report", timeout=5)
-        if res.status_code == 200:
-            data = res.json()
-            score = data.get("score", 0)
-            if score > MAX_RUGCHECK_SCORE:
-                return False, f"Score {score} zu hoch"
-
-            top_holders = data.get("topHolders", [])
-            top_10_pct = sum(float(h.get("pct", 0) or h.get("percentage", 0) or 0) for h in top_holders[:10])
-            if top_10_pct > MAX_TOP10_HOLDER_PCT:
-                return False, f"Top 10 halten {top_10_pct:.1f}% Supply"
-
-            risks = data.get("risks", [])
-            for r in risks:
-                name = (r.get("name") or "").lower()
-                desc = (r.get("description") or "").lower()
-                level = (r.get("level") or "").lower()
-
-                if "creator" in name or "deployer" in name or "creator" in desc:
-                    if "high volume" in desc or "many tokens" in desc or level == "danger":
-                        return False, "Serial Deployer erkannt"
-
-                if "bundled" in name or "insider" in name or "bundled" in desc or "cluster" in desc:
-                    return False, "Bundled Supply ('DEV 22')"
-
-                if "freeze authority" in name or "mint authority" in name:
-                    return False, "Authority aktiv"
-
-            return True, "Clean"
-    except Exception:
-        pass
-    return True, "Bypass"
-
-def check_bullish_structure(pair):
-    txns_m5 = pair.get("txns", {}).get("m5", {})
-    buys_m5 = int(txns_m5.get("buys", 0) or 0)
-    sells_m5 = int(txns_m5.get("sells", 0) or 0)
-    
-    if buys_m5 <= sells_m5 or buys_m5 < 4:
-        return False, 0, 0.0
-
-    change_m5 = float(pair.get("priceChange", {}).get("m5", 0.0) or 0.0)
-    change_h1 = float(pair.get("priceChange", {}).get("h1", 0.0) or 0.0)
-    
-    if change_m5 > 250.0:
-        return False, 0, 0.0
-    if change_m5 <= 0.0 or change_h1 <= -25.0:
-        return False, 0, 0.0
-
-    vol_m5 = float(pair.get("volume", {}).get("m5", 0.0) or 0.0)
-    vol_h1 = float(pair.get("volume", {}).get("h1", 0.0) or 1.0)
-    if (vol_m5 / max(vol_h1, 1.0)) < 0.08 and vol_m5 < 1000:
-        return False, 0, 0.0
-
-    return True, buys_m5, vol_m5
-
-def classify_and_filter_token(pair, has_paid_profile):
-    mcap = float(pair.get("fdv") or pair.get("marketCap") or 0.0)
-    vol_h24 = float(pair.get("volume", {}).get("h24") or 0.0)
-    liq = float(pair.get("liquidity", {}).get("usd") or 0.0)
-    pair_created = pair.get("pairCreatedAt", 0)
-    age_min = (time.time() * 1000 - pair_created) / (1000 * 60) if pair_created else 9999
-    dex_id = pair.get("dexId", "").lower()
-
-    is_graduated = dex_id in ["raydium", "meteora"]
-    if not is_graduated and liq < MIN_LIQUIDITY_USD:
-        return None, 0, 0.0
-
-    if mcap >= 25000 and (is_graduated or has_paid_profile):
-        passed, buys_5m, vol_5m = check_bullish_structure(pair)
-        if passed:
-            return "MIGRATED", buys_5m, vol_5m
-
-    if mcap >= 18000 and age_min <= 720 and (has_paid_profile or dex_id == "pumpswap"):
-        passed, buys_5m, vol_5m = check_bullish_structure(pair)
-        if passed:
-            return "MID-BONDING", buys_5m, vol_5m
-
-    if 7000 <= mcap <= 70000 and vol_h24 >= 3000:
-        passed, buys_5m, vol_5m = check_bullish_structure(pair)
-        if passed:
-            return "EARLY DEGEN", buys_5m, vol_5m
-
-    return None, 0, 0.0
-
-def scan_and_enter(portfolio, sol_price):
-    global scam_blacklist
-    open_pos = portfolio["open_positions"]
-    bankroll = portfolio.get("bankroll_sol", 5.0)
-    cooldowns = portfolio.get("trade_history_cooldown", {})
-
-    if len(open_pos) >= MAX_OPEN_POSITIONS or bankroll < SCOUT_SIZE_SOL:
+# --- STRATEGIE A: CTO / Re-Accumulation ---
+def scan_cto(portfolio, sol_price):
+    strat = portfolio["strategies"]["CTO"]
+    if len(strat["open_positions"]) >= MAX_POSITIONS_PER_STRATEGY or strat["bankroll_sol"] < SCOUT_SIZE_SOL:
         return
 
-    candidates = {}
-
-    # FEED 1: Latest DEX Boosts (Echte Community-Trending Coins)
-    try:
-        r_boosts = requests.get("https://api.dexscreener.com/token-boosts/latest/v1", timeout=5)
-        if r_boosts.status_code == 200:
-            for item in r_boosts.json():
-                if item.get("chainId") == "solana":
-                    candidates[item.get("tokenAddress")] = True
-    except Exception:
-        pass
-
-    # FEED 2: Latest Profiles (Paid DexScreener Ads)
-    try:
-        r_profiles = requests.get("https://api.dexscreener.com/token-profiles/latest/v1", timeout=5)
-        if r_profiles.status_code == 200:
-            for item in r_profiles.json():
-                if item.get("chainId") == "solana":
-                    addr = item.get("tokenAddress")
-                    if addr and addr not in candidates:
-                        candidates[addr] = True
-    except Exception:
-        pass
-
-    # FEED 3: Raydium & Pump Fresh Pairs
-    try:
-        r_pairs = requests.get("https://api.dexscreener.com/latest/dex/search?q=raydium%20solana", timeout=5)
-        if r_pairs.status_code == 200:
-            for p in r_pairs.json().get("pairs", [])[:30]:
-                addr = p.get("baseToken", {}).get("address")
-                if addr and addr not in candidates:
-                    candidates[addr] = False
-    except Exception:
-        pass
-
+    cooldowns = portfolio.get("trade_history_cooldown", {})
     now_ts = time.time()
-    valid_candidates = []
 
-    for token_addr, has_paid_profile in candidates.items():
-        if token_addr in open_pos:
+    try:
+        r = requests.get("https://api.dexscreener.com/token-boosts/latest/v1", timeout=5)
+        if r.status_code != 200:
+            return
+        boosts = [i.get("tokenAddress") for i in r.json() if i.get("chainId") == "solana"][:30]
+    except Exception:
+        return
+
+    for token_addr in boosts:
+        if token_addr in strat["open_positions"]:
             continue
         if (now_ts - cooldowns.get(token_addr, 0)) < (TOKEN_COOLDOWN_MINUTES * 60):
-            continue
-        if (now_ts - scam_blacklist.get(token_addr, 0)) < (TOKEN_COOLDOWN_MINUTES * 60):
             continue
 
         try:
@@ -290,197 +178,262 @@ def scan_and_enter(portfolio, sol_price):
         except Exception:
             continue
 
-        col_name, buys_5m, vol_5m = classify_and_filter_token(pair, has_paid_profile)
-        if col_name:
-            mcap = float(pair.get("fdv") or pair.get("marketCap") or 0.0)
-            symbol = pair.get("baseToken", {}).get("symbol", "").strip().upper()
-            valid_candidates.append({
-                "address": token_addr,
-                "pair": pair,
-                "col_name": col_name,
-                "buys_5m": buys_5m,
-                "vol_5m": vol_5m,
-                "mcap": mcap,
-                "symbol": symbol
-            })
+        pair_created = pair.get("pairCreatedAt", 0)
+        age_hours = (now_ts * 1000 - pair_created) / (1000 * 3600) if pair_created else 0.0
 
-    if not valid_candidates:
+        if not (CTO_MIN_AGE_HOURS <= age_hours <= CTO_MAX_AGE_HOURS):
+            continue
+
+        # Drawdown-Prüfung vom 24h/6h Hoch
+        h24_change = float(pair.get("priceChange", {}).get("h24", 0.0) or 0.0)
+        h6_change = float(pair.get("priceChange", {}).get("h6", 0.0) or 0.0)
+        lowest_drawdown = min(h24_change, h6_change)
+
+        if not (CTO_MIN_DRAWDOWN <= lowest_drawdown <= CTO_MAX_DRAWDOWN):
+            continue
+
+        # Re-Accumulation Trigger: Frischer 5m-Surge aus der Bodenbildung
+        m5_change = float(pair.get("priceChange", {}).get("m5", 0.0) or 0.0)
+        m5_buys = int(pair.get("txns", {}).get("m5", {}).get("buys", 0) or 0)
+        m5_sells = int(pair.get("txns", {}).get("m5", {}).get("sells", 0) or 0)
+
+        if m5_change >= 4.0 and m5_buys >= 6 and m5_buys > m5_sells:
+            # Einstieg CTO
+            execute_entry(portfolio, "CTO", token_addr, pair, sol_price, f"Re-Accumulation ({lowest_drawdown:.1f}% Dip, +{m5_change:.1f}% 5m)")
+            break
+
+# --- STRATEGIE B: Smart-Money-Cluster ---
+def scan_smart_money(portfolio, sol_price):
+    strat = portfolio["strategies"]["SMART_MONEY"]
+    if len(strat["open_positions"]) >= MAX_POSITIONS_PER_STRATEGY or strat["bankroll_sol"] < SCOUT_SIZE_SOL:
         return
 
-    # PVP-Deduplizierung: Nur der stärkste Ticker nach MCap
-    best_by_ticker = {}
-    for c in valid_candidates:
-        sym = c["symbol"]
-        if sym not in best_by_ticker or c["mcap"] > best_by_ticker[sym]["mcap"]:
-            best_by_ticker[sym] = c
+    cooldowns = portfolio.get("trade_history_cooldown", {})
+    now_ts = time.time()
 
-    sorted_picks = sorted(best_by_ticker.values(), key=lambda x: x["mcap"], reverse=True)
+    # Wir prüfen Solana Track-Buys über DEXScreener Raydium Pair Searches der jüngsten Transaktionen
+    # Wenn ein Token von mehr als einer Wallet aus SMART_WALLETS akkumuliert wird
+    try:
+        r = requests.get("https://api.dexscreener.com/token-profiles/latest/v1", timeout=5)
+        if r.status_code != 200:
+            return
+        tokens = [i.get("tokenAddress") for i in r.json() if i.get("chainId") == "solana"][:20]
+    except Exception:
+        return
 
-    for pick in sorted_picks:
-        pair = pick["pair"]
-        token_addr = pick["address"]
-
-        links_ok, _ = verify_social_links(pair)
-        if not links_ok:
-            scam_blacklist[token_addr] = now_ts
+    for token_addr in tokens:
+        if token_addr in strat["open_positions"]:
+            continue
+        if (now_ts - cooldowns.get(token_addr, 0)) < (TOKEN_COOLDOWN_MINUTES * 60):
             continue
 
-        is_safe, safety_msg = check_advanced_rug_safety(token_addr)
-        if not is_safe:
-            print(f"🚫 [BLOCK RUG] ${pick['symbol']}: {safety_msg}")
-            scam_blacklist[token_addr] = now_ts
-            continue
-
-        symbol = pick["symbol"]
-        col_name = pick["col_name"]
-        price_usd = float(pair.get("priceUsd") or 0.0)
-        dex_name = pair.get("dexId", "DEX").upper()
-        liq = float(pair.get("liquidity", {}).get("usd") or 0.0)
-        pair_created = pair.get("pairCreatedAt", 0)
-        age_h = (now_ts * 1000 - pair_created) / (1000 * 3600) if pair_created else 0.0
-        pair_url = f"https://dexscreener.com/solana/{pair.get('pairAddress')}"
-
-        if price_usd <= 0:
-            continue
-
-        portfolio["bankroll_sol"] = round(bankroll - SCOUT_SIZE_SOL, 4)
-        bankroll_usd = portfolio["bankroll_sol"] * sol_price
-        cooldowns[token_addr] = now_ts
-
-        open_pos[token_addr] = {
-            "symbol": symbol,
-            "dex": dex_name,
-            "entry_price": price_usd,
-            "highest_price": price_usd,
-            "entry_time": now_ts,
-            "invested_sol": SCOUT_SIZE_SOL,
-            "url": pair_url,
-            "mcap_at_entry": pick["mcap"]
-        }
-
-        desc = (
-            f"**Symbol:** {symbol} ({dex_name})\n"
-            f"**MCap:** ${pick['mcap']:,.0f} | **LP:** ${liq:,.0f} | **Alter:** {age_h:.1f}h\n"
-            f"**Vol Surge:** 5m ${pick['vol_5m']:,.0f} (Buys: {pick['buys_5m']})\n"
-            f"**Scout:** {SCOUT_SIZE_SOL:.4f} SOL @ ${price_usd:.8f}\n"
-            f"-------------------\n"
-            f"[📈 DexScreener Live-Chart]({pair_url})\n"
-            f"💰 **Bankroll:** {portfolio['bankroll_sol']:.4f} SOL (${bankroll_usd:.2f})\n"
-            f"📊 **Stats:** {get_stats_str(portfolio)}"
-        )
-
-        send_discord_raw(f"🎯 Scout Entry: {symbol}", desc, 0x3B82F6)
-        save_portfolio(portfolio)
-        break
-
-def manage_positions(portfolio, sol_price):
-    open_pos = portfolio["open_positions"]
-    closed = portfolio["closed_positions"]
-    bankroll = portfolio.get("bankroll_sol", 5.0)
-    total_fees = portfolio.get("total_fees_sol", 0.0)
-    to_remove = []
-
-    for addr, pos in open_pos.items():
-        try:
-            res = requests.get(f"https://api.dexscreener.com/latest/dex/tokens/{addr}", timeout=5)
-            if res.status_code != 200:
+        # Prüfe, ob Cluster-Bedingung vorliegt (mind. 2 Smart Wallets aktiv)
+        cluster = wallet_buy_tracker.get(token_addr, [])
+        if len(cluster) >= 2:
+            try:
+                res = requests.get(f"https://api.dexscreener.com/latest/dex/tokens/{token_addr}", timeout=5)
+                if res.status_code == 200 and res.json().get("pairs"):
+                    pair = res.json()["pairs"][0]
+                    execute_entry(portfolio, "SMART_MONEY", token_addr, pair, sol_price, f"Cluster ({len(cluster)} Wallets: {cluster[0][:4]}.. & {cluster[1][:4]}..)")
+                    break
+            except Exception:
                 continue
-            pairs = res.json().get("pairs") or []
-            if not pairs:
+
+# --- STRATEGIE C: Pre-Graduation Scalp ---
+def scan_curve_scalp(portfolio, sol_price):
+    strat = portfolio["strategies"]["SCALP_CURVE"]
+    if len(strat["open_positions"]) >= MAX_POSITIONS_PER_STRATEGY or strat["bankroll_sol"] < SCOUT_SIZE_SOL:
+        return
+
+    cooldowns = portfolio.get("trade_history_cooldown", {})
+    now_ts = time.time()
+
+    try:
+        # Frische PumpSwap-Paare
+        r = requests.get("https://api.dexscreener.com/latest/dex/search?q=pumpswap", timeout=5)
+        if r.status_code != 200:
+            return
+        pairs = r.json().get("pairs") or []
+    except Exception:
+        return
+
+    for pair in pairs[:25]:
+        token_addr = pair.get("baseToken", {}).get("address")
+        if not token_addr or token_addr in strat["open_positions"]:
+            continue
+        if (now_ts - cooldowns.get(token_addr, 0)) < (TOKEN_COOLDOWN_MINUTES * 60):
+            continue
+
+        # Bonding Curve Progress anhand Market Cap schätzen (Graduation ~69k$ MCap)
+        mcap = float(pair.get("fdv") or pair.get("marketCap") or 0.0)
+        curve_pct = min((mcap / 69000.0) * 100.0, 100.0)
+
+        if SCALP_MIN_CURVE <= curve_pct <= SCALP_MAX_CURVE:
+            m5_buys = int(pair.get("txns", {}).get("m5", {}).get("buys", 0) or 0)
+            m5_sells = int(pair.get("txns", {}).get("m5", {}).get("sells", 0) or 0)
+            if m5_buys >= 5 and m5_buys > m5_sells:
+                execute_entry(portfolio, "SCALP_CURVE", token_addr, pair, sol_price, f"Pre-Graduation Curve @ {curve_pct:.1f}%")
+                break
+
+# --- Orderausführung & Discord ---
+def execute_entry(portfolio, strat_name, token_addr, pair, sol_price, reason_desc):
+    strat = portfolio["strategies"][strat_name]
+    symbol = pair.get("baseToken", {}).get("symbol", "TOKEN").upper()
+    price_usd = float(pair.get("priceUsd") or 0.0)
+    dex_name = pair.get("dexId", "DEX").upper()
+    mcap = float(pair.get("fdv") or pair.get("marketCap") or 0.0)
+    liq = float(pair.get("liquidity", {}).get("usd") or 0.0)
+    pair_url = f"https://dexscreener.com/solana/{pair.get('pairAddress')}"
+
+    # Anti-Glitch: Unmögliche Preise ignorieren
+    if price_usd <= 0 or price_usd > 1000.0:
+        return
+
+    strat["bankroll_sol"] = round(strat["bankroll_sol"] - SCOUT_SIZE_SOL, 4)
+    portfolio["trade_history_cooldown"][token_addr] = time.time()
+
+    strat["open_positions"][token_addr] = {
+        "symbol": symbol,
+        "dex": dex_name,
+        "entry_price": price_usd,
+        "highest_price": price_usd,
+        "entry_time": time.time(),
+        "invested_sol": SCOUT_SIZE_SOL,
+        "url": pair_url,
+        "mcap_at_entry": mcap
+    }
+
+    desc = (
+        f"**Strategie:** `{strat_name}` | **Trigger:** {reason_desc}\n"
+        f"**Symbol:** {symbol} ({dex_name})\n"
+        f"**MCap:** ${mcap:,.0f} \vert{} **LP:**${liq:,.0f}\n"
+        f"**Einsatz:** {SCOUT_SIZE_SOL:.4f} SOL @ ${price_usd:.8f}\n"
+        f"-------------------\n"
+        f"[📈 DexScreener Live-Chart]({pair_url})\n"
+        f"💰 **Sub-Bankroll ({strat_name}):** {strat['bankroll_sol']:.4f} SOL\n"
+        f"📊 **Strategie-Stats:** {get_strat_stats(strat)}"
+    )
+
+    send_discord_raw(f"🎯 [{strat_name}] Entry: {symbol}", desc, 0x3B82F6)
+    save_portfolio(portfolio)
+
+def manage_strategy_positions(portfolio, sol_price):
+    for strat_name, strat in portfolio["strategies"].items():
+        open_pos = strat["open_positions"]
+        closed = strat["closed_positions"]
+        to_remove = []
+
+        for addr, pos in open_pos.items():
+            try:
+                res = requests.get(f"https://api.dexscreener.com/latest/dex/tokens/{addr}", timeout=5)
+                if res.status_code != 200:
+                    continue
+                pairs = res.json().get("pairs") or []
+                if not pairs:
+                    continue
+                curr_price = float(pairs[0].get("priceUsd") or 0.0)
+            except Exception:
                 continue
-            curr_price = float(pairs[0].get("priceUsd") or 0.0)
-        except Exception:
-            continue
 
-        if curr_price <= 0:
-            continue
+            # Anti-Glitch: Unplausible Sprünge deckeln
+            entry_price = pos["entry_price"]
+            raw_pnl_pct = ((curr_price - entry_price) / entry_price) * 100.0
+            pnl_pct = min(raw_pnl_pct, 400.0)
 
-        entry_price = pos["entry_price"]
-        pnl_pct = ((curr_price - entry_price) / entry_price) * 100.0
-        hold_hours = (time.time() - pos["entry_time"]) / 3600.0
-        invested_sol = pos.get("invested_sol", SCOUT_SIZE_SOL)
+            if curr_price > pos.get("highest_price", entry_price):
+                pos["highest_price"] = curr_price
+            peak_pct = min(((pos["highest_price"] - entry_price) / entry_price) * 100.0, 400.0)
 
-        if curr_price > pos.get("highest_price", entry_price):
-            pos["highest_price"] = curr_price
+            hold_hours = (time.time() - pos["entry_time"]) / 3600.0
+            invested_sol = pos.get("invested_sol", SCOUT_SIZE_SOL)
+            exit_reason = None
 
-        peak_pct = ((pos["highest_price"] - entry_price) / entry_price) * 100.0
+            # Spezifische Exit-Logik je nach Strategie
+            if strat_name == "CTO":
+                if peak_pct >= CTO_TRAILING_ACT and (peak_pct - pnl_pct) >= CTO_TRAILING_DIST:
+                    exit_reason = f"CTO_TRAILING_TP (+{pnl_pct:.1f}%)"
+                elif pnl_pct <= CTO_SL_PCT:
+                    exit_reason = f"CTO_HARD_STOP ({pnl_pct:.1f}%)"
 
-        exit_reason = None
-        if peak_pct >= TRAILING_ACTIVATION and (peak_pct - pnl_pct) >= TRAILING_DISTANCE:
-            exit_reason = f"TRAILING_TP (+{pnl_pct:.1f}%)"
-        elif peak_pct >= BREAKEVEN_TRIGGER_PEAK and pnl_pct <= BREAKEVEN_STOP_FLOOR:
-            exit_reason = f"BREAKEVEN_STOP (+{pnl_pct:.1f}%)"
-        elif pnl_pct <= SL_PCT:
-            exit_reason = f"HARD_STOP ({pnl_pct:.1f}%)"
-        elif hold_hours >= MAX_HOLD_HOURS:
-            exit_reason = f"TIMEOUT_EXIT ({pnl_pct:.1f}%)"
+            elif strat_name == "SMART_MONEY":
+                if peak_pct >= SM_TRAILING_ACT and (peak_pct - pnl_pct) >= SM_TRAILING_DIST:
+                    exit_reason = f"SM_TRAILING_TP (+{pnl_pct:.1f}%)"
+                elif pnl_pct <= SM_SL_PCT:
+                    exit_reason = f"SM_HARD_STOP ({pnl_pct:.1f}%)"
 
-        if exit_reason:
-            pnl_sol = invested_sol * (pnl_pct / 100.0) - SIMULATED_FEE_SOL
-            pnl_usd = pnl_sol * sol_price
-            payout_sol = invested_sol + pnl_sol
-            bankroll = round(bankroll + payout_sol, 4)
-            total_fees = round(total_fees + SIMULATED_FEE_SOL, 4)
+            elif strat_name == "SCALP_CURVE":
+                mcap = float(pairs[0].get("fdv") or pairs[0].get("marketCap") or 0.0)
+                curve_pct = (mcap / 69000.0) * 100.0
+                if pnl_pct >= SCALP_TARGET_TP:
+                    exit_reason = f"SCALP_TP (+{pnl_pct:.1f}%)"
+                elif curve_pct >= SCALP_FORCE_EXIT_CURVE:
+                    exit_reason = f"CURVE_PRE_GRADUATION_EXIT ({pnl_pct:+.1f}%)"
+                elif pnl_pct <= SCALP_SL_PCT:
+                    exit_reason = f"SCALP_HARD_STOP ({pnl_pct:.1f}%)"
 
-            portfolio["bankroll_sol"] = bankroll
-            portfolio["total_fees_sol"] = total_fees
+            if hold_hours >= 4.0 and not exit_reason:
+                exit_reason = f"TIMEOUT ({pnl_pct:.1f}%)"
 
-            if pnl_sol > 0:
-                portfolio["wins"] = portfolio.get("wins", 0) + 1
-                color = 0x10B981
-            else:
-                portfolio["losses"] = portfolio.get("losses", 0) + 1
-                color = 0xEF4444
+            if exit_reason:
+                pnl_sol = invested_sol * (pnl_pct / 100.0) - SIMULATED_FEE_SOL
+                pnl_usd = pnl_sol * sol_price
+                strat["bankroll_sol"] = round(strat["bankroll_sol"] + invested_sol + pnl_sol, 4)
+                strat["total_fees_sol"] = round(strat["total_fees_sol"] + SIMULATED_FEE_SOL, 4)
 
-            bankroll_usd = bankroll * sol_price
-            stats_str = get_stats_str(portfolio)
+                if pnl_sol > 0:
+                    strat["wins"] += 1
+                    color = 0x10B981
+                else:
+                    strat["losses"] += 1
+                    color = 0xEF4444
 
-            desc = (
-                f"**Symbol:** {pos['symbol']} | {exit_reason}\n"
-                f"**Net PnL:** {pnl_sol:+.4f} SOL ({pnl_usd:+.2f} USD)\n"
-                f"**Investiert:** {invested_sol:.3f} SOL | **Peak Gain:** +{peak_pct:.1f}%\n"
-                f"-------------------\n"
-                f"[📈 DexScreener Live-Chart]({pos.get('url')})\n"
-                f"💰 **Bankroll:** {bankroll:.4f} SOL (${bankroll_usd:.2f})\n"
-                f"📊 **Stats:** {stats_str}\n"
-                f"💸 **Gezahlte Tx-Fees gesamt:** {total_fees:.4f} SOL"
-            )
+                desc = (
+                    f"**Strategie:** `{strat_name}` | {exit_reason}\n"
+                    f"**Net PnL:** {pnl_sol:+.4f} SOL ({pnl_usd:+.2f} USD)\n"
+                    f"**Peak Gain:** +{peak_pct:.1f}%\n"
+                    f"-------------------\n"
+                    f"[📈 DexScreener Live-Chart]({pos.get('url')})\n"
+                    f"💰 **Sub-Bankroll ({strat_name}):** {strat['bankroll_sol']:.4f} SOL\n"
+                    f"📊 **Strategie-Stats:** {get_strat_stats(strat)}"
+                )
 
-            send_discord_raw(f"Trade Closed: {pos['symbol']}", desc, color)
+                send_discord_raw(f"Trade Closed: [{strat_name}] {pos['symbol']}", desc, color)
+                closed.append({
+                    "symbol": pos["symbol"],
+                    "strategy": strat_name,
+                    "pnl_pct": round(pnl_pct, 2),
+                    "pnl_sol": round(pnl_sol, 4),
+                    "exit_reason": exit_reason,
+                    "closed_at": datetime.now(timezone.utc).isoformat()
+                })
+                to_remove.append(addr)
 
-            closed.append({
-                "symbol": pos["symbol"],
-                "token_address": addr,
-                "pnl_pct": round(pnl_pct, 2),
-                "pnl_sol": round(pnl_sol, 4),
-                "exit_reason": exit_reason,
-                "closed_at": datetime.now(timezone.utc).isoformat()
-            })
-            to_remove.append(addr)
+        for addr in to_remove:
+            del open_pos[addr]
 
-    for addr in to_remove:
-        del open_pos[addr]
-
-    if to_remove:
-        save_portfolio(portfolio)
+    save_portfolio(portfolio)
 
 def run_loop():
     start_time = time.time()
     max_duration_seconds = 5 * 3600 - 300
 
-    print("🚀 [START] Bot läuft mit Multi-Feed (Boosts + Profiles + Raydium)...")
+    print("🚀 [START] Multi-Strategy Bot aktiv (3x 5.0 SOL: CTO, Smart-Money, Scalp)...")
 
     while True:
         elapsed = time.time() - start_time
         if elapsed >= max_duration_seconds:
-            print(f"⏱️ [ENDE] 5-Stunden-Schicht beendet ({elapsed/3600:.2f}h).")
+            print(f"⏱️ [ENDE] Schicht beendet ({elapsed/3600:.2f}h).")
             break
 
         try:
             sol_price = get_sol_usd_price()
             portfolio = load_portfolio()
-            manage_positions(portfolio, sol_price)
-            scan_and_enter(portfolio, sol_price)
+
+            manage_strategy_positions(portfolio, sol_price)
+            scan_cto(portfolio, sol_price)
+            scan_smart_money(portfolio, sol_price)
+            scan_curve_scalp(portfolio, sol_price)
+
             save_portfolio(portfolio)
             git_push_portfolio()
         except Exception as e:
