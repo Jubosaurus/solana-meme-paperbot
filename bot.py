@@ -53,7 +53,6 @@ SCALP_TARGET_TP = 25.0
 SCALP_FORCE_EXIT_CURVE = 97.0
 SCALP_SL_PCT = -18.0
 
-# In-Memory Cache für Smart-Wallet Signal-Cluster: {token_addr: [wallet_list]}
 wallet_buy_tracker = {}
 
 def get_sol_usd_price():
@@ -230,7 +229,7 @@ def scan_smart_money(portfolio, sol_price):
                     pair = res.json()["pairs"][0]
                     w1 = str(cluster[0])[:4]
                     w2 = str(cluster[1])[:4]
-                    reason_msg = "Cluster (2+ Wallets: " + w1 + ".. & " + w2 + "..)"
+                    reason_msg = f"Cluster (2+ Wallets: {w1}.. und {w2}..)"
                     execute_entry(portfolio, "SMART_MONEY", token_addr, pair, sol_price, reason_msg)
                     break
             except Exception:
@@ -279,7 +278,7 @@ def execute_entry(portfolio, strat_name, token_addr, pair, sol_price, reason_des
     dex_name = pair.get("dexId", "DEX").upper()
     mcap = float(pair.get("fdv") or pair.get("marketCap") or 0.0)
     liq = float(pair.get("liquidity", {}).get("usd") or 0.0)
-    pair_url = "https://dexscreener.com/solana/" + str(pair.get("pairAddress"))
+    pair_url = f"https://dexscreener.com/solana/{pair.get('pairAddress')}"
 
     if price_usd <= 0 or price_usd > 1000.0:
         return
