@@ -104,7 +104,6 @@ def load_portfolio():
     }
 
 def save_portfolio(data):
-    # Gesamtsumme synchronisieren
     total = sum(s["bankroll_sol"] for s in data["strategies"].values())
     data["bankroll_total_sol"] = round(total, 4)
     with open(PORTFOLIO_FILE, "w", encoding="utf-8") as f:
@@ -184,7 +183,6 @@ def scan_cto(portfolio, sol_price):
         if not (CTO_MIN_AGE_HOURS <= age_hours <= CTO_MAX_AGE_HOURS):
             continue
 
-        # Drawdown-Prüfung vom 24h/6h Hoch
         h24_change = float(pair.get("priceChange", {}).get("h24", 0.0) or 0.0)
         h6_change = float(pair.get("priceChange", {}).get("h6", 0.0) or 0.0)
         lowest_drawdown = min(h24_change, h6_change)
@@ -192,13 +190,11 @@ def scan_cto(portfolio, sol_price):
         if not (CTO_MIN_DRAWDOWN <= lowest_drawdown <= CTO_MAX_DRAWDOWN):
             continue
 
-        # Re-Accumulation Trigger: Frischer 5m-Surge aus der Bodenbildung
         m5_change = float(pair.get("priceChange", {}).get("m5", 0.0) or 0.0)
         m5_buys = int(pair.get("txns", {}).get("m5", {}).get("buys", 0) or 0)
         m5_sells = int(pair.get("txns", {}).get("m5", {}).get("sells", 0) or 0)
 
         if m5_change >= 4.0 and m5_buys >= 6 and m5_buys > m5_sells:
-            # Einstieg CTO
             execute_entry(portfolio, "CTO", token_addr, pair, sol_price, f"Re-Accumulation ({lowest_drawdown:.1f}% Dip, +{m5_change:.1f}% 5m)")
             break
 
@@ -211,8 +207,6 @@ def scan_smart_money(portfolio, sol_price):
     cooldowns = portfolio.get("trade_history_cooldown", {})
     now_ts = time.time()
 
-    # Wir prüfen Solana Track-Buys über DEXScreener Raydium Pair Searches der jüngsten Transaktionen
-    # Wenn ein Token von mehr als einer Wallet aus SMART_WALLETS akkumuliert wird
     try:
         r = requests.get("https://api.dexscreener.com/token-profiles/latest/v1", timeout=5)
         if r.status_code != 200:
@@ -227,14 +221,16 @@ def scan_smart_money(portfolio, sol_price):
         if (now_ts - cooldowns.get(token_addr, 0)) < (TOKEN_COOLDOWN_MINUTES * 60):
             continue
 
-        # Prüfe, ob Cluster-Bedingung vorliegt (mind. 2 Smart Wallets aktiv)
         cluster = wallet_buy_tracker.get(token_addr, [])
         if len(cluster) >= 2:
             try:
                 res = requests.get(f"https://api.dexscreener.com/latest/dex/tokens/{token_addr}", timeout=5)
                 if res.status_code == 200 and res.json().get("pairs"):
                     pair = res.json()["pairs"][0]
-                    execute_entry(portfolio, "SMART_MONEY", token_addr, pair, sol_price, f"Cluster ({len(cluster)} Wallets: {cluster[0][:4]}.. & {cluster[1][:4]}..)")
+                    w1 = str(cluster[0])[:4]
+                    w2 = str(cluster[1])[:4]
+                    reason_msg = f"Cluster ({len(cluster)} Wallets: {w1}.. & {w2}..)"
+                    execute_entry(portfolio, "SMART_MONEY", token_addr, pair, sol_price, reason_msg)
                     break
             except Exception:
                 continue
@@ -249,7 +245,6 @@ def scan_curve_scalp(portfolio, sol_price):
     now_ts = time.time()
 
     try:
-        # Frische PumpSwap-Paare
         r = requests.get("https://api.dexscreener.com/latest/dex/search?q=pumpswap", timeout=5)
         if r.status_code != 200:
             return
@@ -264,7 +259,6 @@ def scan_curve_scalp(portfolio, sol_price):
         if (now_ts - cooldowns.get(token_addr, 0)) < (TOKEN_COOLDOWN_MINUTES * 60):
             continue
 
-        # Bonding Curve Progress anhand Market Cap schätzen (Graduation ~69k$ MCap)
         mcap = float(pair.get("fdv") or pair.get("marketCap") or 0.0)
         curve_pct = min((mcap / 69000.0) * 100.0, 100.0)
 
@@ -285,7 +279,6 @@ def execute_entry(portfolio, strat_name, token_addr, pair, sol_price, reason_des
     liq = float(pair.get("liquidity", {}).get("usd") or 0.0)
     pair_url = f"https://dexscreener.com/solana/{pair.get('pairAddress')}"
 
-    # Anti-Glitch: Unmögliche Preise ignorieren
     if price_usd <= 0 or price_usd > 1000.0:
         return
 
@@ -335,7 +328,6 @@ def manage_strategy_positions(portfolio, sol_price):
             except Exception:
                 continue
 
-            # Anti-Glitch: Unplausible Sprünge deckeln
             entry_price = pos["entry_price"]
             raw_pnl_pct = ((curr_price - entry_price) / entry_price) * 100.0
             pnl_pct = min(raw_pnl_pct, 400.0)
@@ -348,7 +340,6 @@ def manage_strategy_positions(portfolio, sol_price):
             invested_sol = pos.get("invested_sol", SCOUT_SIZE_SOL)
             exit_reason = None
 
-            # Spezifische Exit-Logik je nach Strategie
             if strat_name == "CTO":
                 if peak_pct >= CTO_TRAILING_ACT and (peak_pct - pnl_pct) >= CTO_TRAILING_DIST:
                     exit_reason = f"CTO_TRAILING_TP (+{pnl_pct:.1f}%)"
