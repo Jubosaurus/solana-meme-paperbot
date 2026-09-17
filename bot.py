@@ -195,7 +195,8 @@ def scan_cto(portfolio, sol_price):
         m5_sells = int(pair.get("txns", {}).get("m5", {}).get("sells", 0) or 0)
 
         if m5_change >= 4.0 and m5_buys >= 6 and m5_buys > m5_sells:
-            execute_entry(portfolio, "CTO", token_addr, pair, sol_price, f"Re-Accumulation ({lowest_drawdown:.1f}% Dip, +{m5_change:.1f}% 5m)")
+            reason = f"Re-Accumulation ({lowest_drawdown:.1f}% Dip, +{m5_change:.1f}% 5m)"
+            execute_entry(portfolio, "CTO", token_addr, pair, sol_price, reason)
             break
 
 # --- STRATEGIE B: Smart-Money-Cluster ---
@@ -229,7 +230,7 @@ def scan_smart_money(portfolio, sol_price):
                     pair = res.json()["pairs"][0]
                     w1 = str(cluster[0])[:4]
                     w2 = str(cluster[1])[:4]
-                    reason_msg = f"Cluster ({len(cluster)} Wallets: {w1}.. & {w2}..)"
+                    reason_msg = "Cluster (2+ Wallets: " + w1 + ".. & " + w2 + "..)"
                     execute_entry(portfolio, "SMART_MONEY", token_addr, pair, sol_price, reason_msg)
                     break
             except Exception:
@@ -266,7 +267,8 @@ def scan_curve_scalp(portfolio, sol_price):
             m5_buys = int(pair.get("txns", {}).get("m5", {}).get("buys", 0) or 0)
             m5_sells = int(pair.get("txns", {}).get("m5", {}).get("sells", 0) or 0)
             if m5_buys >= 5 and m5_buys > m5_sells:
-                execute_entry(portfolio, "SCALP_CURVE", token_addr, pair, sol_price, f"Pre-Graduation Curve @ {curve_pct:.1f}%")
+                reason = f"Pre-Graduation Curve @ {curve_pct:.1f}%"
+                execute_entry(portfolio, "SCALP_CURVE", token_addr, pair, sol_price, reason)
                 break
 
 # --- Orderausführung & Discord ---
@@ -277,7 +279,7 @@ def execute_entry(portfolio, strat_name, token_addr, pair, sol_price, reason_des
     dex_name = pair.get("dexId", "DEX").upper()
     mcap = float(pair.get("fdv") or pair.get("marketCap") or 0.0)
     liq = float(pair.get("liquidity", {}).get("usd") or 0.0)
-    pair_url = f"https://dexscreener.com/solana/{pair.get('pairAddress')}"
+    pair_url = "https://dexscreener.com/solana/" + str(pair.get("pairAddress"))
 
     if price_usd <= 0 or price_usd > 1000.0:
         return
@@ -296,16 +298,17 @@ def execute_entry(portfolio, strat_name, token_addr, pair, sol_price, reason_des
         "mcap_at_entry": mcap
     }
 
-    desc = (
-        f"**Strategie:** `{strat_name}` | **Trigger:** {reason_desc}\n"
-        f"**Symbol:** {symbol} ({dex_name})\n"
-        f"**MCap:** ${mcap:,.0f} \vert{} **LP:**${liq:,.0f}\n"
-        f"**Einsatz:** {SCOUT_SIZE_SOL:.4f} SOL @ ${price_usd:.8f}\n"
-        f"-------------------\n"
-        f"[📈 DexScreener Live-Chart]({pair_url})\n"
-        f"💰 **Sub-Bankroll ({strat_name}):** {strat['bankroll_sol']:.4f} SOL\n"
+    desc_lines = [
+        f"**Strategie:** `{strat_name}` | **Trigger:** {reason_desc}",
+        f"**Symbol:** {symbol} ({dex_name})",
+        f"**MCap:** ${mcap:,.0f} \vert{} **LP:**${liq:,.0f}",
+        f"**Einsatz:** {SCOUT_SIZE_SOL:.4f} SOL @ ${price_usd:.8f}",
+        "-------------------",
+        f"[📈 DexScreener Live-Chart]({pair_url})",
+        f"💰 **Sub-Bankroll ({strat_name}):** {strat['bankroll_sol']:.4f} SOL",
         f"📊 **Strategie-Stats:** {get_strat_stats(strat)}"
-    )
+    ]
+    desc = "\n".join(desc_lines)
 
     send_discord_raw(f"🎯 [{strat_name}] Entry: {symbol}", desc, 0x3B82F6)
     save_portfolio(portfolio)
@@ -378,15 +381,16 @@ def manage_strategy_positions(portfolio, sol_price):
                     strat["losses"] += 1
                     color = 0xEF4444
 
-                desc = (
-                    f"**Strategie:** `{strat_name}` | {exit_reason}\n"
-                    f"**Net PnL:** {pnl_sol:+.4f} SOL ({pnl_usd:+.2f} USD)\n"
-                    f"**Peak Gain:** +{peak_pct:.1f}%\n"
-                    f"-------------------\n"
-                    f"[📈 DexScreener Live-Chart]({pos.get('url')})\n"
-                    f"💰 **Sub-Bankroll ({strat_name}):** {strat['bankroll_sol']:.4f} SOL\n"
+                desc_lines = [
+                    f"**Strategie:** `{strat_name}` | {exit_reason}",
+                    f"**Net PnL:** {pnl_sol:+.4f} SOL ({pnl_usd:+.2f} USD)",
+                    f"**Peak Gain:** +{peak_pct:.1f}%",
+                    "-------------------",
+                    f"[📈 DexScreener Live-Chart]({pos.get('url')})",
+                    f"💰 **Sub-Bankroll ({strat_name}):** {strat['bankroll_sol']:.4f} SOL",
                     f"📊 **Strategie-Stats:** {get_strat_stats(strat)}"
-                )
+                ]
+                desc = "\n".join(desc_lines)
 
                 send_discord_raw(f"Trade Closed: [{strat_name}] {pos['symbol']}", desc, color)
                 closed.append({
