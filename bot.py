@@ -8,14 +8,12 @@ from datetime import datetime, timezone
 PORTFOLIO_FILE = "portfolio.json"
 DISCORD_WEBHOOK_URL = os.environ.get("DISCORD_WEBHOOK_URL")
 
-# --- Allokation & Standard-Settings ---
 SCOUT_SIZE_SOL = 0.20
 SIMULATED_FEE_SOL = 0.002
 MAX_POSITIONS_PER_STRATEGY = 3
 TOKEN_COOLDOWN_MINUTES = 120
 
-# --- Strategie-Parameter ---
-# A: CTO (Re-Accumulation)
+# A: CTO Settings
 CTO_MIN_AGE_HOURS = 2.0
 CTO_MAX_AGE_HOURS = 48.0
 CTO_MIN_DRAWDOWN = -85.0
@@ -24,29 +22,12 @@ CTO_SL_PCT = -15.0
 CTO_TRAILING_ACT = 35.0
 CTO_TRAILING_DIST = 15.0
 
-# B: Smart Money Cluster (Wallets aus CSV)
-SMART_WALLETS = [
-    "CGy6Z4evgJpCtTr3DC3gCBfg9DoeY4fkUCMrEQT1n14n",
-    "7izn9Mu6ByyCuEp9iKrAwKdTxVbaAi2eZYb46Lzg3mSX",
-    "FM6gN6jiak7SGGcvFgcTWAwtFDs36J2ifsxdyRayt8yL",
-    "4fNfqPTH94RibhKKsn5WyM3q8ojwWsv9W2AyJWnfVWK8",
-    "4JswK49JB9YqVpJNTWsVYDStWScy9EpSzpZj7fXdsM7n",
-    "64UKSJodQoMaNTcrxERMHUWkiLC91ketTYU3CGWj4jo8",
-    "75p4RCsojEidqKahaGzqzogxfoQHZ2M83WDaKgXaRtzE",
-    "E4mSDt9wL8faNQxXthVLn4ECToQAci5M9fgn7qPeehWX",
-    "DPWaEfayi7CbqCkgre6wGdTumscDxLpt8LuSTL2GkDnV",
-    "AAVQVaEuESYjtiFaE2eEpansBkHLktqf9RgbU9SQMA33",
-    "Hpm5Kvf1opeJ9WLAf9HebHgU5quamVwmQx8tmVTrW7TY",
-    "fKCj7ujBZaAoJjdx873pVYQwZEZmyz3qqCYCSHi4TcN",
-    "6tZ1hYnnHm3dPP5UJs3B9cFJ45VNMuESYhowv4LNP2gt",
-    "G2ojGGZ8LZLBchuSvVJvygaRJkwTPbMYwUnPr9V3ioAp",
-    "B1fpnXtcF4AM7fy3dYbgVhb6N3x2XGPdh3FdQFZCk472"
-]
+# B: Smart Money
 SM_SL_PCT = -20.0
 SM_TRAILING_ACT = 40.0
 SM_TRAILING_DIST = 15.0
 
-# C: Pre-Graduation Scalp
+# C: Scalp Curve
 SCALP_MIN_CURVE = 84.0
 SCALP_MAX_CURVE = 93.0
 SCALP_TARGET_TP = 25.0
@@ -142,7 +123,6 @@ def get_strat_stats(strat_data):
     wr = (w / tot * 100.0) if tot > 0 else 0.0
     return f"{w}W / {l}L ({wr:.1f}%)"
 
-# --- STRATEGIE A: CTO / Re-Accumulation ---
 def scan_cto(portfolio, sol_price):
     strat = portfolio["strategies"]["CTO"]
     if len(strat["open_positions"]) >= MAX_POSITIONS_PER_STRATEGY or strat["bankroll_sol"] < SCOUT_SIZE_SOL:
@@ -198,7 +178,6 @@ def scan_cto(portfolio, sol_price):
             execute_entry(portfolio, "CTO", token_addr, pair, sol_price, reason)
             break
 
-# --- STRATEGIE B: Smart-Money-Cluster ---
 def scan_smart_money(portfolio, sol_price):
     strat = portfolio["strategies"]["SMART_MONEY"]
     if len(strat["open_positions"]) >= MAX_POSITIONS_PER_STRATEGY or strat["bankroll_sol"] < SCOUT_SIZE_SOL:
@@ -235,7 +214,6 @@ def scan_smart_money(portfolio, sol_price):
             except Exception:
                 continue
 
-# --- STRATEGIE C: Pre-Graduation Scalp ---
 def scan_curve_scalp(portfolio, sol_price):
     strat = portfolio["strategies"]["SCALP_CURVE"]
     if len(strat["open_positions"]) >= MAX_POSITIONS_PER_STRATEGY or strat["bankroll_sol"] < SCOUT_SIZE_SOL:
@@ -270,7 +248,6 @@ def scan_curve_scalp(portfolio, sol_price):
                 execute_entry(portfolio, "SCALP_CURVE", token_addr, pair, sol_price, reason)
                 break
 
-# --- Orderausführung & Discord ---
 def execute_entry(portfolio, strat_name, token_addr, pair, sol_price, reason_desc):
     strat = portfolio["strategies"][strat_name]
     symbol = pair.get("baseToken", {}).get("symbol", "TOKEN").upper()
@@ -278,7 +255,7 @@ def execute_entry(portfolio, strat_name, token_addr, pair, sol_price, reason_des
     dex_name = pair.get("dexId", "DEX").upper()
     mcap = float(pair.get("fdv") or pair.get("marketCap") or 0.0)
     liq = float(pair.get("liquidity", {}).get("usd") or 0.0)
-    pair_url = f"https://dexscreener.com/solana/{pair.get('pairAddress')}"
+    pair_url = "https://dexscreener.com/solana/" + str(pair.get("pairAddress"))
 
     if price_usd <= 0 or price_usd > 1000.0:
         return
@@ -297,17 +274,16 @@ def execute_entry(portfolio, strat_name, token_addr, pair, sol_price, reason_des
         "mcap_at_entry": mcap
     }
 
-    desc_lines = [
-        f"**Strategie:** `{strat_name}` | **Trigger:** {reason_desc}",
-        f"**Symbol:** {symbol} ({dex_name})",
-        f"**MCap:** ${mcap:,.0f} \vert{} **LP:**${liq:,.0f}",
-        f"**Einsatz:** {SCOUT_SIZE_SOL:.4f} SOL @ ${price_usd:.8f}",
-        "-------------------",
-        f"[📈 DexScreener Live-Chart]({pair_url})",
-        f"💰 **Sub-Bankroll ({strat_name}):** {strat['bankroll_sol']:.4f} SOL",
-        f"📊 **Strategie-Stats:** {get_strat_stats(strat)}"
-    ]
-    desc = "\n".join(desc_lines)
+    desc = (
+        f"**Strategie:** `{strat_name}` | **Trigger:** {reason_desc}\n"
+        f"**Symbol:** {symbol} ({dex_name})\n"
+        f"**MCap:** ${mcap:,.0f} \vert{} **LP:**${liq:,.0f}\n"
+        f"**Einsatz:** {SCOUT_SIZE_SOL:.4f} SOL @ ${price_usd:.8f}\n"
+        f"-------------------\n"
+        f"[DexScreener Live-Chart]({pair_url})\n"
+        f"**Sub-Bankroll:** {strat['bankroll_sol']:.4f} SOL\n"
+        f"**Strategie-Stats:** {get_strat_stats(strat)}"
+    )
 
     send_discord_raw(f"🎯 [{strat_name}] Entry: {symbol}", desc, 0x3B82F6)
     save_portfolio(portfolio)
@@ -380,16 +356,15 @@ def manage_strategy_positions(portfolio, sol_price):
                     strat["losses"] += 1
                     color = 0xEF4444
 
-                desc_lines = [
-                    f"**Strategie:** `{strat_name}` | {exit_reason}",
-                    f"**Net PnL:** {pnl_sol:+.4f} SOL ({pnl_usd:+.2f} USD)",
-                    f"**Peak Gain:** +{peak_pct:.1f}%",
-                    "-------------------",
-                    f"[📈 DexScreener Live-Chart]({pos.get('url')})",
-                    f"💰 **Sub-Bankroll ({strat_name}):** {strat['bankroll_sol']:.4f} SOL",
-                    f"📊 **Strategie-Stats:** {get_strat_stats(strat)}"
-                ]
-                desc = "\n".join(desc_lines)
+                desc = (
+                    f"**Strategie:** `{strat_name}` | {exit_reason}\n"
+                    f"**Net PnL:** {pnl_sol:+.4f} SOL ({pnl_usd:+.2f} USD)\n"
+                    f"**Peak Gain:** +{peak_pct:.1f}%\n"
+                    f"-------------------\n"
+                    f"[DexScreener Live-Chart]({pos.get('url')})\n"
+                    f"**Sub-Bankroll:** {strat['bankroll_sol']:.4f} SOL\n"
+                    f"**Strategie-Stats:** {get_strat_stats(strat)}"
+                )
 
                 send_discord_raw(f"Trade Closed: [{strat_name}] {pos['symbol']}", desc, color)
                 closed.append({
