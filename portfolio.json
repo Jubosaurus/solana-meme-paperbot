@@ -1,23 +1,12 @@
 {
-  "bankroll_total_sol": 14.7858,
+  "bankroll_total_sol": 14.9497,
   "strategies": {
     "CTO": {
-      "bankroll_sol": 4.7858,
+      "bankroll_sol": 4.9497,
       "wins": 2,
-      "losses": 5,
-      "total_fees_sol": 0.014,
-      "open_positions": {
-        "DDkRu4m2BihseXpkdicfMJ8WZHHhHZ8MKKWEnu1aLive": {
-          "symbol": "STREAMED",
-          "dex": "PUMPSWAP",
-          "entry_price": 1.027e-05,
-          "highest_price": 1.073e-05,
-          "entry_time": 1789717261.366576,
-          "invested_sol": 0.2,
-          "url": "https://dexscreener.com/solana/GG6sbtSaRw9Lfh2sRg3DhvfMmS9W5hkoRLrVoBDqTYVi",
-          "mcap_at_entry": 9570.0
-        }
-      },
+      "losses": 6,
+      "total_fees_sol": 0.016,
+      "open_positions": {},
       "closed_positions": [
         {
           "symbol": "LOCKINU",
@@ -74,6 +63,14 @@
           "pnl_sol": -0.0115,
           "exit_reason": "TIMEOUT (-4.8%)",
           "closed_at": "2026-09-18T03:57:00.005374+00:00"
+        },
+        {
+          "symbol": "STREAMED",
+          "strategy": "CTO",
+          "pnl_pct": -17.05,
+          "pnl_sol": -0.0361,
+          "exit_reason": "CTO_HARD_STOP (-17.0%)",
+          "closed_at": "2026-09-18T08:46:21.970666+00:00"
         }
       ]
     },
