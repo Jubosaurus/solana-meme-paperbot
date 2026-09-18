@@ -1,11 +1,11 @@
 {
-  "bankroll_total_sol": 14.5561,
+  "bankroll_total_sol": 14.7215,
   "strategies": {
     "CTO": {
-      "bankroll_sol": 4.5561,
+      "bankroll_sol": 4.7215,
       "wins": 1,
-      "losses": 2,
-      "total_fees_sol": 0.006,
+      "losses": 3,
+      "total_fees_sol": 0.008,
       "open_positions": {
         "9w6XCPQDKpiiuQY6MFBfuawUEpxpbNvsVyLq1RJgjupx": {
           "symbol": "URANUS",
@@ -16,16 +16,6 @@
           "invested_sol": 0.2,
           "url": "https://dexscreener.com/solana/11UR6BRh3TMCMrvk9qM2DSvC1PGEfGn9mnhJDkwhjTM",
           "mcap_at_entry": 33647.0
-        },
-        "DuUbpUi4yJuam1a8LhG3qDxnfRDppeMRTayZyEdQpump": {
-          "symbol": "PIMSY",
-          "dex": "PUMPSWAP",
-          "entry_price": 1.691e-05,
-          "highest_price": 1.985e-05,
-          "entry_time": 1789689899.1768808,
-          "invested_sol": 0.2,
-          "url": "https://dexscreener.com/solana/7yobpLCP2w1n7gbYMWgqBboeoscH5eKRucmoiRYvMkYe",
-          "mcap_at_entry": 15281.0
         }
       },
       "closed_positions": [
@@ -52,6 +42,14 @@
           "pnl_sol": 0.0274,
           "exit_reason": "CTO_TRAILING_TP (+14.7%)",
           "closed_at": "2026-09-18T00:53:35.365524+00:00"
+        },
+        {
+          "symbol": "PIMSY",
+          "strategy": "CTO",
+          "pnl_pct": -16.32,
+          "pnl_sol": -0.0346,
+          "exit_reason": "CTO_HARD_STOP (-16.3%)",
+          "closed_at": "2026-09-18T01:38:27.496208+00:00"
         }
       ]
     },
