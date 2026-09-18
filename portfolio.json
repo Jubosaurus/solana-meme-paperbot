@@ -1,5 +1,5 @@
 {
-  "bankroll_total_sol": 14.7497,
+  "bankroll_total_sol": 14.91,
   "strategies": {
     "CTO": {
       "bankroll_sol": 4.9497,
@@ -83,23 +83,21 @@
       "closed_positions": []
     },
     "SCALP_CURVE": {
-      "bankroll_sol": 4.8,
+      "bankroll_sol": 4.9603,
       "wins": 0,
-      "losses": 0,
-      "total_fees_sol": 0.0,
-      "open_positions": {
-        "9n8rBV1L917EUSVDa9KTX2uMxvPfKZxLLtwKnYs8pump": {
+      "losses": 1,
+      "total_fees_sol": 0.002,
+      "open_positions": {},
+      "closed_positions": [
+        {
           "symbol": "PAIDCAT",
-          "dex": "PUMPSWAP",
-          "entry_price": 5.872e-05,
-          "highest_price": 6.47e-05,
-          "entry_time": 1789740013.2028365,
-          "invested_sol": 0.2,
-          "url": "https://dexscreener.com/solana/83X1pyFkuh2QEaKzeYeaKW5nhJiSkFfVqVUTgeQE2iAd",
-          "mcap_at_entry": 57968.0
+          "strategy": "SCALP_CURVE",
+          "pnl_pct": -18.85,
+          "pnl_sol": -0.0397,
+          "exit_reason": "SCALP_HARD_STOP (-18.9%)",
+          "closed_at": "2026-09-18T15:31:29.813135+00:00"
         }
-      },
-      "closed_positions": []
+      ]
     }
   },
   "trade_history_cooldown": {
