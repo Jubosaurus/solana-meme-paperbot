@@ -1,11 +1,11 @@
 {
-  "bankroll_total_sol": 14.3215,
+  "bankroll_total_sol": 14.4838,
   "strategies": {
     "CTO": {
-      "bankroll_sol": 4.3215,
+      "bankroll_sol": 4.4838,
       "wins": 1,
-      "losses": 3,
-      "total_fees_sol": 0.008,
+      "losses": 4,
+      "total_fees_sol": 0.01,
       "open_positions": {
         "9w6XCPQDKpiiuQY6MFBfuawUEpxpbNvsVyLq1RJgjupx": {
           "symbol": "URANUS",
@@ -26,16 +26,6 @@
           "invested_sol": 0.2,
           "url": "https://dexscreener.com/solana/GVjvA5pTgSpHLYk3H6dGjV5uxSK8GZKqccpUatqq3ZJ5",
           "mcap_at_entry": 13855.0
-        },
-        "FKaJuPmxjYm9u4iDHxdYvA947vbjBQjpevQsBBVLns8z": {
-          "symbol": "TIGRINO",
-          "dex": "PUMPSWAP",
-          "entry_price": 0.0001248,
-          "highest_price": 0.0001248,
-          "entry_time": 1789696625.2448623,
-          "invested_sol": 0.2,
-          "url": "https://dexscreener.com/solana/6boRKYHraYY4JYb3XFJjfdW7eC93hmxxbLzyTEe2iwoc",
-          "mcap_at_entry": 121154.0
         }
       },
       "closed_positions": [
@@ -70,6 +60,14 @@
           "pnl_sol": -0.0346,
           "exit_reason": "CTO_HARD_STOP (-16.3%)",
           "closed_at": "2026-09-18T01:38:27.496208+00:00"
+        },
+        {
+          "symbol": "TIGRINO",
+          "strategy": "CTO",
+          "pnl_pct": -17.87,
+          "pnl_sol": -0.0377,
+          "exit_reason": "CTO_HARD_STOP (-17.9%)",
+          "closed_at": "2026-09-18T02:00:08.695182+00:00"
         }
       ]
     },
