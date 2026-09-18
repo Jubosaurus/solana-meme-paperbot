@@ -1,22 +1,12 @@
 {
-  "bankroll_total_sol": 14.3287,
+  "bankroll_total_sol": 14.5561,
   "strategies": {
     "CTO": {
-      "bankroll_sol": 4.3287,
-      "wins": 0,
+      "bankroll_sol": 4.5561,
+      "wins": 1,
       "losses": 2,
-      "total_fees_sol": 0.004,
+      "total_fees_sol": 0.006,
       "open_positions": {
-        "3M1kURavgnF4WnDNjiyCWUh7nu2S5rkoQk9WY2kS4uaz": {
-          "symbol": "FLOW",
-          "dex": "RAYDIUM",
-          "entry_price": 1.128e-05,
-          "highest_price": 2.111e-05,
-          "entry_time": 1789687314.3605347,
-          "invested_sol": 0.2,
-          "url": "https://dexscreener.com/solana/AwTj3pneHK3YeSCHSXiMLNqCsYuFhscBmaHktgCKZzoG",
-          "mcap_at_entry": 11283.0
-        },
         "9w6XCPQDKpiiuQY6MFBfuawUEpxpbNvsVyLq1RJgjupx": {
           "symbol": "URANUS",
           "dex": "METEORA",
@@ -54,6 +44,14 @@
           "pnl_sol": -0.0378,
           "exit_reason": "CTO_HARD_STOP (-17.9%)",
           "closed_at": "2026-09-17T23:12:33.918517+00:00"
+        },
+        {
+          "symbol": "FLOW",
+          "strategy": "CTO",
+          "pnl_pct": 14.72,
+          "pnl_sol": 0.0274,
+          "exit_reason": "CTO_TRAILING_TP (+14.7%)",
+          "closed_at": "2026-09-18T00:53:35.365524+00:00"
         }
       ]
     },
