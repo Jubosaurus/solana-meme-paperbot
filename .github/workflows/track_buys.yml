@@ -2,27 +2,44 @@ name: Track Smart Wallet Buys
 
 on:
   workflow_dispatch:
-  schedule:
-    - cron: '*/15 * * * *'
+  # Schedule deaktiviert: dupliziert die RPC-Last von bot.py (Strategie B)
+  # und committet alle 15 Minuten processed_txs.json.
+  # Wieder aktivieren, wenn der Airdrop-Filter drin ist und der State
+  # nicht mehr ueber Git laeuft.
+  # schedule:
+  #   - cron: '*/15 * * * *'
+
+concurrency:
+  group: solana-bot-repo
+  cancel-in-progress: false
+
+permissions:
+  contents: write
 
 jobs:
   track:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
+
     steps:
       - name: Checkout Repo
         uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
+          cache: 'pip'
 
       - name: Install Dependencies
-        run: pip install requests
+        run: pip install -r requirements.txt
 
       - name: Run Wallet Tracker
         env:
           PYTHONUNBUFFERED: "1"
           DISCORD_SMART_MONEY_WEBHOOK: ${{ secrets.DISCORD_SMART_MONEY_WEBHOOK }}
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          SOLANA_RPC_URL: ${{ secrets.SOLANA_RPC_URL }}
         run: python track_smart_wallet_buys.py
