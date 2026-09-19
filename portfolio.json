@@ -1,11 +1,11 @@
 {
-  "bankroll_total_sol": 14.5736,
+  "bankroll_total_sol": 14.835,
   "strategies": {
     "CTO": {
-      "bankroll_sol": 4.6133,
-      "wins": 3,
+      "bankroll_sol": 4.8747,
+      "wins": 4,
       "losses": 7,
-      "total_fees_sol": 0.02,
+      "total_fees_sol": 0.022,
       "open_positions": {
         "8pCYnTGuzeLEs5PQkB9pofFrKetSgxySYffCXDwQy8hf": {
           "symbol": "APU",
@@ -16,16 +16,6 @@
           "invested_sol": 0.2,
           "url": "https://dexscreener.com/solana/GkuMtEyn3XzYAB2KDiD3iSmTLvn1HcvkqEeiJVHZ5FjV",
           "mcap_at_entry": 19888.0
-        },
-        "4o5Mxityk8Tet4Gbih2EvPYZmxGxDVuB5eFm4njKte85": {
-          "symbol": "NBTINU",
-          "dex": "RAYDIUM",
-          "entry_price": 2.549e-05,
-          "highest_price": 3.885e-05,
-          "entry_time": 1789785606.606051,
-          "invested_sol": 0.2,
-          "url": "https://dexscreener.com/solana/2kQQNvr2acMhZ1fBT4SuPNFKP61o2C8uQR3xrVfsosxH",
-          "mcap_at_entry": 25496.0
         }
       },
       "closed_positions": [
@@ -108,6 +98,14 @@
           "pnl_sol": -0.0587,
           "exit_reason": "CTO_HARD_STOP (-28.3%)",
           "closed_at": "2026-09-19T03:26:20.048348+00:00"
+        },
+        {
+          "symbol": "NBTINU",
+          "strategy": "CTO",
+          "pnl_pct": 31.7,
+          "pnl_sol": 0.0614,
+          "exit_reason": "CTO_TRAILING_TP (+31.7%)",
+          "closed_at": "2026-09-19T03:27:33.999600+00:00"
         }
       ]
     },
