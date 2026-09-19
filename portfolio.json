@@ -1,12 +1,26 @@
 {
-  "bankroll_total_sol": 15.0728,
+  "bankroll_total_sol": 14.8728,
   "strategies": {
     "CTO": {
-      "bankroll_sol": 7.6125,
+      "bankroll_sol": 7.4125,
       "wins": 6,
       "losses": 11,
       "total_fees_sol": 0.052,
-      "open_positions": {},
+      "open_positions": {
+        "2TqMkSTqMpxACay3j8Cjt7uqUAWTG8HYqwWJ3xmbpump": {
+          "symbol": "XCRYPTO",
+          "dex": "PUMPSWAP",
+          "entry_signal_price": 6.761e-05,
+          "entry_fill_price": 6.930025e-05,
+          "entry_slippage_pct": 2.5,
+          "highest_price": 6.761e-05,
+          "entry_time": 1789839327.359863,
+          "invested_sol": 0.2,
+          "url": "https://dexscreener.com/solana/Dui133EZMfjAJnNxf85hmNzxqF94uopJ8egGLeFr3k68",
+          "mcap_at_entry": 64510.0,
+          "liq_at_entry": 22439.26
+        }
+      },
       "closed_positions": [
         {
           "symbol": "LOCKINU",
@@ -199,7 +213,9 @@
       ]
     }
   },
-  "trade_history_cooldown": {},
+  "trade_history_cooldown": {
+    "2TqMkSTqMpxACay3j8Cjt7uqUAWTG8HYqwWJ3xmbpump": 1789839327.359862
+  },
   "rebalanced_strategies": [
     "SMART_MONEY"
   ]
