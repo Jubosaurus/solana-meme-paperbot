@@ -1,23 +1,12 @@
 {
-  "bankroll_total_sol": 14.71,
+  "bankroll_total_sol": 15.0323,
   "strategies": {
     "CTO": {
-      "bankroll_sol": 4.7497,
-      "wins": 2,
+      "bankroll_sol": 5.072,
+      "wins": 3,
       "losses": 6,
-      "total_fees_sol": 0.016,
-      "open_positions": {
-        "C4proDKqPKSdvTjhi8AGEWtLuea1kKT4k8RCvM9riYPw": {
-          "symbol": "INU",
-          "dex": "RAYDIUM",
-          "entry_price": 3.806e-05,
-          "highest_price": 6.864e-05,
-          "entry_time": 1789774997.2326167,
-          "invested_sol": 0.2,
-          "url": "https://dexscreener.com/solana/EPc3cZ4gZFiRZcapVuhdyeztTwBgNY7TUkchcGke61Sd",
-          "mcap_at_entry": 38064.0
-        }
-      },
+      "total_fees_sol": 0.018,
+      "open_positions": {},
       "closed_positions": [
         {
           "symbol": "LOCKINU",
@@ -82,6 +71,14 @@
           "pnl_sol": -0.0361,
           "exit_reason": "CTO_HARD_STOP (-17.0%)",
           "closed_at": "2026-09-18T08:46:21.970666+00:00"
+        },
+        {
+          "symbol": "INU",
+          "strategy": "CTO",
+          "pnl_pct": 62.14,
+          "pnl_sol": 0.1223,
+          "exit_reason": "CTO_TRAILING_TP (+62.1%)",
+          "closed_at": "2026-09-19T01:14:01.117550+00:00"
         }
       ]
     },
