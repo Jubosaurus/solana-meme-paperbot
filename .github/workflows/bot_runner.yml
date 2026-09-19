@@ -5,9 +5,14 @@ on:
   schedule:
     - cron: '0 */6 * * *'
 
+# Alle Workflows dieses Repos teilen sich eine Group, damit nie zwei
+# gleichzeitig auf main pushen.
 concurrency:
-  group: solana-trading-bot
+  group: solana-bot-repo
   cancel-in-progress: false
+
+permissions:
+  contents: write
 
 jobs:
   run-bot:
@@ -30,7 +35,7 @@ jobs:
       - name: Install Dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install requests
+          pip install -r requirements.txt
 
       - name: Configure Git
         run: |
@@ -38,17 +43,18 @@ jobs:
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git pull origin main --rebase || true
 
-      - name: Run Trading Bot (5 Stunden)
+      - name: Run Trading Bot (Schicht ~5h45)
         env:
+          PYTHONUNBUFFERED: "1"
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
-        run: |
-          python bot.py
+          SOLANA_RPC_URL: ${{ secrets.SOLANA_RPC_URL }}
+        run: python bot.py
 
       - name: Final Backup Push
         if: always()
         run: |
-          git add solana_paper_trades_v2.csv rejected_rugs_tracking.csv || true
-          if git status --porcelain | grep -qE "solana_paper_trades_v2.csv|rejected_rugs_tracking.csv"; then
+          git add portfolio.json rejected_candidates.csv || true
+          if git status --porcelain | grep -qE "portfolio.json|rejected_candidates.csv"; then
             git commit -m "Final Session Push [skip ci]" || true
             git pull origin main --rebase || true
             git push origin main || true
