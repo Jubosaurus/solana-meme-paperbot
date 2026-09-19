@@ -1,22 +1,12 @@
 {
-  "bankroll_total_sol": 14.8332,
+  "bankroll_total_sol": 14.9844,
   "strategies": {
     "CTO": {
-      "bankroll_sol": 4.8729,
+      "bankroll_sol": 5.0241,
       "wins": 5,
-      "losses": 7,
-      "total_fees_sol": 0.024,
+      "losses": 8,
+      "total_fees_sol": 0.026,
       "open_positions": {
-        "8pCYnTGuzeLEs5PQkB9pofFrKetSgxySYffCXDwQy8hf": {
-          "symbol": "APU",
-          "dex": "RAYDIUM",
-          "entry_price": 4.204e-05,
-          "highest_price": 4.722e-05,
-          "entry_time": 1789793698.7901742,
-          "invested_sol": 0.2,
-          "url": "https://dexscreener.com/solana/GkuMtEyn3XzYAB2KDiD3iSmTLvn1HcvkqEeiJVHZ5FjV",
-          "mcap_at_entry": 42043.0
-        },
         "9WZriUAVGezWRY5VJYqN7co2CfSyQm5hQgucTkN8pump": {
           "symbol": "BULLWORLD",
           "dex": "PUMPSWAP",
@@ -124,6 +114,14 @@
           "pnl_sol": 0.1982,
           "exit_reason": "CTO_TRAILING_TP (+100.1%)",
           "closed_at": "2026-09-19T04:02:53.230239+00:00"
+        },
+        {
+          "symbol": "APU",
+          "strategy": "CTO",
+          "pnl_pct": -23.38,
+          "pnl_sol": -0.0488,
+          "exit_reason": "CTO_HARD_STOP (-23.4%)",
+          "closed_at": "2026-09-19T05:43:33.887490+00:00"
         }
       ]
     },
