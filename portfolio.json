@@ -1,11 +1,11 @@
 {
-  "bankroll_total_sol": 14.7513,
+  "bankroll_total_sol": 14.8867,
   "strategies": {
     "CTO": {
-      "bankroll_sol": 7.291,
+      "bankroll_sol": 7.4264,
       "wins": 5,
-      "losses": 9,
-      "total_fees_sol": 0.028,
+      "losses": 10,
+      "total_fees_sol": 0.036,
       "open_positions": {
         "27MR5EYbig1ihc4BoYURSRqEbWdfP9oyA3V7F5LmdUwu": {
           "symbol": "WYNN",
@@ -19,19 +19,6 @@
           "url": "https://dexscreener.com/solana/5GkHNuKQXdchkjQJeYDdP2Ezf4NZVVWVCZ9ToTA3i6YT",
           "mcap_at_entry": 19862.0,
           "liq_at_entry": 12019.31
-        },
-        "DnJeAP7hWjVNTTk1NUaDJ5Aps9qDroSsEMcKBCpSTNK": {
-          "symbol": "PSA10",
-          "dex": "RAYDIUM",
-          "entry_signal_price": 0.0001584,
-          "entry_fill_price": 0.00016235999999999998,
-          "entry_slippage_pct": 2.5,
-          "highest_price": 0.0001644,
-          "entry_time": 1789825965.9651608,
-          "invested_sol": 0.2,
-          "url": "https://dexscreener.com/solana/7Ts6yxxA1YVe6fUeqCgnPD7GfoXZd975wp4DAxw7iEaT",
-          "mcap_at_entry": 158421.0,
-          "liq_at_entry": 36722.93
         }
       },
       "closed_positions": [
@@ -146,6 +133,23 @@
           "pnl_sol": -0.0331,
           "exit_reason": "CTO_HARD_STOP (-15.6%)",
           "closed_at": "2026-09-19T06:09:58.509900+00:00"
+        },
+        {
+          "symbol": "PSA10",
+          "strategy": "CTO",
+          "signal_pnl_pct": -16.48,
+          "real_pnl_pct": -28.29,
+          "entry_signal_price": 0.0001584,
+          "entry_fill_price": 0.00016236,
+          "exit_signal_price": 0.0001323,
+          "exit_fill_price": 0.000116424,
+          "exit_slippage_pct": 12.0,
+          "fees_sol": 0.008,
+          "pnl_sol": -0.0646,
+          "peak_pct": 3.79,
+          "gap_exit": false,
+          "exit_reason": "CTO_HARD_STOP (Signal -16.5%)",
+          "closed_at": "2026-09-19T13:58:54.617277+00:00"
         }
       ]
     },
