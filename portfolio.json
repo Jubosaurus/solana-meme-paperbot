@@ -1,26 +1,12 @@
 {
-  "bankroll_total_sol": 14.8867,
+  "bankroll_total_sol": 15.1349,
   "strategies": {
     "CTO": {
-      "bankroll_sol": 7.4264,
-      "wins": 5,
+      "bankroll_sol": 7.6746,
+      "wins": 6,
       "losses": 10,
-      "total_fees_sol": 0.036,
-      "open_positions": {
-        "27MR5EYbig1ihc4BoYURSRqEbWdfP9oyA3V7F5LmdUwu": {
-          "symbol": "WYNN",
-          "dex": "METEORA",
-          "entry_signal_price": 1.986e-05,
-          "entry_fill_price": 2.0356499999999997e-05,
-          "entry_slippage_pct": 2.5,
-          "highest_price": 4.173e-05,
-          "entry_time": 1789822115.6152945,
-          "invested_sol": 0.2,
-          "url": "https://dexscreener.com/solana/5GkHNuKQXdchkjQJeYDdP2Ezf4NZVVWVCZ9ToTA3i6YT",
-          "mcap_at_entry": 19862.0,
-          "liq_at_entry": 12019.31
-        }
-      },
+      "total_fees_sol": 0.044,
+      "open_positions": {},
       "closed_positions": [
         {
           "symbol": "LOCKINU",
@@ -150,6 +136,23 @@
           "gap_exit": false,
           "exit_reason": "CTO_HARD_STOP (Signal -16.5%)",
           "closed_at": "2026-09-19T13:58:54.617277+00:00"
+        },
+        {
+          "symbol": "WYNN",
+          "strategy": "CTO",
+          "signal_pnl_pct": 49.19,
+          "real_pnl_pct": 28.09,
+          "entry_signal_price": 1.986e-05,
+          "entry_fill_price": 2.03565e-05,
+          "exit_signal_price": 2.963e-05,
+          "exit_fill_price": 2.60744e-05,
+          "exit_slippage_pct": 12.0,
+          "fees_sol": 0.008,
+          "pnl_sol": 0.0482,
+          "peak_pct": 110.12,
+          "gap_exit": false,
+          "exit_reason": "CTO_TRAILING_TP (Signal +49.2%)",
+          "closed_at": "2026-09-19T14:16:30.083702+00:00"
         }
       ]
     },
