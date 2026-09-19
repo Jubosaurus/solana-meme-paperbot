@@ -1,26 +1,12 @@
 {
-  "bankroll_total_sol": 14.8728,
+  "bankroll_total_sol": 15.0078,
   "strategies": {
     "CTO": {
-      "bankroll_sol": 7.4125,
+      "bankroll_sol": 7.5475,
       "wins": 6,
-      "losses": 11,
-      "total_fees_sol": 0.052,
-      "open_positions": {
-        "2TqMkSTqMpxACay3j8Cjt7uqUAWTG8HYqwWJ3xmbpump": {
-          "symbol": "XCRYPTO",
-          "dex": "PUMPSWAP",
-          "entry_signal_price": 6.761e-05,
-          "entry_fill_price": 6.930025e-05,
-          "entry_slippage_pct": 2.5,
-          "highest_price": 7.231e-05,
-          "entry_time": 1789839327.359863,
-          "invested_sol": 0.2,
-          "url": "https://dexscreener.com/solana/Dui133EZMfjAJnNxf85hmNzxqF94uopJ8egGLeFr3k68",
-          "mcap_at_entry": 64510.0,
-          "liq_at_entry": 22439.26
-        }
-      },
+      "losses": 12,
+      "total_fees_sol": 0.06,
+      "open_positions": {},
       "closed_positions": [
         {
           "symbol": "LOCKINU",
@@ -184,6 +170,23 @@
           "gap_exit": false,
           "exit_reason": "CTO_HARD_STOP (Signal -15.0%)",
           "closed_at": "2026-09-19T14:49:27.625065+00:00"
+        },
+        {
+          "symbol": "XCRYPTO",
+          "strategy": "CTO",
+          "signal_pnl_pct": -16.71,
+          "real_pnl_pct": -28.5,
+          "entry_signal_price": 6.761e-05,
+          "entry_fill_price": 6.93002e-05,
+          "exit_signal_price": 5.631e-05,
+          "exit_fill_price": 4.95528e-05,
+          "exit_slippage_pct": 12.0,
+          "fees_sol": 0.008,
+          "pnl_sol": -0.065,
+          "peak_pct": 6.95,
+          "gap_exit": false,
+          "exit_reason": "CTO_HARD_STOP (Signal -16.7%)",
+          "closed_at": "2026-09-19T18:02:13.511290+00:00"
         }
       ]
     },
