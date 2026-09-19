@@ -1,26 +1,12 @@
 {
-  "bankroll_total_sol": 14.9349,
+  "bankroll_total_sol": 15.0728,
   "strategies": {
     "CTO": {
-      "bankroll_sol": 7.4746,
+      "bankroll_sol": 7.6125,
       "wins": 6,
-      "losses": 10,
-      "total_fees_sol": 0.044,
-      "open_positions": {
-        "HhyA8a8hDUgaNpGfFMQhhvqiRjpkRhqvXTsQpayApump": {
-          "symbol": "$MSTONKS",
-          "dex": "PUMPSWAP",
-          "entry_signal_price": 0.0001045,
-          "entry_fill_price": 0.0001071125,
-          "entry_slippage_pct": 2.5,
-          "highest_price": 0.000126,
-          "entry_time": 1789828509.4508967,
-          "invested_sol": 0.2,
-          "url": "https://dexscreener.com/solana/DXLcrcDjiEr8fHvpEnmAdqV435wdpUusHspSAmCUcR7N",
-          "mcap_at_entry": 99723.0,
-          "liq_at_entry": 27813.64
-        }
-      },
+      "losses": 11,
+      "total_fees_sol": 0.052,
+      "open_positions": {},
       "closed_positions": [
         {
           "symbol": "LOCKINU",
@@ -167,6 +153,23 @@
           "gap_exit": false,
           "exit_reason": "CTO_TRAILING_TP (Signal +49.2%)",
           "closed_at": "2026-09-19T14:16:30.083702+00:00"
+        },
+        {
+          "symbol": "$MSTONKS",
+          "strategy": "CTO",
+          "signal_pnl_pct": -15.03,
+          "real_pnl_pct": -27.05,
+          "entry_signal_price": 0.0001045,
+          "entry_fill_price": 0.0001071125,
+          "exit_signal_price": 8.879e-05,
+          "exit_fill_price": 7.81352e-05,
+          "exit_slippage_pct": 12.0,
+          "fees_sol": 0.008,
+          "pnl_sol": -0.0621,
+          "peak_pct": 20.57,
+          "gap_exit": false,
+          "exit_reason": "CTO_HARD_STOP (Signal -15.0%)",
+          "closed_at": "2026-09-19T14:49:27.625065+00:00"
         }
       ]
     },
