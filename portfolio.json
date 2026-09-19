@@ -1,12 +1,26 @@
 {
-  "bankroll_total_sol": 15.1513,
+  "bankroll_total_sol": 14.9513,
   "strategies": {
     "CTO": {
-      "bankroll_sol": 7.691,
+      "bankroll_sol": 7.491,
       "wins": 5,
       "losses": 9,
       "total_fees_sol": 0.028,
-      "open_positions": {},
+      "open_positions": {
+        "27MR5EYbig1ihc4BoYURSRqEbWdfP9oyA3V7F5LmdUwu": {
+          "symbol": "WYNN",
+          "dex": "METEORA",
+          "entry_signal_price": 1.986e-05,
+          "entry_fill_price": 2.0356499999999997e-05,
+          "entry_slippage_pct": 2.5,
+          "highest_price": 1.986e-05,
+          "entry_time": 1789822115.6152945,
+          "invested_sol": 0.2,
+          "url": "https://dexscreener.com/solana/5GkHNuKQXdchkjQJeYDdP2Ezf4NZVVWVCZ9ToTA3i6YT",
+          "mcap_at_entry": 19862.0,
+          "liq_at_entry": 12019.31
+        }
+      },
       "closed_positions": [
         {
           "symbol": "LOCKINU",
@@ -148,7 +162,9 @@
       ]
     }
   },
-  "trade_history_cooldown": {},
+  "trade_history_cooldown": {
+    "27MR5EYbig1ihc4BoYURSRqEbWdfP9oyA3V7F5LmdUwu": 1789822115.6152937
+  },
   "rebalanced_strategies": [
     "SMART_MONEY"
   ]
