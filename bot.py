@@ -258,7 +258,184 @@ def get_sol_usd_price():
     return 100.0
 
 
+
+# ------------------------------------------------------------------ Jupiter API
+
+# Kostenlos, kein Key noetig. lite-api ist der Free-Endpunkt; laut Jupiter-Doku
+# soll er auf api.jup.ag umziehen, deshalb konfigurierbar.
+JUPITER_BASE = os.environ.get("JUPITER_BASE") or "https://lite-api.jup.ag"
+JUPITER_QUOTE_URL = f"{JUPITER_BASE}/swap/v1/quote"
+JUPITER_TOKENS_URL = f"{JUPITER_BASE}/tokens/v2"
+
+JUPITER_ENABLED = True
+JUPITER_TIMEOUT = 6
+JUPITER_TOKEN_CACHE_SECONDS = 120
+JUPITER_MIN_CALL_INTERVAL = 2.5      # Keyless-Limit schonen
+
+# Jupiter liefert Daten, die DexScreener nicht hat: Organic Score, Holder-Zahl,
+# Mint/Freeze-Authority, Top-Holder-Anteil, organisches vs. gesamtes Volumen.
+# Diese werden zunaechst NUR PROTOKOLLIERT, nicht gefiltert. Erst wenn die Daten
+# zeigen, dass sie Trades unterscheiden, werden daraus Filter.
+JUPITER_FILTERS_ACTIVE = False
+
+# Schwellen fuer den spaeteren Einsatz (heute nur zur Einordnung im Log)
+MIN_ORGANIC_SCORE = 30.0
+MIN_ORGANIC_VOLUME_RATIO = 0.05      # organisches / gesamtes Kaufvolumen
+MAX_TOP_HOLDERS_PCT = 40.0
+REQUIRE_AUTHORITIES_DISABLED = True
+
+_jup_token_cache = {}
+_jup_last_call = [0.0]
+JUP_STATS = {"ok": 0, "fail": 0, "quote_ok": 0, "quote_fail": 0}
+
+
+def _jup_throttle():
+    wait = JUPITER_MIN_CALL_INTERVAL - (time.time() - _jup_last_call[0])
+    if wait > 0:
+        time.sleep(wait)
+    _jup_last_call[0] = time.time()
+
+
+def jupiter_token_info(mint):
+    """
+    Token-Daten von Jupiter. Liefert Felder, die DexScreener nicht hat:
+    organicScore, holderCount, audit (Mint/Freeze-Authority, Top-Holder),
+    organisches Volumen je Zeitfenster.
+    """
+    if not JUPITER_ENABLED or not mint:
+        return None
+
+    cached = _jup_token_cache.get(mint)
+    if cached and (time.time() - cached[0]) < JUPITER_TOKEN_CACHE_SECONDS:
+        return cached[1]
+
+    _jup_throttle()
+    data = api_get(f"{JUPITER_TOKENS_URL}/search?query={mint}", timeout=JUPITER_TIMEOUT)
+    if not isinstance(data, list) or not data:
+        JUP_STATS["fail"] += 1
+        return None
+
+    entry = next((t for t in data if t.get("id") == mint), data[0])
+    JUP_STATS["ok"] += 1
+    _jup_token_cache[mint] = (time.time(), entry)
+    return entry
+
+
+def jupiter_metrics(info):
+    """Verdichtet die Jupiter-Antwort auf die Felder, die uns interessieren."""
+    if not isinstance(info, dict):
+        return {}
+
+    audit = info.get("audit") or {}
+    stats5m = info.get("stats5m") or {}
+    stats1h = info.get("stats1h") or {}
+
+    buy_vol = float(stats5m.get("buyVolume") or 0.0)
+    buy_org = float(stats5m.get("buyOrganicVolume") or 0.0)
+    organic_ratio = (buy_org / buy_vol) if buy_vol > 0 else None
+
+    return {
+        "organic_score": info.get("organicScore"),
+        "organic_label": info.get("organicScoreLabel"),
+        "holder_count": info.get("holderCount"),
+        "holder_change_5m": stats5m.get("holderChange"),
+        "holder_change_1h": stats1h.get("holderChange"),
+        "mint_auth_disabled": audit.get("mintAuthorityDisabled"),
+        "freeze_auth_disabled": audit.get("freezeAuthorityDisabled"),
+        "top_holders_pct": audit.get("topHoldersPercentage"),
+        "dev_balance_pct": audit.get("devBalancePercentage"),
+        "dev_mints": audit.get("devMints"),
+        "is_verified": info.get("isVerified"),
+        "organic_buy_ratio_5m": round(organic_ratio, 4) if organic_ratio is not None else None,
+        "num_traders_5m": stats5m.get("numTraders"),
+    }
+
+
+def jupiter_concerns(metrics):
+    """
+    Welche Kriterien waeren verletzt, wenn die Filter aktiv waeren?
+    Gibt eine Liste zurueck - leer heisst unauffaellig.
+    """
+    issues = []
+    if not metrics:
+        return ["KEINE_JUPITER_DATEN"]
+
+    score = metrics.get("organic_score")
+    if score is not None and score < MIN_ORGANIC_SCORE:
+        issues.append(f"ORGANIC_SCORE({score:.0f})")
+
+    ratio = metrics.get("organic_buy_ratio_5m")
+    if ratio is not None and ratio < MIN_ORGANIC_VOLUME_RATIO:
+        issues.append(f"ORGANIC_RATIO({ratio*100:.1f}%)")
+
+    top = metrics.get("top_holders_pct")
+    if top is not None and top > MAX_TOP_HOLDERS_PCT:
+        issues.append(f"TOP_HOLDER({top:.0f}%)")
+
+    if REQUIRE_AUTHORITIES_DISABLED:
+        if metrics.get("mint_auth_disabled") is False:
+            issues.append("MINT_AUTHORITY_AKTIV")
+        if metrics.get("freeze_auth_disabled") is False:
+            issues.append("FREEZE_AUTHORITY_AKTIV")
+
+    return issues
+
+
+def jupiter_quote_slippage(token_mint, sol_lamports, is_sell=False, token_amount=None):
+    """
+    Echte Ausfuehrungsqualitaet statt geschaetzter Slippage.
+
+    Kauf:  SOL -> Token fuer sol_lamports
+    Verkauf: Token -> SOL fuer token_amount (roh)
+    Gibt den Preis-Impact in Prozent zurueck oder None bei Fehlschlag.
+    """
+    if not JUPITER_ENABLED:
+        return None
+
+    if is_sell:
+        if not token_amount:
+            return None
+        params = f"inputMint={token_mint}&outputMint={WSOL_MINT}&amount={int(token_amount)}"
+    else:
+        params = f"inputMint={WSOL_MINT}&outputMint={token_mint}&amount={int(sol_lamports)}"
+
+    _jup_throttle()
+    data = api_get(f"{JUPITER_QUOTE_URL}?{params}&slippageBps=300",
+                   timeout=JUPITER_TIMEOUT)
+
+    if not isinstance(data, dict):
+        JUP_STATS["quote_fail"] += 1
+        return None
+
+    raw = data.get("priceImpactPct")
+    if raw is None:
+        JUP_STATS["quote_fail"] += 1
+        return None
+
+    try:
+        # Jupiter liefert einen Dezimalbruch als String: "0.0001" = 0.01%
+        impact_pct = abs(float(raw)) * 100.0
+    except (TypeError, ValueError):
+        JUP_STATS["quote_fail"] += 1
+        return None
+
+    JUP_STATS["quote_ok"] += 1
+    return min(impact_pct, MAX_SLIPPAGE_PCT)
+
+
+def print_jupiter_health():
+    if sum(JUP_STATS.values()) == 0:
+        return
+    print(f"[JUPITER] token ok={JUP_STATS['ok']} fehler={JUP_STATS['fail']} | "
+          f"quote ok={JUP_STATS['quote_ok']} fehler={JUP_STATS['quote_fail']}")
+
+
 # --------------------------------------------------------------- Handelskosten
+
+def combined_slippage_pct(measured_impact_pct):
+    """DEX-Gebuehr plus gemessener Preis-Impact von Jupiter."""
+    return min(BASE_SWAP_COST_PCT + measured_impact_pct, MAX_SLIPPAGE_PCT)
+
 
 def estimate_slippage_pct(trade_value_usd, liquidity_usd, is_sell=False):
     """
@@ -1053,8 +1230,23 @@ def execute_entry(portfolio, strat_name, token_addr, pair, reason_desc, sol_pric
         return
 
     trade_value_usd = SCOUT_SIZE_SOL * sol_price
-    slippage = estimate_slippage_pct(trade_value_usd, liq, is_sell=False)
+    slippage_est = estimate_slippage_pct(trade_value_usd, liq, is_sell=False)
+
+    # Echter Preis-Impact von Jupiter, Formel nur als Rueckfallebene
+    lamports = int(SCOUT_SIZE_SOL * 1_000_000_000)
+    measured = jupiter_quote_slippage(token_addr, lamports, is_sell=False)
+    if measured is not None:
+        slippage = combined_slippage_pct(measured)
+        slippage_source = "jupiter"
+    else:
+        slippage = slippage_est
+        slippage_source = "formel"
+
     fill_price = signal_price * (1.0 + slippage / 100.0)
+
+    # Jupiter-Tokendaten mitschreiben (noch kein Filter, siehe JUPITER_FILTERS_ACTIVE)
+    jup_metrics = jupiter_metrics(jupiter_token_info(token_addr))
+    jup_issues = jupiter_concerns(jup_metrics)
 
     strat["bankroll_sol"] = round(strat["bankroll_sol"] - SCOUT_SIZE_SOL, 4)
     portfolio.setdefault("trade_history_cooldown", {})[token_addr] = time.time()
@@ -1065,6 +1257,10 @@ def execute_entry(portfolio, strat_name, token_addr, pair, reason_desc, sol_pric
         "entry_signal_price": signal_price,
         "entry_fill_price": fill_price,
         "entry_slippage_pct": round(slippage, 3),
+        "entry_slippage_source": slippage_source,
+        "entry_slippage_formel_pct": round(slippage_est, 3),
+        "jupiter": jup_metrics,
+        "jupiter_issues": jup_issues,
         "highest_price": signal_price,
         "entry_time": time.time(),
         "invested_sol": SCOUT_SIZE_SOL,
@@ -1078,7 +1274,14 @@ def execute_entry(portfolio, strat_name, token_addr, pair, reason_desc, sol_pric
         f"**Symbol:** {symbol} ({dex_name})\n"
         f"**MCap:** ${mcap:,.0f} | **LP:** ${liq:,.0f}\n"
         f"**Signal-Kurs:** ${signal_price:.8f}\n"
-        f"**Sim. Fill:** ${fill_price:.8f} (+{slippage:.2f}% aus LP-Tiefe)\n"
+        f"**Sim. Fill:** ${fill_price:.8f} (+{slippage:.2f}%, Quelle: {slippage_source})\n"
+        + (f"**Jupiter:** Score {jup_metrics.get('organic_score') or 0:.0f} | "
+           f"Holder {jup_metrics.get('holder_count') or 0:,} | "
+           f"Top10 {jup_metrics.get('top_holders_pct') or 0:.0f}%\n"
+           if jup_metrics else "")
+        + (f"⚠️ **Jupiter-Auffaelligkeiten:** {', '.join(jup_issues)}\n"
+           if jup_issues else "")
+        +
         f"**Einsatz:** {SCOUT_SIZE_SOL:.4f} SOL (~${trade_value_usd:,.0f})\n"
         f"-------------------\n"
         f"[DexScreener Live-Chart]({pair_url})\n"
@@ -1130,13 +1333,31 @@ def close_position(portfolio, strat_name, pos, signal_pnl_pct, peak_pct,
 
     if dead_token or exit_signal_price <= 0 or entry_fill <= 0:
         exit_slippage = MAX_SLIPPAGE_PCT
+        exit_slippage_est = MAX_SLIPPAGE_PCT
+        exit_slippage_source = "dead_token"
         exit_fill_price = 0.0
         real_pnl_pct = -100.0
     else:
         # Positionswert zum Ausstiegszeitpunkt, nicht der Einstiegswert
         position_value_usd = invested_sol * sol_price * (1.0 + signal_pnl_pct / 100.0)
-        exit_slippage = estimate_slippage_pct(position_value_usd, exit_liq_usd,
-                                              is_sell=True)
+        exit_slippage_est = estimate_slippage_pct(position_value_usd, exit_liq_usd,
+                                                  is_sell=True)
+
+        # Gegenprobe ueber Jupiter: Was wuerde ein Verkauf dieser Groesse kosten?
+        # Naeherung ueber den SOL-Gegenwert, da wir die Token-Menge nicht halten.
+        sell_lamports = int(invested_sol * (1.0 + signal_pnl_pct / 100.0)
+                            * 1_000_000_000)
+        measured_exit = None
+        if token_addr and sell_lamports > 0:
+            measured_exit = jupiter_quote_slippage(token_addr, sell_lamports,
+                                                   is_sell=False)
+        if measured_exit is not None:
+            exit_slippage = min(combined_slippage_pct(measured_exit)
+                                * SELL_SLIPPAGE_FACTOR, MAX_SLIPPAGE_PCT)
+            exit_slippage_source = "jupiter"
+        else:
+            exit_slippage = exit_slippage_est
+            exit_slippage_source = "formel"
         exit_fill_price = exit_signal_price * (1.0 - exit_slippage / 100.0)
         real_pnl_pct = min(((exit_fill_price - entry_fill) / entry_fill) * 100.0,
                            MAX_PNL_PCT)
@@ -1166,7 +1387,8 @@ def close_position(portfolio, strat_name, pos, signal_pnl_pct, peak_pct,
         f"**Signal-PnL:** {signal_pnl_pct:+.1f}% | "
         f"**Real:** {real_pnl_pct:+.1f}%\n"
         f"**Slippage:** Kauf {pos.get('entry_slippage_pct', 0):.2f}% / "
-        f"Verkauf {exit_slippage:.2f}% (LP ${exit_liq_usd:,.0f})\n"
+        f"Verkauf {exit_slippage:.2f}% ({exit_slippage_source}, "
+        f"Formel {exit_slippage_est:.2f}%)\n"
         f"**Net PnL:** {pnl_sol:+.4f} SOL ({pnl_usd:+.2f} USD, inkl. "
         f"{SIMULATED_FEE_SOL:.4f} SOL Fees)\n"
         f"**Peak (Signal):** {peak_pct:+.1f}%\n"
@@ -1196,6 +1418,12 @@ def close_position(portfolio, strat_name, pos, signal_pnl_pct, peak_pct,
         "exit_signal_price": round(exit_signal_price, 12),
         "exit_fill_price": round(exit_fill_price, 12),
         "exit_slippage_pct": round(exit_slippage, 3),
+        "exit_slippage_formel_pct": round(exit_slippage_est, 3),
+        "exit_slippage_source": exit_slippage_source,
+        "entry_slippage_source": pos.get("entry_slippage_source"),
+        "entry_slippage_formel_pct": pos.get("entry_slippage_formel_pct"),
+        "jupiter": pos.get("jupiter"),
+        "jupiter_issues": pos.get("jupiter_issues"),
         "liq_at_entry": pos.get("liq_at_entry"),
         "liq_at_exit": round(exit_liq_usd, 0),
         "fees_sol": SIMULATED_FEE_SOL,
@@ -1320,6 +1548,7 @@ def run_loop():
             if loop_count % 10 == 0:
                 print_scan_diagnostics(sol_price)
                 print_rpc_health()
+                print_jupiter_health()
         except Exception as err:
             print(f"[LOOP ERROR] {err}")
 
