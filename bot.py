@@ -133,6 +133,26 @@ REJECT_LOG_HEADERS = [
 REJECT_LIQ_CHANGE_PCT = 10.0
 REJECT_REPEAT_AFTER_SECONDS = 1800
 
+# ------------------------------------------------------------ Shadow-Tracking
+
+# Verfolgt, was aus abgelehnten Kandidaten UND aus geschlossenen Positionen
+# wird. Beantwortet zwei Fragen, die das Portfolio allein nicht beantwortet:
+#   1. Sind die Filter zu eng? (laufen abgelehnte Kandidaten besser als gekaufte?)
+#   2. Steigen wir zu frueh aus? (laeuft der Token nach dem Exit weiter?)
+SHADOW_ENABLED = True
+SHADOW_STATE_FILE = "shadow_candidates.json"
+SHADOW_RESULT_FILE = "shadow_results.csv"
+SHADOW_CHECKPOINTS_HOURS = (1.0, 4.0)
+SHADOW_MAX_TRACKED = 60
+SHADOW_BATCH_SIZE = 30          # DexScreener erlaubt 30 Adressen pro Abfrage
+SHADOW_GRACE_HOURS = 2.0        # Puffer, bevor ein Kandidat verworfen wird
+
+SHADOW_RESULT_HEADERS = [
+    "timestamp", "source", "strategy", "symbol", "token_address",
+    "reason", "checkpoint_h", "ref_price_usd", "now_price_usd",
+    "change_pct", "ref_liq_usd", "now_liq_usd"
+]
+
 # In-Memory State
 wallet_buy_tracker = {}
 last_seen_tx_per_wallet = {}
@@ -309,10 +329,15 @@ def should_log_rejection(token_addr, reason_key, liquidity_usd):
 
 
 def log_rejection(strategy, pair, token_addr, reason, reason_key,
-                  curve_pct=None, drawdown_pct=None):
+                  curve_pct=None, drawdown_pct=None, shadow_state=None):
     liq = pair_liquidity_usd(pair)
     if not should_log_rejection(token_addr, reason_key, liq):
         return
+
+    if shadow_state is not None:
+        shadow_register(shadow_state, token_addr, pair_symbol(pair), strategy,
+                        "REJECT", reason_key,
+                        float(pair.get("priceUsd") or 0.0), liq)
 
     try:
         m5_buys, m5_sells = pair_txns_m5(pair)
@@ -370,7 +395,7 @@ def print_rpc_health():
 
 # ----------------------------------------------------------------- Pool-Pruefung
 
-def pool_quality_ok(strategy, pair, token_addr):
+def pool_quality_ok(strategy, pair, token_addr, shadow_state=None):
     liq = pair_liquidity_usd(pair)
     fdv = pair_mcap(pair)
     vol = pair_vol_h24(pair)
@@ -378,23 +403,191 @@ def pool_quality_ok(strategy, pair, token_addr):
     if liq < MIN_LIQUIDITY_USD:
         note("pool_liq_zu_niedrig")
         log_rejection(strategy, pair, token_addr,
-                      f"LIQ_ZU_NIEDRIG ({liq:.0f} USD)", "liq")
+                      f"LIQ_ZU_NIEDRIG ({liq:.0f} USD)", "liq", shadow_state=shadow_state)
         return False
 
     if vol < MIN_VOL_H24_USD:
         note("pool_vol_zu_niedrig")
         log_rejection(strategy, pair, token_addr,
-                      f"VOL24H_ZU_NIEDRIG ({vol:.0f} USD)", "vol")
+                      f"VOL24H_ZU_NIEDRIG ({vol:.0f} USD)", "vol", shadow_state=shadow_state)
         return False
 
     if fdv > 0 and (liq / fdv) < MIN_LIQ_TO_FDV_RATIO:
         ratio = (liq / fdv) * 100.0
         note("pool_liq_fdv_ratio")
         log_rejection(strategy, pair, token_addr,
-                      f"LIQ_FDV_RATIO ({ratio:.2f}%)", "ratio")
+                      f"LIQ_FDV_RATIO ({ratio:.2f}%)", "ratio", shadow_state=shadow_state)
         return False
 
     return True
+
+
+# ------------------------------------------------------------ Shadow-Tracking
+
+def init_shadow_files():
+    if not SHADOW_ENABLED:
+        return
+    if not os.path.exists(SHADOW_RESULT_FILE):
+        try:
+            with open(SHADOW_RESULT_FILE, "w", newline="", encoding="utf-8") as f:
+                csv.writer(f).writerow(SHADOW_RESULT_HEADERS)
+        except Exception as err:
+            print(f"[SHADOW ERROR] {err}")
+
+
+def load_shadow_state():
+    if os.path.exists(SHADOW_STATE_FILE):
+        try:
+            with open(SHADOW_STATE_FILE, "r", encoding="utf-8") as f:
+                data = json.load(f)
+            if isinstance(data, dict) and isinstance(data.get("candidates"), dict):
+                return data
+        except Exception as err:
+            print(f"[SHADOW LOAD ERROR] {err}")
+    return {"candidates": {}}
+
+
+def save_shadow_state(state):
+    try:
+        tmp = SHADOW_STATE_FILE + ".tmp"
+        with open(tmp, "w", encoding="utf-8") as f:
+            json.dump(state, f, indent=2)
+        os.replace(tmp, SHADOW_STATE_FILE)
+    except Exception as err:
+        print(f"[SHADOW SAVE ERROR] {err}")
+
+
+def shadow_register(state, token_addr, symbol, strategy, source, reason,
+                    ref_price, ref_liq):
+    """Nimmt einen Kandidaten zur Nachverfolgung auf."""
+    if not SHADOW_ENABLED or not token_addr or ref_price <= 0:
+        return
+    candidates = state.setdefault("candidates", {})
+    if token_addr in candidates:
+        return
+    if len(candidates) >= SHADOW_MAX_TRACKED:
+        return
+
+    candidates[token_addr] = {
+        "symbol": symbol,
+        "strategy": strategy,
+        "source": source,
+        "reason": reason,
+        "ref_price": ref_price,
+        "ref_liq": ref_liq,
+        "ref_time": time.time(),
+        "pending": list(SHADOW_CHECKPOINTS_HOURS)
+    }
+
+
+def shadow_due_tokens(state):
+    """Kandidaten, deren naechster Messpunkt erreicht ist."""
+    now = time.time()
+    due = []
+    for addr, entry in state.get("candidates", {}).items():
+        pending = entry.get("pending") or []
+        if not pending:
+            continue
+        age_hours = (now - float(entry.get("ref_time", now))) / 3600.0
+        if age_hours >= min(pending):
+            due.append(addr)
+        if len(due) >= SHADOW_BATCH_SIZE:
+            break
+    return due
+
+
+def fetch_pairs_batch(token_addrs):
+    """Ein Aufruf fuer bis zu 30 Token. Gibt {token_addr: bestes Pair} zurueck."""
+    if not token_addrs:
+        return {}
+    url = ("https://api.dexscreener.com/tokens/v1/solana/"
+           + ",".join(token_addrs[:SHADOW_BATCH_SIZE]))
+    data = api_get(url, timeout=8)
+
+    pairs = data if isinstance(data, list) else (data or {}).get("pairs") or []
+    best = {}
+    for pair in pairs:
+        addr = (pair.get("baseToken") or {}).get("address")
+        if not addr:
+            continue
+        if addr not in best or pair_liquidity_usd(pair) > pair_liquidity_usd(best[addr]):
+            best[addr] = pair
+    return best
+
+
+def shadow_write_result(entry, addr, checkpoint, now_price, now_liq):
+    ref_price = float(entry.get("ref_price") or 0.0)
+    change = ((now_price - ref_price) / ref_price * 100.0) if ref_price > 0 else 0.0
+    try:
+        with open(SHADOW_RESULT_FILE, "a", newline="", encoding="utf-8") as f:
+            csv.writer(f).writerow([
+                datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S"),
+                entry.get("source", ""),
+                entry.get("strategy", ""),
+                entry.get("symbol", ""),
+                addr,
+                entry.get("reason", ""),
+                f"{checkpoint:.1f}",
+                f"{ref_price:.12f}",
+                f"{now_price:.12f}",
+                f"{change:+.2f}",
+                f"{float(entry.get('ref_liq') or 0.0):.0f}",
+                f"{now_liq:.0f}",
+            ])
+    except Exception as err:
+        print(f"[SHADOW ERROR] {err}")
+    return change
+
+
+def process_shadow_tracking(state):
+    """Misst faellige Kandidaten und raeumt abgelaufene auf."""
+    if not SHADOW_ENABLED:
+        return
+
+    candidates = state.setdefault("candidates", {})
+    now = time.time()
+
+    # Abgelaufene Kandidaten verwerfen (Token tot oder nie messbar)
+    max_age = (max(SHADOW_CHECKPOINTS_HOURS) + SHADOW_GRACE_HOURS) * 3600.0
+    for addr in [a for a, e in candidates.items()
+                 if (now - float(e.get("ref_time", now))) > max_age]:
+        del candidates[addr]
+
+    due = shadow_due_tokens(state)
+    if not due:
+        return
+
+    found = fetch_pairs_batch(due)
+
+    for addr in due:
+        entry = candidates.get(addr)
+        if not entry:
+            continue
+        pending = entry.get("pending") or []
+        if not pending:
+            continue
+
+        checkpoint = min(pending)
+        age_hours = (now - float(entry.get("ref_time", now))) / 3600.0
+        if age_hours < checkpoint:
+            continue
+
+        pair = found.get(addr)
+        now_price = float(pair.get("priceUsd") or 0.0) if pair else 0.0
+        now_liq = pair_liquidity_usd(pair) if pair else 0.0
+
+        if now_price <= 0:
+            # Kein Kurs mehr: als Totalverlust werten und nicht weiter verfolgen
+            shadow_write_result(entry, addr, checkpoint, 0.0, 0.0)
+            entry["pending"] = []
+        else:
+            shadow_write_result(entry, addr, checkpoint, now_price, now_liq)
+            entry["pending"] = [h for h in pending if h > checkpoint]
+
+        if not entry["pending"]:
+            candidates.pop(addr, None)
+
+    save_shadow_state(state)
 
 
 # ------------------------------------------------------------------- Persistence
@@ -500,7 +693,8 @@ def git_push_state():
                         "github-actions[bot]"], check=False)
         subprocess.run(["git", "config", "--global", "user.email",
                         "github-actions[bot]@users.noreply.github.com"], check=False)
-        subprocess.run(["git", "add", PORTFOLIO_FILE, REJECT_LOG_FILE], check=False)
+        subprocess.run(["git", "add", PORTFOLIO_FILE, REJECT_LOG_FILE,
+                        SHADOW_STATE_FILE, SHADOW_RESULT_FILE], check=False)
         status = subprocess.run(["git", "status", "--porcelain"],
                                 capture_output=True, text=True)
         if status.stdout.strip():
@@ -563,7 +757,7 @@ def is_blocked(portfolio, strat_name, token_addr, now_ts):
 
 # ------------------------------------------------------------------- Strategie A
 
-def scan_cto(portfolio, sol_price):
+def scan_cto(portfolio, sol_price, shadow_state=None):
     if not strategy_can_trade(portfolio, "CTO"):
         return
 
@@ -598,7 +792,7 @@ def scan_cto(portfolio, sol_price):
             note("cto_drawdown_ausserhalb")
             continue
 
-        if not pool_quality_ok("CTO", pair, token_addr):
+        if not pool_quality_ok("CTO", pair, token_addr, shadow_state):
             continue
 
         m5_change = pair_price_change(pair, "m5")
@@ -608,7 +802,7 @@ def scan_cto(portfolio, sol_price):
             note("cto_kein_surge")
             log_rejection("CTO", pair, token_addr,
                           f"KEIN_SURGE (m5 {m5_change:+.1f}%, {m5_buys}B/{m5_sells}S)",
-                          "surge", drawdown_pct=drawdown)
+                          "surge", drawdown_pct=drawdown, shadow_state=shadow_state)
             continue
 
         reason = f"Re-Accumulation ({drawdown:.1f}% Dip, +{m5_change:.1f}% 5m)"
@@ -618,7 +812,7 @@ def scan_cto(portfolio, sol_price):
 
 # ------------------------------------------------------------------- Strategie B
 
-def scan_smart_money(portfolio, sol_price):
+def scan_smart_money(portfolio, sol_price, shadow_state=None):
     if not STRATEGY_ENABLED.get("SMART_MONEY"):
         return
     if not wallet_buy_tracker:
@@ -639,7 +833,7 @@ def scan_smart_money(portfolio, sol_price):
         pair = fetch_best_pair(token_addr)
         if not pair:
             continue
-        if not pool_quality_ok("SMART_MONEY", pair, token_addr):
+        if not pool_quality_ok("SMART_MONEY", pair, token_addr, shadow_state):
             continue
 
         wallets = " und ".join(f"{w[:4]}.." for w, _ in cluster[:SM_MIN_CLUSTER_SIZE])
@@ -800,7 +994,7 @@ def curve_progress_pct(pair, sol_price):
     return min((pair_mcap(pair) / graduation_usd) * 100.0, 100.0)
 
 
-def scan_curve_scalp(portfolio, sol_price):
+def scan_curve_scalp(portfolio, sol_price, shadow_state=None):
     if not strategy_can_trade(portfolio, "SCALP_CURVE"):
         return
 
@@ -828,7 +1022,7 @@ def scan_curve_scalp(portfolio, sol_price):
             note("scalp_curve_ausserhalb")
             continue
 
-        if not pool_quality_ok("SCALP_CURVE", pair, token_addr):
+        if not pool_quality_ok("SCALP_CURVE", pair, token_addr, shadow_state):
             continue
 
         m5_buys, m5_sells = pair_txns_m5(pair)
@@ -836,7 +1030,7 @@ def scan_curve_scalp(portfolio, sol_price):
             note("scalp_kein_momentum")
             log_rejection("SCALP_CURVE", pair, token_addr,
                           f"KEIN_MOMENTUM ({m5_buys}B/{m5_sells}S)",
-                          "momentum", curve_pct=curve_pct)
+                          "momentum", curve_pct=curve_pct, shadow_state=shadow_state)
             continue
 
         reason = f"Pre-Graduation Curve @ {curve_pct:.1f}%"
@@ -929,7 +1123,7 @@ def decide_exit(strat_name, pnl_pct, peak_pct, hold_hours, pair, sol_price):
 
 def close_position(portfolio, strat_name, pos, signal_pnl_pct, peak_pct,
                    exit_signal_price, exit_liq_usd, exit_reason, sol_price,
-                   dead_token=False):
+                   dead_token=False, shadow_state=None, token_addr=None):
     strat = portfolio["strategies"][strat_name]
     invested_sol = float(pos.get("invested_sol", SCOUT_SIZE_SOL))
     entry_fill = float(pos.get("entry_fill_price") or pos.get("entry_signal_price") or 0.0)
@@ -985,6 +1179,12 @@ def close_position(portfolio, strat_name, pos, signal_pnl_pct, peak_pct,
 
     send_discord_raw(f"Trade Closed: [{strat_name}] {pos['symbol']}", desc, color)
 
+    # Weiterverfolgen: laeuft der Token nach unserem Exit noch?
+    if shadow_state is not None and not dead_token and exit_signal_price > 0:
+        shadow_register(shadow_state, token_addr, pos["symbol"], strat_name,
+                        "EXIT", exit_reason.split(" ")[0],
+                        exit_signal_price, exit_liq_usd)
+
     strat["closed_positions"].append({
         "symbol": pos["symbol"],
         "strategy": strat_name,
@@ -1007,7 +1207,7 @@ def close_position(portfolio, strat_name, pos, signal_pnl_pct, peak_pct,
     })
 
 
-def manage_strategy_positions(portfolio, sol_price):
+def manage_strategy_positions(portfolio, sol_price, shadow_state=None):
     for strat_name in STRATEGY_NAMES:
         strat = portfolio["strategies"][strat_name]
         open_pos = strat["open_positions"]
@@ -1039,7 +1239,8 @@ def manage_strategy_positions(portfolio, sol_price):
                                MAX_PNL_PCT)
                 close_position(portfolio, strat_name, pos, signal_pnl, peak_pct,
                                0.0, 0.0, "DEAD_TOKEN_TIMEOUT", sol_price,
-                               dead_token=True)
+                               dead_token=True, shadow_state=shadow_state,
+                               token_addr=addr)
                 to_remove.append(addr)
                 continue
 
@@ -1056,7 +1257,8 @@ def manage_strategy_positions(portfolio, sol_price):
                                       hold_hours, pair, sol_price)
             if exit_reason:
                 close_position(portfolio, strat_name, pos, signal_pnl, peak_pct,
-                               curr_price, curr_liq, exit_reason, sol_price)
+                               curr_price, curr_liq, exit_reason, sol_price,
+                               shadow_state=shadow_state, token_addr=addr)
                 to_remove.append(addr)
 
         for addr in to_remove:
@@ -1072,6 +1274,7 @@ def run_loop():
     loop_count = 0
 
     init_reject_log()
+    init_shadow_files()
 
     active = [n for n in STRATEGY_NAMES if STRATEGY_ENABLED.get(n)]
     inactive = [n for n in STRATEGY_NAMES if not STRATEGY_ENABLED.get(n)]
@@ -1097,11 +1300,17 @@ def run_loop():
             portfolio = load_portfolio()
             rebalance_disabled_strategies(portfolio)
 
-            manage_strategy_positions(portfolio, sol_price)
+            shadow_state = load_shadow_state() if SHADOW_ENABLED else None
+
+            manage_strategy_positions(portfolio, sol_price, shadow_state)
             poll_smart_wallets()
-            scan_cto(portfolio, sol_price)
-            scan_smart_money(portfolio, sol_price)
-            scan_curve_scalp(portfolio, sol_price)
+            scan_cto(portfolio, sol_price, shadow_state)
+            scan_smart_money(portfolio, sol_price, shadow_state)
+            scan_curve_scalp(portfolio, sol_price, shadow_state)
+
+            if shadow_state is not None:
+                process_shadow_tracking(shadow_state)
+                save_shadow_state(shadow_state)
 
             prune_cooldowns(portfolio)
             prune_reject_seen()
