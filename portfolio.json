@@ -1,26 +1,12 @@
 {
-  "bankroll_total_sol": 14.8825,
+  "bankroll_total_sol": 15.1186,
   "strategies": {
     "CTO": {
-      "bankroll_sol": 7.4222,
-      "wins": 7,
+      "bankroll_sol": 7.6583,
+      "wins": 8,
       "losses": 12,
-      "total_fees_sol": 0.068,
-      "open_positions": {
-        "9gaMApmv31oRKEqBmdyooYi5wpzAahi9h85VeHVFUW2Y": {
-          "symbol": "MEMEMAN",
-          "dex": "RAYDIUM",
-          "entry_signal_price": 4.549e-05,
-          "entry_fill_price": 4.6627249999999996e-05,
-          "entry_slippage_pct": 2.5,
-          "highest_price": 7.627e-05,
-          "entry_time": 1789874192.756335,
-          "invested_sol": 0.2,
-          "url": "https://dexscreener.com/solana/CYXdxbm3Qhir7iKiRn6rQyPzJ8qSWNNYJh3WwyNpz1Mg",
-          "mcap_at_entry": 45496.0,
-          "liq_at_entry": 18928.65
-        }
-      },
+      "total_fees_sol": 0.076,
+      "open_positions": {},
       "closed_positions": [
         {
           "symbol": "LOCKINU",
@@ -218,6 +204,23 @@
           "gap_exit": false,
           "exit_reason": "CTO_TRAILING_TP (Signal +64.6%)",
           "closed_at": "2026-09-20T00:33:59.481482+00:00"
+        },
+        {
+          "symbol": "MEMEMAN",
+          "strategy": "CTO",
+          "signal_pnl_pct": 42.19,
+          "real_pnl_pct": 22.07,
+          "entry_signal_price": 4.549e-05,
+          "entry_fill_price": 4.66272e-05,
+          "exit_signal_price": 6.468e-05,
+          "exit_fill_price": 5.69184e-05,
+          "exit_slippage_pct": 12.0,
+          "fees_sol": 0.008,
+          "pnl_sol": 0.0361,
+          "peak_pct": 67.66,
+          "gap_exit": false,
+          "exit_reason": "CTO_TRAILING_TP (Signal +42.2%)",
+          "closed_at": "2026-09-20T04:52:45.244208+00:00"
         }
       ]
     },
