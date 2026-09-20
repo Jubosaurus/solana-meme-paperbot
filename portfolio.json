@@ -1,12 +1,46 @@
 {
-  "bankroll_total_sol": 15.1529,
+  "bankroll_total_sol": 14.9529,
   "strategies": {
     "CTO": {
-      "bankroll_sol": 7.6926,
+      "bankroll_sol": 7.4926,
       "wins": 9,
       "losses": 13,
       "total_fees_sol": 0.082,
-      "open_positions": {},
+      "open_positions": {
+        "sdyKwWzC8EnriZWBBwm8YX25nKGmtQdZAHBEGLUpump": {
+          "symbol": "INU",
+          "dex": "PUMPSWAP",
+          "entry_signal_price": 3.228e-05,
+          "entry_fill_price": 3.350514409982554e-05,
+          "entry_slippage_pct": 3.795,
+          "entry_slippage_source": "jupiter",
+          "entry_slippage_formel_pct": 0.595,
+          "jupiter": {
+            "organic_score": 70.38659469139137,
+            "organic_label": "medium",
+            "holder_count": 1016,
+            "holder_change_5m": -0.39215686274509803,
+            "holder_change_1h": -4.779756326148079,
+            "mint_auth_disabled": true,
+            "freeze_auth_disabled": true,
+            "top_holders_pct": 21.36051989688247,
+            "dev_balance_pct": null,
+            "dev_mints": 2795,
+            "is_verified": null,
+            "organic_buy_ratio_5m": 0.0,
+            "num_traders_5m": 14
+          },
+          "jupiter_issues": [
+            "ORGANIC_RATIO(0.0%)"
+          ],
+          "highest_price": 3.228e-05,
+          "entry_time": 1789929913.2444034,
+          "invested_sol": 0.2,
+          "url": "https://dexscreener.com/solana/EkFd3k5DYdwqf4zmoqeUxgB1sG8jqVyT4DmAAyuMhKjU",
+          "mcap_at_entry": 29644.0,
+          "liq_at_entry": 14846.0
+        }
+      },
       "closed_positions": [
         {
           "symbol": "LOCKINU",
@@ -318,7 +352,9 @@
       ]
     }
   },
-  "trade_history_cooldown": {},
+  "trade_history_cooldown": {
+    "sdyKwWzC8EnriZWBBwm8YX25nKGmtQdZAHBEGLUpump": 1789929913.2444005
+  },
   "rebalanced_strategies": [
     "SMART_MONEY"
   ]
