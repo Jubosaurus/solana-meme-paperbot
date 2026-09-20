@@ -1,12 +1,26 @@
 {
-  "bankroll_total_sol": 15.0825,
+  "bankroll_total_sol": 14.8825,
   "strategies": {
     "CTO": {
-      "bankroll_sol": 7.6222,
+      "bankroll_sol": 7.4222,
       "wins": 7,
       "losses": 12,
       "total_fees_sol": 0.068,
-      "open_positions": {},
+      "open_positions": {
+        "9gaMApmv31oRKEqBmdyooYi5wpzAahi9h85VeHVFUW2Y": {
+          "symbol": "MEMEMAN",
+          "dex": "RAYDIUM",
+          "entry_signal_price": 4.549e-05,
+          "entry_fill_price": 4.6627249999999996e-05,
+          "entry_slippage_pct": 2.5,
+          "highest_price": 4.549e-05,
+          "entry_time": 1789874192.756335,
+          "invested_sol": 0.2,
+          "url": "https://dexscreener.com/solana/CYXdxbm3Qhir7iKiRn6rQyPzJ8qSWNNYJh3WwyNpz1Mg",
+          "mcap_at_entry": 45496.0,
+          "liq_at_entry": 18928.65
+        }
+      },
       "closed_positions": [
         {
           "symbol": "LOCKINU",
@@ -233,7 +247,9 @@
       ]
     }
   },
-  "trade_history_cooldown": {},
+  "trade_history_cooldown": {
+    "9gaMApmv31oRKEqBmdyooYi5wpzAahi9h85VeHVFUW2Y": 1789874192.7563343
+  },
   "rebalanced_strategies": [
     "SMART_MONEY"
   ]
