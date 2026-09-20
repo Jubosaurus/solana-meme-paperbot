@@ -1,26 +1,12 @@
 {
-  "bankroll_total_sol": 14.9186,
+  "bankroll_total_sol": 15.2012,
   "strategies": {
     "CTO": {
-      "bankroll_sol": 7.4583,
-      "wins": 8,
+      "bankroll_sol": 7.7409,
+      "wins": 9,
       "losses": 12,
-      "total_fees_sol": 0.076,
-      "open_positions": {
-        "7dWfisegCRAaTcWN2WHvf6G6GiMLPZm7vktV7fetpump": {
-          "symbol": "BUYBACK",
-          "dex": "PUMPSWAP",
-          "entry_signal_price": 2.126e-05,
-          "entry_fill_price": 2.1399903754083953e-05,
-          "entry_slippage_pct": 0.658,
-          "highest_price": 3.526e-05,
-          "entry_time": 1789902205.2070136,
-          "invested_sol": 0.2,
-          "url": "https://dexscreener.com/solana/ACJy2hJd1n9vCJMUmRuDgkfwLUjUVQB5Z4MUmwFEkxtB",
-          "mcap_at_entry": 18643.0,
-          "liq_at_entry": 12059.4
-        }
-      },
+      "total_fees_sol": 0.079,
+      "open_positions": {},
       "closed_positions": [
         {
           "symbol": "LOCKINU",
@@ -235,6 +221,32 @@
           "gap_exit": false,
           "exit_reason": "CTO_TRAILING_TP (Signal +42.2%)",
           "closed_at": "2026-09-20T04:52:45.244208+00:00"
+        },
+        {
+          "symbol": "BUYBACK",
+          "strategy": "CTO",
+          "signal_pnl_pct": 47.18,
+          "real_pnl_pct": 42.8,
+          "entry_signal_price": 2.126e-05,
+          "entry_fill_price": 2.1399904e-05,
+          "entry_slippage_pct": 0.658,
+          "exit_signal_price": 3.129e-05,
+          "exit_fill_price": 3.0559496e-05,
+          "exit_slippage_pct": 2.335,
+          "exit_slippage_formel_pct": 0.929,
+          "exit_slippage_source": "jupiter",
+          "entry_slippage_source": null,
+          "entry_slippage_formel_pct": null,
+          "jupiter": null,
+          "jupiter_issues": null,
+          "liq_at_entry": 12059.4,
+          "liq_at_exit": 15180.0,
+          "fees_sol": 0.003,
+          "pnl_sol": 0.0826,
+          "peak_pct": 65.85,
+          "gap_exit": false,
+          "exit_reason": "CTO_TRAILING_TP (Signal +47.2%)",
+          "closed_at": "2026-09-20T11:43:54.852569+00:00"
         }
       ]
     },
