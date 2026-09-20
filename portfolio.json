@@ -1,12 +1,46 @@
 {
-  "bankroll_total_sol": 15.0909,
+  "bankroll_total_sol": 14.8909,
   "strategies": {
     "CTO": {
-      "bankroll_sol": 7.6306,
+      "bankroll_sol": 7.4306,
       "wins": 9,
       "losses": 14,
       "total_fees_sol": 0.085,
-      "open_positions": {},
+      "open_positions": {
+        "8oopSSqdoBu89mxXusBe3njEXsFfUMzD9T7vY9SuM449": {
+          "symbol": "SWOGE",
+          "dex": "RAYDIUM",
+          "entry_signal_price": 8.52e-05,
+          "entry_fill_price": 9.235829165097468e-05,
+          "entry_slippage_pct": 8.402,
+          "entry_slippage_source": "jupiter",
+          "entry_slippage_formel_pct": 0.481,
+          "jupiter": {
+            "organic_score": 60.73465112794782,
+            "organic_label": "medium",
+            "holder_count": 294,
+            "holder_change_5m": 1.0309278350515463,
+            "holder_change_1h": -0.3389830508474576,
+            "mint_auth_disabled": true,
+            "freeze_auth_disabled": true,
+            "top_holders_pct": 22.206139702229564,
+            "dev_balance_pct": null,
+            "dev_mints": 1,
+            "is_verified": null,
+            "organic_buy_ratio_5m": 0.0,
+            "num_traders_5m": 10
+          },
+          "jupiter_issues": [
+            "ORGANIC_RATIO(0.0%)"
+          ],
+          "highest_price": 8.52e-05,
+          "entry_time": 1789937750.489761,
+          "invested_sol": 0.2,
+          "url": "https://dexscreener.com/solana/Dsn59vuP2qrUCZD2tPoU8Pcf5PvUYHsvuvCxT1sEaRSo",
+          "mcap_at_entry": 85190.0,
+          "liq_at_entry": 24320.92
+        }
+      },
       "closed_positions": [
         {
           "symbol": "LOCKINU",
@@ -360,7 +394,9 @@
       ]
     }
   },
-  "trade_history_cooldown": {},
+  "trade_history_cooldown": {
+    "8oopSSqdoBu89mxXusBe3njEXsFfUMzD9T7vY9SuM449": 1789937750.4897578
+  },
   "rebalanced_strategies": [
     "SMART_MONEY"
   ]
