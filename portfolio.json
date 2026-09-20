@@ -1,12 +1,26 @@
 {
-  "bankroll_total_sol": 15.0078,
+  "bankroll_total_sol": 14.8078,
   "strategies": {
     "CTO": {
-      "bankroll_sol": 7.5475,
+      "bankroll_sol": 7.3475,
       "wins": 6,
       "losses": 12,
       "total_fees_sol": 0.06,
-      "open_positions": {},
+      "open_positions": {
+        "67buYJjYX5usoVtefwS5vXJvELK2ijxD334igCjXsNh4": {
+          "symbol": "SI",
+          "dex": "RAYDIUM",
+          "entry_signal_price": 6.093e-05,
+          "entry_fill_price": 6.245325e-05,
+          "entry_slippage_pct": 2.5,
+          "highest_price": 6.093e-05,
+          "entry_time": 1789863056.9756439,
+          "invested_sol": 0.2,
+          "url": "https://dexscreener.com/solana/DaQiKrJE2cokUz3VDa1L6zCqfHaRvqLUjLTaHEEiJF8j",
+          "mcap_at_entry": 60931.0,
+          "liq_at_entry": 23911.3
+        }
+      },
       "closed_positions": [
         {
           "symbol": "LOCKINU",
@@ -216,7 +230,9 @@
       ]
     }
   },
-  "trade_history_cooldown": {},
+  "trade_history_cooldown": {
+    "67buYJjYX5usoVtefwS5vXJvELK2ijxD334igCjXsNh4": 1789863056.9756422
+  },
   "rebalanced_strategies": [
     "SMART_MONEY"
   ]
