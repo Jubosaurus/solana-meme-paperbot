@@ -9,10 +9,6 @@ from datetime import datetime, timezone
 PORTFOLIO_FILE = "portfolio.json"
 REJECT_LOG_FILE = "rejected_candidates.csv"
 DISCORD_WEBHOOK_URL = os.environ.get("DISCORD_WEBHOOK_URL")
-
-# Public RPC funktioniert, ist aber stark limitiert und blockt viele
-# Rechenzentrums-IPs. Mit Helius/QuickNode-Key als Secret SOLANA_RPC_URL
-# laeuft Strategie B (sobald aktiv) deutlich zuverlaessiger.
 SOLANA_RPC_URL = os.environ.get("SOLANA_RPC_URL") or "https://api.mainnet-beta.solana.com"
 
 # --------------------------------------------------------------- Grundparameter
@@ -28,45 +24,44 @@ MAX_PNL_PCT = 400.0
 
 STRATEGY_NAMES = ("CTO", "SMART_MONEY", "SCALP_CURVE")
 
-# Strategie B ist deaktiviert: die Wallet-Auswahl in smart_wallets.csv beruht
-# auf aktuellen Top-Holdern eines Runners, sortiert nach Aktivitaets-Zaehler.
-# Das misst weder Kaufzeitpunkt noch realisierten Gewinn. Erst wieder
-# aktivieren, wenn die Wallets ueber indizierte Daten validiert sind.
+# Strategie B bleibt deaktiviert: die Wallet-Auswahl in smart_wallets.csv beruht
+# auf aktuellen Top-Holdern, nicht auf gemessenem Kaufzeitpunkt oder PnL.
 STRATEGY_ENABLED = {
     "CTO": True,
     "SMART_MONEY": False,
     "SCALP_CURVE": True,
 }
-
-# Budget einer deaktivierten Strategie einmalig auf die aktiven verteilen.
 REBALANCE_DISABLED_BANKROLL = True
 
-# ------------------------------------------------------- Kosten & Realitaetsnaehe
+# ------------------------------------------------- Handelskosten (recherchiert)
 
-# Gebuehren pro abgeschlossenem Trade (Kauf + Verkauf, Netzwerk + Priority + DEX).
-# Die Vorgaengerversion lag real bei 0.0073-0.0094 SOL; 0.002 war zu optimistisch.
-SIMULATED_FEE_SOL = 0.008
+# Gebuehren pro abgeschlossenem Trade: 2x Base-Fee (0.000005 SOL) plus
+# 2x Priority-Fee (~0.001 SOL bei normaler Last). Kauf + Verkauf.
+# Der ATA-Rent (~0.002 SOL) ist eine rueckerstattbare Kaution, keine Gebuehr.
+SIMULATED_FEE_SOL = 0.003
 
-# Slippage in Prozent. Beim Kauf moderat, beim Verkauf deutlich hoeher:
-# CTO-Kandidaten (-55% bis -85% Drawdown) haben duenne Pools und wenig Nachfrage.
-ENTRY_SLIPPAGE_PCT = {
-    "CTO": 2.5,
-    "SMART_MONEY": 2.5,
-    "SCALP_CURVE": 3.0,
-}
-EXIT_SLIPPAGE_PCT = {
-    "CTO": 12.0,
-    "SMART_MONEY": 10.0,
-    "SCALP_CURVE": 8.0,
-}
+# DEX-Swapgebuehr in Prozent. Raydium/PumpSwap nehmen 0.25-0.30%.
+# Jupiter selbst nimmt im Manual-Swap nichts.
+BASE_SWAP_COST_PCT = 0.30
+
+# Preis-Impact bei einem Constant-Product-AMM (x*y=k):
+#   effektiver Impact ~= 2 * Trade / Reserve
+# DexScreener meldet als liquidity.usd den Wert BEIDER Pool-Seiten (TVL),
+# die handelbare Reserve ist also ~L/2. Daraus:
+#   Impact% ~= 2 * Trade_USD / L_USD * 100
+IMPACT_FACTOR = 2.0
+
+# Verkauf in einen fallenden Token trifft eine schrumpfende Quote-Reserve und
+# konkurriert mit anderen Verkaeufern. Heuristik, keine gemessene Groesse.
+SELL_SLIPPAGE_FACTOR = 1.5
+
+# Obergrenze, damit ein fast leerer Pool keine absurden Werte erzeugt.
+MAX_SLIPPAGE_PCT = 25.0
 
 # --------------------------------------------------- Einstiegsfilter (Pool-Guete)
 
-# Gilt fuer alle Strategien: zu duenne oder tote Pools gar nicht erst anfassen.
 MIN_LIQUIDITY_USD = 12000.0
 MIN_VOL_H24_USD = 20000.0
-# Liquiditaet im Verhaeltnis zur Bewertung. Unter 0.8% ist der Pool im
-# Verhaeltnis zur Marktkapitalisierung so duenn, dass ein Exit kaum moeglich ist.
 MIN_LIQ_TO_FDV_RATIO = 0.008
 
 # A: CTO Settings
@@ -78,7 +73,7 @@ CTO_SL_PCT = -15.0
 CTO_TRAILING_ACT = 35.0
 CTO_TRAILING_DIST = 15.0
 
-# B: Smart Money (inaktiv, Parameter bleiben fuer spaeter erhalten)
+# B: Smart Money (inaktiv, Parameter bleiben erhalten)
 SMART_WALLETS = [
     "CGy6Z4evgJpCtTr3DC3gCBfg9DoeY4fkUCMrEQT1n14n",
     "7izn9Mu6ByyCuEp9iKrAwKdTxVbaAi2eZYb46Lzg3mSX",
@@ -114,7 +109,12 @@ SCALP_MAX_CURVE = 93.0
 SCALP_TARGET_TP = 25.0
 SCALP_FORCE_EXIT_CURVE = 97.0
 SCALP_SL_PCT = -18.0
-CURVE_GRADUATION_MCAP = 69000.0
+SCALP_MIN_BUYS = 5
+
+# Pump.fun migriert bei ~85 SOL realer Reserve, nicht bei einem festen
+# USD-Betrag. Die verbreiteten 69.000 USD sind daraus abgeleitet und wandern
+# mit dem SOL-Kurs. Deshalb in SOL ausgedrueckt und zur Laufzeit umgerechnet.
+GRADUATION_MCAP_SOL = 405.0
 
 WSOL_MINT = "So11111111111111111111111111111111111111112"
 
@@ -129,17 +129,22 @@ REJECT_LOG_HEADERS = [
     "curve_pct", "drawdown_pct", "liquidity_usd", "fdv_usd", "m5_buys", "m5_sells"
 ]
 
+# Reject-Log nur neu schreiben, wenn sich Grund oder Liquiditaet merklich aendern
+REJECT_LIQ_CHANGE_PCT = 10.0
+REJECT_REPEAT_AFTER_SECONDS = 1800
+
 # In-Memory State
 wallet_buy_tracker = {}
 last_seen_tx_per_wallet = {}
 bootstrapped_wallets = set()
 _wallet_cursor = 0
+_reject_seen = {}
 
 RPC_STATS = {"ok": 0, "error": 0, "rate_limited": 0}
 SCAN_STATS = {}
 
 SESSION = requests.Session()
-SESSION.headers.update({"User-Agent": "multi-strategy-paper-bot/2.0"})
+SESSION.headers.update({"User-Agent": "multi-strategy-paper-bot/3.0"})
 
 
 # ------------------------------------------------------------- HTTP & RPC Helpers
@@ -156,7 +161,6 @@ def api_get(url, timeout=5):
 
 
 def rpc_call(method, params, context=""):
-    """Solana-RPC-Aufruf. Fehler werden laut geloggt, nie stumm verschluckt."""
     payload = {"jsonrpc": "2.0", "id": 1, "method": method, "params": params}
     try:
         res = SESSION.post(SOLANA_RPC_URL, json=payload, timeout=8)
@@ -169,7 +173,6 @@ def rpc_call(method, params, context=""):
         RPC_STATS["rate_limited"] += 1
         print(f"[RPC RATE-LIMIT] 429 bei {method} {context}")
         return None
-
     if res.status_code != 200:
         RPC_STATS["error"] += 1
         print(f"[RPC HTTP {res.status_code}] {method} {context} -> {res.text[:120]}")
@@ -235,15 +238,32 @@ def get_sol_usd_price():
     return 100.0
 
 
+# --------------------------------------------------------------- Handelskosten
+
+def estimate_slippage_pct(trade_value_usd, liquidity_usd, is_sell=False):
+    """
+    Slippage aus Positionsgroesse und Pooltiefe statt als feste Annahme.
+
+    Basis: DEX-Swapgebuehr. Dazu der Preis-Impact eines Constant-Product-AMM,
+    wobei liquidity_usd als TVL beider Seiten interpretiert wird.
+    """
+    if liquidity_usd <= 0:
+        return MAX_SLIPPAGE_PCT
+
+    impact_pct = IMPACT_FACTOR * (trade_value_usd / liquidity_usd) * 100.0
+    if is_sell:
+        impact_pct *= SELL_SLIPPAGE_FACTOR
+
+    return min(BASE_SWAP_COST_PCT + impact_pct, MAX_SLIPPAGE_PCT)
+
+
 # ---------------------------------------------------------- Diagnose & Reject-Log
 
 def note(reason):
-    """Zaehlt Ablehnungsgruende fuer die Loop-Diagnose."""
     SCAN_STATS[reason] = SCAN_STATS.get(reason, 0) + 1
 
 
 def track_range(key, value):
-    """Merkt sich min/max eines beobachteten Wertes (z.B. curve_pct)."""
     lo_key, hi_key = f"{key}_min", f"{key}_max"
     if lo_key not in SCAN_STATS or value < SCAN_STATS[lo_key]:
         SCAN_STATS[lo_key] = value
@@ -260,13 +280,40 @@ def init_reject_log():
             print(f"[REJECT LOG ERROR] {err}")
 
 
-def log_rejection(strategy, pair, token_addr, reason,
+def should_log_rejection(token_addr, reason_key, liquidity_usd):
+    """
+    Verhindert, dass derselbe Token mit demselben Grund in jeder Schleife
+    erneut geschrieben wird. Neu geloggt wird nur bei geaendertem Grund,
+    deutlicher Liquiditaetsaenderung oder nach Ablauf der Wartezeit.
+    """
+    now = time.time()
+    key = (token_addr, reason_key)
+    last = _reject_seen.get(key)
+
+    if last is None:
+        _reject_seen[key] = (liquidity_usd, now)
+        return True
+
+    last_liq, last_ts = last
+    if (now - last_ts) >= REJECT_REPEAT_AFTER_SECONDS:
+        _reject_seen[key] = (liquidity_usd, now)
+        return True
+
+    if last_liq > 0:
+        change = abs(liquidity_usd - last_liq) / last_liq * 100.0
+        if change >= REJECT_LIQ_CHANGE_PCT:
+            _reject_seen[key] = (liquidity_usd, now)
+            return True
+
+    return False
+
+
+def log_rejection(strategy, pair, token_addr, reason, reason_key,
                   curve_pct=None, drawdown_pct=None):
-    """
-    Protokolliert Kandidaten, die die Hauptbedingung erfuellt haben, aber an
-    einer Nebenbedingung scheiterten. Beantwortet die Frage:
-    'Filter zu eng' oder 'keine Gelegenheiten'?
-    """
+    liq = pair_liquidity_usd(pair)
+    if not should_log_rejection(token_addr, reason_key, liq):
+        return
+
     try:
         m5_buys, m5_sells = pair_txns_m5(pair)
         with open(REJECT_LOG_FILE, "a", newline="", encoding="utf-8") as f:
@@ -278,7 +325,7 @@ def log_rejection(strategy, pair, token_addr, reason,
                 reason,
                 f"{curve_pct:.1f}" if curve_pct is not None else "",
                 f"{drawdown_pct:.1f}" if drawdown_pct is not None else "",
-                f"{pair_liquidity_usd(pair):.0f}",
+                f"{liq:.0f}",
                 f"{pair_mcap(pair):.0f}",
                 m5_buys,
                 m5_sells,
@@ -287,7 +334,13 @@ def log_rejection(strategy, pair, token_addr, reason,
         print(f"[REJECT LOG ERROR] {err}")
 
 
-def print_scan_diagnostics():
+def prune_reject_seen():
+    cutoff = time.time() - (REJECT_REPEAT_AFTER_SECONDS * 2)
+    for key in [k for k, (_, ts) in _reject_seen.items() if ts < cutoff]:
+        del _reject_seen[key]
+
+
+def print_scan_diagnostics(sol_price):
     if not SCAN_STATS:
         print("[SCAN] keine Kandidaten gesehen")
         return
@@ -296,19 +349,20 @@ def print_scan_diagnostics():
     print("[SCAN] " + " | ".join(parts))
 
     if "curve_pct_min" in SCAN_STATS:
-        print(f"[SCAN] beobachtete curve_pct: "
-              f"{SCAN_STATS['curve_pct_min']:.1f} bis {SCAN_STATS['curve_pct_max']:.1f} "
-              f"(Zielfenster {SCALP_MIN_CURVE}-{SCALP_MAX_CURVE})")
+        grad_usd = GRADUATION_MCAP_SOL * sol_price
+        print(f"[SCAN] curve_pct {SCAN_STATS['curve_pct_min']:.1f}-"
+              f"{SCAN_STATS['curve_pct_max']:.1f} "
+              f"(Ziel {SCALP_MIN_CURVE}-{SCALP_MAX_CURVE}, "
+              f"Graduation bei ~${grad_usd:,.0f})")
     if "drawdown_min" in SCAN_STATS:
-        print(f"[SCAN] beobachtete Drawdowns: "
-              f"{SCAN_STATS['drawdown_min']:.1f}% bis {SCAN_STATS['drawdown_max']:.1f}% "
-              f"(Zielfenster {CTO_MIN_DRAWDOWN} bis {CTO_MAX_DRAWDOWN})")
+        print(f"[SCAN] Drawdowns {SCAN_STATS['drawdown_min']:.1f}%-"
+              f"{SCAN_STATS['drawdown_max']:.1f}% "
+              f"(Ziel {CTO_MIN_DRAWDOWN} bis {CTO_MAX_DRAWDOWN})")
     SCAN_STATS.clear()
 
 
 def print_rpc_health():
-    total = sum(RPC_STATS.values())
-    if total == 0:
+    if sum(RPC_STATS.values()) == 0:
         return
     print(f"[RPC HEALTH] ok={RPC_STATS['ok']} fehler={RPC_STATS['error']} "
           f"ratelimit={RPC_STATS['rate_limited']}")
@@ -317,25 +371,27 @@ def print_rpc_health():
 # ----------------------------------------------------------------- Pool-Pruefung
 
 def pool_quality_ok(strategy, pair, token_addr):
-    """Mindestanforderungen an den Pool. Schuetzt vor Rugs und toten Paaren."""
     liq = pair_liquidity_usd(pair)
     fdv = pair_mcap(pair)
     vol = pair_vol_h24(pair)
 
     if liq < MIN_LIQUIDITY_USD:
         note("pool_liq_zu_niedrig")
-        log_rejection(strategy, pair, token_addr, f"LIQ_ZU_NIEDRIG ({liq:.0f} USD)")
+        log_rejection(strategy, pair, token_addr,
+                      f"LIQ_ZU_NIEDRIG ({liq:.0f} USD)", "liq")
         return False
 
     if vol < MIN_VOL_H24_USD:
         note("pool_vol_zu_niedrig")
-        log_rejection(strategy, pair, token_addr, f"VOL24H_ZU_NIEDRIG ({vol:.0f} USD)")
+        log_rejection(strategy, pair, token_addr,
+                      f"VOL24H_ZU_NIEDRIG ({vol:.0f} USD)", "vol")
         return False
 
     if fdv > 0 and (liq / fdv) < MIN_LIQ_TO_FDV_RATIO:
         ratio = (liq / fdv) * 100.0
         note("pool_liq_fdv_ratio")
-        log_rejection(strategy, pair, token_addr, f"LIQ_FDV_RATIO ({ratio:.2f}%)")
+        log_rejection(strategy, pair, token_addr,
+                      f"LIQ_FDV_RATIO ({ratio:.2f}%)", "ratio")
         return False
 
     return True
@@ -379,11 +435,6 @@ def normalize_portfolio(data):
 
 
 def rebalance_disabled_strategies(portfolio):
-    """
-    Verteilt das Budget einer deaktivierten Strategie einmalig auf die aktiven.
-    Laeuft nur, wenn die Strategie keine offenen Positionen hat, und merkt sich
-    den Vorgang in portfolio['rebalanced_strategies'].
-    """
     if not REBALANCE_DISABLED_BANKROLL:
         return
 
@@ -411,7 +462,7 @@ def rebalance_disabled_strategies(portfolio):
         strat["bankroll_sol"] = 0.0
         done.append(name)
         print(f"[REBALANCE] {name} deaktiviert -> {amount:.4f} SOL auf "
-              f"{', '.join(active)} verteilt ({share:.4f} SOL je Strategie)")
+              f"{', '.join(active)} verteilt")
 
 
 def load_portfolio():
@@ -547,7 +598,6 @@ def scan_cto(portfolio, sol_price):
             note("cto_drawdown_ausserhalb")
             continue
 
-        # Ab hier: Hauptbedingung erfuellt -> Ablehnungen protokollieren
         if not pool_quality_ok("CTO", pair, token_addr):
             continue
 
@@ -558,18 +608,17 @@ def scan_cto(portfolio, sol_price):
             note("cto_kein_surge")
             log_rejection("CTO", pair, token_addr,
                           f"KEIN_SURGE (m5 {m5_change:+.1f}%, {m5_buys}B/{m5_sells}S)",
-                          drawdown_pct=drawdown)
+                          "surge", drawdown_pct=drawdown)
             continue
 
         reason = f"Re-Accumulation ({drawdown:.1f}% Dip, +{m5_change:.1f}% 5m)"
-        execute_entry(portfolio, "CTO", token_addr, pair, reason)
+        execute_entry(portfolio, "CTO", token_addr, pair, reason, sol_price)
         break
 
 
 # ------------------------------------------------------------------- Strategie B
 
 def scan_smart_money(portfolio, sol_price):
-    """Inaktiv - siehe STRATEGY_ENABLED. Logik bleibt fuer spaeter erhalten."""
     if not STRATEGY_ENABLED.get("SMART_MONEY"):
         return
     if not wallet_buy_tracker:
@@ -595,7 +644,7 @@ def scan_smart_money(portfolio, sol_price):
 
         wallets = " und ".join(f"{w[:4]}.." for w, _ in cluster[:SM_MIN_CLUSTER_SIZE])
         reason = f"Cluster ({len(cluster)} Wallets: {wallets})"
-        execute_entry(portfolio, "SMART_MONEY", token_addr, pair, reason)
+        execute_entry(portfolio, "SMART_MONEY", token_addr, pair, reason, sol_price)
         break
 
 
@@ -740,6 +789,17 @@ def poll_smart_wallets():
 
 # ------------------------------------------------------------------- Strategie C
 
+def curve_progress_pct(pair, sol_price):
+    """
+    Fortschritt auf der Bonding Curve. Die Migrationsschwelle ist ein
+    SOL-Betrag, kein fester USD-Wert, deshalb Umrechnung ueber sol_price.
+    """
+    graduation_usd = GRADUATION_MCAP_SOL * sol_price
+    if graduation_usd <= 0:
+        return 100.0
+    return min((pair_mcap(pair) / graduation_usd) * 100.0, 100.0)
+
+
 def scan_curve_scalp(portfolio, sol_price):
     if not strategy_can_trade(portfolio, "SCALP_CURVE"):
         return
@@ -758,8 +818,7 @@ def scan_curve_scalp(portfolio, sol_price):
         if is_blocked(portfolio, "SCALP_CURVE", token_addr, now_ts):
             continue
 
-        fdv = pair_mcap(pair)
-        curve_pct = min((fdv / CURVE_GRADUATION_MCAP) * 100.0, 100.0)
+        curve_pct = curve_progress_pct(pair, sol_price)
         track_range("curve_pct", curve_pct)
 
         if curve_pct >= 99.9:
@@ -773,21 +832,21 @@ def scan_curve_scalp(portfolio, sol_price):
             continue
 
         m5_buys, m5_sells = pair_txns_m5(pair)
-        if not (m5_buys >= 5 and m5_buys > m5_sells):
+        if not (m5_buys >= SCALP_MIN_BUYS and m5_buys > m5_sells):
             note("scalp_kein_momentum")
             log_rejection("SCALP_CURVE", pair, token_addr,
                           f"KEIN_MOMENTUM ({m5_buys}B/{m5_sells}S)",
-                          curve_pct=curve_pct)
+                          "momentum", curve_pct=curve_pct)
             continue
 
         reason = f"Pre-Graduation Curve @ {curve_pct:.1f}%"
-        execute_entry(portfolio, "SCALP_CURVE", token_addr, pair, reason)
+        execute_entry(portfolio, "SCALP_CURVE", token_addr, pair, reason, sol_price)
         break
 
 
 # ------------------------------------------------------------------------- Entry
 
-def execute_entry(portfolio, strat_name, token_addr, pair, reason_desc):
+def execute_entry(portfolio, strat_name, token_addr, pair, reason_desc, sol_price):
     strat = portfolio["strategies"][strat_name]
     symbol = pair_symbol(pair)
     signal_price = float(pair.get("priceUsd") or 0.0)
@@ -799,8 +858,8 @@ def execute_entry(portfolio, strat_name, token_addr, pair, reason_desc):
     if signal_price <= 0 or signal_price > 1000.0:
         return
 
-    # Realistischer Fill: wir zahlen mehr als der angezeigte Kurs
-    slippage = ENTRY_SLIPPAGE_PCT.get(strat_name, 2.5)
+    trade_value_usd = SCOUT_SIZE_SOL * sol_price
+    slippage = estimate_slippage_pct(trade_value_usd, liq, is_sell=False)
     fill_price = signal_price * (1.0 + slippage / 100.0)
 
     strat["bankroll_sol"] = round(strat["bankroll_sol"] - SCOUT_SIZE_SOL, 4)
@@ -811,7 +870,7 @@ def execute_entry(portfolio, strat_name, token_addr, pair, reason_desc):
         "dex": dex_name,
         "entry_signal_price": signal_price,
         "entry_fill_price": fill_price,
-        "entry_slippage_pct": slippage,
+        "entry_slippage_pct": round(slippage, 3),
         "highest_price": signal_price,
         "entry_time": time.time(),
         "invested_sol": SCOUT_SIZE_SOL,
@@ -825,8 +884,8 @@ def execute_entry(portfolio, strat_name, token_addr, pair, reason_desc):
         f"**Symbol:** {symbol} ({dex_name})\n"
         f"**MCap:** ${mcap:,.0f} | **LP:** ${liq:,.0f}\n"
         f"**Signal-Kurs:** ${signal_price:.8f}\n"
-        f"**Sim. Fill:** ${fill_price:.8f} (+{slippage:.1f}% Slippage)\n"
-        f"**Einsatz:** {SCOUT_SIZE_SOL:.4f} SOL\n"
+        f"**Sim. Fill:** ${fill_price:.8f} (+{slippage:.2f}% aus LP-Tiefe)\n"
+        f"**Einsatz:** {SCOUT_SIZE_SOL:.4f} SOL (~${trade_value_usd:,.0f})\n"
         f"-------------------\n"
         f"[DexScreener Live-Chart]({pair_url})\n"
         f"**Sub-Bankroll:** {strat['bankroll_sol']:.4f} SOL\n"
@@ -839,7 +898,7 @@ def execute_entry(portfolio, strat_name, token_addr, pair, reason_desc):
 
 # --------------------------------------------------------------------- Exit Logic
 
-def decide_exit(strat_name, pnl_pct, peak_pct, hold_hours, pair):
+def decide_exit(strat_name, pnl_pct, peak_pct, hold_hours, pair, sol_price):
     """Entscheidet auf Basis des SIGNAL-Kurses - das ist, was der Bot sieht."""
     if strat_name == "CTO":
         if peak_pct >= CTO_TRAILING_ACT and (peak_pct - pnl_pct) >= CTO_TRAILING_DIST:
@@ -854,7 +913,7 @@ def decide_exit(strat_name, pnl_pct, peak_pct, hold_hours, pair):
             return f"SM_HARD_STOP (Signal {pnl_pct:+.1f}%)"
 
     elif strat_name == "SCALP_CURVE":
-        curve_pct = (pair_mcap(pair) / CURVE_GRADUATION_MCAP) * 100.0
+        curve_pct = curve_progress_pct(pair, sol_price)
         if pnl_pct >= SCALP_TARGET_TP:
             return f"SCALP_TP (Signal {pnl_pct:+.1f}%)"
         if curve_pct >= SCALP_FORCE_EXIT_CURVE:
@@ -869,17 +928,21 @@ def decide_exit(strat_name, pnl_pct, peak_pct, hold_hours, pair):
 
 
 def close_position(portfolio, strat_name, pos, signal_pnl_pct, peak_pct,
-                   exit_signal_price, exit_reason, sol_price, dead_token=False):
+                   exit_signal_price, exit_liq_usd, exit_reason, sol_price,
+                   dead_token=False):
     strat = portfolio["strategies"][strat_name]
     invested_sol = float(pos.get("invested_sol", SCOUT_SIZE_SOL))
     entry_fill = float(pos.get("entry_fill_price") or pos.get("entry_signal_price") or 0.0)
 
-    exit_slippage = EXIT_SLIPPAGE_PCT.get(strat_name, 10.0)
-
     if dead_token or exit_signal_price <= 0 or entry_fill <= 0:
+        exit_slippage = MAX_SLIPPAGE_PCT
         exit_fill_price = 0.0
         real_pnl_pct = -100.0
     else:
+        # Positionswert zum Ausstiegszeitpunkt, nicht der Einstiegswert
+        position_value_usd = invested_sol * sol_price * (1.0 + signal_pnl_pct / 100.0)
+        exit_slippage = estimate_slippage_pct(position_value_usd, exit_liq_usd,
+                                              is_sell=True)
         exit_fill_price = exit_signal_price * (1.0 - exit_slippage / 100.0)
         real_pnl_pct = min(((exit_fill_price - entry_fill) / entry_fill) * 100.0,
                            MAX_PNL_PCT)
@@ -887,7 +950,6 @@ def close_position(portfolio, strat_name, pos, signal_pnl_pct, peak_pct,
     pnl_sol = invested_sol * (real_pnl_pct / 100.0) - SIMULATED_FEE_SOL
     pnl_usd = pnl_sol * sol_price
 
-    # Trade, der waehrend einer Schichtpause durch den Stop gerutscht ist
     sl_thresholds = {"CTO": CTO_SL_PCT, "SMART_MONEY": SM_SL_PCT,
                      "SCALP_CURVE": SCALP_SL_PCT}
     gap_exit = bool(
@@ -905,17 +967,16 @@ def close_position(portfolio, strat_name, pos, signal_pnl_pct, peak_pct,
         strat["losses"] += 1
         color = 0xEF4444
 
-    slip_cost_pct = signal_pnl_pct - real_pnl_pct
-
     desc = (
         f"**Strategie:** `{strat_name}` | {exit_reason}\n"
         f"**Signal-PnL:** {signal_pnl_pct:+.1f}% | "
-        f"**Real (nach Slippage):** {real_pnl_pct:+.1f}%\n"
-        f"**Slippage-Kosten:** {slip_cost_pct:.1f} Prozentpunkte\n"
+        f"**Real:** {real_pnl_pct:+.1f}%\n"
+        f"**Slippage:** Kauf {pos.get('entry_slippage_pct', 0):.2f}% / "
+        f"Verkauf {exit_slippage:.2f}% (LP ${exit_liq_usd:,.0f})\n"
         f"**Net PnL:** {pnl_sol:+.4f} SOL ({pnl_usd:+.2f} USD, inkl. "
         f"{SIMULATED_FEE_SOL:.4f} SOL Fees)\n"
         f"**Peak (Signal):** {peak_pct:+.1f}%\n"
-        + ("⚠️ **Gap-Exit:** Stop wurde in einer Pause ueberschritten\n" if gap_exit else "")
+        + ("⚠️ **Gap-Exit:** Stop in einer Pause ueberschritten\n" if gap_exit else "")
         + f"-------------------\n"
         f"[DexScreener Live-Chart]({pos.get('url')})\n"
         f"**Sub-Bankroll:** {strat['bankroll_sol']:.4f} SOL\n"
@@ -930,10 +991,13 @@ def close_position(portfolio, strat_name, pos, signal_pnl_pct, peak_pct,
         "signal_pnl_pct": round(signal_pnl_pct, 2),
         "real_pnl_pct": round(real_pnl_pct, 2),
         "entry_signal_price": pos.get("entry_signal_price"),
-        "entry_fill_price": round(entry_fill, 10),
-        "exit_signal_price": round(exit_signal_price, 10),
-        "exit_fill_price": round(exit_fill_price, 10),
-        "exit_slippage_pct": exit_slippage,
+        "entry_fill_price": round(entry_fill, 12),
+        "entry_slippage_pct": pos.get("entry_slippage_pct"),
+        "exit_signal_price": round(exit_signal_price, 12),
+        "exit_fill_price": round(exit_fill_price, 12),
+        "exit_slippage_pct": round(exit_slippage, 3),
+        "liq_at_entry": pos.get("liq_at_entry"),
+        "liq_at_exit": round(exit_liq_usd, 0),
         "fees_sol": SIMULATED_FEE_SOL,
         "pnl_sol": round(pnl_sol, 4),
         "peak_pct": round(peak_pct, 2),
@@ -950,11 +1014,11 @@ def manage_strategy_positions(portfolio, sol_price):
         to_remove = []
 
         for addr, pos in list(open_pos.items()):
-            # Alte Positionen ohne neue Felder migrieren
+            # Positionen aus aelteren Versionen migrieren
             if "entry_signal_price" not in pos and "entry_price" in pos:
                 pos["entry_signal_price"] = pos["entry_price"]
-                slip = ENTRY_SLIPPAGE_PCT.get(strat_name, 2.5)
-                pos["entry_fill_price"] = pos["entry_price"] * (1.0 + slip / 100.0)
+                pos["entry_fill_price"] = pos["entry_price"] * 1.005
+                pos["entry_slippage_pct"] = 0.5
 
             entry_signal = float(pos.get("entry_signal_price") or 0.0)
             if entry_signal <= 0:
@@ -965,6 +1029,7 @@ def manage_strategy_positions(portfolio, sol_price):
             highest_price = float(pos.get("highest_price", entry_signal))
             pair = fetch_best_pair(addr)
             curr_price = float(pair.get("priceUsd") or 0.0) if pair else 0.0
+            curr_liq = pair_liquidity_usd(pair) if pair else 0.0
 
             if curr_price <= 0:
                 if hold_hours < MAX_HOLD_HOURS:
@@ -973,7 +1038,8 @@ def manage_strategy_positions(portfolio, sol_price):
                 peak_pct = min(((highest_price - entry_signal) / entry_signal) * 100.0,
                                MAX_PNL_PCT)
                 close_position(portfolio, strat_name, pos, signal_pnl, peak_pct,
-                               0.0, "DEAD_TOKEN_TIMEOUT", sol_price, dead_token=True)
+                               0.0, 0.0, "DEAD_TOKEN_TIMEOUT", sol_price,
+                               dead_token=True)
                 to_remove.append(addr)
                 continue
 
@@ -987,10 +1053,10 @@ def manage_strategy_positions(portfolio, sol_price):
                            MAX_PNL_PCT)
 
             exit_reason = decide_exit(strat_name, signal_pnl, peak_pct,
-                                      hold_hours, pair)
+                                      hold_hours, pair, sol_price)
             if exit_reason:
                 close_position(portfolio, strat_name, pos, signal_pnl, peak_pct,
-                               curr_price, exit_reason, sol_price)
+                               curr_price, curr_liq, exit_reason, sol_price)
                 to_remove.append(addr)
 
         for addr in to_remove:
@@ -1010,12 +1076,13 @@ def run_loop():
     active = [n for n in STRATEGY_NAMES if STRATEGY_ENABLED.get(n)]
     inactive = [n for n in STRATEGY_NAMES if not STRATEGY_ENABLED.get(n)]
 
-    print("🚀 [START] Multi-Strategy Paper-Bot v2")
+    print("🚀 [START] Multi-Strategy Paper-Bot v3")
     print(f"[CONFIG] Aktiv: {', '.join(active) or 'keine'}")
     if inactive:
         print(f"[CONFIG] Inaktiv: {', '.join(inactive)}")
     print(f"[CONFIG] Fees {SIMULATED_FEE_SOL:.4f} SOL/Trade | "
-          f"Exit-Slippage {EXIT_SLIPPAGE_PCT} | RPC {SOLANA_RPC_URL}")
+          f"Slippage = {BASE_SWAP_COST_PCT}% + {IMPACT_FACTOR}x Trade/LP "
+          f"(Verkauf x{SELL_SLIPPAGE_FACTOR}, max {MAX_SLIPPAGE_PCT}%)")
 
     while True:
         elapsed = time.time() - start_time
@@ -1037,11 +1104,12 @@ def run_loop():
             scan_curve_scalp(portfolio, sol_price)
 
             prune_cooldowns(portfolio)
+            prune_reject_seen()
             save_portfolio(portfolio)
             git_push_state()
 
             if loop_count % 10 == 0:
-                print_scan_diagnostics()
+                print_scan_diagnostics(sol_price)
                 print_rpc_health()
         except Exception as err:
             print(f"[LOOP ERROR] {err}")
