@@ -1,11 +1,11 @@
 {
-  "bankroll_total_sol": 14.6909,
+  "bankroll_total_sol": 14.8403,
   "strategies": {
     "CTO": {
-      "bankroll_sol": 7.2306,
+      "bankroll_sol": 7.38,
       "wins": 9,
-      "losses": 14,
-      "total_fees_sol": 0.085,
+      "losses": 15,
+      "total_fees_sol": 0.088,
       "open_positions": {
         "8oopSSqdoBu89mxXusBe3njEXsFfUMzD9T7vY9SuM449": {
           "symbol": "SWOGE",
@@ -39,39 +39,6 @@
           "url": "https://dexscreener.com/solana/Dsn59vuP2qrUCZD2tPoU8Pcf5PvUYHsvuvCxT1sEaRSo",
           "mcap_at_entry": 85190.0,
           "liq_at_entry": 24320.92
-        },
-        "GyrdGn9yrZDeAwXfaGqe3QRuFAd3duYQ5jAdHrPvpump": {
-          "symbol": "INTERNET",
-          "dex": "PUMPSWAP",
-          "entry_signal_price": 0.0001102,
-          "entry_fill_price": 0.00011335593035867683,
-          "entry_slippage_pct": 2.864,
-          "entry_slippage_source": "jupiter",
-          "entry_slippage_formel_pct": 0.452,
-          "jupiter": {
-            "organic_score": 37.77883273940716,
-            "organic_label": "medium",
-            "holder_count": 768,
-            "holder_change_5m": 0.7874015748031495,
-            "holder_change_1h": -1.5384615384615385,
-            "mint_auth_disabled": true,
-            "freeze_auth_disabled": true,
-            "top_holders_pct": 22.727688632709235,
-            "dev_balance_pct": 1.0016368639171114,
-            "dev_mints": 1,
-            "is_verified": null,
-            "organic_buy_ratio_5m": 0.0,
-            "num_traders_5m": 16
-          },
-          "jupiter_issues": [
-            "ORGANIC_RATIO(0.0%)"
-          ],
-          "highest_price": 0.0001107,
-          "entry_time": 1789939560.1945534,
-          "invested_sol": 0.2,
-          "url": "https://dexscreener.com/solana/7T5cgVfW4JXsaeVtMgENeSnrcJywSj73asJu21E7WfcS",
-          "mcap_at_entry": 108818.0,
-          "liq_at_entry": 29002.05
         }
       },
       "closed_positions": [
@@ -398,6 +365,48 @@
           "gap_exit": false,
           "exit_reason": "CTO_HARD_STOP (Signal -23.4%)",
           "closed_at": "2026-09-20T19:14:53.560820+00:00"
+        },
+        {
+          "symbol": "INTERNET",
+          "strategy": "CTO",
+          "signal_pnl_pct": -15.12,
+          "real_pnl_pct": -23.81,
+          "entry_signal_price": 0.0001102,
+          "entry_fill_price": 0.00011335593,
+          "entry_slippage_pct": 2.864,
+          "exit_signal_price": 9.354e-05,
+          "exit_fill_price": 8.6361743e-05,
+          "exit_slippage_pct": 7.674,
+          "exit_slippage_formel_pct": 0.511,
+          "exit_slippage_source": "jupiter",
+          "entry_slippage_source": "jupiter",
+          "entry_slippage_formel_pct": 0.452,
+          "jupiter": {
+            "organic_score": 37.77883273940716,
+            "organic_label": "medium",
+            "holder_count": 768,
+            "holder_change_5m": 0.7874015748031495,
+            "holder_change_1h": -1.5384615384615385,
+            "mint_auth_disabled": true,
+            "freeze_auth_disabled": true,
+            "top_holders_pct": 22.727688632709235,
+            "dev_balance_pct": 1.0016368639171114,
+            "dev_mints": 1,
+            "is_verified": null,
+            "organic_buy_ratio_5m": 0.0,
+            "num_traders_5m": 16
+          },
+          "jupiter_issues": [
+            "ORGANIC_RATIO(0.0%)"
+          ],
+          "liq_at_entry": 29002.05,
+          "liq_at_exit": 26545.0,
+          "fees_sol": 0.003,
+          "pnl_sol": -0.0506,
+          "peak_pct": 0.45,
+          "gap_exit": false,
+          "exit_reason": "CTO_HARD_STOP (Signal -15.1%)",
+          "closed_at": "2026-09-20T21:32:45.436360+00:00"
         }
       ]
     },
