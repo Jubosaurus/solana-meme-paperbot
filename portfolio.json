@@ -1,46 +1,12 @@
 {
-  "bankroll_total_sol": 14.8997,
+  "bankroll_total_sol": 15.1035,
   "strategies": {
     "CTO": {
-      "bankroll_sol": 7.4394,
-      "wins": 10,
+      "bankroll_sol": 7.6432,
+      "wins": 11,
       "losses": 15,
-      "total_fees_sol": 0.091,
-      "open_positions": {
-        "8oopSSqdoBu89mxXusBe3njEXsFfUMzD9T7vY9SuM449": {
-          "symbol": "SWOGE",
-          "dex": "RAYDIUM",
-          "entry_signal_price": 8.52e-05,
-          "entry_fill_price": 9.235829165097468e-05,
-          "entry_slippage_pct": 8.402,
-          "entry_slippage_source": "jupiter",
-          "entry_slippage_formel_pct": 0.481,
-          "jupiter": {
-            "organic_score": 60.73465112794782,
-            "organic_label": "medium",
-            "holder_count": 294,
-            "holder_change_5m": 1.0309278350515463,
-            "holder_change_1h": -0.3389830508474576,
-            "mint_auth_disabled": true,
-            "freeze_auth_disabled": true,
-            "top_holders_pct": 22.206139702229564,
-            "dev_balance_pct": null,
-            "dev_mints": 1,
-            "is_verified": null,
-            "organic_buy_ratio_5m": 0.0,
-            "num_traders_5m": 10
-          },
-          "jupiter_issues": [
-            "ORGANIC_RATIO(0.0%)"
-          ],
-          "highest_price": 0.0001234,
-          "entry_time": 1789937750.489761,
-          "invested_sol": 0.2,
-          "url": "https://dexscreener.com/solana/Dsn59vuP2qrUCZD2tPoU8Pcf5PvUYHsvuvCxT1sEaRSo",
-          "mcap_at_entry": 85190.0,
-          "liq_at_entry": 24320.92
-        }
-      },
+      "total_fees_sol": 0.094,
+      "open_positions": {},
       "closed_positions": [
         {
           "symbol": "LOCKINU",
@@ -449,6 +415,48 @@
           "gap_exit": false,
           "exit_reason": "CTO_TRAILING_TP (Signal +39.2%)",
           "closed_at": "2026-09-20T22:01:20.139822+00:00"
+        },
+        {
+          "symbol": "SWOGE",
+          "strategy": "CTO",
+          "signal_pnl_pct": 29.46,
+          "real_pnl_pct": 3.42,
+          "entry_signal_price": 8.52e-05,
+          "entry_fill_price": 9.2358292e-05,
+          "entry_slippage_pct": 8.402,
+          "exit_signal_price": 0.0001103,
+          "exit_fill_price": 9.5518234e-05,
+          "exit_slippage_pct": 13.401,
+          "exit_slippage_formel_pct": 0.611,
+          "exit_slippage_source": "jupiter",
+          "entry_slippage_source": "jupiter",
+          "entry_slippage_formel_pct": 0.481,
+          "jupiter": {
+            "organic_score": 60.73465112794782,
+            "organic_label": "medium",
+            "holder_count": 294,
+            "holder_change_5m": 1.0309278350515463,
+            "holder_change_1h": -0.3389830508474576,
+            "mint_auth_disabled": true,
+            "freeze_auth_disabled": true,
+            "top_holders_pct": 22.206139702229564,
+            "dev_balance_pct": null,
+            "dev_mints": 1,
+            "is_verified": null,
+            "organic_buy_ratio_5m": 0.0,
+            "num_traders_5m": 10
+          },
+          "jupiter_issues": [
+            "ORGANIC_RATIO(0.0%)"
+          ],
+          "liq_at_entry": 24320.92,
+          "liq_at_exit": 27688.0,
+          "fees_sol": 0.003,
+          "pnl_sol": 0.0038,
+          "peak_pct": 44.84,
+          "gap_exit": false,
+          "exit_reason": "CTO_TRAILING_TP (Signal +29.5%)",
+          "closed_at": "2026-09-20T22:49:01.538216+00:00"
         }
       ]
     },
