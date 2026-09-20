@@ -1,11 +1,11 @@
 {
-  "bankroll_total_sol": 14.6403,
+  "bankroll_total_sol": 14.8997,
   "strategies": {
     "CTO": {
-      "bankroll_sol": 7.18,
-      "wins": 9,
+      "bankroll_sol": 7.4394,
+      "wins": 10,
       "losses": 15,
-      "total_fees_sol": 0.088,
+      "total_fees_sol": 0.091,
       "open_positions": {
         "8oopSSqdoBu89mxXusBe3njEXsFfUMzD9T7vY9SuM449": {
           "symbol": "SWOGE",
@@ -39,39 +39,6 @@
           "url": "https://dexscreener.com/solana/Dsn59vuP2qrUCZD2tPoU8Pcf5PvUYHsvuvCxT1sEaRSo",
           "mcap_at_entry": 85190.0,
           "liq_at_entry": 24320.92
-        },
-        "C3b3fpyRWsJf3bo6vay2vo1bQ7CezwumZwTrP82Lpump": {
-          "symbol": "TOKENS",
-          "dex": "PUMPSWAP",
-          "entry_signal_price": 0.0001707,
-          "entry_fill_price": 0.0001736505157933834,
-          "entry_slippage_pct": 1.728,
-          "entry_slippage_source": "jupiter",
-          "entry_slippage_formel_pct": 0.414,
-          "jupiter": {
-            "organic_score": 69.00699953772141,
-            "organic_label": "medium",
-            "holder_count": 1114,
-            "holder_change_5m": 0.08984725965858043,
-            "holder_change_1h": -0.35778175313059035,
-            "mint_auth_disabled": true,
-            "freeze_auth_disabled": true,
-            "top_holders_pct": 23.81294052859204,
-            "dev_balance_pct": 0.007922100054769213,
-            "dev_mints": 1,
-            "is_verified": null,
-            "organic_buy_ratio_5m": 0.0488,
-            "num_traders_5m": 144
-          },
-          "jupiter_issues": [
-            "ORGANIC_RATIO(4.9%)"
-          ],
-          "highest_price": 0.0002657,
-          "entry_time": 1789940077.6295679,
-          "invested_sol": 0.2,
-          "url": "https://dexscreener.com/solana/Cc1EFpiwYod6rnj198HhVQn9vnMN73m1vxEHY8ab3994",
-          "mcap_at_entry": 155638.0,
-          "liq_at_entry": 38619.73
         }
       },
       "closed_positions": [
@@ -440,6 +407,48 @@
           "gap_exit": false,
           "exit_reason": "CTO_HARD_STOP (Signal -15.1%)",
           "closed_at": "2026-09-20T21:32:45.436360+00:00"
+        },
+        {
+          "symbol": "TOKENS",
+          "strategy": "CTO",
+          "signal_pnl_pct": 39.19,
+          "real_pnl_pct": 31.21,
+          "entry_signal_price": 0.0001707,
+          "entry_fill_price": 0.000173650516,
+          "entry_slippage_pct": 1.728,
+          "exit_signal_price": 0.0002376,
+          "exit_fill_price": 0.000227842107,
+          "exit_slippage_pct": 4.107,
+          "exit_slippage_formel_pct": 0.5,
+          "exit_slippage_source": "jupiter",
+          "entry_slippage_source": "jupiter",
+          "entry_slippage_formel_pct": 0.414,
+          "jupiter": {
+            "organic_score": 69.00699953772141,
+            "organic_label": "medium",
+            "holder_count": 1114,
+            "holder_change_5m": 0.08984725965858043,
+            "holder_change_1h": -0.35778175313059035,
+            "mint_auth_disabled": true,
+            "freeze_auth_disabled": true,
+            "top_holders_pct": 23.81294052859204,
+            "dev_balance_pct": 0.007922100054769213,
+            "dev_mints": 1,
+            "is_verified": null,
+            "organic_buy_ratio_5m": 0.0488,
+            "num_traders_5m": 144
+          },
+          "jupiter_issues": [
+            "ORGANIC_RATIO(4.9%)"
+          ],
+          "liq_at_entry": 38619.73,
+          "liq_at_exit": 45982.0,
+          "fees_sol": 0.003,
+          "pnl_sol": 0.0594,
+          "peak_pct": 55.65,
+          "gap_exit": false,
+          "exit_reason": "CTO_TRAILING_TP (Signal +39.2%)",
+          "closed_at": "2026-09-20T22:01:20.139822+00:00"
         }
       ]
     },
