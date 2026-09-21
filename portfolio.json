@@ -1,59 +1,59 @@
 {
-  "bankroll_total_sol": 14.948,
+  "bankroll_total_sol": 14.9109,
   "strategies": {
     "CTO": {
-      "bankroll_sol": 14.948,
+      "bankroll_sol": 14.9109,
       "wins": 12,
-      "losses": 16,
-      "total_fees_sol": 0.1,
+      "losses": 17,
+      "total_fees_sol": 0.103,
       "open_positions": {
-        "EqFG72Z35r8cAV8mKu3UK2L8NUTR1ZNyMr88E4BnwN8Q": {
-          "symbol": "ZEBRA",
-          "dex": "PUMPSWAP",
-          "entry_signal_price": 0.0001577,
-          "entry_fill_price": 0.0001577,
-          "entry_slippage_pct": 0.0,
+        "2g23GpSneyx7Uqb25YKA6i66m8f1VDYwpGCVGXhdwK8h": {
+          "symbol": "BINKY",
+          "dex": "RAYDIUM",
+          "entry_signal_price": 6.336e-05,
+          "entry_fill_price": 6.661205643656467e-05,
+          "entry_slippage_pct": 5.133,
           "entry_slippage_source": "jupiter",
-          "entry_slippage_formel_pct": 0.413,
+          "entry_slippage_formel_pct": 0.502,
           "jupiter": {
-            "organic_score": 75,
+            "organic_score": 64.00069890966138,
             "organic_label": "medium",
-            "holder_count": 3103,
-            "holder_change_5m": -0.8309364014062002,
-            "holder_change_1h": -4.198826798394566,
+            "holder_count": 394,
+            "holder_change_5m": 0.2544529262086514,
+            "holder_change_1h": -3.902439024390244,
             "mint_auth_disabled": true,
             "freeze_auth_disabled": true,
-            "top_holders_pct": 20.035768691199817,
-            "dev_balance_pct": null,
-            "dev_mints": 1,
+            "top_holders_pct": 21.564199352425874,
+            "dev_balance_pct": 3.2151601132845578,
+            "dev_mints": 8,
             "is_verified": null,
-            "organic_buy_ratio_1h": 0.0459,
-            "num_traders_5m": 164,
-            "num_net_buyers_5m": 92,
-            "num_organic_buyers_5m": 5,
-            "organic_buy_vol_5m": 48.238122811021555,
-            "organic_sell_vol_5m": 157.4905219159563,
+            "organic_buy_ratio_1h": 0.0236,
+            "num_traders_5m": 10,
+            "num_net_buyers_5m": 8,
+            "num_organic_buyers_5m": null,
+            "organic_buy_vol_5m": null,
+            "organic_sell_vol_5m": null,
             "is_sus": false,
-            "dev_migrations": 1,
-            "launchpad": "pump.fun",
-            "first_pool_at": "2026-09-20T21:20:40Z",
+            "dev_migrations": 2,
+            "launchpad": "stonkfun",
+            "first_pool_at": "2026-09-20T03:46:03Z",
             "shield": [
-              "NOT_VERIFIED",
-              "NEW_LISTING"
+              "3%_TRANSFER_FEES",
+              "NOT_VERIFIED"
             ]
           },
           "jupiter_issues": [
-            "ORGANIC_RATIO(4.6%)",
-            "SHIELD:NOT_VERIFIED",
-            "SHIELD:NEW_LISTING"
+            "ORGANIC_RATIO(2.4%)",
+            "SHIELD:3%_TRANSFER_FEES",
+            "SHIELD:NOT_VERIFIED"
           ],
-          "highest_price": 0.0001577,
-          "entry_time": 1790002214.9334695,
+          "highest_price": 6.336e-05,
+          "entry_time": 1790002255.9896488,
           "invested_sol": 0.2,
-          "tokens_held": 150716.550412175,
-          "url": "https://dexscreener.com/solana/8WormohZAE1UHyEX65Y5njDzwgEiCPXskr5QhJRdk68d",
-          "mcap_at_entry": 152761.0,
-          "liq_at_entry": 42199.79
+          "tokens_held": 356932.38239300007,
+          "url": "https://dexscreener.com/solana/3TyDhMqhQdroh9zBo7CpnZ31GbY96jptiPfgX6ktRozH",
+          "mcap_at_entry": 63366.0,
+          "liq_at_entry": 23554.76
         }
       },
       "closed_positions": [
@@ -591,6 +591,62 @@
           "gap_exit": false,
           "exit_reason": "CTO_TRAILING_TP (Signal +52.5%)",
           "closed_at": "2026-09-21T12:12:11.299022+00:00"
+        },
+        {
+          "symbol": "ZEBRA",
+          "strategy": "CTO",
+          "signal_pnl_pct": -16.99,
+          "real_pnl_pct": -17.07,
+          "entry_signal_price": 0.0001577,
+          "entry_fill_price": 0.0001577,
+          "entry_slippage_pct": 0.0,
+          "exit_signal_price": 0.0001309,
+          "exit_fill_price": 0.000130780248,
+          "exit_slippage_pct": 0.091,
+          "exit_slippage_formel_pct": 0.455,
+          "exit_slippage_source": "jupiter",
+          "entry_slippage_source": "jupiter",
+          "entry_slippage_formel_pct": 0.413,
+          "jupiter": {
+            "organic_score": 75,
+            "organic_label": "medium",
+            "holder_count": 3103,
+            "holder_change_5m": -0.8309364014062002,
+            "holder_change_1h": -4.198826798394566,
+            "mint_auth_disabled": true,
+            "freeze_auth_disabled": true,
+            "top_holders_pct": 20.035768691199817,
+            "dev_balance_pct": null,
+            "dev_mints": 1,
+            "is_verified": null,
+            "organic_buy_ratio_1h": 0.0459,
+            "num_traders_5m": 164,
+            "num_net_buyers_5m": 92,
+            "num_organic_buyers_5m": 5,
+            "organic_buy_vol_5m": 48.238122811021555,
+            "organic_sell_vol_5m": 157.4905219159563,
+            "is_sus": false,
+            "dev_migrations": 1,
+            "launchpad": "pump.fun",
+            "first_pool_at": "2026-09-20T21:20:40Z",
+            "shield": [
+              "NOT_VERIFIED",
+              "NEW_LISTING"
+            ]
+          },
+          "jupiter_issues": [
+            "ORGANIC_RATIO(4.6%)",
+            "SHIELD:NOT_VERIFIED",
+            "SHIELD:NEW_LISTING"
+          ],
+          "liq_at_entry": 42199.79,
+          "liq_at_exit": 38276.0,
+          "fees_sol": 0.003,
+          "pnl_sol": -0.0371,
+          "peak_pct": 0.0,
+          "gap_exit": false,
+          "exit_reason": "CTO_HARD_STOP (Signal -17.0%)",
+          "closed_at": "2026-09-21T14:50:52.787439+00:00"
         }
       ]
     },
@@ -621,7 +677,8 @@
     }
   },
   "trade_history_cooldown": {
-    "EqFG72Z35r8cAV8mKu3UK2L8NUTR1ZNyMr88E4BnwN8Q": 1790002214.9334583
+    "EqFG72Z35r8cAV8mKu3UK2L8NUTR1ZNyMr88E4BnwN8Q": 1790002214.9334583,
+    "2g23GpSneyx7Uqb25YKA6i66m8f1VDYwpGCVGXhdwK8h": 1790002255.9896386
   },
   "rebalanced_strategies": [
     "SMART_MONEY",
