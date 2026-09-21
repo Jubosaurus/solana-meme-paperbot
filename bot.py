@@ -29,7 +29,9 @@ STRATEGY_NAMES = ("CTO", "SMART_MONEY", "SCALP_CURVE")
 STRATEGY_ENABLED = {
     "CTO": True,
     "SMART_MONEY": False,
-    "SCALP_CURVE": True,
+    # Deaktiviert: q=pumpswap liefert nur migrierte Pools (curve_pct konstant
+    # 100). Ohne Quelle fuer Pre-Migration-Token kann C nicht handeln.
+    "SCALP_CURVE": False,
 }
 REBALANCE_DISABLED_BANKROLL = True
 
@@ -131,6 +133,7 @@ REJECT_LOG_HEADERS = [
 
 # Reject-Log nur neu schreiben, wenn sich Grund oder Liquiditaet merklich aendern
 REJECT_LIQ_CHANGE_PCT = 10.0
+REJECT_LIQ_MIN_ABS_CHANGE = 500.0   # USD; verhindert Flut bei Mini-Pools
 REJECT_REPEAT_AFTER_SECONDS = 1800
 
 # ------------------------------------------------------------ Shadow-Tracking
@@ -150,7 +153,7 @@ SHADOW_GRACE_HOURS = 2.0        # Puffer, bevor ein Kandidat verworfen wird
 SHADOW_RESULT_HEADERS = [
     "timestamp", "source", "strategy", "symbol", "token_address",
     "reason", "checkpoint_h", "ref_price_usd", "now_price_usd",
-    "change_pct", "ref_liq_usd", "now_liq_usd"
+    "change_pct", "ref_liq_usd", "now_liq_usd", "later_bought"
 ]
 
 # In-Memory State
@@ -282,6 +285,7 @@ JUPITER_FILTERS_ACTIVE = False
 MIN_ORGANIC_SCORE = 30.0
 MIN_ORGANIC_VOLUME_RATIO = 0.05      # organisches / gesamtes Kaufvolumen
 MAX_TOP_HOLDERS_PCT = 40.0
+MAX_DEV_MINTS = 20                   # Entwickler mit vielen Token-Launches
 REQUIRE_AUTHORITIES_DISABLED = True
 
 _jup_token_cache = {}
@@ -330,8 +334,10 @@ def jupiter_metrics(info):
     stats5m = info.get("stats5m") or {}
     stats1h = info.get("stats1h") or {}
 
-    buy_vol = float(stats5m.get("buyVolume") or 0.0)
-    buy_org = float(stats5m.get("buyOrganicVolume") or 0.0)
+    # 1h statt 5m: im 5-Minuten-Fenster ist das organische Volumen bei kleinen
+    # Token fast immer 0 und damit nicht aussagekraeftig.
+    buy_vol = float(stats1h.get("buyVolume") or 0.0)
+    buy_org = float(stats1h.get("buyOrganicVolume") or 0.0)
     organic_ratio = (buy_org / buy_vol) if buy_vol > 0 else None
 
     return {
@@ -346,7 +352,7 @@ def jupiter_metrics(info):
         "dev_balance_pct": audit.get("devBalancePercentage"),
         "dev_mints": audit.get("devMints"),
         "is_verified": info.get("isVerified"),
-        "organic_buy_ratio_5m": round(organic_ratio, 4) if organic_ratio is not None else None,
+        "organic_buy_ratio_1h": round(organic_ratio, 4) if organic_ratio is not None else None,
         "num_traders_5m": stats5m.get("numTraders"),
     }
 
@@ -364,9 +370,13 @@ def jupiter_concerns(metrics):
     if score is not None and score < MIN_ORGANIC_SCORE:
         issues.append(f"ORGANIC_SCORE({score:.0f})")
 
-    ratio = metrics.get("organic_buy_ratio_5m")
+    ratio = metrics.get("organic_buy_ratio_1h")
     if ratio is not None and ratio < MIN_ORGANIC_VOLUME_RATIO:
         issues.append(f"ORGANIC_RATIO({ratio*100:.1f}%)")
+
+    dev_mints = metrics.get("dev_mints")
+    if dev_mints is not None and dev_mints > MAX_DEV_MINTS:
+        issues.append(f"SERIEN_DEPLOYER({dev_mints})")
 
     top = metrics.get("top_holders_pct")
     if top is not None and top > MAX_TOP_HOLDERS_PCT:
@@ -379,6 +389,71 @@ def jupiter_concerns(metrics):
             issues.append("FREEZE_AUTHORITY_AKTIV")
 
     return issues
+
+
+def jupiter_effective_slippage(token_mint, signal_price_usd, sol_price,
+                               sol_amount=None, token_ui_amount=None):
+    """
+    Slippage aus dem tatsaechlichen Ausfuehrungspreis, nicht aus priceImpactPct.
+
+    Kauf  (sol_amount gesetzt):      SOL -> Token, Preis = gezahlte USD / erhaltene Token
+    Verkauf (token_ui_amount gesetzt): Token -> SOL, Preis = erhaltene USD / verkaufte Token
+
+    Vergleicht mit dem DexScreener-Signalkurs. Erfasst damit DEX-Gebuehr,
+    Preis-Impact und Routing in einem Wert.
+    Rueckgabe: (slippage_pct, token_ui_amount) oder (None, None).
+    """
+    if not JUPITER_ENABLED or signal_price_usd <= 0 or sol_price <= 0:
+        return None, None
+
+    info = jupiter_token_info(token_mint)
+    decimals = (info or {}).get("decimals")
+    if decimals is None:
+        JUP_STATS["quote_fail"] += 1
+        return None, None
+    decimals = int(decimals)
+
+    is_sell = token_ui_amount is not None
+    if is_sell:
+        raw_in = int(token_ui_amount * (10 ** decimals))
+        if raw_in <= 0:
+            return None, None
+        params = f"inputMint={token_mint}&outputMint={WSOL_MINT}&amount={raw_in}"
+    else:
+        lamports = int((sol_amount or 0) * 1_000_000_000)
+        if lamports <= 0:
+            return None, None
+        params = f"inputMint={WSOL_MINT}&outputMint={token_mint}&amount={lamports}"
+
+    _jup_throttle()
+    data = api_get(f"{JUPITER_QUOTE_URL}?{params}&slippageBps=300",
+                   timeout=JUPITER_TIMEOUT)
+    if not isinstance(data, dict):
+        JUP_STATS["quote_fail"] += 1
+        return None, None
+
+    try:
+        out_raw = int(data.get("outAmount") or 0)
+    except (TypeError, ValueError):
+        out_raw = 0
+    if out_raw <= 0:
+        JUP_STATS["quote_fail"] += 1
+        return None, None
+
+    if is_sell:
+        sol_out = out_raw / 1_000_000_000
+        eff_price_usd = (sol_out * sol_price) / token_ui_amount
+        slippage = (1.0 - eff_price_usd / signal_price_usd) * 100.0
+        tokens = token_ui_amount
+    else:
+        tokens = out_raw / (10 ** decimals)
+        eff_price_usd = (sol_amount * sol_price) / tokens
+        slippage = (eff_price_usd / signal_price_usd - 1.0) * 100.0
+
+    JUP_STATS["quote_ok"] += 1
+    # Nach unten bei 0 kappen: ein Kursunterschied zwischen DexScreener und
+    # Jupiter zu unseren Gunsten ist Messrauschen, keine negative Slippage.
+    return min(max(slippage, 0.0), MAX_SLIPPAGE_PCT), tokens
 
 
 def jupiter_quote_slippage(token_mint, sol_lamports, is_sell=False, token_amount=None):
@@ -497,8 +572,9 @@ def should_log_rejection(token_addr, reason_key, liquidity_usd):
         return True
 
     if last_liq > 0:
-        change = abs(liquidity_usd - last_liq) / last_liq * 100.0
-        if change >= REJECT_LIQ_CHANGE_PCT:
+        abs_change = abs(liquidity_usd - last_liq)
+        change = abs_change / last_liq * 100.0
+        if change >= REJECT_LIQ_CHANGE_PCT and abs_change >= REJECT_LIQ_MIN_ABS_CHANGE:
             _reject_seen[key] = (liquidity_usd, now)
             return True
 
@@ -601,15 +677,30 @@ def pool_quality_ok(strategy, pair, token_addr, shadow_state=None):
 
 # ------------------------------------------------------------ Shadow-Tracking
 
+# Ein Token kann in beiden Rollen vorkommen: erst abgelehnt, spaeter gekauft
+# und verkauft. Deshalb ist der Schluessel "QUELLE:token" statt nur "token".
+
+def shadow_key(source, token_addr):
+    return f"{source}:{token_addr}"
+
+
 def init_shadow_files():
     if not SHADOW_ENABLED:
         return
-    if not os.path.exists(SHADOW_RESULT_FILE):
-        try:
-            with open(SHADOW_RESULT_FILE, "w", newline="", encoding="utf-8") as f:
-                csv.writer(f).writerow(SHADOW_RESULT_HEADERS)
-        except Exception as err:
-            print(f"[SHADOW ERROR] {err}")
+    try:
+        if os.path.exists(SHADOW_RESULT_FILE):
+            with open(SHADOW_RESULT_FILE, "r", encoding="utf-8") as f:
+                header = next(csv.reader(f), [])
+            if header == SHADOW_RESULT_HEADERS:
+                return
+            # Altes Format beiseitelegen statt Spalten zu vermischen
+            archive = SHADOW_RESULT_FILE.replace(".csv", "_v1.csv")
+            os.replace(SHADOW_RESULT_FILE, archive)
+            print(f"[SHADOW] altes Format nach {archive} verschoben")
+        with open(SHADOW_RESULT_FILE, "w", newline="", encoding="utf-8") as f:
+            csv.writer(f).writerow(SHADOW_RESULT_HEADERS)
+    except Exception as err:
+        print(f"[SHADOW ERROR] {err}")
 
 
 def load_shadow_state():
@@ -618,6 +709,16 @@ def load_shadow_state():
             with open(SHADOW_STATE_FILE, "r", encoding="utf-8") as f:
                 data = json.load(f)
             if isinstance(data, dict) and isinstance(data.get("candidates"), dict):
+                # Eintraege aus dem alten Format (Schluessel = Token) umschluesseln
+                migrated = {}
+                for key, entry in data["candidates"].items():
+                    if not isinstance(entry, dict):
+                        continue
+                    if "token" not in entry:
+                        entry["token"] = key
+                        key = shadow_key(entry.get("source", "REJECT"), key)
+                    migrated[key] = entry
+                data["candidates"] = migrated
                 return data
         except Exception as err:
             print(f"[SHADOW LOAD ERROR] {err}")
@@ -640,12 +741,24 @@ def shadow_register(state, token_addr, symbol, strategy, source, reason,
     if not SHADOW_ENABLED or not token_addr or ref_price <= 0:
         return
     candidates = state.setdefault("candidates", {})
-    if token_addr in candidates:
-        return
-    if len(candidates) >= SHADOW_MAX_TRACKED:
+    key = shadow_key(source, token_addr)
+    if key in candidates:
         return
 
-    candidates[token_addr] = {
+    # Exits haben Vorrang: Wenn die Liste voll ist, macht ein Exit einem
+    # Reject-Eintrag Platz. Die Exit-Frage ist seltener und wertvoller.
+    if len(candidates) >= SHADOW_MAX_TRACKED:
+        if source != "EXIT":
+            return
+        oldest_reject = min(
+            (k for k, e in candidates.items() if e.get("source") == "REJECT"),
+            key=lambda k: candidates[k].get("ref_time", 0), default=None)
+        if oldest_reject is None:
+            return
+        del candidates[oldest_reject]
+
+    candidates[key] = {
+        "token": token_addr,
         "symbol": symbol,
         "strategy": strategy,
         "source": source,
@@ -653,23 +766,31 @@ def shadow_register(state, token_addr, symbol, strategy, source, reason,
         "ref_price": ref_price,
         "ref_liq": ref_liq,
         "ref_time": time.time(),
+        "later_bought": False,
         "pending": list(SHADOW_CHECKPOINTS_HOURS)
     }
 
 
-def shadow_due_tokens(state):
-    """Kandidaten, deren naechster Messpunkt erreicht ist."""
+def shadow_mark_bought(state, token_addr):
+    """Markiert einen abgelehnten Kandidaten, der spaeter doch gekauft wurde."""
+    if state is None:
+        return
+    entry = state.get("candidates", {}).get(shadow_key("REJECT", token_addr))
+    if entry:
+        entry["later_bought"] = True
+
+
+def shadow_due_keys(state):
+    """Eintraege, deren naechster Messpunkt erreicht ist."""
     now = time.time()
     due = []
-    for addr, entry in state.get("candidates", {}).items():
+    for key, entry in state.get("candidates", {}).items():
         pending = entry.get("pending") or []
         if not pending:
             continue
         age_hours = (now - float(entry.get("ref_time", now))) / 3600.0
         if age_hours >= min(pending):
-            due.append(addr)
-        if len(due) >= SHADOW_BATCH_SIZE:
-            break
+            due.append(key)
     return due
 
 
@@ -692,7 +813,7 @@ def fetch_pairs_batch(token_addrs):
     return best
 
 
-def shadow_write_result(entry, addr, checkpoint, now_price, now_liq):
+def shadow_write_result(entry, checkpoint, now_price, now_liq):
     ref_price = float(entry.get("ref_price") or 0.0)
     change = ((now_price - ref_price) / ref_price * 100.0) if ref_price > 0 else 0.0
     try:
@@ -702,7 +823,7 @@ def shadow_write_result(entry, addr, checkpoint, now_price, now_liq):
                 entry.get("source", ""),
                 entry.get("strategy", ""),
                 entry.get("symbol", ""),
-                addr,
+                entry.get("token", ""),
                 entry.get("reason", ""),
                 f"{checkpoint:.1f}",
                 f"{ref_price:.12f}",
@@ -710,6 +831,7 @@ def shadow_write_result(entry, addr, checkpoint, now_price, now_liq):
                 f"{change:+.2f}",
                 f"{float(entry.get('ref_liq') or 0.0):.0f}",
                 f"{now_liq:.0f}",
+                "ja" if entry.get("later_bought") else "nein",
             ])
     except Exception as err:
         print(f"[SHADOW ERROR] {err}")
@@ -717,52 +839,48 @@ def shadow_write_result(entry, addr, checkpoint, now_price, now_liq):
 
 
 def process_shadow_tracking(state):
-    """Misst faellige Kandidaten und raeumt abgelaufene auf."""
+    """Misst faellige Eintraege und raeumt abgelaufene auf."""
     if not SHADOW_ENABLED:
         return
 
     candidates = state.setdefault("candidates", {})
     now = time.time()
 
-    # Abgelaufene Kandidaten verwerfen (Token tot oder nie messbar)
     max_age = (max(SHADOW_CHECKPOINTS_HOURS) + SHADOW_GRACE_HOURS) * 3600.0
-    for addr in [a for a, e in candidates.items()
-                 if (now - float(e.get("ref_time", now))) > max_age]:
-        del candidates[addr]
+    for key in [k for k, e in candidates.items()
+                if (now - float(e.get("ref_time", now))) > max_age]:
+        del candidates[key]
 
-    due = shadow_due_tokens(state)
+    due = shadow_due_keys(state)
     if not due:
         return
 
-    found = fetch_pairs_batch(due)
+    # Mehrere Eintraege koennen denselben Token betreffen (REJECT und EXIT)
+    tokens = list(dict.fromkeys(candidates[k]["token"] for k in due))[:SHADOW_BATCH_SIZE]
+    found = fetch_pairs_batch(tokens)
 
-    for addr in due:
-        entry = candidates.get(addr)
-        if not entry:
+    for key in due:
+        entry = candidates.get(key)
+        if not entry or entry.get("token") not in tokens:
             continue
         pending = entry.get("pending") or []
         if not pending:
             continue
 
         checkpoint = min(pending)
-        age_hours = (now - float(entry.get("ref_time", now))) / 3600.0
-        if age_hours < checkpoint:
-            continue
-
-        pair = found.get(addr)
+        pair = found.get(entry["token"])
         now_price = float(pair.get("priceUsd") or 0.0) if pair else 0.0
         now_liq = pair_liquidity_usd(pair) if pair else 0.0
 
         if now_price <= 0:
-            # Kein Kurs mehr: als Totalverlust werten und nicht weiter verfolgen
-            shadow_write_result(entry, addr, checkpoint, 0.0, 0.0)
+            shadow_write_result(entry, checkpoint, 0.0, 0.0)
             entry["pending"] = []
         else:
-            shadow_write_result(entry, addr, checkpoint, now_price, now_liq)
+            shadow_write_result(entry, checkpoint, now_price, now_liq)
             entry["pending"] = [h for h in pending if h > checkpoint]
 
         if not entry["pending"]:
-            candidates.pop(addr, None)
+            candidates.pop(key, None)
 
     save_shadow_state(state)
 
@@ -983,7 +1101,8 @@ def scan_cto(portfolio, sol_price, shadow_state=None):
             continue
 
         reason = f"Re-Accumulation ({drawdown:.1f}% Dip, +{m5_change:.1f}% 5m)"
-        execute_entry(portfolio, "CTO", token_addr, pair, reason, sol_price)
+        execute_entry(portfolio, "CTO", token_addr, pair, reason, sol_price,
+                      shadow_state)
         break
 
 
@@ -1015,7 +1134,8 @@ def scan_smart_money(portfolio, sol_price, shadow_state=None):
 
         wallets = " und ".join(f"{w[:4]}.." for w, _ in cluster[:SM_MIN_CLUSTER_SIZE])
         reason = f"Cluster ({len(cluster)} Wallets: {wallets})"
-        execute_entry(portfolio, "SMART_MONEY", token_addr, pair, reason, sol_price)
+        execute_entry(portfolio, "SMART_MONEY", token_addr, pair, reason, sol_price,
+                      shadow_state)
         break
 
 
@@ -1211,13 +1331,15 @@ def scan_curve_scalp(portfolio, sol_price, shadow_state=None):
             continue
 
         reason = f"Pre-Graduation Curve @ {curve_pct:.1f}%"
-        execute_entry(portfolio, "SCALP_CURVE", token_addr, pair, reason, sol_price)
+        execute_entry(portfolio, "SCALP_CURVE", token_addr, pair, reason, sol_price,
+                      shadow_state)
         break
 
 
 # ------------------------------------------------------------------------- Entry
 
-def execute_entry(portfolio, strat_name, token_addr, pair, reason_desc, sol_price):
+def execute_entry(portfolio, strat_name, token_addr, pair, reason_desc, sol_price,
+                  shadow_state=None):
     strat = portfolio["strategies"][strat_name]
     symbol = pair_symbol(pair)
     signal_price = float(pair.get("priceUsd") or 0.0)
@@ -1232,17 +1354,19 @@ def execute_entry(portfolio, strat_name, token_addr, pair, reason_desc, sol_pric
     trade_value_usd = SCOUT_SIZE_SOL * sol_price
     slippage_est = estimate_slippage_pct(trade_value_usd, liq, is_sell=False)
 
-    # Echter Preis-Impact von Jupiter, Formel nur als Rueckfallebene
-    lamports = int(SCOUT_SIZE_SOL * 1_000_000_000)
-    measured = jupiter_quote_slippage(token_addr, lamports, is_sell=False)
+    # Echter Ausfuehrungspreis von Jupiter, Formel nur als Rueckfallebene
+    measured, _ = jupiter_effective_slippage(token_addr, signal_price, sol_price,
+                                             sol_amount=SCOUT_SIZE_SOL)
     if measured is not None:
-        slippage = combined_slippage_pct(measured)
+        slippage = measured
         slippage_source = "jupiter"
     else:
         slippage = slippage_est
         slippage_source = "formel"
 
     fill_price = signal_price * (1.0 + slippage / 100.0)
+    # Gehaltene Menge merken, damit der Verkauf echt quotiert werden kann
+    tokens_held = trade_value_usd / fill_price if fill_price > 0 else 0.0
 
     # Jupiter-Tokendaten mitschreiben (noch kein Filter, siehe JUPITER_FILTERS_ACTIVE)
     jup_metrics = jupiter_metrics(jupiter_token_info(token_addr))
@@ -1250,6 +1374,7 @@ def execute_entry(portfolio, strat_name, token_addr, pair, reason_desc, sol_pric
 
     strat["bankroll_sol"] = round(strat["bankroll_sol"] - SCOUT_SIZE_SOL, 4)
     portfolio.setdefault("trade_history_cooldown", {})[token_addr] = time.time()
+    shadow_mark_bought(shadow_state, token_addr)
 
     strat["open_positions"][token_addr] = {
         "symbol": symbol,
@@ -1264,6 +1389,7 @@ def execute_entry(portfolio, strat_name, token_addr, pair, reason_desc, sol_pric
         "highest_price": signal_price,
         "entry_time": time.time(),
         "invested_sol": SCOUT_SIZE_SOL,
+        "tokens_held": tokens_held,
         "url": pair_url,
         "mcap_at_entry": mcap,
         "liq_at_entry": liq
@@ -1343,17 +1469,21 @@ def close_position(portfolio, strat_name, pos, signal_pnl_pct, peak_pct,
         exit_slippage_est = estimate_slippage_pct(position_value_usd, exit_liq_usd,
                                                   is_sell=True)
 
-        # Gegenprobe ueber Jupiter: Was wuerde ein Verkauf dieser Groesse kosten?
-        # Naeherung ueber den SOL-Gegenwert, da wir die Token-Menge nicht halten.
-        sell_lamports = int(invested_sol * (1.0 + signal_pnl_pct / 100.0)
-                            * 1_000_000_000)
+        # Echter Verkaufs-Quote: die gehaltene Token-Menge gegen SOL.
+        # Der Faktor SELL_SLIPPAGE_FACTOR gilt nur fuer die Formel, nicht fuer
+        # gemessene Werte - eine Messung wird nicht nachtraeglich aufgeblaeht.
+        tokens_held = float(pos.get("tokens_held") or 0.0)
+        if tokens_held <= 0 and entry_fill > 0:
+            # Positionen aus aelteren Versionen: Menge aus dem Einsatz ableiten
+            tokens_held = (invested_sol * sol_price) / entry_fill
+
         measured_exit = None
-        if token_addr and sell_lamports > 0:
-            measured_exit = jupiter_quote_slippage(token_addr, sell_lamports,
-                                                   is_sell=False)
+        if token_addr and tokens_held > 0:
+            measured_exit, _ = jupiter_effective_slippage(
+                token_addr, exit_signal_price, sol_price,
+                token_ui_amount=tokens_held)
         if measured_exit is not None:
-            exit_slippage = min(combined_slippage_pct(measured_exit)
-                                * SELL_SLIPPAGE_FACTOR, MAX_SLIPPAGE_PCT)
+            exit_slippage = measured_exit
             exit_slippage_source = "jupiter"
         else:
             exit_slippage = exit_slippage_est
@@ -1512,8 +1642,9 @@ def run_loop():
     if inactive:
         print(f"[CONFIG] Inaktiv: {', '.join(inactive)}")
     print(f"[CONFIG] Fees {SIMULATED_FEE_SOL:.4f} SOL/Trade | "
-          f"Slippage = {BASE_SWAP_COST_PCT}% + {IMPACT_FACTOR}x Trade/LP "
-          f"(Verkauf x{SELL_SLIPPAGE_FACTOR}, max {MAX_SLIPPAGE_PCT}%)")
+          f"Slippage: Jupiter-Ausfuehrungspreis, Fallback Formel "
+          f"{BASE_SWAP_COST_PCT}% + {IMPACT_FACTOR}x Trade/LP "
+          f"(Verkauf x{SELL_SLIPPAGE_FACTOR} nur bei Formel)")
 
     while True:
         elapsed = time.time() - start_time
