@@ -5,8 +5,6 @@ on:
   schedule:
     - cron: '0 */6 * * *'
 
-# Alle Workflows dieses Repos teilen sich eine Group, damit nie zwei
-# gleichzeitig auf main pushen.
 concurrency:
   group: solana-bot-repo
   cancel-in-progress: false
@@ -20,41 +18,41 @@ jobs:
     timeout-minutes: 360
 
     steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           fetch-depth: 0
 
-      - name: Setup Python
-        uses: actions/setup-python@v5
+      - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
           cache: 'pip'
 
-      - name: Install Dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
+      - name: Install dependencies
+        run: pip install -r requirements.txt
 
-      - name: Configure Git
+      - name: Sync repo
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git pull origin main --rebase || true
 
-      - name: Run Trading Bot (Schicht ~5h45)
+      - name: Run Trading Bot
         env:
-          PYTHONUNBUFFERED: "1"
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
           SOLANA_RPC_URL: ${{ secrets.SOLANA_RPC_URL }}
+          JUPITER_API_KEY: ${{ secrets.JUPITER_API_KEY }}
+          PYTHONUNBUFFERED: "1"
         run: python bot.py
 
       - name: Final Backup Push
         if: always()
         run: |
-          git add portfolio.json rejected_candidates.csv || true
-          if git status --porcelain | grep -qE "portfolio.json|rejected_candidates.csv"; then
+          FILES="portfolio.json rejected_candidates.csv shadow_candidates.json shadow_results.csv shadow_results_v1.csv"
+          for f in $FILES; do
+            [ -f "$f" ] && git add "$f" || true
+          done
+          if ! git diff --cached --quiet; then
             git commit -m "Final Session Push [skip ci]" || true
             git pull origin main --rebase || true
             git push origin main || true
