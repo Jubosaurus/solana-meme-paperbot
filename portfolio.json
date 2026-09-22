@@ -1,60 +1,12 @@
 {
-  "bankroll_total_sol": 14.7989,
+  "bankroll_total_sol": 14.959,
   "strategies": {
     "CTO": {
-      "bankroll_sol": 14.7989,
+      "bankroll_sol": 14.959,
       "wins": 12,
-      "losses": 19,
-      "total_fees_sol": 0.109,
-      "open_positions": {
-        "89VdwqRkPoNJRuoAT5q6wCLtyGxAHSaZdk3r1wHhpump": {
-          "symbol": "PONK",
-          "dex": "PUMPSWAP",
-          "entry_signal_price": 2.187e-05,
-          "entry_fill_price": 2.264211432681148e-05,
-          "entry_slippage_pct": 3.53,
-          "entry_slippage_source": "jupiter",
-          "entry_slippage_formel_pct": 0.647,
-          "jupiter": {
-            "organic_score": 56.349205270925204,
-            "organic_label": "medium",
-            "holder_count": 349,
-            "holder_change_5m": null,
-            "holder_change_1h": -3.591160220994475,
-            "mint_auth_disabled": true,
-            "freeze_auth_disabled": true,
-            "top_holders_pct": 23.759301814341903,
-            "dev_balance_pct": 0.2608636929840786,
-            "dev_mints": 2,
-            "is_verified": null,
-            "organic_buy_ratio_1h": 0.0553,
-            "num_traders_5m": 15,
-            "num_net_buyers_5m": 7,
-            "num_organic_buyers_5m": 1,
-            "organic_buy_vol_5m": 47.529617182614736,
-            "organic_sell_vol_5m": null,
-            "is_sus": false,
-            "dev_migrations": 1,
-            "launchpad": "pump.fun",
-            "first_pool_at": "2026-09-22T04:55:46Z",
-            "shield": [
-              "NOT_VERIFIED",
-              "NEW_LISTING"
-            ]
-          },
-          "jupiter_issues": [
-            "SHIELD:NOT_VERIFIED",
-            "SHIELD:NEW_LISTING"
-          ],
-          "highest_price": 2.442e-05,
-          "entry_time": 1790073626.6380355,
-          "invested_sol": 0.2,
-          "tokens_held": 1033207.3967270001,
-          "url": "https://dexscreener.com/solana/GFnWFvSpJ9eKMJpmTThg6qaNmAgGDXMNyLeND2E75qSe",
-          "mcap_at_entry": 21130.0,
-          "liq_at_entry": 13492.73
-        }
-      },
+      "losses": 20,
+      "total_fees_sol": 0.112,
+      "open_positions": {},
       "closed_positions": [
         {
           "symbol": "LOCKINU",
@@ -757,6 +709,61 @@
           "gap_exit": false,
           "exit_reason": "CTO_HARD_STOP (Signal -19.5%)",
           "closed_at": "2026-09-22T08:35:43.999574+00:00"
+        },
+        {
+          "symbol": "PONK",
+          "strategy": "CTO",
+          "signal_pnl_pct": -15.55,
+          "real_pnl_pct": -18.43,
+          "entry_signal_price": 2.187e-05,
+          "entry_fill_price": 2.2642114e-05,
+          "entry_slippage_pct": 3.53,
+          "exit_signal_price": 1.847e-05,
+          "exit_fill_price": 1.847e-05,
+          "exit_slippage_pct": 0.0,
+          "exit_slippage_formel_pct": 0.789,
+          "exit_slippage_source": "jupiter",
+          "entry_slippage_source": "jupiter",
+          "entry_slippage_formel_pct": 0.647,
+          "jupiter": {
+            "organic_score": 56.349205270925204,
+            "organic_label": "medium",
+            "holder_count": 349,
+            "holder_change_5m": null,
+            "holder_change_1h": -3.591160220994475,
+            "mint_auth_disabled": true,
+            "freeze_auth_disabled": true,
+            "top_holders_pct": 23.759301814341903,
+            "dev_balance_pct": 0.2608636929840786,
+            "dev_mints": 2,
+            "is_verified": null,
+            "organic_buy_ratio_1h": 0.0553,
+            "num_traders_5m": 15,
+            "num_net_buyers_5m": 7,
+            "num_organic_buyers_5m": 1,
+            "organic_buy_vol_5m": 47.529617182614736,
+            "organic_sell_vol_5m": null,
+            "is_sus": false,
+            "dev_migrations": 1,
+            "launchpad": "pump.fun",
+            "first_pool_at": "2026-09-22T04:55:46Z",
+            "shield": [
+              "NOT_VERIFIED",
+              "NEW_LISTING"
+            ]
+          },
+          "jupiter_issues": [
+            "SHIELD:NOT_VERIFIED",
+            "SHIELD:NEW_LISTING"
+          ],
+          "liq_at_entry": 13492.73,
+          "liq_at_exit": 12208.0,
+          "fees_sol": 0.003,
+          "pnl_sol": -0.0399,
+          "peak_pct": 11.66,
+          "gap_exit": false,
+          "exit_reason": "CTO_HARD_STOP (Signal -15.5%)",
+          "closed_at": "2026-09-22T12:02:10.126304+00:00"
         }
       ]
     },
