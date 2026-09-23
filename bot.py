@@ -23,18 +23,36 @@ SHIFT_DURATION_SECONDS = 20700        # 5h45, passend zum 6h-Cron
 START_BANKROLL_PER_STRATEGY = 5.0
 MAX_PNL_PCT = 400.0
 
-STRATEGY_NAMES = ("CTO", "SMART_MONEY", "SCALP_CURVE")
+STRATEGY_NAMES = ("CTO", "CTO_JUP", "SMART_MONEY", "SCALP_CURVE")
 
 # Strategie B bleibt deaktiviert: die Wallet-Auswahl in smart_wallets.csv beruht
 # auf aktuellen Top-Holdern, nicht auf gemessenem Kaufzeitpunkt oder PnL.
 STRATEGY_ENABLED = {
     "CTO": True,
+    # Gleiche CTO-Regeln, aber Kandidaten aus Jupiter toptrending/5m statt aus
+    # bezahlten DexScreener-Boosts. Shadow-Daten: ~14x mehr Kandidaten.
+    "CTO_JUP": True,
     "SMART_MONEY": False,
     # Deaktiviert: q=pumpswap liefert nur migrierte Pools (curve_pct konstant
     # 100). Ohne Quelle fuer Pre-Migration-Token kann C nicht handeln.
     "SCALP_CURVE": False,
 }
 REBALANCE_DISABLED_BANKROLL = True
+
+# Neue Strategien bekommen kein frisches Startkapital, sondern einmalig einen
+# Anteil des freien Kapitals einer bestehenden Strategie.
+STRATEGY_SPLITS = {"CTO_JUP": ("CTO", 0.5)}
+
+# Nach einem Stop-Loss wird der Token fuer alle Strategien gesperrt.
+# Befund: Wiedereinstiege nach einem Stop 0 von 4 gewonnen (PONK, INU).
+STOP_BLOCK_HOURS = 24.0
+
+# Token mit Transfergebuehr (Token-2022) kosten bei Kauf UND Verkauf extra.
+# Befund: BINKY und PENNY (je 3%) beide verloren.
+BLOCK_TRANSFER_FEE_TOKENS = True
+
+# Nachahmer bekannter Coins (echte Mints stehen in IGNORED_MINTS)
+IMPERSONATION_SYMBOLS = {"SOL", "WSOL", "USDC", "USDT", "BTC", "WBTC", "ETH", "WETH", "JUP"}
 
 # ------------------------------------------------- Handelskosten (recherchiert)
 
@@ -321,6 +339,7 @@ MAX_DEV_MINTS = 20                   # Entwickler mit vielen Token-Launches
 REQUIRE_AUTHORITIES_DISABLED = True
 
 _jup_token_cache = {}
+_shield_cache = {}
 _jup_last_call = [0.0]
 JUP_STATS = {"ok": 0, "fail": 0, "quote_ok": 0, "quote_fail": 0}
 
@@ -441,12 +460,17 @@ def jupiter_shield(mint):
     """
     if not JUPITER_ENABLED or not mint:
         return None
+    cached = _shield_cache.get(mint)
+    if cached and (time.time() - cached[0]) < 1800:
+        return cached[1]
     _jup_throttle()
     data = jup_get(f"/ultra/v1/shield?mints={mint}")
     if not isinstance(data, dict):
         return None
     warnings = (data.get("warnings") or {}).get(mint) or []
-    return [w.get("type") for w in warnings if isinstance(w, dict) and w.get("type")]
+    result = [w.get("type") for w in warnings if isinstance(w, dict) and w.get("type")]
+    _shield_cache[mint] = (time.time(), result)
+    return result
 
 
 def jupiter_concerns(metrics):
@@ -885,9 +909,10 @@ def shadow_mark_bought(state, token_addr):
     """Markiert einen abgelehnten Kandidaten, der spaeter doch gekauft wurde."""
     if state is None:
         return
-    entry = state.get("candidates", {}).get(shadow_key("REJECT", token_addr))
-    if entry:
-        entry["later_bought"] = True
+    for source in ("REJECT", "JUP_SIGNAL"):
+        entry = state.get("candidates", {}).get(shadow_key(source, token_addr))
+        if entry:
+            entry["later_bought"] = True
 
 
 def shadow_due_keys(state):
@@ -1019,6 +1044,8 @@ def normalize_portfolio(data):
         strat = strategies.get(name)
         if not isinstance(strat, dict):
             strat = default_strat()
+            if name in STRATEGY_SPLITS:
+                strat["bankroll_sol"] = 0.0   # wird per Aufteilung befuellt
         else:
             for key, value in default_strat().items():
                 strat.setdefault(key, value)
@@ -1026,6 +1053,8 @@ def normalize_portfolio(data):
     data["strategies"] = strategies
     data.setdefault("trade_history_cooldown", {})
     data.setdefault("rebalanced_strategies", [])
+    data.setdefault("strategy_splits", [])
+    data.setdefault("stop_blocklist", {})
     data.setdefault(
         "bankroll_total_sol",
         round(sum(s["bankroll_sol"] for s in strategies.values()), 4)
@@ -1033,7 +1062,23 @@ def normalize_portfolio(data):
     return data
 
 
+def apply_strategy_splits(portfolio):
+    """Einmalige Aufteilung des Kapitals fuer neu eingefuehrte Strategien."""
+    done = portfolio.setdefault("strategy_splits", [])
+    for target, (source, share) in STRATEGY_SPLITS.items():
+        if target in done or not STRATEGY_ENABLED.get(target):
+            continue
+        src_strat = portfolio["strategies"][source]
+        amount = round(float(src_strat["bankroll_sol"]) * share, 4)
+        src_strat["bankroll_sol"] = round(src_strat["bankroll_sol"] - amount, 4)
+        tgt = portfolio["strategies"][target]
+        tgt["bankroll_sol"] = round(tgt["bankroll_sol"] + amount, 4)
+        done.append(target)
+        print(f"[SPLIT] {amount:.4f} SOL von {source} an {target} uebertragen")
+
+
 def rebalance_disabled_strategies(portfolio):
+    apply_strategy_splits(portfolio)
     if not REBALANCE_DISABLED_BANKROLL:
         return
 
@@ -1087,6 +1132,9 @@ def save_portfolio(data):
 
 
 def prune_cooldowns(portfolio):
+    blocklist = portfolio.setdefault("stop_blocklist", {})
+    for addr in [a for a, until in blocklist.items() if float(until or 0) < time.time()]:
+        del blocklist[addr]
     cooldowns = portfolio.setdefault("trade_history_cooldown", {})
     cutoff = time.time() - (TOKEN_COOLDOWN_MINUTES * 60)
     for addr in [a for a, ts in cooldowns.items() if float(ts or 0) < cutoff]:
@@ -1151,10 +1199,20 @@ def strategy_can_trade(portfolio, strat_name):
     return True
 
 
+def _note_prefix(strat_name):
+    return "jup_" if strat_name == "CTO_JUP" else "cto_"
+
+
 def is_blocked(portfolio, strat_name, token_addr, now_ts):
     if not token_addr:
         return True
-    if token_addr in portfolio["strategies"][strat_name]["open_positions"]:
+    # Kein Token doppelt halten, auch nicht ueber zwei Strategien hinweg
+    for strat in portfolio["strategies"].values():
+        if token_addr in strat["open_positions"]:
+            return True
+    blocked_until = float(portfolio.setdefault("stop_blocklist", {}).get(token_addr, 0) or 0)
+    if now_ts < blocked_until:
+        note(_note_prefix(strat_name) + "gesperrt_nach_stop")
         return True
     cooldowns = portfolio.setdefault("trade_history_cooldown", {})
     last_trade = float(cooldowns.get(token_addr, 0) or 0)
@@ -1188,8 +1246,11 @@ def scan_cto(portfolio, sol_price, shadow_state=None):
             note("cto_kein_erstellungsdatum")
             continue
         age_hours = (now_ts * 1000.0 - float(pair_created)) / (1000.0 * 3600.0)
-        if not (CTO_MIN_AGE_HOURS <= age_hours <= CTO_MAX_AGE_HOURS):
-            note("cto_alter_ausserhalb")
+        if age_hours < CTO_MIN_AGE_HOURS:
+            note("cto_zu_jung")
+            continue
+        if age_hours > CTO_MAX_AGE_HOURS:
+            note("cto_zu_alt")
             continue
 
         drawdown = min(pair_price_change(pair, "h24"), pair_price_change(pair, "h6"))
@@ -1212,9 +1273,9 @@ def scan_cto(portfolio, sol_price, shadow_state=None):
             continue
 
         reason = f"Re-Accumulation ({drawdown:.1f}% Dip, +{m5_change:.1f}% 5m)"
-        execute_entry(portfolio, "CTO", token_addr, pair, reason, sol_price,
-                      shadow_state)
-        break
+        if execute_entry(portfolio, "CTO", token_addr, pair, reason, sol_price,
+                         shadow_state):
+            break
 
 
 # ------------------------------------------------------------------- Strategie B
@@ -1245,9 +1306,9 @@ def scan_smart_money(portfolio, sol_price, shadow_state=None):
 
         wallets = " und ".join(f"{w[:4]}.." for w, _ in cluster[:SM_MIN_CLUSTER_SIZE])
         reason = f"Cluster ({len(cluster)} Wallets: {wallets})"
-        execute_entry(portfolio, "SMART_MONEY", token_addr, pair, reason, sol_price,
-                      shadow_state)
-        break
+        if execute_entry(portfolio, "SMART_MONEY", token_addr, pair, reason, sol_price,
+                         shadow_state):
+            break
 
 
 # --------------------------------------------------- On-Chain Stream (fuer B)
@@ -1442,9 +1503,9 @@ def scan_curve_scalp(portfolio, sol_price, shadow_state=None):
             continue
 
         reason = f"Pre-Graduation Curve @ {curve_pct:.1f}%"
-        execute_entry(portfolio, "SCALP_CURVE", token_addr, pair, reason, sol_price,
-                      shadow_state)
-        break
+        if execute_entry(portfolio, "SCALP_CURVE", token_addr, pair, reason, sol_price,
+                         shadow_state):
+            break
 
 
 def _iso_to_ts(value):
@@ -1454,12 +1515,15 @@ def _iso_to_ts(value):
         return None
 
 
-def scan_jupiter_signals(portfolio, shadow_state):
+def scan_cto_jup(portfolio, sol_price, shadow_state):
     """
-    Wendet die CTO-Bedingungen auf Jupiter toptrending/5m an.
-    Treffer werden nur beobachtet, nicht gehandelt.
+    Strategie CTO_JUP: dieselben CTO-Regeln, Kandidaten aus Jupiter
+    toptrending/5m. Jeder Treffer landet als JUP_SIGNAL im Shadow-Tracking;
+    ist Platz im Portfolio, wird zusaetzlich gehandelt. Vor dem Kauf laeuft
+    der belegte DexScreener-Poolfilter, und Preis/Liquiditaet kommen wie bei
+    CTO von DexScreener, damit beide Strategien identisch verwaltet werden.
     """
-    if not (JUP_SIGNAL_ENABLED and JUPITER_ENABLED and shadow_state is not None):
+    if not (JUP_SIGNAL_ENABLED and JUPITER_ENABLED):
         return
 
     _jup_throttle()
@@ -1468,11 +1532,13 @@ def scan_jupiter_signals(portfolio, shadow_state):
         return
 
     now = time.time()
-    open_tokens = {a for s in portfolio["strategies"].values() for a in s["open_positions"]}
+    can_trade = strategy_can_trade(portfolio, "CTO_JUP")
 
     for tok in data:
         mint = tok.get("id")
-        if not mint or mint in IGNORED_MINTS or mint in open_tokens:
+        if not mint or mint in IGNORED_MINTS:
+            continue
+        if is_blocked(portfolio, "CTO_JUP", mint, now):
             continue
 
         created = _iso_to_ts((tok.get("firstPool") or {}).get("createdAt"))
@@ -1480,8 +1546,11 @@ def scan_jupiter_signals(portfolio, shadow_state):
             note("jup_kein_pooldatum")
             continue
         age_h = (now - created) / 3600.0
-        if not (CTO_MIN_AGE_HOURS <= age_h <= CTO_MAX_AGE_HOURS):
-            note("jup_alter_ausserhalb")
+        if age_h < CTO_MIN_AGE_HOURS:
+            note("jup_zu_jung")
+            continue
+        if age_h > CTO_MAX_AGE_HOURS:
+            note("jup_zu_alt")
             continue
 
         s5, s6, s24 = (tok.get("stats5m") or {}, tok.get("stats6h") or {},
@@ -1510,20 +1579,95 @@ def scan_jupiter_signals(portfolio, shadow_state):
         if price <= 0:
             continue
 
-        key = shadow_key("JUP_SIGNAL", mint)
-        if key in shadow_state.get("candidates", {}):
+        net = s5.get("numNetBuyers", "?")
+        symbol = str(tok.get("symbol") or "?").upper()
+
+        # Nachahmer und Transfergebuehr gar nicht erst als Kandidat zaehlen
+        block_reason, _ = entry_safety_block(mint, symbol)
+        if block_reason:
+            portfolio.setdefault("stop_blocklist", {})[mint] = now + STOP_BLOCK_HOURS * 3600.0
+            note("jup_sicherheit")
+            print(f"🛡️ [CTO_JUP] {symbol} ausgeschlossen: {block_reason}")
             continue
-        shadow_register(shadow_state, mint, str(tok.get("symbol") or "?").upper(),
-                        "CTO", "JUP_SIGNAL",
-                        f"dd{drawdown:.0f}_m5{m5:+.0f}_net{s5.get('numNetBuyers', '?')}",
-                        price, liq)
-        SESSION_STATS["jup_signals"] += 1
+
         note("jup_signal_treffer")
-        print(f"🔭 [JUP_SIGNAL] {tok.get('symbol')} erfuellt CTO "
-              f"(Alter {age_h:.1f}h, Drawdown {drawdown:.0f}%, m5 {m5:+.1f}%) - nur beobachtet")
+
+        if shadow_state is not None and \
+                shadow_key("JUP_SIGNAL", mint) not in shadow_state.get("candidates", {}):
+            shadow_register(shadow_state, mint, symbol, "CTO_JUP", "JUP_SIGNAL",
+                            f"dd{drawdown:.0f}_m5{m5:+.0f}_net{net}", price, liq)
+            SESSION_STATS["jup_signals"] += 1
+
+        if not can_trade:
+            continue
+
+        pair = fetch_best_pair(mint)
+        if not pair:
+            note("jup_kein_dex_pair")
+            continue
+        if not pool_quality_ok("CTO_JUP", pair, mint, shadow_state):
+            continue
+
+        reason = (f"Jupiter-Trend ({drawdown:.0f}% Dip, +{m5:.1f}% 5m, "
+                  f"{net} Netto-Kaeufer)")
+        if execute_entry(portfolio, "CTO_JUP", mint, pair, reason, sol_price,
+                         shadow_state):
+            can_trade = False   # ein Einstieg pro Durchlauf, wie bei CTO
 
 
 # ------------------------------------------------------------------------- Entry
+
+def entry_safety_block(token_addr, symbol):
+    """
+    Harte Ausschluesse vor dem Kauf. Rueckgabe: (Grund oder None, Shield-Liste).
+    Fehlt die Shield-Antwort, wird nicht blockiert - fehlende Daten sind kein Befund.
+    """
+    sym = str(symbol or "").strip().upper().lstrip("$")
+    if sym in IMPERSONATION_SYMBOLS and token_addr not in IGNORED_MINTS:
+        return f"NACHAHMER_SYMBOL ({sym})", None
+
+    shield = jupiter_shield(token_addr) if JUPITER_ENABLED else None
+    if BLOCK_TRANSFER_FEE_TOKENS and shield:
+        fees = [w for w in shield if "TRANSFER_FEE" in str(w).upper()]
+        if fees:
+            return f"TRANSFERGEBUEHR ({fees[0]})", shield
+    return None, shield
+
+
+def jupiter_roundtrip_cost(token_mint, sol_amount):
+    """
+    Echte Hin-und-zurueck-Kosten: SOL -> Token quotieren, die erhaltene Menge
+    sofort wieder Token -> SOL quotieren. Unabhaengig vom DexScreener-Kurs,
+    daher ohne den Preisversatz zwischen beiden Quellen.
+    """
+    if not JUPITER_ENABLED:
+        return None
+    lamports = int(sol_amount * 1_000_000_000)
+    _jup_throttle()
+    buy = jup_get(f"/swap/v1/quote?inputMint={WSOL_MINT}&outputMint={token_mint}"
+                  f"&amount={lamports}&slippageBps=300")
+    try:
+        tok_raw = int((buy or {}).get("outAmount") or 0)
+    except (TypeError, ValueError):
+        tok_raw = 0
+    if tok_raw <= 0:
+        JUP_STATS["quote_fail"] += 1
+        return None
+
+    _jup_throttle()
+    sell = jup_get(f"/swap/v1/quote?inputMint={token_mint}&outputMint={WSOL_MINT}"
+                   f"&amount={tok_raw}&slippageBps=300")
+    try:
+        sol_back = int((sell or {}).get("outAmount") or 0)
+    except (TypeError, ValueError):
+        sol_back = 0
+    if sol_back <= 0:
+        JUP_STATS["quote_fail"] += 1
+        return None
+
+    JUP_STATS["quote_ok"] += 2
+    return round((1.0 - sol_back / lamports) * 100.0, 3)
+
 
 def execute_entry(portfolio, strat_name, token_addr, pair, reason_desc, sol_price,
                   shadow_state=None):
@@ -1536,7 +1680,17 @@ def execute_entry(portfolio, strat_name, token_addr, pair, reason_desc, sol_pric
     pair_url = f"https://dexscreener.com/solana/{pair.get('pairAddress')}"
 
     if signal_price <= 0 or signal_price > 1000.0:
-        return
+        return False
+
+    block_reason, shield = entry_safety_block(token_addr, symbol)
+    if block_reason:
+        portfolio.setdefault("stop_blocklist", {})[token_addr] = \
+            time.time() + STOP_BLOCK_HOURS * 3600.0
+        note(_note_prefix(strat_name) + "sicherheit")
+        print(f"🛡️ [{strat_name}] {symbol} abgelehnt: {block_reason}")
+        log_rejection(strat_name, pair, token_addr, block_reason, "sicherheit",
+                      shadow_state=shadow_state)
+        return False
 
     trade_value_usd = SCOUT_SIZE_SOL * sol_price
     slippage_est = estimate_slippage_pct(trade_value_usd, liq, is_sell=False)
@@ -1557,7 +1711,7 @@ def execute_entry(portfolio, strat_name, token_addr, pair, reason_desc, sol_pric
 
     # Jupiter-Tokendaten mitschreiben (noch kein Filter, siehe JUPITER_FILTERS_ACTIVE)
     jup_metrics = jupiter_metrics(jupiter_token_info(token_addr))
-    shield = jupiter_shield(token_addr)
+    roundtrip = jupiter_roundtrip_cost(token_addr, SCOUT_SIZE_SOL)
     if jup_metrics and shield is not None:
         jup_metrics["shield"] = shield
     jup_issues = jupiter_concerns(jup_metrics)
@@ -1585,6 +1739,7 @@ def execute_entry(portfolio, strat_name, token_addr, pair, reason_desc, sol_pric
         "entry_time": time.time(),
         "invested_sol": SCOUT_SIZE_SOL,
         "tokens_held": tokens_held,
+        "roundtrip_cost_pct": roundtrip,
         "url": pair_url,
         "mcap_at_entry": mcap,
         "liq_at_entry": liq
@@ -1596,6 +1751,7 @@ def execute_entry(portfolio, strat_name, token_addr, pair, reason_desc, sol_pric
         f"**MCap:** ${mcap:,.0f} | **LP:** ${liq:,.0f}\n"
         f"**Signal-Kurs:** ${signal_price:.8f}\n"
         f"**Sim. Fill:** ${fill_price:.8f} (+{slippage:.2f}%, Quelle: {slippage_source})\n"
+        + (f"**Hin+zurueck laut Jupiter:** {roundtrip:.2f}%\n" if roundtrip is not None else "")
         + (f"**Jupiter:** Score {jup_metrics.get('organic_score') or 0:.0f} | "
            f"Holder {jup_metrics.get('holder_count') or 0:,} | "
            f"Top10 {jup_metrics.get('top_holders_pct') or 0:.0f}%\n"
@@ -1611,16 +1767,18 @@ def execute_entry(portfolio, strat_name, token_addr, pair, reason_desc, sol_pric
     )
 
     SESSION_STATS["entries"].append({"symbol": symbol, "slippage": slippage,
-                                     "source": slippage_source})
+                                     "source": slippage_source,
+                                     "strategy": strat_name, "roundtrip": roundtrip})
     send_discord_raw(f"🎯 [{strat_name}] Entry: {symbol}", desc, 0x3B82F6)
     save_portfolio(portfolio)
+    return True
 
 
 # --------------------------------------------------------------------- Exit Logic
 
 def decide_exit(strat_name, pnl_pct, peak_pct, hold_hours, pair, sol_price):
     """Entscheidet auf Basis des SIGNAL-Kurses - das ist, was der Bot sieht."""
-    if strat_name == "CTO":
+    if strat_name in ("CTO", "CTO_JUP"):
         if peak_pct >= CTO_TRAILING_ACT and (peak_pct - pnl_pct) >= CTO_TRAILING_DIST:
             return f"CTO_TRAILING_TP (Signal {pnl_pct:+.1f}%)"
         if pnl_pct <= CTO_SL_PCT:
@@ -1726,7 +1884,13 @@ def close_position(portfolio, strat_name, pos, signal_pnl_pct, peak_pct,
         f"**Strategie-Stats:** {get_strat_stats(strat)}"
     )
 
-    SESSION_STATS["exits"].append({"symbol": pos["symbol"], "pnl_sol": pnl_sol,
+    # Stop-Loss: Token fuer alle Strategien sperren
+    if token_addr and ("HARD_STOP" in exit_reason or exit_reason.startswith("DEAD_TOKEN")):
+        portfolio.setdefault("stop_blocklist", {})[token_addr] = \
+            time.time() + STOP_BLOCK_HOURS * 3600.0
+
+    SESSION_STATS["exits"].append({"strategy": strat_name,
+                                   "symbol": pos["symbol"], "pnl_sol": pnl_sol,
                                    "real_pnl_pct": real_pnl_pct,
                                    "slippage": exit_slippage,
                                    "source": exit_slippage_source,
@@ -1758,6 +1922,7 @@ def close_position(portfolio, strat_name, pos, signal_pnl_pct, peak_pct,
         "jupiter_issues": pos.get("jupiter_issues"),
         "liq_at_entry": pos.get("liq_at_entry"),
         "liq_at_exit": round(exit_liq_usd, 0),
+        "roundtrip_cost_pct": pos.get("roundtrip_cost_pct"),
         "fees_sol": SIMULATED_FEE_SOL,
         "pnl_sol": round(pnl_sol, 4),
         "peak_pct": round(peak_pct, 2),
@@ -1840,7 +2005,15 @@ FILTER_LABELS = {
     "cto_kein_surge": "kein Surge",
     "cto_kein_pair": "kein Pair",
     "cto_kein_erstellungsdatum": "kein Datum",
-    "jup_alter_ausserhalb": "Jup-Alter",
+    "cto_zu_jung": "zu jung",
+    "cto_zu_alt": "zu alt",
+    "cto_gesperrt_nach_stop": "gesperrt (Stop/Sicherheit)",
+    "cto_sicherheit": "Sicherheit",
+    "jup_zu_jung": "Jup zu jung",
+    "jup_zu_alt": "Jup zu alt",
+    "jup_gesperrt_nach_stop": "Jup gesperrt (Stop/Sicherheit)",
+    "jup_sicherheit": "Jup Sicherheit",
+    "jup_kein_dex_pair": "Jup ohne DEX-Pair",
     "jup_drawdown_ausserhalb": "Jup-Drawdown",
     "jup_pool_filter": "Jup-Pool",
     "jup_kein_surge": "Jup-Surge",
@@ -1870,6 +2043,8 @@ def send_shift_start(sol_price):
         f"**Aktiv:** {', '.join(active) or 'keine'}\n"
         f"**Bankroll:** {free + locked:.4f} SOL "
         f"({free:.4f} frei, {locked:.4f} in Positionen)\n"
+        f"**Aufteilung:** " + " | ".join(
+            f"{n} {portfolio['strategies'][n]['bankroll_sol']:.4f}" for n in active) + "\n"
         f"**Offene Positionen:** {len(open_syms)}"
         + (f" ({', '.join(open_syms)})" if open_syms else "") + "\n"
         f"**SOL:** ${sol_price:,.2f} | **Jupiter:** {jupiter_mode_label()}\n"
@@ -1906,6 +2081,20 @@ def send_shift_end(start_total, start_time, end_reason):
     if exits:
         detail = ", ".join(f"{e['symbol']} {e['real_pnl_pct']:+.1f}%" for e in exits[:8])
         lines.append(f"**Geschlossen:** {detail}")
+        per_strat = []
+        for name in STRATEGY_NAMES:
+            ex = [e for e in exits if e.get("strategy") == name]
+            if ex:
+                w = sum(1 for e in ex if e["pnl_sol"] > 0)
+                per_strat.append(f"{name} {w}W/{len(ex) - w}L "
+                                 f"{sum(e['pnl_sol'] for e in ex):+.4f}")
+        if per_strat:
+            lines.append(f"**Je Strategie:** {' | '.join(per_strat)}")
+
+    rts = [e["roundtrip"] for e in entries if e.get("roundtrip") is not None]
+    if rts:
+        lines.append(f"**Hin+zurueck laut Jupiter (Ø):** {sum(rts)/len(rts):.2f}% "
+                     f"bei {len(rts)} Einstiegen")
 
     measured_in = [e["slippage"] for e in entries if e["source"] == "jupiter"]
     measured_out = [e["slippage"] for e in exits if e["source"] == "jupiter"]
@@ -2012,7 +2201,7 @@ def run_loop():
                 scan_smart_money(portfolio, sol_price, shadow_state)
                 scan_curve_scalp(portfolio, sol_price, shadow_state)
                 if loop_count % JUP_SIGNAL_EVERY_LOOPS == 1:
-                    scan_jupiter_signals(portfolio, shadow_state)
+                    scan_cto_jup(portfolio, sol_price, shadow_state)
 
                 if shadow_state is not None:
                     process_shadow_tracking(shadow_state)
