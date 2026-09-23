@@ -1,5 +1,5 @@
 {
-  "bankroll_total_sol": 14.2666,
+  "bankroll_total_sol": 14.5036,
   "strategies": {
     "CTO": {
       "bankroll_sol": 7.3043,
@@ -1074,57 +1074,11 @@
       ]
     },
     "CTO_JUP": {
-      "bankroll_sol": 6.9623,
-      "wins": 0,
+      "bankroll_sol": 7.1993,
+      "wins": 1,
       "losses": 1,
-      "total_fees_sol": 0.003,
+      "total_fees_sol": 0.006,
       "open_positions": {
-        "FvMLDEUDKUr9C34e8Nynz5Aqfdk34a2RBKQxygLpfomo": {
-          "symbol": "FAMILY",
-          "dex": "PUMPSWAP",
-          "entry_signal_price": 6.875e-05,
-          "entry_fill_price": 7.199783678025042e-05,
-          "entry_slippage_pct": 4.724,
-          "entry_slippage_source": "jupiter",
-          "entry_slippage_formel_pct": 0.48,
-          "jupiter": {
-            "organic_score": 58.81212397393551,
-            "organic_label": "medium",
-            "holder_count": 3127,
-            "holder_change_5m": 0.064,
-            "holder_change_1h": 0.064,
-            "mint_auth_disabled": true,
-            "freeze_auth_disabled": true,
-            "top_holders_pct": 18.890726244679538,
-            "dev_balance_pct": 1.0403100228285681e-13,
-            "dev_mints": 1,
-            "is_verified": null,
-            "organic_buy_ratio_1h": 0.1211,
-            "num_traders_5m": 5,
-            "num_net_buyers_5m": 5,
-            "num_organic_buyers_5m": null,
-            "organic_buy_vol_5m": 230.99463839964616,
-            "organic_sell_vol_5m": null,
-            "is_sus": false,
-            "dev_migrations": 1,
-            "launchpad": "pump.fun",
-            "first_pool_at": "2026-09-21T12:27:34Z",
-            "shield": [
-              "NOT_VERIFIED"
-            ]
-          },
-          "jupiter_issues": [
-            "SHIELD:NOT_VERIFIED"
-          ],
-          "highest_price": 9.691e-05,
-          "entry_time": 1790161469.030847,
-          "invested_sol": 0.2,
-          "tokens_held": 327287.611042,
-          "roundtrip_cost_pct": 2.686,
-          "url": "https://dexscreener.com/solana/FdYPSUq2Zrw9vJXkA8uZFVNhNcCvUUuAcSWWVk6MZZhU",
-          "mcap_at_entry": 66093.0,
-          "liq_at_entry": 26223.08
-        },
         "HXQ66zSRqynwJQ6vYEYa85qGY9C2Ycz8rnYQHgApn391": {
           "symbol": "GO",
           "dex": "RAYDIUM",
@@ -1228,6 +1182,60 @@
           "gap_exit": false,
           "exit_reason": "CTO_HARD_STOP (Signal -15.4%)",
           "closed_at": "2026-09-23T11:17:39.199629+00:00"
+        },
+        {
+          "symbol": "FAMILY",
+          "strategy": "CTO_JUP",
+          "signal_pnl_pct": 25.66,
+          "real_pnl_pct": 19.99,
+          "entry_signal_price": 6.875e-05,
+          "entry_fill_price": 7.1997837e-05,
+          "entry_slippage_pct": 4.724,
+          "exit_signal_price": 8.639e-05,
+          "exit_fill_price": 8.639e-05,
+          "exit_slippage_pct": 0.0,
+          "exit_slippage_formel_pct": 0.599,
+          "exit_slippage_source": "jupiter",
+          "entry_slippage_source": "jupiter",
+          "entry_slippage_formel_pct": 0.48,
+          "jupiter": {
+            "organic_score": 58.81212397393551,
+            "organic_label": "medium",
+            "holder_count": 3127,
+            "holder_change_5m": 0.064,
+            "holder_change_1h": 0.064,
+            "mint_auth_disabled": true,
+            "freeze_auth_disabled": true,
+            "top_holders_pct": 18.890726244679538,
+            "dev_balance_pct": 1.0403100228285681e-13,
+            "dev_mints": 1,
+            "is_verified": null,
+            "organic_buy_ratio_1h": 0.1211,
+            "num_traders_5m": 5,
+            "num_net_buyers_5m": 5,
+            "num_organic_buyers_5m": null,
+            "organic_buy_vol_5m": 230.99463839964616,
+            "organic_sell_vol_5m": null,
+            "is_sus": false,
+            "dev_migrations": 1,
+            "launchpad": "pump.fun",
+            "first_pool_at": "2026-09-21T12:27:34Z",
+            "shield": [
+              "NOT_VERIFIED"
+            ]
+          },
+          "jupiter_issues": [
+            "SHIELD:NOT_VERIFIED"
+          ],
+          "liq_at_entry": 26223.08,
+          "liq_at_exit": 29568.0,
+          "roundtrip_cost_pct": 2.686,
+          "fees_sol": 0.003,
+          "pnl_sol": 0.037,
+          "peak_pct": 40.96,
+          "gap_exit": false,
+          "exit_reason": "CTO_TRAILING_TP (Signal +25.7%)",
+          "closed_at": "2026-09-23T11:35:37.642924+00:00"
         }
       ]
     }
