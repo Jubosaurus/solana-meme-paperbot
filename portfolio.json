@@ -1,5 +1,5 @@
 {
-  "bankroll_total_sol": 14.554,
+  "bankroll_total_sol": 14.354,
   "strategies": {
     "CTO": {
       "bankroll_sol": 7.1546,
@@ -1067,17 +1067,66 @@
       ]
     },
     "CTO_JUP": {
-      "bankroll_sol": 7.3994,
+      "bankroll_sol": 7.1994,
       "wins": 0,
       "losses": 0,
       "total_fees_sol": 0.0,
-      "open_positions": {},
+      "open_positions": {
+        "CdhZy8wrRxNxoV8HtoByXKN7mvS46avtuZ1b39tKfx7": {
+          "symbol": "X7",
+          "dex": "METEORA",
+          "entry_signal_price": 0.0009966,
+          "entry_fill_price": 0.0009966,
+          "entry_slippage_pct": 0.0,
+          "entry_slippage_source": "jupiter",
+          "entry_slippage_formel_pct": 0.325,
+          "jupiter": {
+            "organic_score": 75,
+            "organic_label": "medium",
+            "holder_count": 2053,
+            "holder_change_5m": 0.04873294346978557,
+            "holder_change_1h": -1.0125361620057858,
+            "mint_auth_disabled": true,
+            "freeze_auth_disabled": true,
+            "top_holders_pct": 20.04165588537885,
+            "dev_balance_pct": null,
+            "dev_mints": 1,
+            "is_verified": null,
+            "organic_buy_ratio_1h": 0.0168,
+            "num_traders_5m": 11,
+            "num_net_buyers_5m": 4,
+            "num_organic_buyers_5m": 2,
+            "organic_buy_vol_5m": 2.9963508308043165,
+            "organic_sell_vol_5m": null,
+            "is_sus": false,
+            "dev_migrations": 1,
+            "launchpad": "met-dbc",
+            "first_pool_at": "2026-09-22T04:00:07Z",
+            "shield": [
+              "NOT_VERIFIED"
+            ]
+          },
+          "jupiter_issues": [
+            "ORGANIC_RATIO(1.7%)",
+            "SHIELD:NOT_VERIFIED"
+          ],
+          "highest_price": 0.0009966,
+          "entry_time": 1790152654.2177465,
+          "invested_sol": 0.2,
+          "tokens_held": 23654.425045153523,
+          "roundtrip_cost_pct": 1.124,
+          "url": "https://dexscreener.com/solana/DM7mLVfNUJTbWzwep9BWMVDDhwR1PQU3t2wQ66WTvgqo",
+          "mcap_at_entry": 940725.0,
+          "liq_at_entry": 189402.25
+        }
+      },
       "closed_positions": []
     }
   },
   "trade_history_cooldown": {
     "BQtbEDcZRciafnXk5t5pFFaAiDkBAGufsRV3Ms9GJbiU": 1790151386.6569085,
-    "4wYd4vPhzaUQs5vqUrEJ7CPtKg1qzXHhauERuh4MiNMB": 1790151428.4541059
+    "4wYd4vPhzaUQs5vqUrEJ7CPtKg1qzXHhauERuh4MiNMB": 1790151428.4541059,
+    "CdhZy8wrRxNxoV8HtoByXKN7mvS46avtuZ1b39tKfx7": 1790152654.2177322
   },
   "rebalanced_strategies": [
     "SMART_MONEY",
