@@ -1,12 +1,61 @@
 {
-  "bankroll_total_sol": 14.5514,
+  "bankroll_total_sol": 14.3514,
   "strategies": {
     "CTO": {
-      "bankroll_sol": 7.3043,
+      "bankroll_sol": 7.1043,
       "wins": 12,
       "losses": 25,
       "total_fees_sol": 0.127,
-      "open_positions": {},
+      "open_positions": {
+        "c4AtfqMRbC9FuHtVEHDhCm453tytU9E34MXXrp6bLuf": {
+          "symbol": "BLUF",
+          "dex": "PUMPSWAP",
+          "entry_signal_price": 0.0004083,
+          "entry_fill_price": 0.0004200458100330175,
+          "entry_slippage_pct": 2.877,
+          "entry_slippage_source": "jupiter",
+          "entry_slippage_formel_pct": 0.372,
+          "jupiter": {
+            "organic_score": 75,
+            "organic_label": "medium",
+            "holder_count": 3154,
+            "holder_change_5m": 0.03171582619727244,
+            "holder_change_1h": -1.805728518057285,
+            "mint_auth_disabled": true,
+            "freeze_auth_disabled": true,
+            "top_holders_pct": 21.581743538576653,
+            "dev_balance_pct": null,
+            "dev_mints": 1,
+            "is_verified": null,
+            "organic_buy_ratio_1h": 0.11,
+            "num_traders_5m": 35,
+            "num_net_buyers_5m": 23,
+            "num_organic_buyers_5m": 7,
+            "organic_buy_vol_5m": 186.18065603293235,
+            "organic_sell_vol_5m": 1.898668537424758,
+            "is_sus": false,
+            "dev_migrations": 1,
+            "launchpad": "pump.fun",
+            "first_pool_at": "2026-09-23T00:38:32Z",
+            "shield": [
+              "NOT_VERIFIED",
+              "NEW_LISTING"
+            ]
+          },
+          "jupiter_issues": [
+            "SHIELD:NOT_VERIFIED",
+            "SHIELD:NEW_LISTING"
+          ],
+          "highest_price": 0.0004083,
+          "entry_time": 1790201021.9720855,
+          "invested_sol": 0.2,
+          "tokens_held": 54470.249324,
+          "roundtrip_cost_pct": 2.26,
+          "url": "https://dexscreener.com/solana/BJ6pFMwat4EG3UE6eSXY2Qtt8t74JAwioDE2T4WE233Y",
+          "mcap_at_entry": 395329.0,
+          "liq_at_entry": 63830.56
+        }
+      },
       "closed_positions": [
         {
           "symbol": "LOCKINU",
@@ -1529,7 +1578,8 @@
     }
   },
   "trade_history_cooldown": {
-    "CgxXsJnDszZ4E2mhrXU4tQBKrwSk138o7PVgtCkJDDPC": 1790196275.449953
+    "CgxXsJnDszZ4E2mhrXU4tQBKrwSk138o7PVgtCkJDDPC": 1790196275.449953,
+    "c4AtfqMRbC9FuHtVEHDhCm453tytU9E34MXXrp6bLuf": 1790201021.9720733
   },
   "rebalanced_strategies": [
     "SMART_MONEY",
