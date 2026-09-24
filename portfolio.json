@@ -1,5 +1,5 @@
 {
-  "bankroll_total_sol": 13.8441,
+  "bankroll_total_sol": 14.0061,
   "strategies": {
     "CTO": {
       "bankroll_sol": 7.1291,
@@ -1190,10 +1190,10 @@
       ]
     },
     "CTO_JUP": {
-      "bankroll_sol": 6.715,
+      "bankroll_sol": 6.877,
       "wins": 2,
-      "losses": 9,
-      "total_fees_sol": 0.033,
+      "losses": 10,
+      "total_fees_sol": 0.036,
       "open_positions": {
         "Eii9T6RPJXaFeWgLg5jYrnco7Fwz1RChFj6A5eqh39Ab": {
           "symbol": "INU",
@@ -1240,55 +1240,6 @@
           "url": "https://dexscreener.com/solana/5wLXRmp2mMKUjr7s1GTj2aqqQJrjVeoQpQsjbtQrg9U2",
           "mcap_at_entry": 130271.0,
           "liq_at_entry": 77998.73
-        },
-        "BTzHfjKZnPpNaojtNs38eKReNssZM5LEbRrdK5ZrVyN7": {
-          "symbol": "SGO",
-          "dex": "RAYDIUM",
-          "entry_signal_price": 8.07e-05,
-          "entry_fill_price": 8.225519429449211e-05,
-          "entry_slippage_pct": 1.927,
-          "entry_slippage_source": "jupiter",
-          "entry_slippage_formel_pct": 0.468,
-          "jupiter": {
-            "organic_score": 62.88600018108598,
-            "organic_label": "medium",
-            "holder_count": 776,
-            "holder_change_5m": null,
-            "holder_change_1h": null,
-            "mint_auth_disabled": true,
-            "freeze_auth_disabled": true,
-            "top_holders_pct": 25.80891490765122,
-            "dev_balance_pct": 1.0006748733690236e-13,
-            "dev_mints": 1,
-            "is_verified": null,
-            "organic_buy_ratio_1h": 0.0072,
-            "num_traders_5m": 4,
-            "num_net_buyers_5m": 2,
-            "num_organic_buyers_5m": null,
-            "organic_buy_vol_5m": null,
-            "organic_sell_vol_5m": null,
-            "is_sus": false,
-            "dev_migrations": 1,
-            "launchpad": "stonkfun",
-            "first_pool_at": "2026-09-23T16:18:34Z",
-            "shield": [
-              "NOT_VERIFIED",
-              "NEW_LISTING"
-            ]
-          },
-          "jupiter_issues": [
-            "ORGANIC_RATIO(0.7%)",
-            "SHIELD:NOT_VERIFIED",
-            "SHIELD:NEW_LISTING"
-          ],
-          "highest_price": 8.196e-05,
-          "entry_time": 1790223407.6511974,
-          "invested_sol": 0.2,
-          "tokens_held": 279277.195769,
-          "roundtrip_cost_pct": 2.804,
-          "url": "https://dexscreener.com/solana/6qf9kEvtgoKgAjN6EW9tAidJWj8JXjaTDyNHZWDM6sWS",
-          "mcap_at_entry": 80702.0,
-          "liq_at_entry": 27281.91
         }
       },
       "closed_positions": [
@@ -1903,6 +1854,63 @@
           "gap_exit": false,
           "exit_reason": "CTO_HARD_STOP (Signal -15.3%)",
           "closed_at": "2026-09-24T01:23:35.456092+00:00"
+        },
+        {
+          "symbol": "SGO",
+          "strategy": "CTO_JUP",
+          "signal_pnl_pct": -15.13,
+          "real_pnl_pct": -17.52,
+          "entry_signal_price": 8.07e-05,
+          "entry_fill_price": 8.2255194e-05,
+          "entry_slippage_pct": 1.927,
+          "exit_signal_price": 6.849e-05,
+          "exit_fill_price": 6.7843111e-05,
+          "exit_slippage_pct": 0.945,
+          "exit_slippage_formel_pct": 0.534,
+          "exit_slippage_source": "jupiter",
+          "entry_slippage_source": "jupiter",
+          "entry_slippage_formel_pct": 0.468,
+          "jupiter": {
+            "organic_score": 62.88600018108598,
+            "organic_label": "medium",
+            "holder_count": 776,
+            "holder_change_5m": null,
+            "holder_change_1h": null,
+            "mint_auth_disabled": true,
+            "freeze_auth_disabled": true,
+            "top_holders_pct": 25.80891490765122,
+            "dev_balance_pct": 1.0006748733690236e-13,
+            "dev_mints": 1,
+            "is_verified": null,
+            "organic_buy_ratio_1h": 0.0072,
+            "num_traders_5m": 4,
+            "num_net_buyers_5m": 2,
+            "num_organic_buyers_5m": null,
+            "organic_buy_vol_5m": null,
+            "organic_sell_vol_5m": null,
+            "is_sus": false,
+            "dev_migrations": 1,
+            "launchpad": "stonkfun",
+            "first_pool_at": "2026-09-23T16:18:34Z",
+            "shield": [
+              "NOT_VERIFIED",
+              "NEW_LISTING"
+            ]
+          },
+          "jupiter_issues": [
+            "ORGANIC_RATIO(0.7%)",
+            "SHIELD:NOT_VERIFIED",
+            "SHIELD:NEW_LISTING"
+          ],
+          "liq_at_entry": 27281.91,
+          "liq_at_exit": 25263.0,
+          "roundtrip_cost_pct": 2.804,
+          "fees_sol": 0.003,
+          "pnl_sol": -0.038,
+          "peak_pct": 1.56,
+          "gap_exit": false,
+          "exit_reason": "CTO_HARD_STOP (Signal -15.1%)",
+          "closed_at": "2026-09-24T05:14:59.504794+00:00"
         }
       ]
     }
@@ -1939,6 +1947,7 @@
     "2Ghxme9RXa2vatoRPGnQgNKCXNZy2N3X7PbH4kzxHYPE": 1790296566.0872962,
     "D1YZZg9dBZ7AbfknZVbaeVLto36eySwoFYEVhZrD4F4n": 1790299415.2236884,
     "7Qy2cXpdj4Fu2DUPVWdN3oogM3JSwLUV2LZaKVgVcPZh": 1790308208.523032,
-    "7XiFJgX4nkER8gTH1LXUX1VEBJrLRSZfFXuzDy8ccWGT": 1790312587.9044533
+    "7XiFJgX4nkER8gTH1LXUX1VEBJrLRSZfFXuzDy8ccWGT": 1790312587.9044533,
+    "BTzHfjKZnPpNaojtNs38eKReNssZM5LEbRrdK5ZrVyN7": 1790313299.3229713
   }
 }
