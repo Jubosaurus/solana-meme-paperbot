@@ -1,5 +1,5 @@
 {
-  "bankroll_total_sol": 14.0061,
+  "bankroll_total_sol": 14.2013,
   "strategies": {
     "CTO": {
       "bankroll_sol": 7.1291,
@@ -1190,58 +1190,11 @@
       ]
     },
     "CTO_JUP": {
-      "bankroll_sol": 6.877,
+      "bankroll_sol": 7.0722,
       "wins": 2,
-      "losses": 10,
-      "total_fees_sol": 0.036,
-      "open_positions": {
-        "Eii9T6RPJXaFeWgLg5jYrnco7Fwz1RChFj6A5eqh39Ab": {
-          "symbol": "INU",
-          "dex": "METEORA",
-          "entry_signal_price": 0.0001354,
-          "entry_fill_price": 0.00014097436157017724,
-          "entry_slippage_pct": 4.117,
-          "entry_slippage_source": "jupiter",
-          "entry_slippage_formel_pct": 0.359,
-          "jupiter": {
-            "organic_score": 65.9082283423982,
-            "organic_label": "medium",
-            "holder_count": 573,
-            "holder_change_5m": 0.17482517482517482,
-            "holder_change_1h": -2.5510204081632653,
-            "mint_auth_disabled": true,
-            "freeze_auth_disabled": true,
-            "top_holders_pct": 27.53594419102907,
-            "dev_balance_pct": null,
-            "dev_mints": 1,
-            "is_verified": null,
-            "organic_buy_ratio_1h": 0.4054,
-            "num_traders_5m": 6,
-            "num_net_buyers_5m": 5,
-            "num_organic_buyers_5m": 3,
-            "organic_buy_vol_5m": 411.3503094782384,
-            "organic_sell_vol_5m": null,
-            "is_sus": false,
-            "dev_migrations": 1,
-            "launchpad": "otc",
-            "first_pool_at": "2026-09-22T16:09:54Z",
-            "shield": [
-              "NOT_VERIFIED"
-            ]
-          },
-          "jupiter_issues": [
-            "SHIELD:NOT_VERIFIED"
-          ],
-          "highest_price": 0.0001534,
-          "entry_time": 1790214333.071713,
-          "invested_sol": 0.2,
-          "tokens_held": 163504.907866,
-          "roundtrip_cost_pct": 4.146,
-          "url": "https://dexscreener.com/solana/5wLXRmp2mMKUjr7s1GTj2aqqQJrjVeoQpQsjbtQrg9U2",
-          "mcap_at_entry": 130271.0,
-          "liq_at_entry": 77998.73
-        }
-      },
+      "losses": 11,
+      "total_fees_sol": 0.039,
+      "open_positions": {},
       "closed_positions": [
         {
           "symbol": "X7",
@@ -1911,6 +1864,60 @@
           "gap_exit": false,
           "exit_reason": "CTO_HARD_STOP (Signal -15.1%)",
           "closed_at": "2026-09-24T05:14:59.504794+00:00"
+        },
+        {
+          "symbol": "INU",
+          "strategy": "CTO_JUP",
+          "signal_pnl_pct": 6.13,
+          "real_pnl_pct": -0.92,
+          "entry_signal_price": 0.0001354,
+          "entry_fill_price": 0.000140974362,
+          "entry_slippage_pct": 4.117,
+          "exit_signal_price": 0.0001437,
+          "exit_fill_price": 0.000139683195,
+          "exit_slippage_pct": 2.795,
+          "exit_slippage_formel_pct": 0.391,
+          "exit_slippage_source": "jupiter",
+          "entry_slippage_source": "jupiter",
+          "entry_slippage_formel_pct": 0.359,
+          "jupiter": {
+            "organic_score": 65.9082283423982,
+            "organic_label": "medium",
+            "holder_count": 573,
+            "holder_change_5m": 0.17482517482517482,
+            "holder_change_1h": -2.5510204081632653,
+            "mint_auth_disabled": true,
+            "freeze_auth_disabled": true,
+            "top_holders_pct": 27.53594419102907,
+            "dev_balance_pct": null,
+            "dev_mints": 1,
+            "is_verified": null,
+            "organic_buy_ratio_1h": 0.4054,
+            "num_traders_5m": 6,
+            "num_net_buyers_5m": 5,
+            "num_organic_buyers_5m": 3,
+            "organic_buy_vol_5m": 411.3503094782384,
+            "organic_sell_vol_5m": null,
+            "is_sus": false,
+            "dev_migrations": 1,
+            "launchpad": "otc",
+            "first_pool_at": "2026-09-22T16:09:54Z",
+            "shield": [
+              "NOT_VERIFIED"
+            ]
+          },
+          "jupiter_issues": [
+            "SHIELD:NOT_VERIFIED"
+          ],
+          "liq_at_entry": 77998.73,
+          "liq_at_exit": 80930.0,
+          "roundtrip_cost_pct": 4.146,
+          "fees_sol": 0.003,
+          "pnl_sol": -0.0048,
+          "peak_pct": 13.29,
+          "gap_exit": false,
+          "exit_reason": "TIMEOUT (Signal +6.1%)",
+          "closed_at": "2026-09-24T05:45:49.123276+00:00"
         }
       ]
     }
