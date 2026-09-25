@@ -1,5 +1,5 @@
 {
-  "bankroll_total_sol": 13.538,
+  "bankroll_total_sol": 13.6992,
   "strategies": {
     "CTO": {
       "bankroll_sol": 6.9557,
@@ -1305,10 +1305,10 @@
       ]
     },
     "CTO_JUP": {
-      "bankroll_sol": 6.5823,
+      "bankroll_sol": 6.7435,
       "wins": 11,
-      "losses": 24,
-      "total_fees_sol": 0.105,
+      "losses": 25,
+      "total_fees_sol": 0.108,
       "open_positions": {
         "7T3XGNziCNwgiETftmQPW1Qj47KfVQyvZj7YQjrgE4K7": {
           "symbol": "GETF",
@@ -1355,53 +1355,6 @@
           "url": "https://dexscreener.com/solana/1GosW12AMzqoenq6FmaQdF8X8TCLgRAq19TBY34krNd",
           "mcap_at_entry": 278083.0,
           "liq_at_entry": 36912.4
-        },
-        "2Ngvnnkwrwq5u4RYV5WYKJ2wiQoEkKaVCc4LuuhYSTNK": {
-          "symbol": "STONKBLEND",
-          "dex": "RAYDIUM",
-          "entry_signal_price": 0.0002089,
-          "entry_fill_price": 0.00021177592666030807,
-          "entry_slippage_pct": 1.377,
-          "entry_slippage_source": "jupiter",
-          "entry_slippage_formel_pct": 0.41,
-          "jupiter": {
-            "organic_score": 75,
-            "organic_label": "medium",
-            "holder_count": 2079,
-            "holder_change_5m": -0.19203072491598655,
-            "holder_change_1h": -2.3485204321277595,
-            "mint_auth_disabled": true,
-            "freeze_auth_disabled": true,
-            "top_holders_pct": 24.174872879712805,
-            "dev_balance_pct": null,
-            "dev_mints": 1,
-            "is_verified": null,
-            "organic_buy_ratio_1h": 0.0253,
-            "num_traders_5m": 16,
-            "num_net_buyers_5m": 6,
-            "num_organic_buyers_5m": 7,
-            "organic_buy_vol_5m": 11.852093839791586,
-            "organic_sell_vol_5m": 11.883508446453607,
-            "is_sus": false,
-            "dev_migrations": 1,
-            "launchpad": "stonkfun",
-            "first_pool_at": "2026-09-24T19:26:25Z",
-            "shield": [
-              "NOT_VERIFIED"
-            ]
-          },
-          "jupiter_issues": [
-            "ORGANIC_RATIO(2.5%)",
-            "SHIELD:NOT_VERIFIED"
-          ],
-          "highest_price": 0.0002098,
-          "entry_time": 1790366873.8394125,
-          "invested_sol": 0.2,
-          "tokens_held": 115461.65981000001,
-          "roundtrip_cost_pct": 2.797,
-          "url": "https://dexscreener.com/solana/CKEsUxqASEAEMwJE2Yn9SV5HPyFgcQhPcM5bF5vaJPP7",
-          "mcap_at_entry": 208972.0,
-          "liq_at_entry": 44555.7
         }
       },
       "closed_positions": [
@@ -3354,6 +3307,61 @@
           "gap_exit": false,
           "exit_reason": "CTO_TRAILING_TP (Signal +23.0%)",
           "closed_at": "2026-09-25T19:49:00.675851+00:00"
+        },
+        {
+          "symbol": "STONKBLEND",
+          "strategy": "CTO_JUP",
+          "signal_pnl_pct": -15.7,
+          "real_pnl_pct": -17.92,
+          "entry_signal_price": 0.0002089,
+          "entry_fill_price": 0.000211775927,
+          "entry_slippage_pct": 1.377,
+          "exit_signal_price": 0.0001761,
+          "exit_fill_price": 0.000173816989,
+          "exit_slippage_pct": 1.296,
+          "exit_slippage_formel_pct": 0.452,
+          "exit_slippage_source": "jupiter",
+          "entry_slippage_source": "jupiter",
+          "entry_slippage_formel_pct": 0.41,
+          "jupiter": {
+            "organic_score": 75,
+            "organic_label": "medium",
+            "holder_count": 2079,
+            "holder_change_5m": -0.19203072491598655,
+            "holder_change_1h": -2.3485204321277595,
+            "mint_auth_disabled": true,
+            "freeze_auth_disabled": true,
+            "top_holders_pct": 24.174872879712805,
+            "dev_balance_pct": null,
+            "dev_mints": 1,
+            "is_verified": null,
+            "organic_buy_ratio_1h": 0.0253,
+            "num_traders_5m": 16,
+            "num_net_buyers_5m": 6,
+            "num_organic_buyers_5m": 7,
+            "organic_buy_vol_5m": 11.852093839791586,
+            "organic_sell_vol_5m": 11.883508446453607,
+            "is_sus": false,
+            "dev_migrations": 1,
+            "launchpad": "stonkfun",
+            "first_pool_at": "2026-09-24T19:26:25Z",
+            "shield": [
+              "NOT_VERIFIED"
+            ]
+          },
+          "jupiter_issues": [
+            "ORGANIC_RATIO(2.5%)",
+            "SHIELD:NOT_VERIFIED"
+          ],
+          "liq_at_entry": 44555.7,
+          "liq_at_exit": 40701.0,
+          "roundtrip_cost_pct": 2.797,
+          "fees_sol": 0.003,
+          "pnl_sol": -0.0388,
+          "peak_pct": 0.43,
+          "gap_exit": false,
+          "exit_reason": "CTO_HARD_STOP (Signal -15.7%)",
+          "closed_at": "2026-09-25T20:24:36.894240+00:00"
         }
       ]
     }
@@ -3395,6 +3403,7 @@
     "6XhzSy3VTTkwqMUSQsStM3ncGy6ozcPnzLVmv4HZ64cC": 1790443730.1062346,
     "8t5C4AWDg4CroMChxdo7rG2e8nJM31QG2GG7Czx9X7x2": 1790444168.0322156,
     "EvKf2GtfbDMyZQzZ8VN7uFFoK9FxzsXJmqACaS8H5LX2": 1790445043.4600158,
-    "3znS89gifim2Hhhu8wjb2PfSgaCDdma187D5NMkDpump": 1790448690.5580142
+    "3znS89gifim2Hhhu8wjb2PfSgaCDdma187D5NMkDpump": 1790448690.5580142,
+    "2Ngvnnkwrwq5u4RYV5WYKJ2wiQoEkKaVCc4LuuhYSTNK": 1790454276.699855
   }
 }
