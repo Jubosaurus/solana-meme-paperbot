@@ -1,2246 +1,794 @@
-import os
+"""
+Solana-Memecoin Paper-Bot - Strategie NARRATIV
+Regeln aus 13 Lernvideos (siehe STRATEGIE.md). Es wird nur auf Papier gehandelt.
+
+  python bot.py           # normale Schicht
+  python bot.py --probe   # Kurztest der Datenquellen, handelt nichts
+"""
+import argparse
 import csv
 import json
-import time
+import os
+import re
 import signal
 import subprocess
-import requests
+import time
 from datetime import datetime, timezone
 
+import requests
+
+# ================================================================ Dateien
 PORTFOLIO_FILE = "portfolio.json"
-REJECT_LOG_FILE = "rejected_candidates.csv"
+JOURNAL_FILE = "journal.csv"
+REJECT_FILE = "abgelehnt.csv"
+PHASE_FILE = "marktphase.json"
+
 DISCORD_WEBHOOK_URL = os.environ.get("DISCORD_WEBHOOK_URL")
-SOLANA_RPC_URL = os.environ.get("SOLANA_RPC_URL") or "https://api.mainnet-beta.solana.com"
-
-# --------------------------------------------------------------- Grundparameter
-
-SCOUT_SIZE_SOL = 0.20
-MAX_POSITIONS_PER_STRATEGY = 3
-TOKEN_COOLDOWN_MINUTES = 120
-MAX_HOLD_HOURS = 4.0
-LOOP_SLEEP_SECONDS = 35
-SHIFT_DURATION_SECONDS = 20700        # 5h45, passend zum 6h-Cron
-START_BANKROLL_PER_STRATEGY = 5.0
-MAX_PNL_PCT = 400.0
-
-STRATEGY_NAMES = ("CTO", "CTO_JUP", "SMART_MONEY", "SCALP_CURVE")
-
-# Strategie B bleibt deaktiviert: die Wallet-Auswahl in smart_wallets.csv beruht
-# auf aktuellen Top-Holdern, nicht auf gemessenem Kaufzeitpunkt oder PnL.
-STRATEGY_ENABLED = {
-    "CTO": True,
-    # Gleiche CTO-Regeln, aber Kandidaten aus Jupiter toptrending/5m statt aus
-    # bezahlten DexScreener-Boosts. Shadow-Daten: ~14x mehr Kandidaten.
-    "CTO_JUP": True,
-    "SMART_MONEY": False,
-    # Deaktiviert: q=pumpswap liefert nur migrierte Pools (curve_pct konstant
-    # 100). Ohne Quelle fuer Pre-Migration-Token kann C nicht handeln.
-    "SCALP_CURVE": False,
-}
-REBALANCE_DISABLED_BANKROLL = True
-
-# Neue Strategien bekommen kein frisches Startkapital, sondern einmalig einen
-# Anteil des freien Kapitals einer bestehenden Strategie.
-STRATEGY_SPLITS = {"CTO_JUP": ("CTO", 0.5)}
-
-# Nach einem Stop-Loss wird der Token fuer alle Strategien gesperrt.
-# Befund: Wiedereinstiege nach einem Stop 0 von 4 gewonnen (PONK, INU).
-STOP_BLOCK_HOURS = 24.0
-
-# Token mit Transfergebuehr (Token-2022) kosten bei Kauf UND Verkauf extra.
-# Befund: BINKY und PENNY (je 3%) beide verloren.
-BLOCK_TRANSFER_FEE_TOKENS = True
-
-# Nachahmer bekannter Coins (echte Mints stehen in IGNORED_MINTS)
-IMPERSONATION_SYMBOLS = {"SOL", "WSOL", "USDC", "USDT", "BTC", "WBTC", "ETH", "WETH", "JUP"}
-
-# ------------------------------------------------- Handelskosten (recherchiert)
-
-# Gebuehren pro abgeschlossenem Trade: 2x Base-Fee (0.000005 SOL) plus
-# 2x Priority-Fee (~0.001 SOL bei normaler Last). Kauf + Verkauf.
-# Der ATA-Rent (~0.002 SOL) ist eine rueckerstattbare Kaution, keine Gebuehr.
-SIMULATED_FEE_SOL = 0.003
-
-# DEX-Swapgebuehr in Prozent. Raydium/PumpSwap nehmen 0.25-0.30%.
-# Jupiter selbst nimmt im Manual-Swap nichts.
-BASE_SWAP_COST_PCT = 0.30
-
-# Preis-Impact bei einem Constant-Product-AMM (x*y=k):
-#   effektiver Impact ~= 2 * Trade / Reserve
-# DexScreener meldet als liquidity.usd den Wert BEIDER Pool-Seiten (TVL),
-# die handelbare Reserve ist also ~L/2. Daraus:
-#   Impact% ~= 2 * Trade_USD / L_USD * 100
-IMPACT_FACTOR = 2.0
-
-# Verkauf in einen fallenden Token trifft eine schrumpfende Quote-Reserve und
-# konkurriert mit anderen Verkaeufern. Heuristik, keine gemessene Groesse.
-SELL_SLIPPAGE_FACTOR = 1.5
-
-# Obergrenze, damit ein fast leerer Pool keine absurden Werte erzeugt.
-MAX_SLIPPAGE_PCT = 25.0
-
-# --------------------------------------------------- Einstiegsfilter (Pool-Guete)
-
-MIN_LIQUIDITY_USD = 12000.0
-MIN_VOL_H24_USD = 20000.0
-MIN_LIQ_TO_FDV_RATIO = 0.008
-
-# A: CTO Settings
-CTO_MIN_AGE_HOURS = 2.0
-CTO_MAX_AGE_HOURS = 48.0
-CTO_MIN_DRAWDOWN = -85.0
-CTO_MAX_DRAWDOWN = -55.0
-CTO_SL_PCT = -15.0
-CTO_TRAILING_ACT = 35.0
-CTO_TRAILING_DIST = 15.0
-
-# B: Smart Money (inaktiv, Parameter bleiben erhalten)
-SMART_WALLETS = [
-    "CGy6Z4evgJpCtTr3DC3gCBfg9DoeY4fkUCMrEQT1n14n",
-    "7izn9Mu6ByyCuEp9iKrAwKdTxVbaAi2eZYb46Lzg3mSX",
-    "FM6gN6jiak7SGGcvFgcTWAwtFDs36J2ifsxdyRayt8yL",
-    "4fNfqPTH94RibhKKsn5WyM3q8ojwWsv9W2AyJWnfVWK8",
-    "4JswK49JB9YqVpJNTWsVYDStWScy9EpSzpZj7fXdsM7n",
-    "64UKSJodQoMaNTcrxERMHUWkiLC91ketTYU3CGWj4jo8",
-    "75p4RCsojEidqKahaGzqzogxfoQHZ2M83WDaKgXaRtzE",
-    "E4mSDt9wL8faNQxXthVLn4ECToQAci5M9fgn7qPeehWX",
-    "DPWaEfayi7CbqCkgre6wGdTumscDxLpt8LuSTL2GkDnV",
-    "AAVQVaEuESYjtiFaE2eEpansBkHLktqf9RgbU9SQMA33",
-    "Hpm5Kvf1opeJ9WLAf9HebHgU5quamVwmQx8tmVTrW7TY",
-    "fKCj7ujBZaAoJjdx873pVYQwZEZmyz3qqCYCSHi4TcN",
-    "6tZ1hYnnHm3dPP5UJs3B9cFJ45VNMuESYhowv4LNP2gt",
-    "G2ojGGZ8LZLBchuSvVJvygaRJkwTPbMYwUnPr9V3ioAp",
-    "B1fpnXtcF4AM7fy3dYbgVhb6N3x2XGPdh3FdQFZCk472"
-]
-SM_SL_PCT = -20.0
-SM_TRAILING_ACT = 40.0
-SM_TRAILING_DIST = 15.0
-SM_MIN_CLUSTER_SIZE = 2
-CLUSTER_WINDOW_SECONDS = 900
-
-SMART_WALLET_BATCH_SIZE = 5
-SIG_FETCH_LIMIT = 10
-MAX_NEW_TX_PER_WALLET = 5
-MIN_SOL_SPENT = 0.002
-MIN_SOL_SPENT_LAMPORTS = int(MIN_SOL_SPENT * 1_000_000_000)
-
-# C: Scalp Curve
-SCALP_MIN_CURVE = 84.0
-SCALP_MAX_CURVE = 93.0
-SCALP_TARGET_TP = 25.0
-SCALP_FORCE_EXIT_CURVE = 97.0
-SCALP_SL_PCT = -18.0
-SCALP_MIN_BUYS = 5
-
-# Pump.fun migriert bei ~85 SOL realer Reserve, nicht bei einem festen
-# USD-Betrag. Die verbreiteten 69.000 USD sind daraus abgeleitet und wandern
-# mit dem SOL-Kurs. Deshalb in SOL ausgedrueckt und zur Laufzeit umgerechnet.
-GRADUATION_MCAP_SOL = 405.0
+JUPITER_API_KEY = (os.environ.get("JUPITER_API_KEY") or "").strip()
+JUP_BASE = "https://api.jup.ag" if JUPITER_API_KEY else "https://lite-api.jup.ag"
+TRENCH_BASE = "https://trench.bot/api"
 
 WSOL_MINT = "So11111111111111111111111111111111111111112"
-
 IGNORED_MINTS = {
     WSOL_MINT,
     "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",  # USDC
     "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB",  # USDT
 }
 
-REJECT_LOG_HEADERS = [
-    "timestamp", "strategy", "symbol", "token_address", "reject_reason",
-    "curve_pct", "drawdown_pct", "liquidity_usd", "fdv_usd", "m5_buys", "m5_sells"
-]
+# ================================================================ Schicht
+LOOP_SLEEP_SECONDS = 35
+SHIFT_DURATION_SECONDS = 20700          # 5h45 bei 6h-Takt
+SCAN_EVERY_LOOPS = 2                    # Kandidaten ca. alle 70 s
+PHASE_EVERY_LOOPS = 10                  # Marktphase ca. alle 6 min
 
-# Reject-Log nur neu schreiben, wenn sich Grund oder Liquiditaet merklich aendern
-REJECT_LIQ_CHANGE_PCT = 10.0
-REJECT_LIQ_MIN_ABS_CHANGE = 500.0   # USD; verhindert Flut bei Mini-Pools
-REJECT_REPEAT_AFTER_SECONDS = 1800
+# ================================================================ Kapital
+START_BANKROLL_SOL = 10.0
+POSITION_SOL = 0.2                      # Tag 7: feste Groesse, nie aus Frust groesser
+TX_FEE_SOL = 0.0015                     # Netzwerk + Priority pro Transaktion
 
-# ------------------------------------------------------------ Shadow-Tracking
+# ================================================================ Einstieg
+# Tag 5: frueh, solange sich die Story verbreitet
+MIN_AGE_MIN = 15
+MAX_AGE_H = 6
+MIN_HOLDER_GROWTH_1H = 15.0             # Holder-Zuwachs in % pro Stunde
+MIN_NET_BUYERS_5M = 1
+MIN_ORGANIC_BUYERS_5M = 3               # echte Menschen statt Bots
+MIN_ORGANIC_SCORE = 30
+REQUIRE_SOCIAL_LINK = True              # X, Telegram oder Website vorhanden
+# Tag 7: nicht hinterherjagen
+MAX_MCAP_USD = 3_000_000
+MAX_PRICE_CHANGE_1H = 150.0
+# Grundsicherung gegen offensichtliche Fallen
+MIN_LIQUIDITY_USD = 5_000
+IMPERSONATION_SYMBOLS = {"SOL", "WSOL", "USDC", "USDT", "BTC", "WBTC", "ETH", "WETH", "JUP"}
+# Tag 1: Bundle-Check
+MAX_BUNDLE_HOLDING_PCT = 10.0           # was Bundle-Wallets JETZT noch halten
+MAX_BUNDLE_INITIAL_PCT = 30.0           # was beim Launch gebuendelt gekauft wurde
+BUNDLE_CHECK_REQUIRED = True            # ohne Check kein Kauf
+# Tag 6: Dev pruefen
+MAX_CREATOR_RUGS = 0
+MAX_CREATOR_HOLDING_PCT = 10.0
 
-# Verfolgt, was aus abgelehnten Kandidaten UND aus geschlossenen Positionen
-# wird. Beantwortet zwei Fragen, die das Portfolio allein nicht beantwortet:
-#   1. Sind die Filter zu eng? (laufen abgelehnte Kandidaten besser als gekaufte?)
-#   2. Steigen wir zu frueh aus? (laeuft der Token nach dem Exit weiter?)
-SHADOW_ENABLED = True
-SHADOW_STATE_FILE = "shadow_candidates.json"
-SHADOW_RESULT_FILE = "shadow_results.csv"
-SHADOW_CHECKPOINTS_HOURS = (1.0, 4.0)
-SHADOW_MAX_TRACKED = 100
-SHADOW_PRIORITY_SOURCES = ("ENTRY", "EXIT")
-SHADOW_BATCH_SIZE = 30          # DexScreener erlaubt 30 Adressen pro Abfrage
-SHADOW_GRACE_HOURS = 2.0        # Puffer, bevor ein Kandidat verworfen wird
+# ================================================================ Ausstieg
+TP1_MULTIPLE = 2.0                      # Tag 2: bei 2x ...
+TP1_SELL_FRACTION = 0.5                 # ... die Haelfte vom Tisch
+TRAIL_AFTER_TP1_PCT = 40.0              # Tag 4: Rest laufen lassen, Schutz vom Hoch
+THESIS_BREAK_CHECKS = 2                 # Tag 3: These gebrochen, wenn 2x hintereinander
+LIQ_DROP_EXIT_PCT = 30.0                # Liquiditaet abgezogen -> raus
+EMERGENCY_STOP_PCT = -40.0              # Notbremse
+MAX_HOLD_H = 24
+DEAD_TOKEN_LOOPS = 10
 
-SHADOW_RESULT_HEADERS = [
-    "timestamp", "source", "strategy", "symbol", "token_address",
-    "reason", "checkpoint_h", "ref_price_usd", "now_price_usd",
-    "change_pct", "ref_liq_usd", "now_liq_usd", "later_bought"
-]
+# ================================================================ Marktphase
+# Tag 9 + 13: frische Coins und Volumen messen, bei ruhigem Markt weniger handeln
+YOUNG_TOKEN_H = 24
+HOT_MCAP_USD = 1_000_000
+MAX_POSITIONS = {"heiss": 3, "normal": 2, "ruhig": 1}
+PHASE_MIN_HISTORY = 12
+PHASE_HISTORY_MAX = 1000
 
-# In-Memory State
-wallet_buy_tracker = {}
-last_seen_tx_per_wallet = {}
-bootstrapped_wallets = set()
-_wallet_cursor = 0
-_reject_seen = {}
-
-RPC_STATS = {"ok": 0, "error": 0, "rate_limited": 0}
-
-# Laeuft ueber die ganze Schicht, wird nicht alle 10 Loops geleert
-SESSION_STATS = {
-    "loops": 0, "loop_errors": 0, "last_error": "",
-    "entries": [], "exits": [], "shadow_writes": 0, "filter_counts": {},
-    "jup_signals": 0,
-}
-SCAN_STATS = {}
+REJECT_REPEAT_SECONDS = 3600
 
 SESSION = requests.Session()
-SESSION.headers.update({"User-Agent": "multi-strategy-paper-bot/3.0"})
+SESSION.headers.update({"User-Agent": "narrativ-paperbot/1.0"})
 
-
-# ------------------------------------------------------------- HTTP & RPC Helpers
-
-def api_get(url, timeout=5):
-    try:
-        res = SESSION.get(url, timeout=timeout)
-        if res.status_code != 200:
-            return None
-        return res.json()
-    except Exception as err:
-        print(f"[API ERROR] {url} -> {err}")
-        return None
-
-
-def rpc_call(method, params, context=""):
-    payload = {"jsonrpc": "2.0", "id": 1, "method": method, "params": params}
-    try:
-        res = SESSION.post(SOLANA_RPC_URL, json=payload, timeout=8)
-    except Exception as err:
-        RPC_STATS["error"] += 1
-        print(f"[RPC FAIL] {method} {context} -> {err}")
-        return None
-
-    if res.status_code == 429:
-        RPC_STATS["rate_limited"] += 1
-        print(f"[RPC RATE-LIMIT] 429 bei {method} {context}")
-        return None
-    if res.status_code != 200:
-        RPC_STATS["error"] += 1
-        print(f"[RPC HTTP {res.status_code}] {method} {context} -> {res.text[:120]}")
-        return None
-
-    try:
-        body = res.json()
-    except Exception as err:
-        RPC_STATS["error"] += 1
-        print(f"[RPC PARSE ERROR] {method} {context} -> {err}")
-        return None
-
-    if isinstance(body, dict) and body.get("error"):
-        RPC_STATS["error"] += 1
-        print(f"[RPC ERROR] {method} {context} -> {body['error']}")
-        return None
-
-    RPC_STATS["ok"] += 1
-    return body.get("result") if isinstance(body, dict) else None
-
-
-def pair_liquidity_usd(pair):
-    return float((pair.get("liquidity") or {}).get("usd") or 0.0)
-
-
-def pair_mcap(pair):
-    return float(pair.get("fdv") or pair.get("marketCap") or 0.0)
-
-
-def pair_vol_h24(pair):
-    return float((pair.get("volume") or {}).get("h24") or 0.0)
-
-
-def pair_txns_m5(pair):
-    m5 = (pair.get("txns") or {}).get("m5") or {}
-    return int(m5.get("buys") or 0), int(m5.get("sells") or 0)
-
-
-def pair_price_change(pair, key):
-    return float((pair.get("priceChange") or {}).get(key) or 0.0)
-
-
-def pair_symbol(pair):
-    return str((pair.get("baseToken") or {}).get("symbol") or "TOKEN").upper()
-
-
-def fetch_best_pair(token_addr):
-    data = api_get(f"https://api.dexscreener.com/latest/dex/tokens/{token_addr}")
-    if not isinstance(data, dict):
-        return None
-    pairs = data.get("pairs") or []
-    if not pairs:
-        return None
-    return max(pairs, key=pair_liquidity_usd)
-
-
-def get_sol_usd_price():
-    pair = fetch_best_pair(WSOL_MINT)
-    if pair:
-        price = float(pair.get("priceUsd") or 0.0)
-        if price > 0:
-            return price
-    return 100.0
-
-
-
-# ------------------------------------------------------------------ Jupiter API
-
-# Kostenlos, kein Key noetig. lite-api ist der Free-Endpunkt; laut Jupiter-Doku
-# soll er auf api.jup.ag umziehen, deshalb konfigurierbar.
-# Mit Key: offizieller Endpunkt api.jup.ag (60 Abfragen/min).
-# Ohne Key: lite-api.jup.ag (30/min), laut Jupiter-Doku ein Auslaufmodell.
-# Der Key wird nie geloggt.
-JUPITER_API_KEY = (os.environ.get("JUPITER_API_KEY") or "").strip()
-JUPITER_KEYLESS_BASE = "https://lite-api.jup.ag"
-JUPITER_KEYED_BASE = "https://api.jup.ag"
-_jup_mode = {
-    "base": os.environ.get("JUPITER_BASE")
-            or (JUPITER_KEYED_BASE if JUPITER_API_KEY else JUPITER_KEYLESS_BASE),
-    "use_key": bool(JUPITER_API_KEY),
-    "fallback_reason": None,
-}
-
-
-def jup_url(path):
-    return f"{_jup_mode['base']}{path}"
-
-
-def jupiter_mode_label():
-    if _jup_mode["use_key"]:
-        return "api.jup.ag (mit Key)"
-    if _jup_mode["fallback_reason"]:
-        return f"lite-api (Fallback: {_jup_mode['fallback_reason']})"
-    return "lite-api (ohne Key)"
-
-JUPITER_ENABLED = True
-JUPITER_TIMEOUT = 6
-JUPITER_TOKEN_CACHE_SECONDS = 120
-# Abstand zwischen Aufrufen: ohne Key 30/min, mit Key 60/min
-JUPITER_MIN_CALL_INTERVAL_KEYLESS = 2.5
-JUPITER_MIN_CALL_INTERVAL_KEYED = 1.1
-
-# Jupiter liefert Daten, die DexScreener nicht hat: Organic Score, Holder-Zahl,
-# Mint/Freeze-Authority, Top-Holder-Anteil, organisches vs. gesamtes Volumen.
-# Diese werden zunaechst NUR PROTOKOLLIERT, nicht gefiltert. Erst wenn die Daten
-# zeigen, dass sie Trades unterscheiden, werden daraus Filter.
-JUPITER_FILTERS_ACTIVE = False
-
-# Schwellen fuer den spaeteren Einsatz (heute nur zur Einordnung im Log)
-MIN_ORGANIC_SCORE = 30.0
-MIN_ORGANIC_VOLUME_RATIO = 0.05      # organisches / gesamtes Kaufvolumen
-MAX_TOP_HOLDERS_PCT = 40.0
-MAX_DEV_MINTS = 20                   # Entwickler mit vielen Token-Launches
-REQUIRE_AUTHORITIES_DISABLED = True
-
-_jup_token_cache = {}
+STATS = {"loops": 0, "loop_errors": 0, "last_error": "", "entries": [], "exits": [],
+         "partials": [], "rejects": {}, "jup_ok": 0, "jup_fail": 0,
+         "trench_ok": 0, "trench_fail": 0}
+_jup_last = [0.0]
+_trench_last = [0.0]
+_trench_cache = {}
 _shield_cache = {}
-_jup_last_call = [0.0]
-JUP_STATS = {"ok": 0, "fail": 0, "quote_ok": 0, "quote_fail": 0}
+_reject_seen = {}
+_symbol_leaders = {}                    # Tag 12: Symbol -> (mint, holder, zeit)
+_sol_price = [0.0]
 
 
-def _jup_throttle():
-    interval = (JUPITER_MIN_CALL_INTERVAL_KEYED if _jup_mode["use_key"]
-                else JUPITER_MIN_CALL_INTERVAL_KEYLESS)
-    wait = interval - (time.time() - _jup_last_call[0])
+# ================================================================ HTTP
+
+def _throttle(slot, interval):
+    wait = interval - (time.time() - slot[0])
     if wait > 0:
         time.sleep(wait)
-    _jup_last_call[0] = time.time()
+    slot[0] = time.time()
 
 
-def jup_get(path, timeout=None):
-    """
-    GET gegen Jupiter. Mit Key wird er als x-api-key mitgeschickt.
-    Wird der Key abgelehnt (401/403), wechselt der Bot einmalig auf den
-    Endpunkt ohne Key, statt jeden Trade auf die Formel fallen zu lassen.
-    """
-    timeout = timeout or JUPITER_TIMEOUT
-    for attempt in range(2):
-        headers = {"x-api-key": JUPITER_API_KEY} if _jup_mode["use_key"] else {}
-        try:
-            res = SESSION.get(jup_url(path), headers=headers, timeout=timeout)
-        except Exception as err:
-            print(f"[JUPITER ERROR] {path.split('?')[0]} -> {err}")
-            return None
-
-        if res.status_code in (401, 403) and _jup_mode["use_key"] and attempt == 0:
-            _jup_mode.update(base=JUPITER_KEYLESS_BASE, use_key=False,
-                             fallback_reason=f"Key abgelehnt ({res.status_code})")
-            print(f"[JUPITER] Key abgelehnt ({res.status_code}) - wechsle auf lite-api")
-            continue
-        if res.status_code == 429:
-            print(f"[JUPITER] Rate-Limit (429) bei {path.split('?')[0]}")
-            return None
-        if res.status_code != 200:
-            print(f"[JUPITER HTTP {res.status_code}] {path.split('?')[0]}")
-            return None
-        try:
-            return res.json()
-        except Exception:
-            return None
-    return None
-
-
-def jupiter_token_info(mint):
-    """
-    Token-Daten von Jupiter. Liefert Felder, die DexScreener nicht hat:
-    organicScore, holderCount, audit (Mint/Freeze-Authority, Top-Holder),
-    organisches Volumen je Zeitfenster.
-    """
-    if not JUPITER_ENABLED or not mint:
+def jup_get(path):
+    _throttle(_jup_last, 1.1 if JUPITER_API_KEY else 2.5)
+    headers = {"x-api-key": JUPITER_API_KEY} if JUPITER_API_KEY else {}
+    try:
+        res = SESSION.get(f"{JUP_BASE}{path}", headers=headers, timeout=12)
+    except requests.RequestException as err:
+        STATS["jup_fail"] += 1
+        print(f"[JUPITER] {path.split('?')[0]} -> {err}")
+        return None
+    if res.status_code != 200:
+        STATS["jup_fail"] += 1
+        print(f"[JUPITER HTTP {res.status_code}] {path.split('?')[0]}")
+        return None
+    STATS["jup_ok"] += 1
+    try:
+        return res.json()
+    except ValueError:
         return None
 
-    cached = _jup_token_cache.get(mint)
-    if cached and (time.time() - cached[0]) < JUPITER_TOKEN_CACHE_SECONDS:
-        return cached[1]
 
-    _jup_throttle()
-    data = jup_get(f"/tokens/v2/search?query={mint}")
-    if not isinstance(data, list) or not data:
-        JUP_STATS["fail"] += 1
+def trench_get(mint):
+    _throttle(_trench_last, 1.1)
+    try:
+        res = SESSION.get(f"{TRENCH_BASE}/bundle/bundle_advanced/{mint}", timeout=20)
+    except requests.RequestException as err:
+        STATS["trench_fail"] += 1
+        print(f"[TRENCHBOT] {err}")
         return None
-
-    entry = next((t for t in data if t.get("id") == mint), data[0])
-    JUP_STATS["ok"] += 1
-    _jup_token_cache[mint] = (time.time(), entry)
-    return entry
-
-
-def jupiter_metrics(info):
-    """Verdichtet die Jupiter-Antwort auf die Felder, die uns interessieren."""
-    if not isinstance(info, dict):
-        return {}
-
-    audit = info.get("audit") or {}
-    stats5m = info.get("stats5m") or {}
-    stats1h = info.get("stats1h") or {}
-
-    # 1h statt 5m: im 5-Minuten-Fenster ist das organische Volumen bei kleinen
-    # Token fast immer 0 und damit nicht aussagekraeftig.
-    buy_vol = float(stats1h.get("buyVolume") or 0.0)
-    buy_org = float(stats1h.get("buyOrganicVolume") or 0.0)
-    organic_ratio = (buy_org / buy_vol) if buy_vol > 0 else None
-
-    return {
-        "organic_score": info.get("organicScore"),
-        "organic_label": info.get("organicScoreLabel"),
-        "holder_count": info.get("holderCount"),
-        "holder_change_5m": stats5m.get("holderChange"),
-        "holder_change_1h": stats1h.get("holderChange"),
-        "mint_auth_disabled": audit.get("mintAuthorityDisabled"),
-        "freeze_auth_disabled": audit.get("freezeAuthorityDisabled"),
-        "top_holders_pct": audit.get("topHoldersPercentage"),
-        "dev_balance_pct": audit.get("devBalancePercentage"),
-        "dev_mints": audit.get("devMints"),
-        "is_verified": info.get("isVerified"),
-        "organic_buy_ratio_1h": round(organic_ratio, 4) if organic_ratio is not None else None,
-        "num_traders_5m": stats5m.get("numTraders"),
-        # Momentum-Felder, die DexScreener nicht hat
-        "num_net_buyers_5m": stats5m.get("numNetBuyers"),
-        "num_organic_buyers_5m": stats5m.get("numOrganicBuyers"),
-        "organic_buy_vol_5m": stats5m.get("buyOrganicVolume"),
-        "organic_sell_vol_5m": stats5m.get("sellOrganicVolume"),
-        # isSus existiert nur, wenn der Token markiert ist - Vorhandensein zaehlt
-        "is_sus": "isSus" in audit and bool(audit.get("isSus", True)),
-        "dev_migrations": audit.get("devMigrations"),
-        "launchpad": info.get("launchpad"),
-        "first_pool_at": (info.get("firstPool") or {}).get("createdAt"),
-    }
-
-
-def jupiter_shield(mint):
-    """
-    Jupiter-Warnungen fuer einen Token, z.B. HAS_FREEZE_AUTHORITY,
-    LOW_ORGANIC_ACTIVITY, NOT_VERIFIED. Rueckgabe: Liste der Typen oder None.
-    """
-    if not JUPITER_ENABLED or not mint:
+    if res.status_code != 200:
+        STATS["trench_fail"] += 1
+        print(f"[TRENCHBOT HTTP {res.status_code}] {res.text[:120]}")
         return None
+    try:
+        data = res.json()
+    except ValueError:
+        STATS["trench_fail"] += 1
+        return None
+    STATS["trench_ok"] += 1
+    return data if isinstance(data, dict) else None
+
+
+def as_float(value, default=0.0):
+    try:
+        return float(value)
+    except (TypeError, ValueError):
+        return default
+
+
+def iso_ts(value):
+    if not value:
+        return None
+    text = str(value).replace("Z", "+00:00")
+    text = re.sub(r"([+-]\d{2})$", r"\1:00", text)
+    try:
+        dt = datetime.fromisoformat(text)
+    except ValueError:
+        return None
+    if dt.tzinfo is None:
+        dt = dt.replace(tzinfo=timezone.utc)
+    return dt.timestamp()
+
+
+# ================================================================ Jupiter-Daten
+
+def jup_category(category, interval, limit=100):
+    data = jup_get(f"/tokens/v2/{category}/{interval}?limit={limit}")
+    return data if isinstance(data, list) else []
+
+
+def jup_tokens(mints):
+    """Bis zu 100 Token in einer Abfrage. Rueckgabe {mint: token}."""
+    result = {}
+    mints = [m for m in mints if m]
+    for i in range(0, len(mints), 100):
+        data = jup_get(f"/tokens/v2/search?query={','.join(mints[i:i + 100])}")
+        for tok in data if isinstance(data, list) else []:
+            if tok.get("id"):
+                result[tok["id"]] = tok
+    return result
+
+
+def sol_price():
+    data = jup_get(f"/price/v3?ids={WSOL_MINT}")
+    price = as_float(((data or {}).get(WSOL_MINT) or {}).get("usdPrice"))
+    if price > 0:
+        _sol_price[0] = price
+    return _sol_price[0] or 150.0
+
+
+def shield(mint):
     cached = _shield_cache.get(mint)
-    if cached and (time.time() - cached[0]) < 1800:
+    if cached and time.time() - cached[0] < 1800:
         return cached[1]
-    _jup_throttle()
     data = jup_get(f"/ultra/v1/shield?mints={mint}")
     if not isinstance(data, dict):
         return None
     warnings = (data.get("warnings") or {}).get(mint) or []
-    result = [w.get("type") for w in warnings if isinstance(w, dict) and w.get("type")]
-    _shield_cache[mint] = (time.time(), result)
-    return result
+    types = [w.get("type") for w in warnings if isinstance(w, dict) and w.get("type")]
+    _shield_cache[mint] = (time.time(), types)
+    return types
 
 
-def jupiter_concerns(metrics):
-    """
-    Welche Kriterien waeren verletzt, wenn die Filter aktiv waeren?
-    Gibt eine Liste zurueck - leer heisst unauffaellig.
-    """
-    issues = []
-    if not metrics:
-        return ["KEINE_JUPITER_DATEN"]
-
-    score = metrics.get("organic_score")
-    if score is not None and score < MIN_ORGANIC_SCORE:
-        issues.append(f"ORGANIC_SCORE({score:.0f})")
-
-    ratio = metrics.get("organic_buy_ratio_1h")
-    if ratio is not None and ratio < MIN_ORGANIC_VOLUME_RATIO:
-        issues.append(f"ORGANIC_RATIO({ratio*100:.1f}%)")
-
-    dev_mints = metrics.get("dev_mints")
-    if dev_mints is not None and dev_mints > MAX_DEV_MINTS:
-        issues.append(f"SERIEN_DEPLOYER({dev_mints})")
-
-    top = metrics.get("top_holders_pct")
-    if top is not None and top > MAX_TOP_HOLDERS_PCT:
-        issues.append(f"TOP_HOLDER({top:.0f}%)")
-
-    if metrics.get("is_sus"):
-        issues.append("IS_SUS")
-
-    for warning in metrics.get("shield") or []:
-        issues.append(f"SHIELD:{warning}")
-
-    if REQUIRE_AUTHORITIES_DISABLED:
-        if metrics.get("mint_auth_disabled") is False:
-            issues.append("MINT_AUTHORITY_AKTIV")
-        if metrics.get("freeze_auth_disabled") is False:
-            issues.append("FREEZE_AUTHORITY_AKTIV")
-
-    return issues
-
-
-def jupiter_effective_slippage(token_mint, signal_price_usd, sol_price,
-                               sol_amount=None, token_ui_amount=None):
-    """
-    Slippage aus dem tatsaechlichen Ausfuehrungspreis, nicht aus priceImpactPct.
-
-    Kauf  (sol_amount gesetzt):      SOL -> Token, Preis = gezahlte USD / erhaltene Token
-    Verkauf (token_ui_amount gesetzt): Token -> SOL, Preis = erhaltene USD / verkaufte Token
-
-    Vergleicht mit dem DexScreener-Signalkurs. Erfasst damit DEX-Gebuehr,
-    Preis-Impact und Routing in einem Wert.
-    Rueckgabe: (slippage_pct, token_ui_amount) oder (None, None).
-    """
-    if not JUPITER_ENABLED or signal_price_usd <= 0 or sol_price <= 0:
-        return None, None
-
-    info = jupiter_token_info(token_mint)
-    decimals = (info or {}).get("decimals")
-    if decimals is None:
-        JUP_STATS["quote_fail"] += 1
-        return None, None
-    decimals = int(decimals)
-
-    is_sell = token_ui_amount is not None
-    if is_sell:
-        raw_in = int(token_ui_amount * (10 ** decimals))
-        if raw_in <= 0:
-            return None, None
-        params = f"inputMint={token_mint}&outputMint={WSOL_MINT}&amount={raw_in}"
-    else:
-        lamports = int((sol_amount or 0) * 1_000_000_000)
-        if lamports <= 0:
-            return None, None
-        params = f"inputMint={WSOL_MINT}&outputMint={token_mint}&amount={lamports}"
-
-    _jup_throttle()
-    data = jup_get(f"/swap/v1/quote?{params}&slippageBps=300")
-    if not isinstance(data, dict):
-        JUP_STATS["quote_fail"] += 1
-        return None, None
-
+def quote(input_mint, output_mint, raw_amount):
+    data = jup_get(f"/swap/v1/quote?inputMint={input_mint}&outputMint={output_mint}"
+                   f"&amount={int(raw_amount)}&slippageBps=500")
     try:
-        out_raw = int(data.get("outAmount") or 0)
+        return int((data or {}).get("outAmount") or 0)
     except (TypeError, ValueError):
-        out_raw = 0
-    if out_raw <= 0:
-        JUP_STATS["quote_fail"] += 1
-        return None, None
+        return 0
 
-    if is_sell:
-        sol_out = out_raw / 1_000_000_000
-        eff_price_usd = (sol_out * sol_price) / token_ui_amount
-        slippage = (1.0 - eff_price_usd / signal_price_usd) * 100.0
-        tokens = token_ui_amount
-    else:
-        tokens = out_raw / (10 ** decimals)
-        eff_price_usd = (sol_amount * sol_price) / tokens
-        slippage = (eff_price_usd / signal_price_usd - 1.0) * 100.0
 
-    JUP_STATS["quote_ok"] += 1
-    # Nach unten bei 0 kappen: ein Kursunterschied zwischen DexScreener und
-    # Jupiter zu unseren Gunsten ist Messrauschen, keine negative Slippage.
-    return min(max(slippage, 0.0), MAX_SLIPPAGE_PCT), tokens
+# ================================================================ Token-Kennzahlen
 
-
-def jupiter_quote_slippage(token_mint, sol_lamports, is_sell=False, token_amount=None):
-    """
-    Echte Ausfuehrungsqualitaet statt geschaetzter Slippage.
-
-    Kauf:  SOL -> Token fuer sol_lamports
-    Verkauf: Token -> SOL fuer token_amount (roh)
-    Gibt den Preis-Impact in Prozent zurueck oder None bei Fehlschlag.
-    """
-    if not JUPITER_ENABLED:
-        return None
-
-    if is_sell:
-        if not token_amount:
-            return None
-        params = f"inputMint={token_mint}&outputMint={WSOL_MINT}&amount={int(token_amount)}"
-    else:
-        params = f"inputMint={WSOL_MINT}&outputMint={token_mint}&amount={int(sol_lamports)}"
-
-    _jup_throttle()
-    data = jup_get(f"/swap/v1/quote?{params}&slippageBps=300")
-
-    if not isinstance(data, dict):
-        JUP_STATS["quote_fail"] += 1
-        return None
-
-    raw = data.get("priceImpactPct")
-    if raw is None:
-        JUP_STATS["quote_fail"] += 1
-        return None
-
-    try:
-        # Jupiter liefert einen Dezimalbruch als String: "0.0001" = 0.01%
-        impact_pct = abs(float(raw)) * 100.0
-    except (TypeError, ValueError):
-        JUP_STATS["quote_fail"] += 1
-        return None
-
-    JUP_STATS["quote_ok"] += 1
-    return min(impact_pct, MAX_SLIPPAGE_PCT)
-
-
-def print_jupiter_health():
-    if sum(JUP_STATS.values()) == 0:
-        return
-    print(f"[JUPITER] token ok={JUP_STATS['ok']} fehler={JUP_STATS['fail']} | "
-          f"quote ok={JUP_STATS['quote_ok']} fehler={JUP_STATS['quote_fail']}")
-
-
-# --------------------------------------------------------------- Handelskosten
-
-def combined_slippage_pct(measured_impact_pct):
-    """DEX-Gebuehr plus gemessener Preis-Impact von Jupiter."""
-    return min(BASE_SWAP_COST_PCT + measured_impact_pct, MAX_SLIPPAGE_PCT)
-
-
-def estimate_slippage_pct(trade_value_usd, liquidity_usd, is_sell=False):
-    """
-    Slippage aus Positionsgroesse und Pooltiefe statt als feste Annahme.
-
-    Basis: DEX-Swapgebuehr. Dazu der Preis-Impact eines Constant-Product-AMM,
-    wobei liquidity_usd als TVL beider Seiten interpretiert wird.
-    """
-    if liquidity_usd <= 0:
-        return MAX_SLIPPAGE_PCT
-
-    impact_pct = IMPACT_FACTOR * (trade_value_usd / liquidity_usd) * 100.0
-    if is_sell:
-        impact_pct *= SELL_SLIPPAGE_FACTOR
-
-    return min(BASE_SWAP_COST_PCT + impact_pct, MAX_SLIPPAGE_PCT)
-
-
-# ---------------------------------------------------------- Diagnose & Reject-Log
-
-def note(reason):
-    SCAN_STATS[reason] = SCAN_STATS.get(reason, 0) + 1
-    counts = SESSION_STATS["filter_counts"]
-    counts[reason] = counts.get(reason, 0) + 1
-
-
-def track_range(key, value):
-    lo_key, hi_key = f"{key}_min", f"{key}_max"
-    if lo_key not in SCAN_STATS or value < SCAN_STATS[lo_key]:
-        SCAN_STATS[lo_key] = value
-    if hi_key not in SCAN_STATS or value > SCAN_STATS[hi_key]:
-        SCAN_STATS[hi_key] = value
-
-
-def init_reject_log():
-    if not os.path.exists(REJECT_LOG_FILE):
-        try:
-            with open(REJECT_LOG_FILE, "w", newline="", encoding="utf-8") as f:
-                csv.writer(f).writerow(REJECT_LOG_HEADERS)
-        except Exception as err:
-            print(f"[REJECT LOG ERROR] {err}")
-
-
-def should_log_rejection(token_addr, reason_key, liquidity_usd):
-    """
-    Verhindert, dass derselbe Token mit demselben Grund in jeder Schleife
-    erneut geschrieben wird. Neu geloggt wird nur bei geaendertem Grund,
-    deutlicher Liquiditaetsaenderung oder nach Ablauf der Wartezeit.
-    """
-    now = time.time()
-    key = (token_addr, reason_key)
-    last = _reject_seen.get(key)
-
-    if last is None:
-        _reject_seen[key] = (liquidity_usd, now)
-        return True
-
-    last_liq, last_ts = last
-    if (now - last_ts) >= REJECT_REPEAT_AFTER_SECONDS:
-        _reject_seen[key] = (liquidity_usd, now)
-        return True
-
-    if last_liq > 0:
-        abs_change = abs(liquidity_usd - last_liq)
-        change = abs_change / last_liq * 100.0
-        if change >= REJECT_LIQ_CHANGE_PCT and abs_change >= REJECT_LIQ_MIN_ABS_CHANGE:
-            _reject_seen[key] = (liquidity_usd, now)
-            return True
-
-    return False
-
-
-def log_rejection(strategy, pair, token_addr, reason, reason_key,
-                  curve_pct=None, drawdown_pct=None, shadow_state=None):
-    liq = pair_liquidity_usd(pair)
-    if not should_log_rejection(token_addr, reason_key, liq):
-        return
-
-    if shadow_state is not None:
-        shadow_register(shadow_state, token_addr, pair_symbol(pair), strategy,
-                        "REJECT", reason_key,
-                        float(pair.get("priceUsd") or 0.0), liq)
-
-    try:
-        m5_buys, m5_sells = pair_txns_m5(pair)
-        with open(REJECT_LOG_FILE, "a", newline="", encoding="utf-8") as f:
-            csv.writer(f).writerow([
-                datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S"),
-                strategy,
-                pair_symbol(pair),
-                token_addr,
-                reason,
-                f"{curve_pct:.1f}" if curve_pct is not None else "",
-                f"{drawdown_pct:.1f}" if drawdown_pct is not None else "",
-                f"{liq:.0f}",
-                f"{pair_mcap(pair):.0f}",
-                m5_buys,
-                m5_sells,
-            ])
-    except Exception as err:
-        print(f"[REJECT LOG ERROR] {err}")
-
-
-def prune_reject_seen():
-    cutoff = time.time() - (REJECT_REPEAT_AFTER_SECONDS * 2)
-    for key in [k for k, (_, ts) in _reject_seen.items() if ts < cutoff]:
-        del _reject_seen[key]
-
-
-def print_scan_diagnostics(sol_price):
-    if not SCAN_STATS:
-        print("[SCAN] keine Kandidaten gesehen")
-        return
-    counts = {k: v for k, v in SCAN_STATS.items() if not k.endswith(("_min", "_max"))}
-    parts = [f"{k}={v}" for k, v in sorted(counts.items(), key=lambda kv: -kv[1])]
-    print("[SCAN] " + " | ".join(parts))
-
-    if "curve_pct_min" in SCAN_STATS:
-        grad_usd = GRADUATION_MCAP_SOL * sol_price
-        print(f"[SCAN] curve_pct {SCAN_STATS['curve_pct_min']:.1f}-"
-              f"{SCAN_STATS['curve_pct_max']:.1f} "
-              f"(Ziel {SCALP_MIN_CURVE}-{SCALP_MAX_CURVE}, "
-              f"Graduation bei ~${grad_usd:,.0f})")
-    if "drawdown_min" in SCAN_STATS:
-        print(f"[SCAN] Drawdowns {SCAN_STATS['drawdown_min']:.1f}%-"
-              f"{SCAN_STATS['drawdown_max']:.1f}% "
-              f"(Ziel {CTO_MIN_DRAWDOWN} bis {CTO_MAX_DRAWDOWN})")
-    SCAN_STATS.clear()
-
-
-def print_rpc_health():
-    if sum(RPC_STATS.values()) == 0:
-        return
-    print(f"[RPC HEALTH] ok={RPC_STATS['ok']} fehler={RPC_STATS['error']} "
-          f"ratelimit={RPC_STATS['rate_limited']}")
-
-
-# ----------------------------------------------------------------- Pool-Pruefung
-
-def pool_quality_ok(strategy, pair, token_addr, shadow_state=None):
-    liq = pair_liquidity_usd(pair)
-    fdv = pair_mcap(pair)
-    vol = pair_vol_h24(pair)
-
-    if liq < MIN_LIQUIDITY_USD:
-        note("pool_liq_zu_niedrig")
-        log_rejection(strategy, pair, token_addr,
-                      f"LIQ_ZU_NIEDRIG ({liq:.0f} USD)", "liq", shadow_state=shadow_state)
-        return False
-
-    if vol < MIN_VOL_H24_USD:
-        note("pool_vol_zu_niedrig")
-        log_rejection(strategy, pair, token_addr,
-                      f"VOL24H_ZU_NIEDRIG ({vol:.0f} USD)", "vol", shadow_state=shadow_state)
-        return False
-
-    if fdv > 0 and (liq / fdv) < MIN_LIQ_TO_FDV_RATIO:
-        ratio = (liq / fdv) * 100.0
-        note("pool_liq_fdv_ratio")
-        log_rejection(strategy, pair, token_addr,
-                      f"LIQ_FDV_RATIO ({ratio:.2f}%)", "ratio", shadow_state=shadow_state)
-        return False
-
-    return True
-
-
-# ------------------------------------------- Jupiter als zweite Kandidatenquelle
-
-# DexScreener token-boosts listet Token, fuer deren Sichtbarkeit bezahlt wurde.
-# Jupiter toptrending/5m listet Token nach echtem 5-Minuten-Momentum.
-# Welche Quelle bessere CTO-Kandidaten liefert, ist offen. Deshalb laufen
-# Jupiter-Kandidaten mit denselben CTO-Bedingungen NUR ins Shadow-Tracking
-# (Quelle JUP_SIGNAL), der Bot handelt weiter ausschliesslich ueber DexScreener.
-JUP_SIGNAL_ENABLED = True
-JUP_SIGNAL_EVERY_LOOPS = 3          # ~alle 105 Sekunden ein Aufruf
-JUP_SIGNAL_LIMIT = 100
-
-# ------------------------------------------------------------ Shadow-Tracking
-
-# Ein Token kann in beiden Rollen vorkommen: erst abgelehnt, spaeter gekauft
-# und verkauft. Deshalb ist der Schluessel "QUELLE:token" statt nur "token".
-
-def shadow_key(source, token_addr):
-    return f"{source}:{token_addr}"
-
-
-def init_shadow_files():
-    if not SHADOW_ENABLED:
-        return
-    try:
-        if os.path.exists(SHADOW_RESULT_FILE):
-            with open(SHADOW_RESULT_FILE, "r", encoding="utf-8") as f:
-                header = next(csv.reader(f), [])
-            if header == SHADOW_RESULT_HEADERS:
-                return
-            # Altes Format beiseitelegen statt Spalten zu vermischen
-            archive = SHADOW_RESULT_FILE.replace(".csv", "_v1.csv")
-            os.replace(SHADOW_RESULT_FILE, archive)
-            print(f"[SHADOW] altes Format nach {archive} verschoben")
-        with open(SHADOW_RESULT_FILE, "w", newline="", encoding="utf-8") as f:
-            csv.writer(f).writerow(SHADOW_RESULT_HEADERS)
-    except Exception as err:
-        print(f"[SHADOW ERROR] {err}")
-
-
-def load_shadow_state():
-    if os.path.exists(SHADOW_STATE_FILE):
-        try:
-            with open(SHADOW_STATE_FILE, "r", encoding="utf-8") as f:
-                data = json.load(f)
-            if isinstance(data, dict) and isinstance(data.get("candidates"), dict):
-                # Eintraege aus dem alten Format (Schluessel = Token) umschluesseln
-                migrated = {}
-                for key, entry in data["candidates"].items():
-                    if not isinstance(entry, dict):
-                        continue
-                    if "token" not in entry:
-                        entry["token"] = key
-                        key = shadow_key(entry.get("source", "REJECT"), key)
-                    migrated[key] = entry
-                data["candidates"] = migrated
-                return data
-        except Exception as err:
-            print(f"[SHADOW LOAD ERROR] {err}")
-    return {"candidates": {}}
-
-
-def save_shadow_state(state):
-    try:
-        tmp = SHADOW_STATE_FILE + ".tmp"
-        with open(tmp, "w", encoding="utf-8") as f:
-            json.dump(state, f, indent=2)
-        os.replace(tmp, SHADOW_STATE_FILE)
-    except Exception as err:
-        print(f"[SHADOW SAVE ERROR] {err}")
-
-
-def shadow_register(state, token_addr, symbol, strategy, source, reason,
-                    ref_price, ref_liq):
-    """Nimmt einen Kandidaten zur Nachverfolgung auf."""
-    if not SHADOW_ENABLED or not token_addr or ref_price <= 0:
-        return
-    candidates = state.setdefault("candidates", {})
-    key = shadow_key(source, token_addr)
-    if key in candidates:
-        return
-
-    # Echte Trades (ENTRY/EXIT) haben Vorrang: Wenn die Liste voll ist,
-    # verdraengen sie den aeltesten Kandidaten ohne Trade.
-    if len(candidates) >= SHADOW_MAX_TRACKED:
-        if source not in SHADOW_PRIORITY_SOURCES:
-            return
-        oldest = min(
-            (k for k, e in candidates.items()
-             if e.get("source") not in SHADOW_PRIORITY_SOURCES),
-            key=lambda k: candidates[k].get("ref_time", 0), default=None)
-        if oldest is None:
-            return
-        del candidates[oldest]
-
-    candidates[key] = {
-        "token": token_addr,
-        "symbol": symbol,
-        "strategy": strategy,
-        "source": source,
-        "reason": reason,
-        "ref_price": ref_price,
-        "ref_liq": ref_liq,
-        "ref_time": time.time(),
-        "later_bought": False,
-        "pending": list(SHADOW_CHECKPOINTS_HOURS)
-    }
-
-
-def shadow_mark_bought(state, token_addr):
-    """Markiert einen abgelehnten Kandidaten, der spaeter doch gekauft wurde."""
-    if state is None:
-        return
-    for source in ("REJECT", "JUP_SIGNAL"):
-        entry = state.get("candidates", {}).get(shadow_key(source, token_addr))
-        if entry:
-            entry["later_bought"] = True
-
-
-def shadow_due_keys(state):
-    """Eintraege, deren naechster Messpunkt erreicht ist."""
-    now = time.time()
-    due = []
-    for key, entry in state.get("candidates", {}).items():
-        pending = entry.get("pending") or []
-        if not pending:
-            continue
-        age_hours = (now - float(entry.get("ref_time", now))) / 3600.0
-        if age_hours >= min(pending):
-            due.append(key)
-    return due
-
-
-def fetch_pairs_batch(token_addrs):
-    """Ein Aufruf fuer bis zu 30 Token. Gibt {token_addr: bestes Pair} zurueck."""
-    if not token_addrs:
-        return {}
-    url = ("https://api.dexscreener.com/tokens/v1/solana/"
-           + ",".join(token_addrs[:SHADOW_BATCH_SIZE]))
-    data = api_get(url, timeout=8)
-
-    pairs = data if isinstance(data, list) else (data or {}).get("pairs") or []
-    best = {}
-    for pair in pairs:
-        addr = (pair.get("baseToken") or {}).get("address")
-        if not addr:
-            continue
-        if addr not in best or pair_liquidity_usd(pair) > pair_liquidity_usd(best[addr]):
-            best[addr] = pair
-    return best
-
-
-def shadow_write_result(entry, checkpoint, now_price, now_liq):
-    SESSION_STATS["shadow_writes"] += 1
-    ref_price = float(entry.get("ref_price") or 0.0)
-    change = ((now_price - ref_price) / ref_price * 100.0) if ref_price > 0 else 0.0
-    try:
-        with open(SHADOW_RESULT_FILE, "a", newline="", encoding="utf-8") as f:
-            csv.writer(f).writerow([
-                datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S"),
-                entry.get("source", ""),
-                entry.get("strategy", ""),
-                entry.get("symbol", ""),
-                entry.get("token", ""),
-                entry.get("reason", ""),
-                f"{checkpoint:.1f}",
-                f"{ref_price:.12f}",
-                f"{now_price:.12f}",
-                f"{change:+.2f}",
-                f"{float(entry.get('ref_liq') or 0.0):.0f}",
-                f"{now_liq:.0f}",
-                "ja" if entry.get("later_bought") else "nein",
-            ])
-    except Exception as err:
-        print(f"[SHADOW ERROR] {err}")
-    return change
-
-
-def process_shadow_tracking(state):
-    """Misst faellige Eintraege und raeumt abgelaufene auf."""
-    if not SHADOW_ENABLED:
-        return
-
-    candidates = state.setdefault("candidates", {})
-    now = time.time()
-
-    max_age = (max(SHADOW_CHECKPOINTS_HOURS) + SHADOW_GRACE_HOURS) * 3600.0
-    for key in [k for k, e in candidates.items()
-                if (now - float(e.get("ref_time", now))) > max_age]:
-        del candidates[key]
-
-    due = shadow_due_keys(state)
-    if not due:
-        return
-
-    # Mehrere Eintraege koennen denselben Token betreffen (REJECT und EXIT)
-    tokens = list(dict.fromkeys(candidates[k]["token"] for k in due))[:SHADOW_BATCH_SIZE]
-    found = fetch_pairs_batch(tokens)
-
-    for key in due:
-        entry = candidates.get(key)
-        if not entry or entry.get("token") not in tokens:
-            continue
-        pending = entry.get("pending") or []
-        if not pending:
-            continue
-
-        checkpoint = min(pending)
-        pair = found.get(entry["token"])
-        now_price = float(pair.get("priceUsd") or 0.0) if pair else 0.0
-        now_liq = pair_liquidity_usd(pair) if pair else 0.0
-
-        if now_price <= 0:
-            shadow_write_result(entry, checkpoint, 0.0, 0.0)
-            entry["pending"] = []
-        else:
-            shadow_write_result(entry, checkpoint, now_price, now_liq)
-            entry["pending"] = [h for h in pending if h > checkpoint]
-
-        if not entry["pending"]:
-            candidates.pop(key, None)
-
-    save_shadow_state(state)
-
-
-# ------------------------------------------------------------------- Persistence
-
-def default_strat():
+def token_view(tok, now):
+    s5, s1 = tok.get("stats5m") or {}, tok.get("stats1h") or {}
+    audit = tok.get("audit") or {}
+    created = iso_ts((tok.get("firstPool") or {}).get("createdAt"))
     return {
-        "bankroll_sol": START_BANKROLL_PER_STRATEGY,
-        "wins": 0,
-        "losses": 0,
-        "total_fees_sol": 0.0,
-        "open_positions": {},
-        "closed_positions": []
+        "mint": tok.get("id"),
+        "symbol": str(tok.get("symbol") or "?").strip(),
+        "name": str(tok.get("name") or "").strip(),
+        "decimals": tok.get("decimals"),
+        "price": as_float(tok.get("usdPrice")),
+        "mcap": as_float(tok.get("mcap") or tok.get("fdv")),
+        "liquidity": as_float(tok.get("liquidity")),
+        "holders": int(as_float(tok.get("holderCount"))),
+        "age_h": (now - created) / 3600 if created else None,
+        "holder_growth_1h": as_float(s1.get("holderChange")),
+        "holder_growth_5m": as_float(s5.get("holderChange")),
+        "net_buyers_5m": int(as_float(s5.get("numNetBuyers"))),
+        "organic_buyers_5m": int(as_float(s5.get("numOrganicBuyers"))),
+        "organic_score": as_float(tok.get("organicScore")),
+        "price_change_1h": as_float(s1.get("priceChange")),
+        "volume_1h": as_float(s1.get("buyVolume")) + as_float(s1.get("sellVolume")),
+        "social": bool(tok.get("twitter") or tok.get("telegram") or tok.get("website")),
+        "mint_disabled": audit.get("mintAuthorityDisabled"),
+        "freeze_disabled": audit.get("freezeAuthorityDisabled"),
+        "is_sus": "isSus" in audit and bool(audit.get("isSus", True)),
     }
 
 
-def normalize_portfolio(data):
-    if not isinstance(data, dict):
-        data = {}
-    strategies = data.get("strategies")
-    if not isinstance(strategies, dict):
-        strategies = {}
-    for name in STRATEGY_NAMES:
-        strat = strategies.get(name)
-        if not isinstance(strat, dict):
-            strat = default_strat()
-            if name in STRATEGY_SPLITS:
-                strat["bankroll_sol"] = 0.0   # wird per Aufteilung befuellt
-        else:
-            for key, value in default_strat().items():
-                strat.setdefault(key, value)
-        strategies[name] = strat
-    data["strategies"] = strategies
-    data.setdefault("trade_history_cooldown", {})
-    data.setdefault("rebalanced_strategies", [])
-    data.setdefault("strategy_splits", [])
-    data.setdefault("stop_blocklist", {})
-    data.setdefault(
-        "bankroll_total_sol",
-        round(sum(s["bankroll_sol"] for s in strategies.values()), 4)
-    )
-    return data
+def norm_symbol(text):
+    return re.sub(r"[^A-Z0-9]", "", str(text).upper())
 
 
-def apply_strategy_splits(portfolio):
-    """Einmalige Aufteilung des Kapitals fuer neu eingefuehrte Strategien."""
-    done = portfolio.setdefault("strategy_splits", [])
-    for target, (source, share) in STRATEGY_SPLITS.items():
-        if target in done or not STRATEGY_ENABLED.get(target):
-            continue
-        src_strat = portfolio["strategies"][source]
-        amount = round(float(src_strat["bankroll_sol"]) * share, 4)
-        src_strat["bankroll_sol"] = round(src_strat["bankroll_sol"] - amount, 4)
-        tgt = portfolio["strategies"][target]
-        tgt["bankroll_sol"] = round(tgt["bankroll_sol"] + amount, 4)
-        done.append(target)
-        print(f"[SPLIT] {amount:.4f} SOL von {source} an {target} uebertragen")
+def update_symbol_leaders(views, now):
+    """Tag 12: merkt sich pro Name/Symbol den Coin mit den meisten Holdern."""
+    for v in views:
+        for key in {norm_symbol(v["symbol"]), norm_symbol(v["name"])} - {""}:
+            leader = _symbol_leaders.get(key)
+            if (leader is None or now - leader[2] > 6 * 3600
+                    or leader[0] == v["mint"] or v["holders"] > leader[1]):
+                _symbol_leaders[key] = (v["mint"], v["holders"], now)
 
 
-def rebalance_disabled_strategies(portfolio):
-    apply_strategy_splits(portfolio)
-    if not REBALANCE_DISABLED_BANKROLL:
-        return
+def vamp_copy_of(v):
+    for key in {norm_symbol(v["symbol"]), norm_symbol(v["name"])} - {""}:
+        leader = _symbol_leaders.get(key)
+        if leader and leader[0] != v["mint"] and leader[1] > v["holders"]:
+            return leader[0]
+    return None
 
-    done = portfolio.setdefault("rebalanced_strategies", [])
-    active = [n for n in STRATEGY_NAMES if STRATEGY_ENABLED.get(n)]
-    if not active:
-        return
 
-    for name in STRATEGY_NAMES:
-        if STRATEGY_ENABLED.get(name) or name in done:
-            continue
-        strat = portfolio["strategies"][name]
-        if strat["open_positions"]:
-            continue
-        amount = float(strat["bankroll_sol"])
-        if amount <= 0:
-            done.append(name)
-            continue
+# ================================================================ Einstiegspruefung
 
-        share = round(amount / len(active), 4)
-        for target in active:
-            portfolio["strategies"][target]["bankroll_sol"] = round(
-                portfolio["strategies"][target]["bankroll_sol"] + share, 4
-            )
-        strat["bankroll_sol"] = 0.0
-        done.append(name)
-        print(f"[REBALANCE] {name} deaktiviert -> {amount:.4f} SOL auf "
-              f"{', '.join(active)} verteilt")
+def quick_checks(v):
+    """Guenstige Pruefungen ohne weitere Abfragen. Rueckgabe: Ablehnungsgrund oder None."""
+    if v["age_h"] is None:
+        return "KEIN_ALTER"
+    if v["age_h"] < MIN_AGE_MIN / 60:
+        return "ZU_JUNG"
+    if v["age_h"] > MAX_AGE_H:
+        return "STORY_ZU_ALT"                                   # Tag 5
+    if v["mcap"] > MAX_MCAP_USD or v["price_change_1h"] > MAX_PRICE_CHANGE_1H:
+        return "SCHON_GELAUFEN"                                 # Tag 7
+    if v["holder_growth_1h"] < MIN_HOLDER_GROWTH_1H or v["holder_growth_5m"] <= 0:
+        return "VERBREITUNG_STOCKT"                             # Tag 5
+    if v["net_buyers_5m"] < MIN_NET_BUYERS_5M or v["organic_buyers_5m"] < MIN_ORGANIC_BUYERS_5M:
+        return "KEINE_ECHTEN_KAEUFER"                           # Tag 5
+    if v["organic_score"] < MIN_ORGANIC_SCORE:
+        return "NICHT_ORGANISCH"
+    if REQUIRE_SOCIAL_LINK and not v["social"]:
+        return "KEINE_STORY_LINKS"
+    if v["liquidity"] < MIN_LIQUIDITY_USD:
+        return "LIQUIDITAET_ZU_GERING"
+    if norm_symbol(v["symbol"]) in IMPERSONATION_SYMBOLS:
+        return "NACHAHMER_SYMBOL"
+    if v["mint_disabled"] is False or v["freeze_disabled"] is False or v["is_sus"]:
+        return "UNSICHERER_CONTRACT"
+    copy_of = vamp_copy_of(v)
+    if copy_of:
+        return "VAMP_KOPIE"                                     # Tag 12
+    return None
 
+
+def bundle_dev_check(mint):
+    """Tag 1 + Tag 6. Rueckgabe (Grund oder None, Kennzahlen)."""
+    cached = _trench_cache.get(mint)
+    if cached and time.time() - cached[0] < 600:
+        return cached[1], cached[2]
+    data = trench_get(mint)
+    if data is None:
+        return ("BUNDLE_CHECK_NICHT_MOEGLICH" if BUNDLE_CHECK_REQUIRED else None), {}
+
+    creator = data.get("creator_analysis") or {}
+    history = creator.get("history") or {}
+    info = {
+        "bundle_holding_pct": as_float(data.get("total_holding_percentage")),
+        "bundle_initial_pct": as_float(data.get("total_percentage_bundled")),
+        "bundles": int(as_float(data.get("total_bundles"))),
+        "creator_rugs": int(as_float(history.get("rug_count"))),
+        "creator_coins": int(as_float(history.get("total_coins_created"))),
+        "creator_holding_pct": as_float(creator.get("holding_percentage")),
+        "creator_risk": str(creator.get("risk_level") or ""),
+    }
+    reason = None
+    if info["bundle_holding_pct"] >= MAX_BUNDLE_HOLDING_PCT or \
+            info["bundle_initial_pct"] >= MAX_BUNDLE_INITIAL_PCT:
+        reason = "GEBUENDELT"
+    elif info["creator_rugs"] > MAX_CREATOR_RUGS or info["creator_risk"].upper() == "HIGH":
+        reason = "DEV_MIT_RUGS"
+    elif info["creator_holding_pct"] > MAX_CREATOR_HOLDING_PCT:
+        reason = "DEV_HAELT_ZU_VIEL"
+    _trench_cache[mint] = (time.time(), reason, info)
+    return reason, info
+
+
+def safety_shield(mint):
+    types = shield(mint) or []
+    fees = [t for t in types if "TRANSFER_FEE" in str(t).upper()]
+    return "TRANSFERGEBUEHR" if fees else None
+
+
+# ================================================================ Portfolio
 
 def load_portfolio():
     if os.path.exists(PORTFOLIO_FILE):
         try:
-            with open(PORTFOLIO_FILE, "r", encoding="utf-8") as f:
-                return normalize_portfolio(json.load(f))
+            with open(PORTFOLIO_FILE, encoding="utf-8") as f:
+                data = json.load(f)
+            if isinstance(data, dict) and "bankroll_sol" in data:
+                data.setdefault("positions", {})
+                data.setdefault("closed", [])
+                data.setdefault("cooldown", {})
+                return data
         except Exception as err:
-            print(f"[LOAD ERROR] {err} -> starte mit frischem Portfolio")
-    return normalize_portfolio({})
+            print(f"[PORTFOLIO] {err} -> neues Portfolio")
+    return {"strategy": "NARRATIV", "started": datetime.now(timezone.utc).isoformat(),
+            "bankroll_sol": START_BANKROLL_SOL, "positions": {}, "closed": [], "cooldown": {}}
 
 
-def save_portfolio(data):
-    total = sum(s["bankroll_sol"] for s in data["strategies"].values())
-    data["bankroll_total_sol"] = round(total, 4)
-    try:
-        tmp_file = PORTFOLIO_FILE + ".tmp"
-        with open(tmp_file, "w", encoding="utf-8") as f:
-            json.dump(data, f, indent=2)
-        os.replace(tmp_file, PORTFOLIO_FILE)
-    except Exception as err:
-        print(f"[SAVE ERROR] {err}")
+def save_portfolio(p):
+    tmp = PORTFOLIO_FILE + ".tmp"
+    with open(tmp, "w", encoding="utf-8") as f:
+        json.dump(p, f, indent=2)
+    os.replace(tmp, PORTFOLIO_FILE)
 
 
-def prune_cooldowns(portfolio):
-    blocklist = portfolio.setdefault("stop_blocklist", {})
-    for addr in [a for a, until in blocklist.items() if float(until or 0) < time.time()]:
-        del blocklist[addr]
-    cooldowns = portfolio.setdefault("trade_history_cooldown", {})
-    cutoff = time.time() - (TOKEN_COOLDOWN_MINUTES * 60)
-    for addr in [a for a, ts in cooldowns.items() if float(ts or 0) < cutoff]:
-        del cooldowns[addr]
+def journal(action, pos, price_usd, sol, reason="", pnl_sol="", pnl_pct=""):
+    """Tag 3: Einstieg mit These und Verkaufsbedingung, jeder Verkauf mit Grund."""
+    new = not os.path.exists(JOURNAL_FILE)
+    with open(JOURNAL_FILE, "a", newline="", encoding="utf-8") as f:
+        w = csv.writer(f)
+        if new:
+            w.writerow(["zeit", "aktion", "symbol", "mint", "preis_usd", "sol",
+                        "these", "verkaufsbedingung", "grund", "pnl_sol", "pnl_pct"])
+        w.writerow([datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S"), action,
+                    pos["symbol"], pos["mint"], f"{price_usd:.12g}", f"{sol:.4f}",
+                    pos.get("thesis", ""), pos.get("exit_rule", ""), reason,
+                    pnl_sol if pnl_sol == "" else f"{pnl_sol:+.4f}",
+                    pnl_pct if pnl_pct == "" else f"{pnl_pct:+.1f}"])
 
 
-def git_push_state():
-    try:
-        subprocess.run(["git", "config", "--global", "user.name",
-                        "github-actions[bot]"], check=False)
-        subprocess.run(["git", "config", "--global", "user.email",
-                        "github-actions[bot]@users.noreply.github.com"], check=False)
-        subprocess.run(["git", "add", PORTFOLIO_FILE, REJECT_LOG_FILE,
-                        SHADOW_STATE_FILE, SHADOW_RESULT_FILE], check=False)
-        status = subprocess.run(["git", "status", "--porcelain"],
-                                capture_output=True, text=True)
-        if status.stdout.strip():
-            subprocess.run(["git", "commit", "-m",
-                            "Update portfolio + reject log [skip ci]"], check=False)
-            subprocess.run(["git", "pull", "origin", "main", "--rebase"], check=False)
-            subprocess.run(["git", "push", "origin", "main"], check=False)
-    except Exception as err:
-        print(f"[GIT ERROR] {err}")
-
-
-# ----------------------------------------------------------------------- Discord
-
-def send_discord_raw(title, desc, color):
-    if not DISCORD_WEBHOOK_URL:
-        print(f"[DISCORD OFF] {title}")
+def log_reject(v, reason):
+    STATS["rejects"][reason] = STATS["rejects"].get(reason, 0) + 1
+    key = (v.get("mint"), reason)
+    if time.time() - _reject_seen.get(key, 0) < REJECT_REPEAT_SECONDS:
         return
-    embed = {
-        "title": title,
-        "description": desc[:4000],
-        "color": color,
-        "timestamp": datetime.now(timezone.utc).isoformat()
-    }
+    _reject_seen[key] = time.time()
+    new = not os.path.exists(REJECT_FILE)
+    with open(REJECT_FILE, "a", newline="", encoding="utf-8") as f:
+        w = csv.writer(f)
+        if new:
+            w.writerow(["zeit", "symbol", "mint", "grund", "alter_h", "mcap", "liq",
+                        "holder", "holder_1h_pct", "netto_kaeufer_5m", "preis_usd"])
+        w.writerow([datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S"),
+                    v.get("symbol"), v.get("mint"), reason,
+                    "" if v.get("age_h") is None else f"{v['age_h']:.2f}",
+                    f"{v.get('mcap', 0):.0f}", f"{v.get('liquidity', 0):.0f}", v.get("holders"),
+                    f"{v.get('holder_growth_1h', 0):.1f}", v.get("net_buyers_5m"),
+                    f"{v.get('price', 0):.12g}"])
+
+
+# ================================================================ Marktphase
+
+def update_phase(now):
+    """Tag 13: Wie hoch laufen frische Coins, wie viel Volumen ist da?"""
+    tokens = jup_category("toptrending", "1h", 100)
+    if not tokens:
+        return None
+    views = [token_view(t, now) for t in tokens]
+    update_symbol_leaders(views, now)
+    young = [v for v in views if v["age_h"] is not None and v["age_h"] <= YOUNG_TOKEN_H]
+    hot_count = sum(1 for v in young if v["mcap"] >= HOT_MCAP_USD)
+    volume = sum(v["volume_1h"] for v in young)
+
+    state = {"history": []}
+    if os.path.exists(PHASE_FILE):
+        try:
+            with open(PHASE_FILE, encoding="utf-8") as f:
+                state = json.load(f)
+        except Exception:
+            pass
+    hist = state.get("history", [])
+    phase = "normal"
+    if len(hist) >= PHASE_MIN_HISTORY:
+        med_count = sorted(h[1] for h in hist)[len(hist) // 2]
+        med_vol = sorted(h[2] for h in hist)[len(hist) // 2]
+        if hot_count >= med_count and volume >= med_vol and hot_count > 0:
+            phase = "heiss"
+        elif hot_count < med_count and volume < med_vol:
+            phase = "ruhig"
+    hist.append([int(now), hot_count, round(volume)])
+    state = {"history": hist[-PHASE_HISTORY_MAX:], "phase": phase,
+             "hot_count": hot_count, "volume_1h": round(volume), "updated": int(now)}
+    with open(PHASE_FILE, "w", encoding="utf-8") as f:
+        json.dump(state, f)
+    return state
+
+
+def current_phase():
     try:
-        SESSION.post(DISCORD_WEBHOOK_URL, json={"embeds": [embed]}, timeout=6)
-    except Exception as err:
-        print(f"[DISCORD ERROR] {err}")
+        with open(PHASE_FILE, encoding="utf-8") as f:
+            return json.load(f).get("phase", "normal")
+    except Exception:
+        return "normal"
 
 
-def get_strat_stats(strat_data):
-    wins = strat_data.get("wins", 0)
-    losses = strat_data.get("losses", 0)
-    total = wins + losses
-    win_rate = (wins / total * 100.0) if total > 0 else 0.0
-    return f"{wins}W / {losses}L ({win_rate:.1f}%)"
+# ================================================================ Kauf / Verkauf
 
-
-# ------------------------------------------------------------------- Scan Common
-
-def strategy_can_trade(portfolio, strat_name):
-    if not STRATEGY_ENABLED.get(strat_name):
+def open_position(p, v, trench, sol_usd):
+    decimals = v.get("decimals")
+    if decimals is None:
+        log_reject(v, "KEINE_DECIMALS")
         return False
-    strat = portfolio["strategies"][strat_name]
-    if len(strat["open_positions"]) >= MAX_POSITIONS_PER_STRATEGY:
+    lamports = int(POSITION_SOL * 1e9)
+    raw_out = quote(WSOL_MINT, v["mint"], lamports)
+    if raw_out <= 0:
+        log_reject(v, "KEIN_KAUFKURS")
         return False
-    if strat["bankroll_sol"] < SCOUT_SIZE_SOL:
-        return False
+    tokens = raw_out / (10 ** int(decimals))
+    fill_usd = (POSITION_SOL * sol_usd) / tokens
+    slippage = (fill_usd / v["price"] - 1) * 100 if v["price"] > 0 else 0.0
+    back = quote(v["mint"], WSOL_MINT, raw_out)
+    roundtrip = round((1 - back / lamports) * 100, 2) if back > 0 else None
+
+    thesis = (f"Story verbreitet sich: Holder +{v['holder_growth_1h']:.0f}%/h, "
+              f"{v['net_buyers_5m']} Netto-Kaeufer 5m, {v['organic_buyers_5m']} organisch; "
+              f"Bundle haelt {trench.get('bundle_holding_pct', 0):.1f}%, "
+              f"Dev-Rugs {trench.get('creator_rugs', 0)}")
+    exit_rule = (f"Haelfte bei {TP1_MULTIPLE:.0f}x; Rest raus, wenn Holder schrumpfen und "
+                 f"Netto-Verkaeufer {THESIS_BREAK_CHECKS}x in Folge, Liquiditaet -{LIQ_DROP_EXIT_PCT:.0f}%, "
+                 f"{EMERGENCY_STOP_PCT:.0f}% oder nach 2x {TRAIL_AFTER_TP1_PCT:.0f}% vom Hoch")
+
+    p["bankroll_sol"] = round(p["bankroll_sol"] - POSITION_SOL - TX_FEE_SOL, 6)
+    pos = {"mint": v["mint"], "symbol": v["symbol"], "opened": time.time(),
+           "invested_sol": POSITION_SOL, "fees_sol": TX_FEE_SOL,
+           "entry_signal_usd": v["price"], "entry_fill_usd": fill_usd,
+           "entry_slippage_pct": round(slippage, 2), "roundtrip_cost_pct": roundtrip,
+           "tokens_initial": tokens, "tokens_left": tokens, "decimals": int(decimals),
+           "proceeds_sol": 0.0, "peak_usd": v["price"], "tp1_done": False,
+           "thesis_breaks": 0, "missing_loops": 0, "entry_liquidity": v["liquidity"],
+           "entry_view": {k: v[k] for k in ("age_h", "mcap", "holders", "holder_growth_1h",
+                                            "net_buyers_5m", "organic_buyers_5m",
+                                            "organic_score", "price_change_1h")},
+           "trench": trench, "phase": current_phase(), "thesis": thesis, "exit_rule": exit_rule}
+    p["positions"][v["mint"]] = pos
+    p["cooldown"][v["mint"]] = time.time()
+    journal("KAUF", pos, fill_usd, POSITION_SOL)
+    STATS["entries"].append({"symbol": v["symbol"], "roundtrip": roundtrip})
+    discord(f"🎯 Kauf: {v['symbol']}",
+            f"**These:** {thesis}\n**Verkauf wenn:** {exit_rule}\n"
+            f"**Marktwert:** ${v['mcap']:,.0f} | **LP:** ${v['liquidity']:,.0f} | "
+            f"**Alter:** {v['age_h']:.1f} h\n"
+            f"**Einstieg:** {POSITION_SOL} SOL, Slippage {slippage:+.2f}%, "
+            f"Hin+zurueck {roundtrip if roundtrip is not None else '?'}%\n"
+            f"**Marktphase:** {pos['phase']} | **Bankroll frei:** {p['bankroll_sol']:.4f} SOL\n"
+            f"https://jup.ag/tokens/{v['mint']}", 0x3B82F6)
+    save_portfolio(p)
     return True
 
 
-def _note_prefix(strat_name):
-    return "jup_" if strat_name == "CTO_JUP" else "cto_"
+def sell(p, pos, fraction, price_usd, reason, sol_usd):
+    """Verkauft einen Anteil der verbleibenden Token zum Jupiter-Kurs."""
+    tokens = pos["tokens_left"] * fraction
+    if tokens <= 0:
+        return 0.0
+    raw = int(tokens * (10 ** pos["decimals"]))
+    lamports = quote(pos["mint"], WSOL_MINT, raw) if price_usd > 0 else 0
+    if lamports > 0:
+        proceeds = lamports / 1e9
+    else:
+        proceeds = max(0.0, tokens * price_usd / sol_usd * 0.95) if price_usd > 0 else 0.0
+    proceeds = max(0.0, proceeds - TX_FEE_SOL)
+    pos["tokens_left"] -= tokens
+    pos["proceeds_sol"] += proceeds
+    pos["fees_sol"] += TX_FEE_SOL
+    p["bankroll_sol"] = round(p["bankroll_sol"] + proceeds, 6)
+    journal("TEILVERKAUF" if pos["tokens_left"] > 1e-12 else "VERKAUF", pos, price_usd,
+            proceeds, reason)
+    return proceeds
 
 
-def is_blocked(portfolio, strat_name, token_addr, now_ts):
-    if not token_addr:
-        return True
-    # Kein Token doppelt halten, auch nicht ueber zwei Strategien hinweg
-    for strat in portfolio["strategies"].values():
-        if token_addr in strat["open_positions"]:
-            return True
-    blocked_until = float(portfolio.setdefault("stop_blocklist", {}).get(token_addr, 0) or 0)
-    if now_ts < blocked_until:
-        note(_note_prefix(strat_name) + "gesperrt_nach_stop")
-        return True
-    cooldowns = portfolio.setdefault("trade_history_cooldown", {})
-    last_trade = float(cooldowns.get(token_addr, 0) or 0)
-    return (now_ts - last_trade) < (TOKEN_COOLDOWN_MINUTES * 60)
+def close_position(p, pos, price_usd, reason, sol_usd):
+    sell(p, pos, 1.0, price_usd, reason, sol_usd)
+    pnl = pos["proceeds_sol"] - pos["invested_sol"] - TX_FEE_SOL
+    pnl_pct = pnl / pos["invested_sol"] * 100
+    peak_x = pos["peak_usd"] / pos["entry_fill_usd"] if pos["entry_fill_usd"] else 0
+    record = {k: pos[k] for k in ("symbol", "mint", "invested_sol", "entry_fill_usd",
+                                  "entry_slippage_pct", "roundtrip_cost_pct", "tp1_done",
+                                  "entry_view", "trench", "phase", "thesis")}
+    record.update({"proceeds_sol": round(pos["proceeds_sol"], 6), "pnl_sol": round(pnl, 6),
+                   "pnl_pct": round(pnl_pct, 2), "peak_multiple": round(peak_x, 2),
+                   "exit_usd": price_usd, "exit_reason": reason,
+                   "hold_h": round((time.time() - pos["opened"]) / 3600, 2),
+                   "closed_at": datetime.now(timezone.utc).isoformat()})
+    p["closed"].append(record)
+    del p["positions"][pos["mint"]]
+    journal("ERGEBNIS", pos, price_usd, pos["proceeds_sol"], reason, pnl, pnl_pct)
+    STATS["exits"].append({"symbol": pos["symbol"], "pnl_sol": pnl, "pnl_pct": pnl_pct,
+                           "reason": reason})
+    discord(f"{'🟢' if pnl > 0 else '🔴'} Verkauf: {pos['symbol']}",
+            f"**Grund:** {reason}\n**Ergebnis:** {pnl:+.4f} SOL ({pnl_pct:+.1f}%)\n"
+            f"**Hoechststand:** {peak_x:.2f}x | **Teilverkauf bei 2x:** "
+            f"{'ja' if pos['tp1_done'] else 'nein'}\n**These war:** {pos['thesis']}\n"
+            f"**Bankroll frei:** {p['bankroll_sol']:.4f} SOL",
+            0x10B981 if pnl > 0 else 0xEF4444)
 
 
-# ------------------------------------------------------------------- Strategie A
-
-def scan_cto(portfolio, sol_price, shadow_state=None):
-    if not strategy_can_trade(portfolio, "CTO"):
+def manage_positions(p, sol_usd, now):
+    if not p["positions"]:
         return
-
-    now_ts = time.time()
-    data = api_get("https://api.dexscreener.com/token-boosts/latest/v1")
-    if not isinstance(data, list):
-        return
-    boosts = [i.get("tokenAddress") for i in data
-              if isinstance(i, dict) and i.get("chainId") == "solana"][:30]
-
-    for token_addr in boosts:
-        if is_blocked(portfolio, "CTO", token_addr, now_ts):
+    data = jup_tokens(list(p["positions"]))
+    for mint, pos in list(p["positions"].items()):
+        tok = data.get(mint)
+        if not tok:
+            pos["missing_loops"] += 1
+            if pos["missing_loops"] >= DEAD_TOKEN_LOOPS:
+                close_position(p, pos, 0.0, "TOKEN_NICHT_MEHR_HANDELBAR", sol_usd)
             continue
-
-        pair = fetch_best_pair(token_addr)
-        if not pair:
-            note("cto_kein_pair")
-            continue
-
-        pair_created = pair.get("pairCreatedAt") or 0
-        if not pair_created:
-            note("cto_kein_erstellungsdatum")
-            continue
-        age_hours = (now_ts * 1000.0 - float(pair_created)) / (1000.0 * 3600.0)
-        if age_hours < CTO_MIN_AGE_HOURS:
-            note("cto_zu_jung")
-            continue
-        if age_hours > CTO_MAX_AGE_HOURS:
-            note("cto_zu_alt")
-            continue
-
-        drawdown = min(pair_price_change(pair, "h24"), pair_price_change(pair, "h6"))
-        track_range("drawdown", drawdown)
-        if not (CTO_MIN_DRAWDOWN <= drawdown <= CTO_MAX_DRAWDOWN):
-            note("cto_drawdown_ausserhalb")
-            continue
-
-        if not pool_quality_ok("CTO", pair, token_addr, shadow_state):
-            continue
-
-        m5_change = pair_price_change(pair, "m5")
-        m5_buys, m5_sells = pair_txns_m5(pair)
-
-        if not (m5_change >= 4.0 and m5_buys >= 6 and m5_buys > m5_sells):
-            note("cto_kein_surge")
-            log_rejection("CTO", pair, token_addr,
-                          f"KEIN_SURGE (m5 {m5_change:+.1f}%, {m5_buys}B/{m5_sells}S)",
-                          "surge", drawdown_pct=drawdown, shadow_state=shadow_state)
-            continue
-
-        reason = f"Re-Accumulation ({drawdown:.1f}% Dip, +{m5_change:.1f}% 5m)"
-        if execute_entry(portfolio, "CTO", token_addr, pair, reason, sol_price,
-                         shadow_state):
-            break
-
-
-# ------------------------------------------------------------------- Strategie B
-
-def scan_smart_money(portfolio, sol_price, shadow_state=None):
-    if not STRATEGY_ENABLED.get("SMART_MONEY"):
-        return
-    if not wallet_buy_tracker:
-        return
-    if not strategy_can_trade(portfolio, "SMART_MONEY"):
-        return
-
-    now_ts = time.time()
-    candidates = sorted(wallet_buy_tracker.items(),
-                        key=lambda kv: len(kv[1]), reverse=True)
-
-    for token_addr, cluster in candidates:
-        if len(cluster) < SM_MIN_CLUSTER_SIZE:
-            continue
-        if is_blocked(portfolio, "SMART_MONEY", token_addr, now_ts):
-            continue
-
-        pair = fetch_best_pair(token_addr)
-        if not pair:
-            continue
-        if not pool_quality_ok("SMART_MONEY", pair, token_addr, shadow_state):
-            continue
-
-        wallets = " und ".join(f"{w[:4]}.." for w, _ in cluster[:SM_MIN_CLUSTER_SIZE])
-        reason = f"Cluster ({len(cluster)} Wallets: {wallets})"
-        if execute_entry(portfolio, "SMART_MONEY", token_addr, pair, reason, sol_price,
-                         shadow_state):
-            break
-
-
-# --------------------------------------------------- On-Chain Stream (fuer B)
-
-def token_deltas_for_owner(meta, wallet):
-    pre, post = {}, {}
-    for entry in meta.get("preTokenBalances") or []:
-        if entry.get("owner") == wallet and entry.get("mint"):
-            amount = float((entry.get("uiTokenAmount") or {}).get("uiAmount") or 0.0)
-            pre[entry["mint"]] = pre.get(entry["mint"], 0.0) + amount
-    for entry in meta.get("postTokenBalances") or []:
-        if entry.get("owner") == wallet and entry.get("mint"):
-            amount = float((entry.get("uiTokenAmount") or {}).get("uiAmount") or 0.0)
-            post[entry["mint"]] = post.get(entry["mint"], 0.0) + amount
-    return {mint: post.get(mint, 0.0) - pre.get(mint, 0.0)
-            for mint in set(pre) | set(post)}
-
-
-def lamports_spent_by_wallet(tx_info, wallet):
-    meta = tx_info.get("meta") or {}
-    message = (tx_info.get("transaction") or {}).get("message") or {}
-    keys = message.get("accountKeys") or []
-
-    index = None
-    for i, key in enumerate(keys):
-        pubkey = key.get("pubkey") if isinstance(key, dict) else key
-        if pubkey == wallet:
-            index = i
-            break
-
-    pre = meta.get("preBalances") or []
-    post = meta.get("postBalances") or []
-    if index is None or index >= len(pre) or index >= len(post):
-        return 0
-    return int(pre[index]) - int(post[index])
-
-
-def extract_purchased_mints(tx_info, wallet):
-    """Nur echte Kaeufe: die Wallet muss SOL oder WSOL ausgegeben haben."""
-    meta = tx_info.get("meta") or {}
-    if meta.get("err") is not None:
-        return []
-
-    deltas = token_deltas_for_owner(meta, wallet)
-    sol_out = lamports_spent_by_wallet(tx_info, wallet)
-    wsol_out = -deltas.get(WSOL_MINT, 0.0)
-
-    if not (sol_out >= MIN_SOL_SPENT_LAMPORTS or wsol_out >= MIN_SOL_SPENT):
-        return []
-
-    return [mint for mint, delta in deltas.items()
-            if delta > 0 and mint not in IGNORED_MINTS]
-
-
-def next_wallet_batch():
-    global _wallet_cursor
-    if not SMART_WALLETS:
-        return []
-    size = min(SMART_WALLET_BATCH_SIZE, len(SMART_WALLETS))
-    batch = [SMART_WALLETS[(_wallet_cursor + i) % len(SMART_WALLETS)]
-             for i in range(size)]
-    _wallet_cursor = (_wallet_cursor + size) % len(SMART_WALLETS)
-    return batch
-
-
-def collect_new_signatures(wallet):
-    sigs = rpc_call("getSignaturesForAddress",
-                    [wallet, {"limit": SIG_FETCH_LIMIT}],
-                    context=wallet[:4])
-    if not isinstance(sigs, list) or not sigs:
-        return [], None
-
-    newest = sigs[0].get("signature")
-    known = last_seen_tx_per_wallet.get(wallet)
-
-    fresh = []
-    for entry in sigs:
-        signature = entry.get("signature")
-        if not signature or signature == known:
-            break
-        if entry.get("err") is not None:
-            continue
-        fresh.append(entry)
-
-    return list(reversed(fresh[:MAX_NEW_TX_PER_WALLET])), newest
-
-
-def register_buy(mint, wallet, timestamp):
-    cluster = wallet_buy_tracker.setdefault(mint, [])
-    if any(w == wallet for w, _ in cluster):
-        return
-    cluster.append((wallet, timestamp))
-    print(f"⚡ [ON-CHAIN] {wallet[:4]}.. kaufte {mint[:6]}.. "
-          f"({len(cluster)}/{SM_MIN_CLUSTER_SIZE} im Cluster)")
-
-
-def poll_smart_wallets():
-    if not STRATEGY_ENABLED.get("SMART_MONEY"):
-        return
-
-    now = time.time()
-    for mint in list(wallet_buy_tracker.keys()):
-        active = [(w, ts) for w, ts in wallet_buy_tracker[mint]
-                  if (now - ts) < CLUSTER_WINDOW_SECONDS]
-        if active:
-            wallet_buy_tracker[mint] = active
-        else:
-            del wallet_buy_tracker[mint]
-
-    for wallet in next_wallet_batch():
-        fresh, newest = collect_new_signatures(wallet)
-        if newest is None:
-            continue
-
-        if wallet not in bootstrapped_wallets:
-            bootstrapped_wallets.add(wallet)
-            last_seen_tx_per_wallet[wallet] = newest
-            print(f"[BOOTSTRAP] {wallet[:4]}.. synchronisiert")
-            continue
-
-        last_seen_tx_per_wallet[wallet] = newest
-
-        for entry in fresh:
-            block_time = entry.get("blockTime")
-            if block_time and (now - float(block_time)) > CLUSTER_WINDOW_SECONDS:
-                continue
-
-            tx_info = rpc_call(
-                "getTransaction",
-                [entry["signature"],
-                 {"encoding": "jsonParsed", "maxSupportedTransactionVersion": 0}],
-                context=f"{wallet[:4]}../tx"
-            )
-            if not isinstance(tx_info, dict):
-                continue
-
-            timestamp = float(tx_info.get("blockTime") or block_time or now)
-            for mint in extract_purchased_mints(tx_info, wallet):
-                register_buy(mint, wallet, timestamp)
-
-
-# ------------------------------------------------------------------- Strategie C
-
-def curve_progress_pct(pair, sol_price):
-    """
-    Fortschritt auf der Bonding Curve. Die Migrationsschwelle ist ein
-    SOL-Betrag, kein fester USD-Wert, deshalb Umrechnung ueber sol_price.
-    """
-    graduation_usd = GRADUATION_MCAP_SOL * sol_price
-    if graduation_usd <= 0:
-        return 100.0
-    return min((pair_mcap(pair) / graduation_usd) * 100.0, 100.0)
-
-
-def scan_curve_scalp(portfolio, sol_price, shadow_state=None):
-    if not strategy_can_trade(portfolio, "SCALP_CURVE"):
-        return
-
-    now_ts = time.time()
-    data = api_get("https://api.dexscreener.com/latest/dex/search?q=pumpswap")
-    if not isinstance(data, dict):
-        return
-    pairs = data.get("pairs") or []
-    if not pairs:
-        note("scalp_keine_pairs")
-        return
-
-    for pair in pairs[:25]:
-        token_addr = (pair.get("baseToken") or {}).get("address")
-        if is_blocked(portfolio, "SCALP_CURVE", token_addr, now_ts):
-            continue
-
-        curve_pct = curve_progress_pct(pair, sol_price)
-        track_range("curve_pct", curve_pct)
-
-        if curve_pct >= 99.9:
-            note("scalp_bereits_migriert")
-            continue
-        if not (SCALP_MIN_CURVE <= curve_pct <= SCALP_MAX_CURVE):
-            note("scalp_curve_ausserhalb")
-            continue
-
-        if not pool_quality_ok("SCALP_CURVE", pair, token_addr, shadow_state):
-            continue
-
-        m5_buys, m5_sells = pair_txns_m5(pair)
-        if not (m5_buys >= SCALP_MIN_BUYS and m5_buys > m5_sells):
-            note("scalp_kein_momentum")
-            log_rejection("SCALP_CURVE", pair, token_addr,
-                          f"KEIN_MOMENTUM ({m5_buys}B/{m5_sells}S)",
-                          "momentum", curve_pct=curve_pct, shadow_state=shadow_state)
-            continue
-
-        reason = f"Pre-Graduation Curve @ {curve_pct:.1f}%"
-        if execute_entry(portfolio, "SCALP_CURVE", token_addr, pair, reason, sol_price,
-                         shadow_state):
-            break
-
-
-def _iso_to_ts(value):
-    try:
-        return datetime.fromisoformat(str(value).replace("Z", "+00:00")).timestamp()
-    except Exception:
-        return None
-
-
-def scan_cto_jup(portfolio, sol_price, shadow_state):
-    """
-    Strategie CTO_JUP: dieselben CTO-Regeln, Kandidaten aus Jupiter
-    toptrending/5m. Jeder Treffer landet als JUP_SIGNAL im Shadow-Tracking;
-    ist Platz im Portfolio, wird zusaetzlich gehandelt. Vor dem Kauf laeuft
-    der belegte DexScreener-Poolfilter, und Preis/Liquiditaet kommen wie bei
-    CTO von DexScreener, damit beide Strategien identisch verwaltet werden.
-    """
-    if not (JUP_SIGNAL_ENABLED and JUPITER_ENABLED):
-        return
-
-    _jup_throttle()
-    data = jup_get(f"/tokens/v2/toptrending/5m?limit={JUP_SIGNAL_LIMIT}")
-    if not isinstance(data, list):
-        return
-
-    now = time.time()
-    can_trade = strategy_can_trade(portfolio, "CTO_JUP")
-
-    for tok in data:
-        mint = tok.get("id")
-        if not mint or mint in IGNORED_MINTS:
-            continue
-        if is_blocked(portfolio, "CTO_JUP", mint, now):
-            continue
-
-        created = _iso_to_ts((tok.get("firstPool") or {}).get("createdAt"))
-        if created is None:
-            note("jup_kein_pooldatum")
-            continue
-        age_h = (now - created) / 3600.0
-        if age_h < CTO_MIN_AGE_HOURS:
-            note("jup_zu_jung")
-            continue
-        if age_h > CTO_MAX_AGE_HOURS:
-            note("jup_zu_alt")
-            continue
-
-        s5, s6, s24 = (tok.get("stats5m") or {}, tok.get("stats6h") or {},
-                       tok.get("stats24h") or {})
-        drawdown = min(float(s24.get("priceChange") or 0.0),
-                       float(s6.get("priceChange") or 0.0))
-        if not (CTO_MIN_DRAWDOWN <= drawdown <= CTO_MAX_DRAWDOWN):
-            note("jup_drawdown_ausserhalb")
-            continue
-
-        liq = float(tok.get("liquidity") or 0.0)
-        fdv = float(tok.get("fdv") or tok.get("mcap") or 0.0)
-        vol24 = float(s24.get("buyVolume") or 0.0) + float(s24.get("sellVolume") or 0.0)
-        if liq < MIN_LIQUIDITY_USD or vol24 < MIN_VOL_H24_USD or \
-                (fdv > 0 and liq / fdv < MIN_LIQ_TO_FDV_RATIO):
-            note("jup_pool_filter")
-            continue
-
-        m5 = float(s5.get("priceChange") or 0.0)
-        buys, sells = int(s5.get("numBuys") or 0), int(s5.get("numSells") or 0)
-        if not (m5 >= 4.0 and buys >= 6 and buys > sells):
-            note("jup_kein_surge")
-            continue
-
-        price = float(tok.get("usdPrice") or 0.0)
+        pos["missing_loops"] = 0
+        v = token_view(tok, now)
+        price = v["price"]
         if price <= 0:
             continue
+        pos["peak_usd"] = max(pos["peak_usd"], price)
+        multiple = price / pos["entry_fill_usd"]
+        change_pct = (multiple - 1) * 100
 
-        net = s5.get("numNetBuyers", "?")
-        symbol = str(tok.get("symbol") or "?").upper()
-
-        # Nachahmer und Transfergebuehr gar nicht erst als Kandidat zaehlen
-        block_reason, _ = entry_safety_block(mint, symbol)
-        if block_reason:
-            portfolio.setdefault("stop_blocklist", {})[mint] = now + STOP_BLOCK_HOURS * 3600.0
-            note("jup_sicherheit")
-            print(f"🛡️ [CTO_JUP] {symbol} ausgeschlossen: {block_reason}")
+        # Tag 2: Gewinne mitnehmen
+        if not pos["tp1_done"] and multiple >= TP1_MULTIPLE:
+            got = sell(p, pos, TP1_SELL_FRACTION, price, f"HAELFTE_BEI_{TP1_MULTIPLE:.0f}X", sol_usd)
+            pos["tp1_done"] = True
+            STATS["partials"].append({"symbol": pos["symbol"], "sol": got})
+            discord(f"💰 Haelfte verkauft: {pos['symbol']}",
+                    f"Bei {multiple:.2f}x die Haelfte fuer {got:.4f} SOL verkauft. "
+                    f"Der Rest laeuft weiter, solange die Story waechst.", 0xF59E0B)
             continue
 
-        note("jup_signal_treffer")
+        # Tag 3: These pruefen
+        thesis_ok = not (v["holder_growth_1h"] < 0 and v["net_buyers_5m"] <= 0)
+        pos["thesis_breaks"] = 0 if thesis_ok else pos["thesis_breaks"] + 1
 
-        if shadow_state is not None and \
-                shadow_key("JUP_SIGNAL", mint) not in shadow_state.get("candidates", {}):
-            shadow_register(shadow_state, mint, symbol, "CTO_JUP", "JUP_SIGNAL",
-                            f"dd{drawdown:.0f}_m5{m5:+.0f}_net{net}", price, liq)
-            SESSION_STATS["jup_signals"] += 1
+        reason = None
+        if change_pct <= EMERGENCY_STOP_PCT:
+            reason = f"NOTBREMSE ({change_pct:+.0f}%)"
+        elif pos["entry_liquidity"] > 0 and \
+                v["liquidity"] < pos["entry_liquidity"] * (1 - LIQ_DROP_EXIT_PCT / 100):
+            reason = "LIQUIDITAET_ABGEZOGEN"
+        elif pos["thesis_breaks"] >= THESIS_BREAK_CHECKS:
+            reason = "THESE_GEBROCHEN (Holder schrumpfen, Netto-Verkaeufer)"
+        elif pos["tp1_done"] and price <= pos["peak_usd"] * (1 - TRAIL_AFTER_TP1_PCT / 100):
+            reason = f"STORY_ABGEKUEHLT ({TRAIL_AFTER_TP1_PCT:.0f}% vom Hoch)"      # Tag 4
+        elif now - pos["opened"] > MAX_HOLD_H * 3600:
+            reason = "MAX_HALTEDAUER"
+        if reason:
+            close_position(p, pos, price, reason, sol_usd)
+    save_portfolio(p)
 
-        if not can_trade:
+
+# ================================================================ Scan
+
+def scan(p, sol_usd, now):
+    phase = current_phase()
+    slots = MAX_POSITIONS.get(phase, 2) - len(p["positions"])          # Tag 9
+    if slots <= 0 or p["bankroll_sol"] < POSITION_SOL + TX_FEE_SOL:
+        return
+
+    seen = {}
+    for interval in ("5m", "1h"):
+        for tok in jup_category("toptrending", interval, 100):
+            if tok.get("id") and tok["id"] not in IGNORED_MINTS:
+                seen[tok["id"]] = tok
+    views = [token_view(t, now) for t in seen.values()]
+    update_symbol_leaders(views, now)
+
+    passed = []
+    for v in views:
+        if v["mint"] in p["positions"] or now - p["cooldown"].get(v["mint"], 0) < 24 * 3600:
             continue
-
-        pair = fetch_best_pair(mint)
-        if not pair:
-            note("jup_kein_dex_pair")
+        reason = quick_checks(v)
+        if reason:
+            log_reject(v, reason)
             continue
-        if not pool_quality_ok("CTO_JUP", pair, mint, shadow_state):
+        passed.append(v)
+
+    # Staerkste Verbreitung zuerst
+    passed.sort(key=lambda x: x["holder_growth_1h"], reverse=True)
+    for v in passed:
+        if slots <= 0:
+            break
+        reason = safety_shield(v["mint"])
+        if reason:
+            log_reject(v, reason)
             continue
-
-        reason = (f"Jupiter-Trend ({drawdown:.0f}% Dip, +{m5:.1f}% 5m, "
-                  f"{net} Netto-Kaeufer)")
-        if execute_entry(portfolio, "CTO_JUP", mint, pair, reason, sol_price,
-                         shadow_state):
-            can_trade = False   # ein Einstieg pro Durchlauf, wie bei CTO
-
-
-# ------------------------------------------------------------------------- Entry
-
-def entry_safety_block(token_addr, symbol):
-    """
-    Harte Ausschluesse vor dem Kauf. Rueckgabe: (Grund oder None, Shield-Liste).
-    Fehlt die Shield-Antwort, wird nicht blockiert - fehlende Daten sind kein Befund.
-    """
-    sym = str(symbol or "").strip().upper().lstrip("$")
-    if sym in IMPERSONATION_SYMBOLS and token_addr not in IGNORED_MINTS:
-        return f"NACHAHMER_SYMBOL ({sym})", None
-
-    shield = jupiter_shield(token_addr) if JUPITER_ENABLED else None
-    if BLOCK_TRANSFER_FEE_TOKENS and shield:
-        fees = [w for w in shield if "TRANSFER_FEE" in str(w).upper()]
-        if fees:
-            return f"TRANSFERGEBUEHR ({fees[0]})", shield
-    return None, shield
+        reason, trench = bundle_dev_check(v["mint"])
+        if reason:
+            log_reject(v, reason)
+            continue
+        if open_position(p, v, trench, sol_usd):
+            slots -= 1
 
 
-def jupiter_roundtrip_cost(token_mint, sol_amount):
-    """
-    Echte Hin-und-zurueck-Kosten: SOL -> Token quotieren, die erhaltene Menge
-    sofort wieder Token -> SOL quotieren. Unabhaengig vom DexScreener-Kurs,
-    daher ohne den Preisversatz zwischen beiden Quellen.
-    """
-    if not JUPITER_ENABLED:
-        return None
-    lamports = int(sol_amount * 1_000_000_000)
-    _jup_throttle()
-    buy = jup_get(f"/swap/v1/quote?inputMint={WSOL_MINT}&outputMint={token_mint}"
-                  f"&amount={lamports}&slippageBps=300")
+# ================================================================ Discord / Git
+
+def discord(title, text, color=0x6366F1):
+    if not DISCORD_WEBHOOK_URL:
+        print(f"[DISCORD] {title}")
+        return
     try:
-        tok_raw = int((buy or {}).get("outAmount") or 0)
-    except (TypeError, ValueError):
-        tok_raw = 0
-    if tok_raw <= 0:
-        JUP_STATS["quote_fail"] += 1
-        return None
-
-    _jup_throttle()
-    sell = jup_get(f"/swap/v1/quote?inputMint={token_mint}&outputMint={WSOL_MINT}"
-                   f"&amount={tok_raw}&slippageBps=300")
-    try:
-        sol_back = int((sell or {}).get("outAmount") or 0)
-    except (TypeError, ValueError):
-        sol_back = 0
-    if sol_back <= 0:
-        JUP_STATS["quote_fail"] += 1
-        return None
-
-    JUP_STATS["quote_ok"] += 2
-    return round((1.0 - sol_back / lamports) * 100.0, 3)
+        SESSION.post(DISCORD_WEBHOOK_URL, json={"embeds": [{
+            "title": title, "description": text[:4000], "color": color,
+            "timestamp": datetime.now(timezone.utc).isoformat()}]}, timeout=8)
+    except requests.RequestException as err:
+        print(f"[DISCORD] {err}")
 
 
-def execute_entry(portfolio, strat_name, token_addr, pair, reason_desc, sol_price,
-                  shadow_state=None):
-    strat = portfolio["strategies"][strat_name]
-    symbol = pair_symbol(pair)
-    signal_price = float(pair.get("priceUsd") or 0.0)
-    dex_name = str(pair.get("dexId") or "DEX").upper()
-    mcap = pair_mcap(pair)
-    liq = pair_liquidity_usd(pair)
-    pair_url = f"https://dexscreener.com/solana/{pair.get('pairAddress')}"
-
-    if signal_price <= 0 or signal_price > 1000.0:
-        return False
-
-    block_reason, shield = entry_safety_block(token_addr, symbol)
-    if block_reason:
-        portfolio.setdefault("stop_blocklist", {})[token_addr] = \
-            time.time() + STOP_BLOCK_HOURS * 3600.0
-        note(_note_prefix(strat_name) + "sicherheit")
-        print(f"🛡️ [{strat_name}] {symbol} abgelehnt: {block_reason}")
-        log_rejection(strat_name, pair, token_addr, block_reason, "sicherheit",
-                      shadow_state=shadow_state)
-        return False
-
-    trade_value_usd = SCOUT_SIZE_SOL * sol_price
-    slippage_est = estimate_slippage_pct(trade_value_usd, liq, is_sell=False)
-
-    # Echter Ausfuehrungspreis von Jupiter, Formel nur als Rueckfallebene
-    measured, _ = jupiter_effective_slippage(token_addr, signal_price, sol_price,
-                                             sol_amount=SCOUT_SIZE_SOL)
-    if measured is not None:
-        slippage = measured
-        slippage_source = "jupiter"
-    else:
-        slippage = slippage_est
-        slippage_source = "formel"
-
-    fill_price = signal_price * (1.0 + slippage / 100.0)
-    # Gehaltene Menge merken, damit der Verkauf echt quotiert werden kann
-    tokens_held = trade_value_usd / fill_price if fill_price > 0 else 0.0
-
-    # Jupiter-Tokendaten mitschreiben (noch kein Filter, siehe JUPITER_FILTERS_ACTIVE)
-    jup_metrics = jupiter_metrics(jupiter_token_info(token_addr))
-    roundtrip = jupiter_roundtrip_cost(token_addr, SCOUT_SIZE_SOL)
-    if jup_metrics and shield is not None:
-        jup_metrics["shield"] = shield
-    jup_issues = jupiter_concerns(jup_metrics)
-
-    strat["bankroll_sol"] = round(strat["bankroll_sol"] - SCOUT_SIZE_SOL, 4)
-    portfolio.setdefault("trade_history_cooldown", {})[token_addr] = time.time()
-    shadow_mark_bought(shadow_state, token_addr)
-    # Einstieg ebenfalls verfolgen: gleiche Messpunkte, kein Stop - damit er
-    # fair mit den Jupiter-Kandidaten verglichen werden kann
-    if shadow_state is not None:
-        shadow_register(shadow_state, token_addr, symbol, strat_name, "ENTRY",
-                        "gekauft", signal_price, liq)
-
-    strat["open_positions"][token_addr] = {
-        "symbol": symbol,
-        "dex": dex_name,
-        "entry_signal_price": signal_price,
-        "entry_fill_price": fill_price,
-        "entry_slippage_pct": round(slippage, 3),
-        "entry_slippage_source": slippage_source,
-        "entry_slippage_formel_pct": round(slippage_est, 3),
-        "jupiter": jup_metrics,
-        "jupiter_issues": jup_issues,
-        "highest_price": signal_price,
-        "entry_time": time.time(),
-        "invested_sol": SCOUT_SIZE_SOL,
-        "tokens_held": tokens_held,
-        "roundtrip_cost_pct": roundtrip,
-        "url": pair_url,
-        "mcap_at_entry": mcap,
-        "liq_at_entry": liq
-    }
-
-    desc = (
-        f"**Strategie:** `{strat_name}` | **Trigger:** {reason_desc}\n"
-        f"**Symbol:** {symbol} ({dex_name})\n"
-        f"**MCap:** ${mcap:,.0f} | **LP:** ${liq:,.0f}\n"
-        f"**Signal-Kurs:** ${signal_price:.8f}\n"
-        f"**Sim. Fill:** ${fill_price:.8f} (+{slippage:.2f}%, Quelle: {slippage_source})\n"
-        + (f"**Hin+zurueck laut Jupiter:** {roundtrip:.2f}%\n" if roundtrip is not None else "")
-        + (f"**Jupiter:** Score {jup_metrics.get('organic_score') or 0:.0f} | "
-           f"Holder {jup_metrics.get('holder_count') or 0:,} | "
-           f"Top10 {jup_metrics.get('top_holders_pct') or 0:.0f}%\n"
-           if jup_metrics else "")
-        + (f"⚠️ **Jupiter-Auffaelligkeiten:** {', '.join(jup_issues)}\n"
-           if jup_issues else "")
-        +
-        f"**Einsatz:** {SCOUT_SIZE_SOL:.4f} SOL (~${trade_value_usd:,.0f})\n"
-        f"-------------------\n"
-        f"[DexScreener Live-Chart]({pair_url})\n"
-        f"**Sub-Bankroll:** {strat['bankroll_sol']:.4f} SOL\n"
-        f"**Strategie-Stats:** {get_strat_stats(strat)}"
-    )
-
-    SESSION_STATS["entries"].append({"symbol": symbol, "slippage": slippage,
-                                     "source": slippage_source,
-                                     "strategy": strat_name, "roundtrip": roundtrip})
-    send_discord_raw(f"🎯 [{strat_name}] Entry: {symbol}", desc, 0x3B82F6)
-    save_portfolio(portfolio)
-    return True
+def git_push():
+    files = [f for f in (PORTFOLIO_FILE, JOURNAL_FILE, REJECT_FILE, PHASE_FILE) if os.path.exists(f)]
+    if not files:
+        return
+    subprocess.run(["git", "config", "--global", "user.name", "github-actions[bot]"], check=False)
+    subprocess.run(["git", "config", "--global", "user.email",
+                    "github-actions[bot]@users.noreply.github.com"], check=False)
+    subprocess.run(["git", "add", *files], check=False)
+    if subprocess.run(["git", "diff", "--cached", "--quiet"]).returncode != 0:
+        subprocess.run(["git", "commit", "-m", "NARRATIV Update [skip ci]"], check=False)
+        subprocess.run(["git", "pull", "--rebase", "origin", "main"], check=False)
+        subprocess.run(["git", "push", "origin", "main"], check=False)
 
 
-# --------------------------------------------------------------------- Exit Logic
-
-def decide_exit(strat_name, pnl_pct, peak_pct, hold_hours, pair, sol_price):
-    """Entscheidet auf Basis des SIGNAL-Kurses - das ist, was der Bot sieht."""
-    if strat_name in ("CTO", "CTO_JUP"):
-        if peak_pct >= CTO_TRAILING_ACT and (peak_pct - pnl_pct) >= CTO_TRAILING_DIST:
-            return f"CTO_TRAILING_TP (Signal {pnl_pct:+.1f}%)"
-        if pnl_pct <= CTO_SL_PCT:
-            return f"CTO_HARD_STOP (Signal {pnl_pct:+.1f}%)"
-
-    elif strat_name == "SMART_MONEY":
-        if peak_pct >= SM_TRAILING_ACT and (peak_pct - pnl_pct) >= SM_TRAILING_DIST:
-            return f"SM_TRAILING_TP (Signal {pnl_pct:+.1f}%)"
-        if pnl_pct <= SM_SL_PCT:
-            return f"SM_HARD_STOP (Signal {pnl_pct:+.1f}%)"
-
-    elif strat_name == "SCALP_CURVE":
-        curve_pct = curve_progress_pct(pair, sol_price)
-        if pnl_pct >= SCALP_TARGET_TP:
-            return f"SCALP_TP (Signal {pnl_pct:+.1f}%)"
-        if curve_pct >= SCALP_FORCE_EXIT_CURVE:
-            return f"CURVE_PRE_GRADUATION_EXIT (Signal {pnl_pct:+.1f}%)"
-        if pnl_pct <= SCALP_SL_PCT:
-            return f"SCALP_HARD_STOP (Signal {pnl_pct:+.1f}%)"
-
-    if hold_hours >= MAX_HOLD_HOURS:
-        return f"TIMEOUT (Signal {pnl_pct:+.1f}%)"
-
-    return None
-
-
-def close_position(portfolio, strat_name, pos, signal_pnl_pct, peak_pct,
-                   exit_signal_price, exit_liq_usd, exit_reason, sol_price,
-                   dead_token=False, shadow_state=None, token_addr=None):
-    strat = portfolio["strategies"][strat_name]
-    invested_sol = float(pos.get("invested_sol", SCOUT_SIZE_SOL))
-    entry_fill = float(pos.get("entry_fill_price") or pos.get("entry_signal_price") or 0.0)
-
-    if dead_token or exit_signal_price <= 0 or entry_fill <= 0:
-        exit_slippage = MAX_SLIPPAGE_PCT
-        exit_slippage_est = MAX_SLIPPAGE_PCT
-        exit_slippage_source = "dead_token"
-        exit_fill_price = 0.0
-        real_pnl_pct = -100.0
-    else:
-        # Positionswert zum Ausstiegszeitpunkt, nicht der Einstiegswert
-        position_value_usd = invested_sol * sol_price * (1.0 + signal_pnl_pct / 100.0)
-        exit_slippage_est = estimate_slippage_pct(position_value_usd, exit_liq_usd,
-                                                  is_sell=True)
-
-        # Echter Verkaufs-Quote: die gehaltene Token-Menge gegen SOL.
-        # Der Faktor SELL_SLIPPAGE_FACTOR gilt nur fuer die Formel, nicht fuer
-        # gemessene Werte - eine Messung wird nicht nachtraeglich aufgeblaeht.
-        tokens_held = float(pos.get("tokens_held") or 0.0)
-        if tokens_held <= 0 and entry_fill > 0:
-            # Positionen aus aelteren Versionen: Menge aus dem Einsatz ableiten
-            tokens_held = (invested_sol * sol_price) / entry_fill
-
-        measured_exit = None
-        if token_addr and tokens_held > 0:
-            measured_exit, _ = jupiter_effective_slippage(
-                token_addr, exit_signal_price, sol_price,
-                token_ui_amount=tokens_held)
-        if measured_exit is not None:
-            exit_slippage = measured_exit
-            exit_slippage_source = "jupiter"
-        else:
-            exit_slippage = exit_slippage_est
-            exit_slippage_source = "formel"
-        exit_fill_price = exit_signal_price * (1.0 - exit_slippage / 100.0)
-        real_pnl_pct = min(((exit_fill_price - entry_fill) / entry_fill) * 100.0,
-                           MAX_PNL_PCT)
-
-    pnl_sol = invested_sol * (real_pnl_pct / 100.0) - SIMULATED_FEE_SOL
-    pnl_usd = pnl_sol * sol_price
-
-    sl_thresholds = {"CTO": CTO_SL_PCT, "SMART_MONEY": SM_SL_PCT,
-                     "SCALP_CURVE": SCALP_SL_PCT}
-    gap_exit = bool(
-        exit_reason.startswith(("TIMEOUT", "DEAD_TOKEN"))
-        and signal_pnl_pct <= sl_thresholds.get(strat_name, -100.0)
-    )
-
-    strat["bankroll_sol"] = round(strat["bankroll_sol"] + invested_sol + pnl_sol, 4)
-    strat["total_fees_sol"] = round(strat["total_fees_sol"] + SIMULATED_FEE_SOL, 4)
-
-    if pnl_sol > 0:
-        strat["wins"] += 1
-        color = 0x10B981
-    else:
-        strat["losses"] += 1
-        color = 0xEF4444
-
-    desc = (
-        f"**Strategie:** `{strat_name}` | {exit_reason}\n"
-        f"**Signal-PnL:** {signal_pnl_pct:+.1f}% | "
-        f"**Real:** {real_pnl_pct:+.1f}%\n"
-        f"**Slippage:** Kauf {pos.get('entry_slippage_pct', 0):.2f}% / "
-        f"Verkauf {exit_slippage:.2f}% ({exit_slippage_source}, "
-        f"Formel {exit_slippage_est:.2f}%)\n"
-        f"**Net PnL:** {pnl_sol:+.4f} SOL ({pnl_usd:+.2f} USD, inkl. "
-        f"{SIMULATED_FEE_SOL:.4f} SOL Fees)\n"
-        f"**Peak (Signal):** {peak_pct:+.1f}%\n"
-        + ("⚠️ **Gap-Exit:** Stop in einer Pause ueberschritten\n" if gap_exit else "")
-        + f"-------------------\n"
-        f"[DexScreener Live-Chart]({pos.get('url')})\n"
-        f"**Sub-Bankroll:** {strat['bankroll_sol']:.4f} SOL\n"
-        f"**Strategie-Stats:** {get_strat_stats(strat)}"
-    )
-
-    # Stop-Loss: Token fuer alle Strategien sperren
-    if token_addr and ("HARD_STOP" in exit_reason or exit_reason.startswith("DEAD_TOKEN")):
-        portfolio.setdefault("stop_blocklist", {})[token_addr] = \
-            time.time() + STOP_BLOCK_HOURS * 3600.0
-
-    SESSION_STATS["exits"].append({"strategy": strat_name,
-                                   "symbol": pos["symbol"], "pnl_sol": pnl_sol,
-                                   "real_pnl_pct": real_pnl_pct,
-                                   "slippage": exit_slippage,
-                                   "source": exit_slippage_source,
-                                   "reason": exit_reason.split(" ")[0]})
-    send_discord_raw(f"Trade Closed: [{strat_name}] {pos['symbol']}", desc, color)
-
-    # Weiterverfolgen: laeuft der Token nach unserem Exit noch?
-    if shadow_state is not None and not dead_token and exit_signal_price > 0:
-        shadow_register(shadow_state, token_addr, pos["symbol"], strat_name,
-                        "EXIT", exit_reason.split(" ")[0],
-                        exit_signal_price, exit_liq_usd)
-
-    strat["closed_positions"].append({
-        "symbol": pos["symbol"],
-        "strategy": strat_name,
-        "signal_pnl_pct": round(signal_pnl_pct, 2),
-        "real_pnl_pct": round(real_pnl_pct, 2),
-        "entry_signal_price": pos.get("entry_signal_price"),
-        "entry_fill_price": round(entry_fill, 12),
-        "entry_slippage_pct": pos.get("entry_slippage_pct"),
-        "exit_signal_price": round(exit_signal_price, 12),
-        "exit_fill_price": round(exit_fill_price, 12),
-        "exit_slippage_pct": round(exit_slippage, 3),
-        "exit_slippage_formel_pct": round(exit_slippage_est, 3),
-        "exit_slippage_source": exit_slippage_source,
-        "entry_slippage_source": pos.get("entry_slippage_source"),
-        "entry_slippage_formel_pct": pos.get("entry_slippage_formel_pct"),
-        "jupiter": pos.get("jupiter"),
-        "jupiter_issues": pos.get("jupiter_issues"),
-        "liq_at_entry": pos.get("liq_at_entry"),
-        "liq_at_exit": round(exit_liq_usd, 0),
-        "roundtrip_cost_pct": pos.get("roundtrip_cost_pct"),
-        "fees_sol": SIMULATED_FEE_SOL,
-        "pnl_sol": round(pnl_sol, 4),
-        "peak_pct": round(peak_pct, 2),
-        "gap_exit": gap_exit,
-        "exit_reason": exit_reason,
-        "closed_at": datetime.now(timezone.utc).isoformat()
-    })
-
-
-def manage_strategy_positions(portfolio, sol_price, shadow_state=None):
-    for strat_name in STRATEGY_NAMES:
-        strat = portfolio["strategies"][strat_name]
-        open_pos = strat["open_positions"]
-        to_remove = []
-
-        for addr, pos in list(open_pos.items()):
-            # Positionen aus aelteren Versionen migrieren
-            if "entry_signal_price" not in pos and "entry_price" in pos:
-                pos["entry_signal_price"] = pos["entry_price"]
-                pos["entry_fill_price"] = pos["entry_price"] * 1.005
-                pos["entry_slippage_pct"] = 0.5
-
-            entry_signal = float(pos.get("entry_signal_price") or 0.0)
-            if entry_signal <= 0:
-                to_remove.append(addr)
-                continue
-
-            hold_hours = (time.time() - float(pos.get("entry_time", time.time()))) / 3600.0
-            highest_price = float(pos.get("highest_price", entry_signal))
-            pair = fetch_best_pair(addr)
-            curr_price = float(pair.get("priceUsd") or 0.0) if pair else 0.0
-            curr_liq = pair_liquidity_usd(pair) if pair else 0.0
-
-            if curr_price <= 0:
-                if hold_hours < MAX_HOLD_HOURS:
-                    continue
-                signal_pnl = -100.0
-                peak_pct = min(((highest_price - entry_signal) / entry_signal) * 100.0,
-                               MAX_PNL_PCT)
-                close_position(portfolio, strat_name, pos, signal_pnl, peak_pct,
-                               0.0, 0.0, "DEAD_TOKEN_TIMEOUT", sol_price,
-                               dead_token=True, shadow_state=shadow_state,
-                               token_addr=addr)
-                to_remove.append(addr)
-                continue
-
-            if curr_price > highest_price:
-                highest_price = curr_price
-                pos["highest_price"] = curr_price
-
-            signal_pnl = min(((curr_price - entry_signal) / entry_signal) * 100.0,
-                             MAX_PNL_PCT)
-            peak_pct = min(((highest_price - entry_signal) / entry_signal) * 100.0,
-                           MAX_PNL_PCT)
-
-            exit_reason = decide_exit(strat_name, signal_pnl, peak_pct,
-                                      hold_hours, pair, sol_price)
-            if exit_reason:
-                close_position(portfolio, strat_name, pos, signal_pnl, peak_pct,
-                               curr_price, curr_liq, exit_reason, sol_price,
-                               shadow_state=shadow_state, token_addr=addr)
-                to_remove.append(addr)
-
-        for addr in to_remove:
-            open_pos.pop(addr, None)
-
-    save_portfolio(portfolio)
-
-
-# -------------------------------------------------------------------------- Loop
-
-# ------------------------------------------------------ Schicht-Meldungen
-
-FILTER_LABELS = {
-    "cto_drawdown_ausserhalb": "Drawdown",
-    "cto_alter_ausserhalb": "Alter",
-    "pool_liq_zu_niedrig": "Liquiditaet",
-    "pool_vol_zu_niedrig": "Volumen",
-    "pool_liq_fdv_ratio": "LP/FDV",
-    "cto_kein_surge": "kein Surge",
-    "cto_kein_pair": "kein Pair",
-    "cto_kein_erstellungsdatum": "kein Datum",
-    "cto_zu_jung": "zu jung",
-    "cto_zu_alt": "zu alt",
-    "cto_gesperrt_nach_stop": "gesperrt (Stop/Sicherheit)",
-    "cto_sicherheit": "Sicherheit",
-    "jup_zu_jung": "Jup zu jung",
-    "jup_zu_alt": "Jup zu alt",
-    "jup_gesperrt_nach_stop": "Jup gesperrt (Stop/Sicherheit)",
-    "jup_sicherheit": "Jup Sicherheit",
-    "jup_kein_dex_pair": "Jup ohne DEX-Pair",
-    "jup_drawdown_ausserhalb": "Jup-Drawdown",
-    "jup_pool_filter": "Jup-Pool",
-    "jup_kein_surge": "Jup-Surge",
-    "jup_signal_treffer": "Jup-Treffer",
-}
-
-
-def portfolio_snapshot(portfolio):
-    """Bankroll gesamt inkl. gebundenem Kapital in offenen Positionen."""
-    free = sum(s["bankroll_sol"] for s in portfolio["strategies"].values())
-    locked = sum(float(p.get("invested_sol", 0.0))
-                 for s in portfolio["strategies"].values()
-                 for p in s["open_positions"].values())
-    open_syms = [p.get("symbol", "?")
-                 for s in portfolio["strategies"].values()
-                 for p in s["open_positions"].values()]
-    return free, locked, open_syms
-
-
-def send_shift_start(sol_price):
-    portfolio = load_portfolio()
-    free, locked, open_syms = portfolio_snapshot(portfolio)
-    active = [n for n in STRATEGY_NAMES if STRATEGY_ENABLED.get(n)]
-    planned_end = datetime.fromtimestamp(time.time() + SHIFT_DURATION_SECONDS,
-                                         tz=timezone.utc).strftime("%H:%M UTC")
-    desc = (
-        f"**Aktiv:** {', '.join(active) or 'keine'}\n"
-        f"**Bankroll:** {free + locked:.4f} SOL "
-        f"({free:.4f} frei, {locked:.4f} in Positionen)\n"
-        f"**Aufteilung:** " + " | ".join(
-            f"{n} {portfolio['strategies'][n]['bankroll_sol']:.4f}" for n in active) + "\n"
-        f"**Offene Positionen:** {len(open_syms)}"
-        + (f" ({', '.join(open_syms)})" if open_syms else "") + "\n"
-        f"**SOL:** ${sol_price:,.2f} | **Jupiter:** {jupiter_mode_label()}\n"
-        f"**Geplantes Ende:** ~{planned_end}"
-    )
-    send_discord_raw("🟢 Schicht gestartet", desc, 0x22C55E)
-    return free + locked
-
-
-def send_shift_end(start_total, start_time, end_reason):
-    try:
-        portfolio = load_portfolio()
-        free, locked, open_syms = portfolio_snapshot(portfolio)
-        end_total = free + locked
-    except Exception:
-        end_total, locked, open_syms = start_total, 0.0, []
-
-    hours = (time.time() - start_time) / 3600.0
-    exits = SESSION_STATS["exits"]
-    entries = SESSION_STATS["entries"]
+def shift_summary(p, start_value, started, reason):
+    exits = STATS["exits"]
     wins = sum(1 for e in exits if e["pnl_sol"] > 0)
-    pnl = sum(e["pnl_sol"] for e in exits)
-
+    locked = sum(pos["invested_sol"] for pos in p["positions"].values())
+    top = sorted(STATS["rejects"].items(), key=lambda kv: -kv[1])[:6]
+    rts = [e["roundtrip"] for e in STATS["entries"] if e["roundtrip"] is not None]
     lines = [
-        f"**Grund:** {end_reason}",
-        f"**Dauer:** {hours:.2f}h, {SESSION_STATS['loops']} Loops",
-        f"**Trades:** {len(entries)} eroeffnet, {len(exits)} geschlossen"
-        + (f" ({wins}W/{len(exits) - wins}L)" if exits else ""),
-        f"**Realisiert:** {pnl:+.4f} SOL",
-        f"**Bankroll:** {start_total:.4f} -> {end_total:.4f} SOL "
-        f"({end_total - start_total:+.4f}, inkl. offener Positionen zum Einstand)",
+        f"**Grund:** {reason}",
+        f"**Dauer:** {(time.time() - started) / 3600:.2f} h, {STATS['loops']} Loops",
+        f"**Marktphase:** {current_phase()}",
+        f"**Kaeufe:** {len(STATS['entries'])} | **Teilverkaeufe bei 2x:** {len(STATS['partials'])}",
+        f"**Geschlossen:** {len(exits)}" + (f" ({wins}W/{len(exits) - wins}L, "
+                                             f"{sum(e['pnl_sol'] for e in exits):+.4f} SOL)" if exits else ""),
+        f"**Bankroll:** {start_value:.4f} -> {p['bankroll_sol'] + locked:.4f} SOL "
+        f"(offene Positionen zum Einstand)",
+        f"**Offen:** {len(p['positions'])} " + ", ".join(pos["symbol"] for pos in p["positions"].values()),
     ]
-
-    if exits:
-        detail = ", ".join(f"{e['symbol']} {e['real_pnl_pct']:+.1f}%" for e in exits[:8])
-        lines.append(f"**Geschlossen:** {detail}")
-        per_strat = []
-        for name in STRATEGY_NAMES:
-            ex = [e for e in exits if e.get("strategy") == name]
-            if ex:
-                w = sum(1 for e in ex if e["pnl_sol"] > 0)
-                per_strat.append(f"{name} {w}W/{len(ex) - w}L "
-                                 f"{sum(e['pnl_sol'] for e in ex):+.4f}")
-        if per_strat:
-            lines.append(f"**Je Strategie:** {' | '.join(per_strat)}")
-
-    rts = [e["roundtrip"] for e in entries if e.get("roundtrip") is not None]
     if rts:
-        lines.append(f"**Hin+zurueck laut Jupiter (Ø):** {sum(rts)/len(rts):.2f}% "
-                     f"bei {len(rts)} Einstiegen")
-
-    measured_in = [e["slippage"] for e in entries if e["source"] == "jupiter"]
-    measured_out = [e["slippage"] for e in exits if e["source"] == "jupiter"]
-    if measured_in or measured_out:
-        parts = []
-        if measured_in:
-            parts.append(f"Kauf {sum(measured_in)/len(measured_in):.2f}%")
-        if measured_out:
-            parts.append(f"Verkauf {sum(measured_out)/len(measured_out):.2f}%")
-        lines.append(f"**Slippage gemessen (Ø):** {' / '.join(parts)}")
-
-    lines.append(f"**Offene Positionen:** {len(open_syms)}"
-                 + (f" ({', '.join(open_syms)})" if open_syms else ""))
-
-    counts = SESSION_STATS["filter_counts"]
-    for label, prefix_match in (("Filter DexScreener", False), ("Filter Jupiter", True)):
-        part = {k: v for k, v in counts.items() if k.startswith("jup_") == prefix_match}
-        if part:
-            top = sorted(part.items(), key=lambda kv: -kv[1])[:5]
-            lines.append(f"**{label}:** "
-                         + ", ".join(f"{FILTER_LABELS.get(k, k)} {v}" for k, v in top))
-
-    lines.append(f"**Shadow-Messungen:** {SESSION_STATS['shadow_writes']} | "
-                 f"**Jupiter-Kandidaten (nur beobachtet):** {SESSION_STATS['jup_signals']}")
-    lines.append(f"**Jupiter:** {jupiter_mode_label()} | "
-                 f"Quotes {JUP_STATS['quote_ok']} ok / {JUP_STATS['quote_fail']} Fehler")
-    if sum(RPC_STATS.values()):
-        lines.append(f"**RPC:** {RPC_STATS['ok']} ok / {RPC_STATS['error']} Fehler / "
-                     f"{RPC_STATS['rate_limited']} Rate-Limit")
-
-    errs = SESSION_STATS["loop_errors"]
-    lines.append(f"**Loop-Fehler:** {errs}"
-                 + (f" (zuletzt: {SESSION_STATS['last_error'][:150]})" if errs else ""))
-
-    ok = end_reason.startswith("regulaer") and errs == 0
-    color = 0x6366F1 if ok else 0xF59E0B
-    title = "🔴 Schicht beendet" if ok else "⚠️ Schicht beendet (pruefen)"
-    send_discord_raw(title, "\n".join(lines), color)
+        lines.append(f"**Hin+zurueck (Ø):** {sum(rts) / len(rts):.2f}%")
+    if top:
+        lines.append("**Haeufigste Ablehnungen:** " + ", ".join(f"{k} {v}" for k, v in top))
+    lines.append(f"**Jupiter:** {STATS['jup_ok']} ok / {STATS['jup_fail']} Fehler | "
+                 f"**TrenchBot:** {STATS['trench_ok']} ok / {STATS['trench_fail']} Fehler")
+    lines.append(f"**Loop-Fehler:** {STATS['loop_errors']}"
+                 + (f" ({STATS['last_error'][:150]})" if STATS["loop_errors"] else ""))
+    ok = reason.startswith("regulaer") and STATS["loop_errors"] == 0
+    discord("🔴 Schicht beendet" if ok else "⚠️ Schicht beendet (pruefen)", "\n".join(lines),
+            0x6366F1 if ok else 0xF59E0B)
 
 
-# -------------------------------------------------------------------------- Loop
+# ================================================================ Loop
 
-class ShiftInterrupted(Exception):
+class Interrupted(Exception):
     pass
 
 
-def _handle_signal(signum, frame):
-    # GitHub Actions schickt bei Abbruch oder Timeout SIGINT/SIGTERM.
-    # Als Ausnahme weiterreichen, damit die Abschlussmeldung noch rausgeht.
-    raise ShiftInterrupted(f"Signal {signal.Signals(signum).name}")
+def _on_signal(signum, frame):
+    raise Interrupted(signal.Signals(signum).name)
 
 
-def run_loop():
-    start_time = time.time()
-    loop_count = 0
-
-    signal.signal(signal.SIGTERM, _handle_signal)
-    signal.signal(signal.SIGINT, _handle_signal)
-
-    init_reject_log()
-    init_shadow_files()
-
-    active = [n for n in STRATEGY_NAMES if STRATEGY_ENABLED.get(n)]
-    inactive = [n for n in STRATEGY_NAMES if not STRATEGY_ENABLED.get(n)]
-
-    print("🚀 [START] Multi-Strategy Paper-Bot v3")
-    print(f"[CONFIG] Aktiv: {', '.join(active) or 'keine'}")
-    if inactive:
-        print(f"[CONFIG] Inaktiv: {', '.join(inactive)}")
-    print(f"[CONFIG] Jupiter: {jupiter_mode_label()}")
-    print(f"[CONFIG] Fees {SIMULATED_FEE_SOL:.4f} SOL/Trade | "
-          f"Slippage: Jupiter-Ausfuehrungspreis, Fallback Formel "
-          f"{BASE_SWAP_COST_PCT}% + {IMPACT_FACTOR}x Trade/LP "
-          f"(Verkauf x{SELL_SLIPPAGE_FACTOR} nur bei Formel)")
-
-    start_total = 0.0
-    end_reason = "regulaer (Schichtende)"
+def run():
+    signal.signal(signal.SIGTERM, _on_signal)
+    signal.signal(signal.SIGINT, _on_signal)
+    started = time.time()
+    p = load_portfolio()
+    sol_usd = sol_price()
+    start_value = p["bankroll_sol"] + sum(x["invested_sol"] for x in p["positions"].values())
+    discord("🟢 Schicht gestartet (NARRATIV)",
+            f"**Bankroll:** {start_value:.4f} SOL | **Offen:** {len(p['positions'])}\n"
+            f"**SOL:** ${sol_usd:,.2f} | **Jupiter:** {'mit Key' if JUPITER_API_KEY else 'ohne Key'}\n"
+            f"**Marktphase:** {current_phase()}", 0x22C55E)
+    reason = "regulaer (Schichtende)"
+    loop = 0
     try:
-        # Rebalance vor der Startmeldung, damit sie die echten Bankrolls zeigt
-        portfolio = load_portfolio()
-        rebalance_disabled_strategies(portfolio)
-        save_portfolio(portfolio)
-        start_total = send_shift_start(get_sol_usd_price())
-
-        while True:
-            elapsed = time.time() - start_time
-            if elapsed >= SHIFT_DURATION_SECONDS:
-                print(f"⏱️ [ENDE] Schicht beendet ({elapsed/3600:.2f}h).")
-                break
-
-            loop_count += 1
-            SESSION_STATS["loops"] = loop_count
-
+        while time.time() - started < SHIFT_DURATION_SECONDS:
+            loop += 1
+            STATS["loops"] = loop
             try:
-                sol_price = get_sol_usd_price()
-                portfolio = load_portfolio()
-                rebalance_disabled_strategies(portfolio)
-
-                shadow_state = load_shadow_state() if SHADOW_ENABLED else None
-
-                manage_strategy_positions(portfolio, sol_price, shadow_state)
-                poll_smart_wallets()
-                scan_cto(portfolio, sol_price, shadow_state)
-                scan_smart_money(portfolio, sol_price, shadow_state)
-                scan_curve_scalp(portfolio, sol_price, shadow_state)
-                if loop_count % JUP_SIGNAL_EVERY_LOOPS == 1:
-                    scan_cto_jup(portfolio, sol_price, shadow_state)
-
-                if shadow_state is not None:
-                    process_shadow_tracking(shadow_state)
-                    save_shadow_state(shadow_state)
-
-                prune_cooldowns(portfolio)
-                prune_reject_seen()
-                save_portfolio(portfolio)
-                git_push_state()
-
-                if loop_count % 10 == 0:
-                    print_scan_diagnostics(sol_price)
-                    print_rpc_health()
-                    print_jupiter_health()
-            except ShiftInterrupted:
+                now = time.time()
+                sol_usd = sol_price()
+                p = load_portfolio()
+                if loop % PHASE_EVERY_LOOPS == 1:
+                    update_phase(now)
+                manage_positions(p, sol_usd, now)
+                if loop % SCAN_EVERY_LOOPS == 1:
+                    scan(p, sol_usd, now)
+                save_portfolio(p)
+                git_push()
+            except Interrupted:
                 raise
             except Exception as err:
-                SESSION_STATS["loop_errors"] += 1
-                SESSION_STATS["last_error"] = str(err)
+                STATS["loop_errors"] += 1
+                STATS["last_error"] = str(err)
                 print(f"[LOOP ERROR] {err}")
-
             time.sleep(LOOP_SLEEP_SECONDS)
-
-    except ShiftInterrupted as sig:
-        end_reason = f"abgebrochen ({sig})"
-        print(f"🛑 [ABBRUCH] {sig}")
+    except Interrupted as sig:
+        reason = f"abgebrochen ({sig})"
     except Exception as err:
-        end_reason = f"abgestuerzt ({err})"
-        print(f"💥 [ABSTURZ] {err}")
+        reason = f"abgestuerzt ({err})"
     finally:
-        # Signale ab hier ignorieren, damit Meldung und Push durchlaufen
         signal.signal(signal.SIGTERM, signal.SIG_IGN)
         signal.signal(signal.SIGINT, signal.SIG_IGN)
         try:
-            send_shift_end(start_total, start_time, end_reason)
+            shift_summary(load_portfolio(), start_value, started, reason)
         except Exception as err:
-            print(f"[DISCORD END ERROR] {err}")
-        git_push_state()
+            print(f"[ENDE] {err}")
+        git_push()
+
+
+def probe():
+    print(f"[PROBE] Jupiter: {JUP_BASE} ({'mit Key' if JUPITER_API_KEY else 'ohne Key'})")
+    print(f"[PROBE] SOL-Kurs: {sol_price()}")
+    tokens = jup_category("toptrending", "1h", 20)
+    print(f"[PROBE] Trending 1h: {len(tokens)} Token")
+    if not tokens:
+        return
+    now = time.time()
+    print(f"[PROBE] Felder des ersten Tokens: {sorted(tokens[0].keys())}")
+    for tok in tokens[:5]:
+        v = token_view(tok, now)
+        print(f"  {v['symbol']:<12} Alter {v['age_h'] if v['age_h'] is None else round(v['age_h'], 1)} h | "
+              f"MC ${v['mcap']:,.0f} | Holder {v['holders']} ({v['holder_growth_1h']:+.1f}%/h) | "
+              f"Netto 5m {v['net_buyers_5m']} | Social {v['social']} | Check: {quick_checks(v)}")
+    mint = tokens[0]["id"]
+    data = trench_get(mint)
+    print(f"[PROBE] TrenchBot fuer {tokens[0].get('symbol')}: "
+          f"{'nicht erreichbar' if data is None else 'erreichbar'}")
+    if data:
+        print(f"[PROBE] TrenchBot-Felder: {sorted(data.keys())}")
+        print(f"[PROBE] Bewertung: {bundle_dev_check(mint)}")
+    print("[PROBE] fertig. Diese Ausgabe bitte an Claude schicken.")
 
 
 if __name__ == "__main__":
-    run_loop()
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--probe", action="store_true")
+    args = parser.parse_args()
+    probe() if args.probe else run()
