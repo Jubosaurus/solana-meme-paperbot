@@ -1,5 +1,5 @@
 {
-  "bankroll_total_sol": 13.9115,
+  "bankroll_total_sol": 14.1267,
   "strategies": {
     "CTO": {
       "bankroll_sol": 7.1291,
@@ -1190,58 +1190,11 @@
       ]
     },
     "CTO_JUP": {
-      "bankroll_sol": 6.7824,
-      "wins": 8,
+      "bankroll_sol": 6.9976,
+      "wins": 9,
       "losses": 18,
-      "total_fees_sol": 0.078,
-      "open_positions": {
-        "HaYRgD7rjwj1AwoWjafokj4196sufYm4vKFamLZVpump": {
-          "symbol": "ARCHIBROWN",
-          "dex": "PUMPSWAP",
-          "entry_signal_price": 0.0001741,
-          "entry_fill_price": 0.0001856183297087881,
-          "entry_slippage_pct": 6.616,
-          "entry_slippage_source": "jupiter",
-          "entry_slippage_formel_pct": 0.417,
-          "jupiter": {
-            "organic_score": 66.44052891348096,
-            "organic_label": "medium",
-            "holder_count": 1713,
-            "holder_change_5m": 0.29274004683840754,
-            "holder_change_1h": -0.5803830528148578,
-            "mint_auth_disabled": true,
-            "freeze_auth_disabled": true,
-            "top_holders_pct": 20.432993054441525,
-            "dev_balance_pct": 2.414017036891118,
-            "dev_mints": 1,
-            "is_verified": null,
-            "organic_buy_ratio_1h": 0.1583,
-            "num_traders_5m": 30,
-            "num_net_buyers_5m": 19,
-            "num_organic_buyers_5m": 2,
-            "organic_buy_vol_5m": 204.9071701981712,
-            "organic_sell_vol_5m": null,
-            "is_sus": false,
-            "dev_migrations": 1,
-            "launchpad": "pump.fun",
-            "first_pool_at": "2026-09-23T08:45:18Z",
-            "shield": [
-              "NOT_VERIFIED"
-            ]
-          },
-          "jupiter_issues": [
-            "SHIELD:NOT_VERIFIED"
-          ],
-          "highest_price": 0.0002244,
-          "entry_time": 1790310096.145,
-          "invested_sol": 0.2,
-          "tokens_held": 125817.31576099999,
-          "roundtrip_cost_pct": 2.581,
-          "url": "https://dexscreener.com/solana/4giAj2vcyNSuEeVPcrv8hu4QMLm8mXzBpSrx2ExHAuVz",
-          "mcap_at_entry": 155192.0,
-          "liq_at_entry": 39765.36
-        }
-      },
+      "total_fees_sol": 0.081,
+      "open_positions": {},
       "closed_positions": [
         {
           "symbol": "X7",
@@ -2692,6 +2645,60 @@
           "gap_exit": false,
           "exit_reason": "TIMEOUT (Signal +17.1%)",
           "closed_at": "2026-09-25T03:48:28.606987+00:00"
+        },
+        {
+          "symbol": "ARCHIBROWN",
+          "strategy": "CTO_JUP",
+          "signal_pnl_pct": 17.12,
+          "real_pnl_pct": 9.09,
+          "entry_signal_price": 0.0001741,
+          "entry_fill_price": 0.00018561833,
+          "entry_slippage_pct": 6.616,
+          "exit_signal_price": 0.0002039,
+          "exit_fill_price": 0.000202482997,
+          "exit_slippage_pct": 0.695,
+          "exit_slippage_formel_pct": 0.489,
+          "exit_slippage_source": "jupiter",
+          "entry_slippage_source": "jupiter",
+          "entry_slippage_formel_pct": 0.417,
+          "jupiter": {
+            "organic_score": 66.44052891348096,
+            "organic_label": "medium",
+            "holder_count": 1713,
+            "holder_change_5m": 0.29274004683840754,
+            "holder_change_1h": -0.5803830528148578,
+            "mint_auth_disabled": true,
+            "freeze_auth_disabled": true,
+            "top_holders_pct": 20.432993054441525,
+            "dev_balance_pct": 2.414017036891118,
+            "dev_mints": 1,
+            "is_verified": null,
+            "organic_buy_ratio_1h": 0.1583,
+            "num_traders_5m": 30,
+            "num_net_buyers_5m": 19,
+            "num_organic_buyers_5m": 2,
+            "organic_buy_vol_5m": 204.9071701981712,
+            "organic_sell_vol_5m": null,
+            "is_sus": false,
+            "dev_migrations": 1,
+            "launchpad": "pump.fun",
+            "first_pool_at": "2026-09-23T08:45:18Z",
+            "shield": [
+              "NOT_VERIFIED"
+            ]
+          },
+          "jupiter_issues": [
+            "SHIELD:NOT_VERIFIED"
+          ],
+          "liq_at_entry": 39765.36,
+          "liq_at_exit": 43304.0,
+          "roundtrip_cost_pct": 2.581,
+          "fees_sol": 0.003,
+          "pnl_sol": 0.0152,
+          "peak_pct": 28.89,
+          "gap_exit": false,
+          "exit_reason": "TIMEOUT (Signal +17.1%)",
+          "closed_at": "2026-09-25T08:21:56.394415+00:00"
         }
       ]
     }
