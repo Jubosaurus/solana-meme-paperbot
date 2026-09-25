@@ -133,13 +133,18 @@ def jup_get(path):
         return None
 
 
-def trench_get(mint):
-    _throttle(_trench_last, 1.1)
-    try:
-        res = SESSION.get(f"{TRENCH_BASE}/bundle/bundle_advanced/{mint}", timeout=20)
-    except requests.RequestException as err:
+def trench_get(mint, tries=2):
+    res = None
+    for attempt in range(tries):
+        _throttle(_trench_last, 1.1)
+        try:
+            res = SESSION.get(f"{TRENCH_BASE}/bundle/bundle_advanced/{mint}", timeout=45)
+            break
+        except requests.RequestException as err:
+            print(f"[TRENCHBOT] Versuch {attempt + 1}: {err}")
+            res = None
+    if res is None:
         STATS["trench_fail"] += 1
-        print(f"[TRENCHBOT] {err}")
         return None
     if res.status_code != 200:
         STATS["trench_fail"] += 1
@@ -200,6 +205,28 @@ def sol_price():
     if price > 0:
         _sol_price[0] = price
     return _sol_price[0] or 150.0
+
+
+_social_cache = {}
+
+
+def has_social(v):
+    """Tag 5: Gibt es einen X-, Telegram- oder Website-Link? Jupiter liefert
+    diese Felder nicht, daher Rueckfall auf DexScreener."""
+    if v["social"]:
+        return True
+    cached = _social_cache.get(v["mint"])
+    if cached is not None:
+        return cached
+    try:
+        res = SESSION.get(f"https://api.dexscreener.com/latest/dex/tokens/{v['mint']}", timeout=10)
+        pairs = (res.json() or {}).get("pairs") or [] if res.status_code == 200 else []
+    except (requests.RequestException, ValueError):
+        return False
+    found = any((pair.get("info") or {}).get("socials") or (pair.get("info") or {}).get("websites")
+                for pair in pairs)
+    _social_cache[v["mint"]] = found
+    return found
 
 
 def shield(mint):
@@ -294,8 +321,6 @@ def quick_checks(v):
         return "KEINE_ECHTEN_KAEUFER"                           # Tag 5
     if v["organic_score"] < MIN_ORGANIC_SCORE:
         return "NICHT_ORGANISCH"
-    if REQUIRE_SOCIAL_LINK and not v["social"]:
-        return "KEINE_STORY_LINKS"
     if v["liquidity"] < MIN_LIQUIDITY_USD:
         return "LIQUIDITAET_ZU_GERING"
     if norm_symbol(v["symbol"]) in IMPERSONATION_SYMBOLS:
@@ -634,6 +659,9 @@ def scan(p, sol_usd, now):
     for v in passed:
         if slots <= 0:
             break
+        if REQUIRE_SOCIAL_LINK and not has_social(v):
+            log_reject(v, "KEINE_STORY_LINKS")
+            continue
         reason = safety_shield(v["mint"])
         if reason:
             log_reject(v, reason)
@@ -777,13 +805,26 @@ def probe():
         print(f"  {v['symbol']:<12} Alter {v['age_h'] if v['age_h'] is None else round(v['age_h'], 1)} h | "
               f"MC ${v['mcap']:,.0f} | Holder {v['holders']} ({v['holder_growth_1h']:+.1f}%/h) | "
               f"Netto 5m {v['net_buyers_5m']} | Social {v['social']} | Check: {quick_checks(v)}")
-    mint = tokens[0]["id"]
-    data = trench_get(mint)
-    print(f"[PROBE] TrenchBot fuer {tokens[0].get('symbol')}: "
-          f"{'nicht erreichbar' if data is None else 'erreichbar'}")
+    pool = jup_category("toptrending", "5m", 100) + jup_category("toptrending", "1h", 100)
+    young = [token_view(t, now) for t in pool]
+    young = sorted((v for v in young if v["age_h"] is not None and v["age_h"] <= 24),
+                   key=lambda v: v["age_h"])
+    print(f"[PROBE] Junge Coins (unter 24 h) in den Trending-Listen: {len(young)}")
+    for v in young[:5]:
+        print(f"  {v['symbol']:<12} Alter {v['age_h']:.1f} h | MC ${v['mcap']:,.0f} | "
+              f"Holder {v['holders']} ({v['holder_growth_1h']:+.1f}%/h) | Check: {quick_checks(v)}")
+    if not young:
+        print("[PROBE] Kein junger Coin gefunden, TrenchBot-Test entfaellt.")
+        return
+    test = young[0]
+    print(f"[PROBE] Social-Links fuer {test['symbol']} (DexScreener): {has_social(test)}")
+    t0 = time.time()
+    data = trench_get(test["mint"])
+    print(f"[PROBE] TrenchBot fuer {test['symbol']}: "
+          f"{'nicht erreichbar' if data is None else 'erreichbar'} nach {time.time() - t0:.1f} s")
     if data:
         print(f"[PROBE] TrenchBot-Felder: {sorted(data.keys())}")
-        print(f"[PROBE] Bewertung: {bundle_dev_check(mint)}")
+        print(f"[PROBE] Bewertung: {bundle_dev_check(test['mint'])}")
     print("[PROBE] fertig. Diese Ausgabe bitte an Claude schicken.")
 
 
