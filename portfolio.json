@@ -1,5 +1,5 @@
 {
-  "bankroll_total_sol": 14.1267,
+  "bankroll_total_sol": 13.9267,
   "strategies": {
     "CTO": {
       "bankroll_sol": 7.1291,
@@ -1190,11 +1190,58 @@
       ]
     },
     "CTO_JUP": {
-      "bankroll_sol": 6.9976,
+      "bankroll_sol": 6.7976,
       "wins": 9,
       "losses": 18,
       "total_fees_sol": 0.081,
-      "open_positions": {},
+      "open_positions": {
+        "UpBBfyC75u3kxDGWmmmW2yauk9YY3CqZhdt1KUDkids": {
+          "symbol": "SHARTCOIN",
+          "dex": "RAYDIUM",
+          "entry_signal_price": 0.001217,
+          "entry_fill_price": 0.0012452127765364938,
+          "entry_slippage_pct": 2.318,
+          "entry_slippage_source": "jupiter",
+          "entry_slippage_formel_pct": 0.309,
+          "jupiter": {
+            "organic_score": 75,
+            "organic_label": "medium",
+            "holder_count": 3003,
+            "holder_change_5m": 0.1,
+            "holder_change_1h": -1.1195258478761936,
+            "mint_auth_disabled": true,
+            "freeze_auth_disabled": true,
+            "top_holders_pct": 15.801618105529574,
+            "dev_balance_pct": null,
+            "dev_mints": 7,
+            "is_verified": null,
+            "organic_buy_ratio_1h": 0.1655,
+            "num_traders_5m": 27,
+            "num_net_buyers_5m": 18,
+            "num_organic_buyers_5m": 1,
+            "organic_buy_vol_5m": 9.995484078050524,
+            "organic_sell_vol_5m": null,
+            "is_sus": false,
+            "dev_migrations": null,
+            "launchpad": null,
+            "first_pool_at": "2026-09-24T01:34:29Z",
+            "shield": [
+              "NOT_VERIFIED"
+            ]
+          },
+          "jupiter_issues": [
+            "SHIELD:NOT_VERIFIED"
+          ],
+          "highest_price": 0.001217,
+          "entry_time": 1790324919.1380377,
+          "invested_sol": 0.2,
+          "tokens_held": 18766.270664999996,
+          "roundtrip_cost_pct": 1.513,
+          "url": "https://dexscreener.com/solana/82BHvVSeHgcGNtiH8fGTaYRsKbbjF53beAZp8LCATXsc",
+          "mcap_at_entry": 1217730.0,
+          "liq_at_entry": 498782.16
+        }
+      },
       "closed_positions": [
         {
           "symbol": "X7",
@@ -2703,7 +2750,9 @@
       ]
     }
   },
-  "trade_history_cooldown": {},
+  "trade_history_cooldown": {
+    "UpBBfyC75u3kxDGWmmmW2yauk9YY3CqZhdt1KUDkids": 1790324919.1380265
+  },
   "rebalanced_strategies": [
     "SMART_MONEY",
     "SCALP_CURVE"
