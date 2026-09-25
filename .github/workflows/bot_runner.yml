@@ -2,6 +2,15 @@ name: Solana Paper Trading Bot
 
 on:
   workflow_dispatch:
+    inputs:
+      modus:
+        description: "normal oder probe (Kurztest)"
+        required: true
+        default: normal
+        type: choice
+        options:
+          - normal
+          - probe
   schedule:
     - cron: '0 */6 * * *'
 
@@ -19,41 +28,37 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          fetch-depth: 0
 
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
           cache: 'pip'
 
-      - name: Install dependencies
+      - name: Abhaengigkeiten installieren
         run: pip install -r requirements.txt
 
-      - name: Sync repo
-        run: |
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git pull origin main --rebase || true
-
-      - name: Run Trading Bot
+      - name: Bot starten
         env:
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
-          SOLANA_RPC_URL: ${{ secrets.SOLANA_RPC_URL }}
           JUPITER_API_KEY: ${{ secrets.JUPITER_API_KEY }}
           PYTHONUNBUFFERED: "1"
-        run: python bot.py
-
-      - name: Final Backup Push
-        if: always()
         run: |
-          FILES="portfolio.json rejected_candidates.csv shadow_candidates.json shadow_results.csv shadow_results_v1.csv"
-          for f in $FILES; do
+          if [ "${{ github.event.inputs.modus }}" = "probe" ]; then
+            python bot.py --probe
+          else
+            python bot.py
+          fi
+
+      - name: Sicherung
+        if: always() && github.event.inputs.modus != 'probe'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          for f in portfolio.json journal.csv abgelehnt.csv marktphase.json; do
             [ -f "$f" ] && git add "$f" || true
           done
           if ! git diff --cached --quiet; then
-            git commit -m "Final Session Push [skip ci]" || true
-            git pull origin main --rebase || true
+            git commit -m "NARRATIV Sicherung [skip ci]" || true
+            git pull --rebase origin main || true
             git push origin main || true
           fi
