@@ -1,5 +1,5 @@
 {
-  "bankroll_total_sol": 14.1115,
+  "bankroll_total_sol": 13.9115,
   "strategies": {
     "CTO": {
       "bankroll_sol": 7.1291,
@@ -1190,11 +1190,58 @@
       ]
     },
     "CTO_JUP": {
-      "bankroll_sol": 6.9824,
+      "bankroll_sol": 6.7824,
       "wins": 8,
       "losses": 18,
       "total_fees_sol": 0.078,
-      "open_positions": {},
+      "open_positions": {
+        "HaYRgD7rjwj1AwoWjafokj4196sufYm4vKFamLZVpump": {
+          "symbol": "ARCHIBROWN",
+          "dex": "PUMPSWAP",
+          "entry_signal_price": 0.0001741,
+          "entry_fill_price": 0.0001856183297087881,
+          "entry_slippage_pct": 6.616,
+          "entry_slippage_source": "jupiter",
+          "entry_slippage_formel_pct": 0.417,
+          "jupiter": {
+            "organic_score": 66.44052891348096,
+            "organic_label": "medium",
+            "holder_count": 1713,
+            "holder_change_5m": 0.29274004683840754,
+            "holder_change_1h": -0.5803830528148578,
+            "mint_auth_disabled": true,
+            "freeze_auth_disabled": true,
+            "top_holders_pct": 20.432993054441525,
+            "dev_balance_pct": 2.414017036891118,
+            "dev_mints": 1,
+            "is_verified": null,
+            "organic_buy_ratio_1h": 0.1583,
+            "num_traders_5m": 30,
+            "num_net_buyers_5m": 19,
+            "num_organic_buyers_5m": 2,
+            "organic_buy_vol_5m": 204.9071701981712,
+            "organic_sell_vol_5m": null,
+            "is_sus": false,
+            "dev_migrations": 1,
+            "launchpad": "pump.fun",
+            "first_pool_at": "2026-09-23T08:45:18Z",
+            "shield": [
+              "NOT_VERIFIED"
+            ]
+          },
+          "jupiter_issues": [
+            "SHIELD:NOT_VERIFIED"
+          ],
+          "highest_price": 0.0001741,
+          "entry_time": 1790310096.145,
+          "invested_sol": 0.2,
+          "tokens_held": 125817.31576099999,
+          "roundtrip_cost_pct": 2.581,
+          "url": "https://dexscreener.com/solana/4giAj2vcyNSuEeVPcrv8hu4QMLm8mXzBpSrx2ExHAuVz",
+          "mcap_at_entry": 155192.0,
+          "liq_at_entry": 39765.36
+        }
+      },
       "closed_positions": [
         {
           "symbol": "X7",
@@ -2650,7 +2697,8 @@
     }
   },
   "trade_history_cooldown": {
-    "2sztT8K9Xu3cfp6WTEEB44Hdibmj3Pv6G2pWGM1vqzXP": 1790306435.8863106
+    "2sztT8K9Xu3cfp6WTEEB44Hdibmj3Pv6G2pWGM1vqzXP": 1790306435.8863106,
+    "HaYRgD7rjwj1AwoWjafokj4196sufYm4vKFamLZVpump": 1790310096.144988
   },
   "rebalanced_strategies": [
     "SMART_MONEY",
