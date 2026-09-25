@@ -1,5 +1,5 @@
 {
-  "bankroll_total_sol": 13.7708,
+  "bankroll_total_sol": 13.5708,
   "strategies": {
     "CTO": {
       "bankroll_sol": 6.9557,
@@ -1305,11 +1305,60 @@
       ]
     },
     "CTO_JUP": {
-      "bankroll_sol": 6.8151,
+      "bankroll_sol": 6.6151,
       "wins": 9,
       "losses": 22,
       "total_fees_sol": 0.093,
-      "open_positions": {},
+      "open_positions": {
+        "EvKf2GtfbDMyZQzZ8VN7uFFoK9FxzsXJmqACaS8H5LX2": {
+          "symbol": "PYRO",
+          "dex": "METEORA",
+          "entry_signal_price": 0.0001222,
+          "entry_fill_price": 0.00012706966878050848,
+          "entry_slippage_pct": 3.985,
+          "entry_slippage_source": "jupiter",
+          "entry_slippage_formel_pct": 0.461,
+          "jupiter": {
+            "organic_score": 65.21918822106082,
+            "organic_label": "medium",
+            "holder_count": 506,
+            "holder_change_5m": -0.39370078740157477,
+            "holder_change_1h": -1.7475728155339807,
+            "mint_auth_disabled": true,
+            "freeze_auth_disabled": true,
+            "top_holders_pct": 27.922261672167032,
+            "dev_balance_pct": 0.002728442884210294,
+            "dev_mints": 1,
+            "is_verified": null,
+            "organic_buy_ratio_1h": 0.089,
+            "num_traders_5m": 19,
+            "num_net_buyers_5m": 13,
+            "num_organic_buyers_5m": null,
+            "organic_buy_vol_5m": 37.0456672624677,
+            "organic_sell_vol_5m": 20.02294040977967,
+            "is_sus": false,
+            "dev_migrations": 1,
+            "launchpad": "ember",
+            "first_pool_at": "2026-09-24T23:38:26Z",
+            "shield": [
+              "NOT_VERIFIED",
+              "NEW_LISTING"
+            ]
+          },
+          "jupiter_issues": [
+            "SHIELD:NOT_VERIFIED",
+            "SHIELD:NEW_LISTING"
+          ],
+          "highest_price": 0.0001222,
+          "entry_time": 1790355928.0843341,
+          "invested_sol": 0.2,
+          "tokens_held": 190473.464142,
+          "roundtrip_cost_pct": 4.259,
+          "url": "https://dexscreener.com/solana/B4a9HEiLD6BZNGr7daf57f8UsC9tvvFHTvdDgvhGNenm",
+          "mcap_at_entry": 122261.0,
+          "liq_at_entry": 30008.47
+        }
+      },
       "closed_positions": [
         {
           "symbol": "X7",
@@ -3040,7 +3089,8 @@
     }
   },
   "trade_history_cooldown": {
-    "HWyMjL72dikK2bSU2JqS2FjyBG2GLo8mq3Q5EBzTVeN8": 1790350741.5412972
+    "HWyMjL72dikK2bSU2JqS2FjyBG2GLo8mq3Q5EBzTVeN8": 1790350741.5412972,
+    "EvKf2GtfbDMyZQzZ8VN7uFFoK9FxzsXJmqACaS8H5LX2": 1790355928.0843208
   },
   "rebalanced_strategies": [
     "SMART_MONEY",
