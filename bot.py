@@ -69,6 +69,9 @@ MAX_BUNDLE_HOLDING_PCT = 10.0           # Anteil verbundener Insider-Wallets (Ru
 BUNDLE_MIN_WALLETS = 3                  # ab so vielen Kaeufern in Block 0 ...
 BUNDLE_MAX_SUPPLY_PCT = 15.0            # ... und diesem Anteil gilt ein Coin als gebuendelt
 BUNDLE_MAX_STILL_HELD_PCT = 10.0        # Block-0-Kaeufer halten noch zu viel
+# "streng": jeder gebuendelte Launch wird abgelehnt (Tag 1 woertlich)
+# "ausstieg": gebuendelt ist ok, wenn die Block-0-Kaeufer ihre Coins schon verkauft haben
+BUNDLE_RULE = "streng"
 BLOCK0_MAX_PAGES = 40                   # hoechstens 40.000 Transaktionen zurueckgehen
 BLOCK0_MAX_TX = 40
 BLOCK0_MAX_WALLETS = 25
@@ -223,7 +226,7 @@ def block0_analysis(mint):
         bought = {}
         for s in sigs[:BLOCK0_MAX_TX]:
             tx = rpc("getTransaction", [s["signature"], {"encoding": "json", "commitment": "confirmed",
-                                                          "maxSupportedTransactionVersion": 0}])
+                                                          "maxSupportedTransactionVersion": 1}])
             meta = (tx or {}).get("meta") or {}
             if not tx or meta.get("err"):
                 continue
@@ -502,42 +505,37 @@ def quick_checks(v):
 
 
 def bundle_dev_check(mint):
-    """Tag 1. Hauptpruefung: eigener Block-0-Check. Zweitmeinung: RugCheck-Insider.
-    Ohne jede Datenquelle kein Kauf. Rueckgabe (Grund oder None, Kennzahlen)."""
+    """Tag 1. Entscheidend ist der eigene Block-0-Check. RugCheck prueft zusaetzlich auf
+    Insider-Netzwerke, kann den Block-0-Check aber nicht ersetzen (erkennt frische
+    Bundles nicht zuverlaessig). Rueckgabe (Grund oder None, Kennzahlen)."""
     cached = _bundle_cache.get(mint)
-    if cached and time.time() - cached[0] < 600:
+    if cached and time.time() - cached[0] < cached[3]:
         return cached[1], cached[2]
 
-    info, reason = {}, None
     b0 = block0_analysis(mint) if HELIUS_RPC else None
-    if b0:
-        info = dict(b0)
-        if b0["block0_wallets"] >= BUNDLE_MIN_WALLETS and \
-                b0["block0_supply_pct"] >= BUNDLE_MAX_SUPPLY_PCT:
-            reason = "GEBUENDELT"
-        elif b0["block0_still_held_pct"] >= BUNDLE_MAX_STILL_HELD_PCT:
-            reason = "BUNDLER_HALTEN_NOCH"
+    if not b0:
+        return ("BUNDLE_CHECK_NICHT_MOEGLICH" if BUNDLE_CHECK_REQUIRED else None), {}
+
+    info, reason, keep_s = dict(b0), None, 600
+    bundled = (b0["block0_wallets"] >= BUNDLE_MIN_WALLETS
+               and b0["block0_supply_pct"] >= BUNDLE_MAX_SUPPLY_PCT)
+    if b0["block0_still_held_pct"] >= BUNDLE_MAX_STILL_HELD_PCT:
+        reason = "BUNDLER_HALTEN_NOCH"
+    elif bundled and BUNDLE_RULE == "streng":
+        reason, keep_s = "GEBUENDELT", 24 * 3600       # Block 0 aendert sich nie
+    info["gebuendelt"] = bundled
 
     if reason is None:
         rc = rugcheck_get(mint)
-        rc_ok = bool(rc) and (rc.get("topHolders") or rc.get("insiderNetworks")
-                              or rc.get("graphInsidersDetected") is not None)
-        if rc_ok:
+        if rc and (rc.get("topHolders") or rc.get("insiderNetworks")):
             m = rugcheck_metrics(rc)
             info["rugcheck_insider_pct"] = m["bundle_holding_pct"]
-            info["rugcheck_rugged"] = m["rugged"]
-            if not b0:
-                info["quelle"] = "rugcheck"
-                info["bundle_holding_pct"] = m["bundle_holding_pct"]
             if m["rugged"]:
                 reason = "BEREITS_GERUGGT"
             elif m["bundle_holding_pct"] >= MAX_BUNDLE_HOLDING_PCT:
                 reason = "INSIDER_NETZWERK"
-        elif not b0:
-            # Weder Block-0-Check noch RugCheck: ohne Check kein Kauf
-            return ("BUNDLE_CHECK_NICHT_MOEGLICH" if BUNDLE_CHECK_REQUIRED else None), {}
 
-    _bundle_cache[mint] = (time.time(), reason, info)
+    _bundle_cache[mint] = (time.time(), reason, info, keep_s)
     return reason, info
 
 
@@ -673,7 +671,8 @@ def open_position(p, v, bundle, sol_usd):
     if bundle.get("quelle") == "block0":
         bundle_txt = (f"Block 0: {bundle['block0_wallets']} Kaeufer, "
                       f"{bundle['block0_supply_pct']:.1f}% gekauft, "
-                      f"{bundle['block0_still_held_pct']:.1f}% noch gehalten")
+                      f"{bundle['block0_still_held_pct']:.1f}% noch gehalten"
+                      + (" (gebuendelt, Bundler ausgestiegen)" if bundle.get("gebuendelt") else ""))
     else:
         bundle_txt = f"Insider halten {bundle.get('bundle_holding_pct', 0):.1f}% (RugCheck)"
     thesis = (f"Story verbreitet sich: Holder +{v['holder_growth_1h']:.0f}%/h, "
