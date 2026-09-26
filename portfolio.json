@@ -1,53 +1,8 @@
 {
   "strategy": "NARRATIV",
   "started": "2026-09-26T02:46:00.825468+00:00",
-  "bankroll_sol": 9.564773,
+  "bankroll_sol": 9.895721,
   "positions": {
-    "U2DcbVJm1FVkogaL9Ti2vU5XN7g1shvCFei3RjSpump": {
-      "mint": "U2DcbVJm1FVkogaL9Ti2vU5XN7g1shvCFei3RjSpump",
-      "symbol": "XRENT",
-      "opened": 1790414158.9542522,
-      "invested_sol": 0.2,
-      "fees_sol": 0.003,
-      "entry_signal_usd": 2.945679125042189e-05,
-      "entry_fill_usd": 2.8702802836731795e-05,
-      "entry_slippage_pct": -2.56,
-      "roundtrip_cost_pct": 1.81,
-      "tokens_initial": 835728.881828,
-      "tokens_left": 417864.440914,
-      "decimals": 6,
-      "proceeds_sol": 0.289405254,
-      "peak_usd": 0.00016653200190502995,
-      "tp1_done": true,
-      "thesis_breaks": 0,
-      "missing_loops": 0,
-      "entry_liquidity": 10704.584009105785,
-      "entry_view": {
-        "age_h": 0.4399341604444716,
-        "mcap": 29450.430144881746,
-        "holders": 252,
-        "holder_growth_1h": 472.72727272727275,
-        "net_buyers_5m": 58,
-        "organic_buyers_5m": 6,
-        "organic_score": 37.62680811918549,
-        "price_change_1h": 319.1339272652146
-      },
-      "bundle": {
-        "quelle": "block0",
-        "slot": 450625413,
-        "block0_wallets": 1,
-        "block0_supply_pct": 10.23,
-        "block0_still_held_pct": 5.2,
-        "block0_exited": 0,
-        "early_tx_slot1_2": 12,
-        "bundle_holding_pct": 5.2,
-        "gebuendelt": false,
-        "rugcheck_insider_pct": 0
-      },
-      "phase": "normal",
-      "thesis": "Story verbreitet sich: Holder +473%/h, 58 Netto-Kaeufer 5m, 6 organisch; Block 0: 1 Kaeufer, 10.2% gekauft, 5.2% noch gehalten; Dev-Coins 1",
-      "exit_rule": "Haelfte bei 2x; Rest raus, wenn Holder schrumpfen und Netto-Verkaeufer 2x in Folge, Liquiditaet -30%, -40% oder nach 2x 40% vom Hoch"
-    },
     "6mEf9TXKfFwAd3xSGXRDq3cMb3q8H4R8wEqWsqWxpump": {
       "mint": "6mEf9TXKfFwAd3xSGXRDq3cMb3q8H4R8wEqWsqWxpump",
       "symbol": "m/ep",
@@ -258,6 +213,47 @@
       "exit_reason": "NOTBREMSE (-48%)",
       "hold_h": 0.19,
       "closed_at": "2026-09-26T08:59:36.480225+00:00"
+    },
+    {
+      "symbol": "XRENT",
+      "mint": "U2DcbVJm1FVkogaL9Ti2vU5XN7g1shvCFei3RjSpump",
+      "invested_sol": 0.2,
+      "entry_fill_usd": 2.8702802836731795e-05,
+      "entry_slippage_pct": -2.56,
+      "roundtrip_cost_pct": 1.81,
+      "tp1_done": true,
+      "entry_view": {
+        "age_h": 0.4399341604444716,
+        "mcap": 29450.430144881746,
+        "holders": 252,
+        "holder_growth_1h": 472.72727272727275,
+        "net_buyers_5m": 58,
+        "organic_buyers_5m": 6,
+        "organic_score": 37.62680811918549,
+        "price_change_1h": 319.1339272652146
+      },
+      "bundle": {
+        "quelle": "block0",
+        "slot": 450625413,
+        "block0_wallets": 1,
+        "block0_supply_pct": 10.23,
+        "block0_still_held_pct": 5.2,
+        "block0_exited": 0,
+        "early_tx_slot1_2": 12,
+        "bundle_holding_pct": 5.2,
+        "gebuendelt": false,
+        "rugcheck_insider_pct": 0
+      },
+      "phase": "normal",
+      "thesis": "Story verbreitet sich: Holder +473%/h, 58 Netto-Kaeufer 5m, 6 organisch; Block 0: 1 Kaeufer, 10.2% gekauft, 5.2% noch gehalten; Dev-Coins 1",
+      "proceeds_sol": 0.620354,
+      "pnl_sol": 0.418854,
+      "pnl_pct": 209.43,
+      "peak_multiple": 5.8,
+      "exit_usd": 9.617743085627038e-05,
+      "exit_reason": "STORY_ABGEKUEHLT (40% vom Hoch)",
+      "hold_h": 0.65,
+      "closed_at": "2026-09-26T09:55:13.787817+00:00"
     }
   ],
   "cooldown": {
