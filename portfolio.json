@@ -1,53 +1,8 @@
 {
   "strategy": "NARRATIV",
   "started": "2026-09-26T02:46:00.825468+00:00",
-  "bankroll_sol": 9.408295,
+  "bankroll_sol": 9.576838,
   "positions": {
-    "FZrBftSKdKwG4fdMPyPGZC6YXw4rexWi3p5sXYJRCZZR": {
-      "mint": "FZrBftSKdKwG4fdMPyPGZC6YXw4rexWi3p5sXYJRCZZR",
-      "symbol": "SPIRIT/ACC",
-      "opened": 1790411056.299431,
-      "invested_sol": 0.2,
-      "fees_sol": 0.0015,
-      "entry_signal_usd": 2.515554357093954e-05,
-      "entry_fill_usd": 2.4548628033158705e-05,
-      "entry_slippage_pct": -2.41,
-      "roundtrip_cost_pct": 3.11,
-      "tokens_initial": 980645.706903,
-      "tokens_left": 980645.706903,
-      "decimals": 6,
-      "proceeds_sol": 0.0,
-      "peak_usd": 2.515554357093954e-05,
-      "tp1_done": false,
-      "thesis_breaks": 1,
-      "missing_loops": 0,
-      "entry_liquidity": 5256.6765448487495,
-      "entry_view": {
-        "age_h": 3.4982071085770925,
-        "mcap": 24169.569309918545,
-        "holders": 165,
-        "holder_growth_1h": 98.79518072289156,
-        "net_buyers_5m": 6,
-        "organic_buyers_5m": 5,
-        "organic_score": 45.64135658729547,
-        "price_change_1h": 66.16106394995164
-      },
-      "bundle": {
-        "quelle": "block0",
-        "slot": 450572807,
-        "block0_wallets": 2,
-        "block0_supply_pct": 7.25,
-        "block0_still_held_pct": 3.54,
-        "block0_exited": 1,
-        "early_tx_slot1_2": 7,
-        "bundle_holding_pct": 3.54,
-        "gebuendelt": false,
-        "rugcheck_insider_pct": 0
-      },
-      "phase": "ruhig",
-      "thesis": "Story verbreitet sich: Holder +99%/h, 6 Netto-Kaeufer 5m, 5 organisch; Block 0: 2 Kaeufer, 7.2% gekauft, 3.5% noch gehalten; Dev-Coins 1",
-      "exit_rule": "Haelfte bei 2x; Rest raus, wenn Holder schrumpfen und Netto-Verkaeufer 2x in Folge, Liquiditaet -30%, -40% oder nach 2x 40% vom Hoch"
-    },
     "FTBq3qcxyehLD5VzDG5EfKhWBB5vXZtq7g6qepUAoVpx": {
       "mint": "FTBq3qcxyehLD5VzDG5EfKhWBB5vXZtq7g6qepUAoVpx",
       "symbol": "K/ACC",
@@ -176,6 +131,47 @@
       "exit_reason": "NOTBREMSE (-43%)",
       "hold_h": 0.25,
       "closed_at": "2026-09-26T07:31:12.975221+00:00"
+    },
+    {
+      "symbol": "SPIRIT/ACC",
+      "mint": "FZrBftSKdKwG4fdMPyPGZC6YXw4rexWi3p5sXYJRCZZR",
+      "invested_sol": 0.2,
+      "entry_fill_usd": 2.4548628033158705e-05,
+      "entry_slippage_pct": -2.41,
+      "roundtrip_cost_pct": 3.11,
+      "tp1_done": false,
+      "entry_view": {
+        "age_h": 3.4982071085770925,
+        "mcap": 24169.569309918545,
+        "holders": 165,
+        "holder_growth_1h": 98.79518072289156,
+        "net_buyers_5m": 6,
+        "organic_buyers_5m": 5,
+        "organic_score": 45.64135658729547,
+        "price_change_1h": 66.16106394995164
+      },
+      "bundle": {
+        "quelle": "block0",
+        "slot": 450572807,
+        "block0_wallets": 2,
+        "block0_supply_pct": 7.25,
+        "block0_still_held_pct": 3.54,
+        "block0_exited": 1,
+        "early_tx_slot1_2": 7,
+        "bundle_holding_pct": 3.54,
+        "gebuendelt": false,
+        "rugcheck_insider_pct": 0
+      },
+      "phase": "ruhig",
+      "thesis": "Story verbreitet sich: Holder +99%/h, 6 Netto-Kaeufer 5m, 5 organisch; Block 0: 2 Kaeufer, 7.2% gekauft, 3.5% noch gehalten; Dev-Coins 1",
+      "proceeds_sol": 0.168543,
+      "pnl_sol": -0.032957,
+      "pnl_pct": -16.48,
+      "peak_multiple": 1.02,
+      "exit_usd": 2.1056165304849314e-05,
+      "exit_reason": "THESE_GEBROCHEN (Holder schrumpfen, Netto-Verkaeufer)",
+      "hold_h": 0.42,
+      "closed_at": "2026-09-26T08:49:23.449298+00:00"
     }
   ],
   "cooldown": {
