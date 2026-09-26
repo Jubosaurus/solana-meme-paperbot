@@ -1,8 +1,54 @@
 {
   "strategy": "NARRATIV",
   "started": "2026-09-26T02:46:00.825468+00:00",
-  "bankroll_sol": 9.901937,
-  "positions": {},
+  "bankroll_sol": 9.700437,
+  "positions": {
+    "Cuu9rNw8L56JHDwu6QxkCgCSKHcestyD4u2atX6Qx2oD": {
+      "mint": "Cuu9rNw8L56JHDwu6QxkCgCSKHcestyD4u2atX6Qx2oD",
+      "symbol": "/ACC",
+      "opened": 1790406973.6985075,
+      "invested_sol": 0.2,
+      "fees_sol": 0.0015,
+      "entry_signal_usd": 3.913366312146167e-05,
+      "entry_fill_usd": 3.9763354804071985e-05,
+      "entry_slippage_pct": 1.61,
+      "roundtrip_cost_pct": 2.84,
+      "tokens_initial": 606232.935172,
+      "tokens_left": 606232.935172,
+      "decimals": 6,
+      "proceeds_sol": 0.0,
+      "peak_usd": 3.913366312146167e-05,
+      "tp1_done": false,
+      "thesis_breaks": 0,
+      "missing_loops": 0,
+      "entry_liquidity": 12336.968783817396,
+      "entry_view": {
+        "age_h": 2.7633040059937373,
+        "mcap": 39133.66312146167,
+        "holders": 223,
+        "holder_growth_1h": 35.15151515151515,
+        "net_buyers_5m": 26,
+        "organic_buyers_5m": 5,
+        "organic_score": 48.175227297998184,
+        "price_change_1h": 78.13706087209599
+      },
+      "bundle": {
+        "quelle": "block0",
+        "slot": 450567486,
+        "block0_wallets": 2,
+        "block0_supply_pct": 6.6,
+        "block0_still_held_pct": 1.0,
+        "block0_exited": 1,
+        "early_tx_slot1_2": 0,
+        "bundle_holding_pct": 1.0,
+        "gebuendelt": false,
+        "rugcheck_insider_pct": 5.13
+      },
+      "phase": "heiss",
+      "thesis": "Story verbreitet sich: Holder +35%/h, 26 Netto-Kaeufer 5m, 5 organisch; Block 0: 2 Kaeufer, 6.6% gekauft, 1.0% noch gehalten; Dev-Coins 1",
+      "exit_rule": "Haelfte bei 2x; Rest raus, wenn Holder schrumpfen und Netto-Verkaeufer 2x in Folge, Liquiditaet -30%, -40% oder nach 2x 40% vom Hoch"
+    }
+  },
   "closed": [
     {
       "symbol": "SHOGGOTH",
@@ -47,6 +93,7 @@
     }
   ],
   "cooldown": {
-    "35MmkVyoE3PHieNwxjV1wvmHHQqvc4fgkAXWtawtpump": 1790405469.3182757
+    "35MmkVyoE3PHieNwxjV1wvmHHQqvc4fgkAXWtawtpump": 1790405469.3182757,
+    "Cuu9rNw8L56JHDwu6QxkCgCSKHcestyD4u2atX6Qx2oD": 1790406973.6985915
   }
 }
