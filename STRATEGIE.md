@@ -8,12 +8,12 @@ Papier gehandelt.
 
 | Tag | Aussage im Video | Umsetzung im Bot |
 |---|---|---|
-| 1 | Nur Coins kaufen, die nicht gebündelt sind | TrenchBot: Bundle-Wallets halten < 10 %, beim Launch < 30 % gebündelt. Ohne Check kein Kauf |
+| 1 | Nur Coins kaufen, die nicht gebündelt sind | Eigener Block-0-Check (Methode wie SolBundler): ab 3 Käufern mit zusammen 15 % im Erstellungsblock gilt ein Coin als gebündelt, ebenso wenn diese Käufer noch 10 % halten. Zweitmeinung RugCheck-Insider. Ohne Daten kein Kauf |
 | 2 | Bei großem Gewinn etwas vom Tisch nehmen | Bei 2x wird die Hälfte verkauft |
 | 3 | Vor dem Kauf These und Verkaufsbedingung notieren | `journal.csv` mit These und Verkaufsbedingung. Verkauf, wenn die These bricht |
 | 4 | Gewinner halten, solange die Story wächst | Der Rest nach 2x läuft weiter, Ausstieg erst 40 % unter dem Hoch oder bei Thesenbruch |
 | 5 | Früh rein, solange es sich verbreitet | 15 Minuten bis 6 Stunden alt, Holder +15 % pro Stunde, Netto-Käufer, mindestens 3 organische Käufer, Social-Links vorhanden |
-| 6 | Dev prüfen | Keine Rugs in der Dev-Historie, kein hohes Risiko, Dev hält höchstens 10 % |
+| 6 | Dev prüfen | Dev hat höchstens 50 Coins gestartet und hält höchstens 10 % (Jupiter) |
 | 7 | Nicht hinterherjagen, nicht größer setzen | Höchstens 3 Mio. USD Marktwert, höchstens +150 % in der letzten Stunde, feste Größe 0,2 SOL |
 | 8 | Kein Copy-Trading | Keine Wallet-Signale |
 | 9 | Ruhiger Markt: weniger handeln | Marktphase begrenzt die Positionen: heiß 3, normal 2, ruhig 1 |
