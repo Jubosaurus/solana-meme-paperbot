@@ -1,7 +1,7 @@
 {
   "strategy": "NARRATIV",
   "started": "2026-09-26T02:46:00.825468+00:00",
-  "bankroll_sol": 9.773064,
+  "bankroll_sol": 9.571564,
   "positions": {
     "tXrTtmeeq6PAzZTMhoTGybyeZBHZHCTCzPGU32Wpump": {
       "mint": "tXrTtmeeq6PAzZTMhoTGybyeZBHZHCTCzPGU32Wpump",
@@ -91,6 +91,51 @@
       },
       "phase": "normal",
       "thesis": "Story verbreitet sich: Holder +47%/h, 99 Netto-Kaeufer 5m, 4 organisch; Block 0: 0 Kaeufer, 0.0% gekauft, 0.0% noch gehalten; Dev-Coins 2",
+      "exit_rule": "Haelfte bei 2x; Rest raus, wenn Holder schrumpfen und Netto-Verkaeufer 2x in Folge, Liquiditaet -30%, -40% oder nach 2x 40% vom Hoch"
+    },
+    "gsDC8WbXwtyEmbh8f8HfvpPEJ7nG4FV4zX4GWXzSjyD": {
+      "mint": "gsDC8WbXwtyEmbh8f8HfvpPEJ7nG4FV4zX4GWXzSjyD",
+      "symbol": "DILLINGER",
+      "opened": 1790451488.6835284,
+      "invested_sol": 0.2,
+      "fees_sol": 0.0015,
+      "entry_signal_usd": 2.4598263897671413e-05,
+      "entry_fill_usd": 2.3651018374291293e-05,
+      "entry_slippage_pct": -3.85,
+      "roundtrip_cost_pct": 3.13,
+      "tokens_initial": 1023660.446495,
+      "tokens_left": 1023660.446495,
+      "decimals": 6,
+      "proceeds_sol": 0.0,
+      "peak_usd": 2.4598263897671413e-05,
+      "tp1_done": false,
+      "thesis_breaks": 0,
+      "missing_loops": 0,
+      "entry_liquidity": 5148.12262462438,
+      "entry_view": {
+        "age_h": 3.3434867709875107,
+        "mcap": 23416.139442433818,
+        "holders": 171,
+        "holder_growth_1h": 80.0,
+        "net_buyers_5m": 19,
+        "organic_buyers_5m": 3,
+        "organic_score": 48.087930699492944,
+        "price_change_1h": 2.5755996541698027
+      },
+      "bundle": {
+        "quelle": "block0",
+        "slot": 450725832,
+        "block0_wallets": 1,
+        "block0_supply_pct": 1.83,
+        "block0_still_held_pct": 0.0,
+        "block0_exited": 1,
+        "early_tx_slot1_2": 1,
+        "bundle_holding_pct": 0.0,
+        "gebuendelt": false,
+        "rugcheck_insider_pct": 0
+      },
+      "phase": "heiss",
+      "thesis": "Story verbreitet sich: Holder +80%/h, 19 Netto-Kaeufer 5m, 3 organisch; Block 0: 1 Kaeufer, 1.8% gekauft, 0.0% noch gehalten; Dev-Coins 2",
       "exit_rule": "Haelfte bei 2x; Rest raus, wenn Holder schrumpfen und Netto-Verkaeufer 2x in Folge, Liquiditaet -30%, -40% oder nach 2x 40% vom Hoch"
     }
   },
@@ -434,6 +479,7 @@
     "Gt4aXuoVGkDgXKSjJ4qsvtvWi9si3rUwi8jDuJZ28kEm": 1790419756.0396616,
     "4bKRCn6RCbwPzLXNDCq6bfVsZKjTsm445RQSxsTwT5KY": 1790419847.1323352,
     "tXrTtmeeq6PAzZTMhoTGybyeZBHZHCTCzPGU32Wpump": 1790447454.9496095,
-    "9jEbkZPhcwYCpYEiyNj5NPdj1ewNRppc7XQBSupVpump": 1790450310.131819
+    "9jEbkZPhcwYCpYEiyNj5NPdj1ewNRppc7XQBSupVpump": 1790450310.131819,
+    "gsDC8WbXwtyEmbh8f8HfvpPEJ7nG4FV4zX4GWXzSjyD": 1790451488.6836295
   }
 }
