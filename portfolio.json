@@ -1,7 +1,7 @@
 {
   "strategy": "NARRATIV",
   "started": "2026-09-26T02:46:00.825468+00:00",
-  "bankroll_sol": 9.579241,
+  "bankroll_sol": 9.695617,
   "positions": {
     "tXrTtmeeq6PAzZTMhoTGybyeZBHZHCTCzPGU32Wpump": {
       "mint": "tXrTtmeeq6PAzZTMhoTGybyeZBHZHCTCzPGU32Wpump",
@@ -62,7 +62,7 @@
       "tokens_left": 788880.304572,
       "decimals": 6,
       "proceeds_sol": 0.0,
-      "peak_usd": 3.8817182839381416e-05,
+      "peak_usd": 4.3490399878290825e-05,
       "tp1_done": false,
       "thesis_breaks": 0,
       "missing_loops": 0,
@@ -91,51 +91,6 @@
       },
       "phase": "heiss",
       "thesis": "Story verbreitet sich: Holder +27%/h, 19 Netto-Kaeufer 5m, 4 organisch; Block 0: 4 Kaeufer, 13.6% gekauft, 0.0% noch gehalten; Dev-Coins 1",
-      "exit_rule": "Haelfte bei 2x; Rest raus, wenn Holder schrumpfen und Netto-Verkaeufer 2x in Folge, Liquiditaet -30%, -40% oder nach 2x 40% vom Hoch"
-    },
-    "vyC4T4C7Rfxfzug3guPkeg2Qo54t3SgTrmkVcxK1WiH": {
-      "mint": "vyC4T4C7Rfxfzug3guPkeg2Qo54t3SgTrmkVcxK1WiH",
-      "symbol": "X",
-      "opened": 1790454681.611199,
-      "invested_sol": 0.2,
-      "fees_sol": 0.0015,
-      "entry_signal_usd": 3.938952670616335e-05,
-      "entry_fill_usd": 3.86220924149334e-05,
-      "entry_slippage_pct": -1.95,
-      "roundtrip_cost_pct": 2.85,
-      "tokens_initial": 628901.327861,
-      "tokens_left": 628901.327861,
-      "decimals": 6,
-      "proceeds_sol": 0.0,
-      "peak_usd": 3.938952670616335e-05,
-      "tp1_done": false,
-      "thesis_breaks": 0,
-      "missing_loops": 0,
-      "entry_liquidity": 12444.820271283203,
-      "entry_view": {
-        "age_h": 0.48637479146321616,
-        "mcap": 39389.526706161385,
-        "holders": 246,
-        "holder_growth_1h": 82.22222222222221,
-        "net_buyers_5m": 84,
-        "organic_buyers_5m": 5,
-        "organic_score": 40.07581819289635,
-        "price_change_1h": 138.31730210973433
-      },
-      "bundle": {
-        "quelle": "block0",
-        "slot": 450776084,
-        "block0_wallets": 1,
-        "block0_supply_pct": 6.63,
-        "block0_still_held_pct": 0.0,
-        "block0_exited": 1,
-        "early_tx_slot1_2": 12,
-        "bundle_holding_pct": 0.0,
-        "gebuendelt": false,
-        "rugcheck_insider_pct": 0
-      },
-      "phase": "heiss",
-      "thesis": "Story verbreitet sich: Holder +82%/h, 84 Netto-Kaeufer 5m, 5 organisch; Block 0: 1 Kaeufer, 6.6% gekauft, 0.0% noch gehalten; Dev-Coins 8",
       "exit_rule": "Haelfte bei 2x; Rest raus, wenn Holder schrumpfen und Netto-Verkaeufer 2x in Folge, Liquiditaet -30%, -40% oder nach 2x 40% vom Hoch"
     }
   },
@@ -590,6 +545,47 @@
       "exit_reason": "STORY_ABGEKUEHLT (40% vom Hoch)",
       "hold_h": 0.12,
       "closed_at": "2026-09-26T20:30:51.171098+00:00"
+    },
+    {
+      "symbol": "X",
+      "mint": "vyC4T4C7Rfxfzug3guPkeg2Qo54t3SgTrmkVcxK1WiH",
+      "invested_sol": 0.2,
+      "entry_fill_usd": 3.86220924149334e-05,
+      "entry_slippage_pct": -1.95,
+      "roundtrip_cost_pct": 2.85,
+      "tp1_done": false,
+      "entry_view": {
+        "age_h": 0.48637479146321616,
+        "mcap": 39389.526706161385,
+        "holders": 246,
+        "holder_growth_1h": 82.22222222222221,
+        "net_buyers_5m": 84,
+        "organic_buyers_5m": 5,
+        "organic_score": 40.07581819289635,
+        "price_change_1h": 138.31730210973433
+      },
+      "bundle": {
+        "quelle": "block0",
+        "slot": 450776084,
+        "block0_wallets": 1,
+        "block0_supply_pct": 6.63,
+        "block0_still_held_pct": 0.0,
+        "block0_exited": 1,
+        "early_tx_slot1_2": 12,
+        "bundle_holding_pct": 0.0,
+        "gebuendelt": false,
+        "rugcheck_insider_pct": 0
+      },
+      "phase": "heiss",
+      "thesis": "Story verbreitet sich: Holder +82%/h, 84 Netto-Kaeufer 5m, 5 organisch; Block 0: 1 Kaeufer, 6.6% gekauft, 0.0% noch gehalten; Dev-Coins 8",
+      "proceeds_sol": 0.116376,
+      "pnl_sol": -0.085124,
+      "pnl_pct": -42.56,
+      "peak_multiple": 1.02,
+      "exit_usd": 2.2884678296579653e-05,
+      "exit_reason": "NOTBREMSE (-41%)",
+      "hold_h": 0.12,
+      "closed_at": "2026-09-26T20:38:49.039717+00:00"
     }
   ],
   "cooldown": {
