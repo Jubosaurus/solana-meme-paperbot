@@ -26,7 +26,9 @@ PHASE_FILE = "marktphase.json"
 DISCORD_WEBHOOK_URL = os.environ.get("DISCORD_WEBHOOK_URL")
 JUPITER_API_KEY = (os.environ.get("JUPITER_API_KEY") or "").strip()
 JUP_BASE = "https://api.jup.ag" if JUPITER_API_KEY else "https://lite-api.jup.ag"
-TRENCH_BASE = "https://trench.bot/api"
+RUGCHECK_BASE = "https://api.rugcheck.xyz/v1"
+HELIUS_API_KEY = (os.environ.get("HELIUS_API_KEY") or "").strip()
+HELIUS_RPC = f"https://mainnet.helius-rpc.com/?api-key={HELIUS_API_KEY}" if HELIUS_API_KEY else None
 
 WSOL_MINT = "So11111111111111111111111111111111111111112"
 IGNORED_MINTS = {
@@ -62,12 +64,21 @@ MAX_PRICE_CHANGE_1H = 150.0
 MIN_LIQUIDITY_USD = 5_000
 IMPERSONATION_SYMBOLS = {"SOL", "WSOL", "USDC", "USDT", "BTC", "WBTC", "ETH", "WETH", "JUP"}
 # Tag 1: Bundle-Check
-MAX_BUNDLE_HOLDING_PCT = 10.0           # was Bundle-Wallets JETZT noch halten
-MAX_BUNDLE_INITIAL_PCT = 30.0           # was beim Launch gebuendelt gekauft wurde
+MAX_BUNDLE_HOLDING_PCT = 10.0           # Anteil verbundener Insider-Wallets (RugCheck)
+# Eigener Block-0-Check (Methode wie SolBundler): wer hat im Erstellungsblock gekauft?
+BUNDLE_MIN_WALLETS = 3                  # ab so vielen Kaeufern in Block 0 ...
+BUNDLE_MAX_SUPPLY_PCT = 15.0            # ... und diesem Anteil gilt ein Coin als gebuendelt
+BUNDLE_MAX_STILL_HELD_PCT = 10.0        # Block-0-Kaeufer halten noch zu viel
+BLOCK0_MAX_PAGES = 40                   # hoechstens 40.000 Transaktionen zurueckgehen
+BLOCK0_MAX_TX = 40
+BLOCK0_MAX_WALLETS = 25
 BUNDLE_CHECK_REQUIRED = True            # ohne Check kein Kauf
 # Tag 6: Dev pruefen
-MAX_CREATOR_RUGS = 0
 MAX_CREATOR_HOLDING_PCT = 10.0
+MAX_DEV_MINTS = 50                      # wer hunderte Coins startet, ist ein "sketchy dev"
+# Tag 7: Kursanstieg der letzten Stunde erst ab diesem Alter bewerten
+CHASE_CHECK_MIN_AGE_H = 2.0
+
 
 # ================================================================ Ausstieg
 TP1_MULTIPLE = 2.0                      # Tag 2: bei 2x ...
@@ -94,10 +105,12 @@ SESSION.headers.update({"User-Agent": "narrativ-paperbot/1.0"})
 
 STATS = {"loops": 0, "loop_errors": 0, "last_error": "", "entries": [], "exits": [],
          "partials": [], "rejects": {}, "jup_ok": 0, "jup_fail": 0,
-         "trench_ok": 0, "trench_fail": 0}
+         "rugcheck_ok": 0, "rugcheck_fail": 0, "helius_ok": 0, "helius_fail": 0}
 _jup_last = [0.0]
-_trench_last = [0.0]
-_trench_cache = {}
+_rugcheck_last = [0.0]
+_helius_last = [0.0]
+_block0_cache = {}
+_bundle_cache = {}
 _shield_cache = {}
 _reject_seen = {}
 _symbol_leaders = {}                    # Tag 12: Symbol -> (mint, holder, zeit)
@@ -133,30 +146,178 @@ def jup_get(path):
         return None
 
 
-def trench_get(mint, tries=2):
-    res = None
-    for attempt in range(tries):
-        _throttle(_trench_last, 1.1)
-        try:
-            res = SESSION.get(f"{TRENCH_BASE}/bundle/bundle_advanced/{mint}", timeout=45)
-            break
-        except requests.RequestException as err:
-            print(f"[TRENCHBOT] Versuch {attempt + 1}: {err}")
-            res = None
-    if res is None:
-        STATS["trench_fail"] += 1
+def _hide_key(text):
+    return str(text).replace(HELIUS_API_KEY, "***") if HELIUS_API_KEY else str(text)
+
+
+def rpc(method, params):
+    """Solana-RPC ueber Helius. Der API-Key taucht nie im Log auf."""
+    if not HELIUS_RPC:
+        return None
+    _throttle(_helius_last, 0.12)
+    try:
+        res = SESSION.post(HELIUS_RPC, json={"jsonrpc": "2.0", "id": 1, "method": method,
+                                             "params": params}, timeout=20)
+    except requests.RequestException as err:
+        STATS["helius_fail"] += 1
+        print(f"[HELIUS] {method}: {_hide_key(err)[:160]}")
         return None
     if res.status_code != 200:
-        STATS["trench_fail"] += 1
-        print(f"[TRENCHBOT HTTP {res.status_code}] {res.text[:120]}")
+        STATS["helius_fail"] += 1
+        print(f"[HELIUS HTTP {res.status_code}] {method}: {_hide_key(res.text)[:120]}")
+        return None
+    try:
+        body = res.json()
+    except ValueError:
+        STATS["helius_fail"] += 1
+        return None
+    if body.get("error"):
+        STATS["helius_fail"] += 1
+        print(f"[HELIUS] {method}: {_hide_key(body['error'])[:160]}")
+        return None
+    STATS["helius_ok"] += 1
+    return body.get("result")
+
+
+def find_creation_block(mint):
+    """Geht die Transaktionen des Tokens bis zur ersten zurueck.
+    Rueckgabe (Slot, Signaturen in Block 0, Transaktionen in den 2 Folgeslots) oder None."""
+    before, prev_page, page = None, [], []
+    for _ in range(BLOCK0_MAX_PAGES):
+        params = {"limit": 1000, "commitment": "confirmed"}
+        if before:
+            params["before"] = before
+        result = rpc("getSignaturesForAddress", [mint, params])
+        if result is None:
+            return None
+        if not result:
+            break
+        prev_page, page = page, result
+        if len(result) < 1000:
+            break
+        before = result[-1]["signature"]
+    else:
+        print(f"[BLOCK0] {mint[:8]}: mehr als {BLOCK0_MAX_PAGES * 1000} Transaktionen, uebersprungen")
+        return None
+    sigs = prev_page + page
+    if not sigs:
+        return None
+    slot = min(s["slot"] for s in sigs)
+    block0 = [s for s in sigs if s["slot"] == slot and not s.get("err")]
+    early = sum(1 for s in sigs if slot < s["slot"] <= slot + 2 and not s.get("err"))
+    return slot, block0, early
+
+
+def block0_analysis(mint):
+    """Tag 1 nach der SolBundler-Methode: Wer hat im Erstellungsblock gekauft,
+    wie viel vom Angebot, und halten diese Wallets noch?"""
+    base = _block0_cache.get(mint)
+    if base is None:
+        found = find_creation_block(mint)
+        if not found:
+            return None
+        slot, sigs, early = found
+        supply = as_float(((rpc("getTokenSupply", [mint]) or {}).get("value") or {}).get("amount"))
+        if supply <= 0:
+            return None
+        bought = {}
+        for s in sigs[:BLOCK0_MAX_TX]:
+            tx = rpc("getTransaction", [s["signature"], {"encoding": "json", "commitment": "confirmed",
+                                                          "maxSupportedTransactionVersion": 0}])
+            meta = (tx or {}).get("meta") or {}
+            if not tx or meta.get("err"):
+                continue
+            pre = {b.get("accountIndex"): b for b in meta.get("preTokenBalances") or []
+                   if b.get("mint") == mint}
+            for b in meta.get("postTokenBalances") or []:
+                if b.get("mint") != mint or not b.get("owner"):
+                    continue
+                post_amt = as_float((b.get("uiTokenAmount") or {}).get("amount"))
+                pre_amt = as_float(((pre.get(b.get("accountIndex")) or {})
+                                    .get("uiTokenAmount") or {}).get("amount"))
+                if post_amt <= pre_amt:
+                    continue
+                if post_amt / supply > 0.5:
+                    continue                      # Bonding Curve bzw. Pool, kein Kaeufer
+                bought[b["owner"]] = bought.get(b["owner"], 0.0) + (post_amt - pre_amt)
+        base = {"slot": slot, "block0_tx": len(sigs), "early_tx": early,
+                "supply": supply, "bought": bought}
+        _block0_cache[mint] = base
+
+    held, exited = 0.0, 0
+    for owner, amount in list(base["bought"].items())[:BLOCK0_MAX_WALLETS]:
+        res = rpc("getTokenAccountsByOwner", [owner, {"mint": mint}, {"encoding": "jsonParsed"}])
+        if res is None:
+            held += amount                       # unbekannt: vorsichtshalber noch gehalten
+            continue
+        current = 0.0
+        for acc in res.get("value") or []:
+            info = ((((acc.get("account") or {}).get("data") or {}).get("parsed") or {})
+                    .get("info") or {})
+            current += as_float((info.get("tokenAmount") or {}).get("amount"))
+        held += current
+        if current < amount * 0.1:
+            exited += 1
+    supply = base["supply"]
+    bought_total = sum(base["bought"].values())
+    return {
+        "quelle": "block0",
+        "slot": base["slot"],
+        "block0_wallets": len(base["bought"]),
+        "block0_supply_pct": round(bought_total / supply * 100, 2),
+        "block0_still_held_pct": round(held / supply * 100, 2),
+        "block0_exited": exited,
+        "early_tx_slot1_2": base["early_tx"],
+        "bundle_holding_pct": round(held / supply * 100, 2),
+    }
+
+
+def rugcheck_get(mint):
+    _throttle(_rugcheck_last, 1.1)
+    try:
+        res = SESSION.get(f"{RUGCHECK_BASE}/tokens/{mint}/report", timeout=20)
+    except requests.RequestException as err:
+        STATS["rugcheck_fail"] += 1
+        print(f"[RUGCHECK] {err}")
+        return None
+    if res.status_code != 200:
+        STATS["rugcheck_fail"] += 1
+        print(f"[RUGCHECK HTTP {res.status_code}] {res.text[:120]}")
         return None
     try:
         data = res.json()
     except ValueError:
-        STATS["trench_fail"] += 1
+        STATS["rugcheck_fail"] += 1
         return None
-    STATS["trench_ok"] += 1
+    STATS["rugcheck_ok"] += 1
     return data if isinstance(data, dict) else None
+
+
+def rugcheck_metrics(data):
+    """Insider-Anteil aus RugCheck. Insider-Netzwerke sind verbundene Wallets,
+    typischerweise vom selben Ursprung finanziert - das On-Chain-Bild von Bundling."""
+    holders = data.get("topHolders") or []
+    insider_pct = sum(as_float(h.get("pct")) for h in holders if h.get("insider"))
+    token = data.get("token") or {}
+    supply = as_float(token.get("supply"))
+    network_pct = 0.0
+    for net in data.get("insiderNetworks") or []:
+        amount = as_float(net.get("tokenAmount"))
+        if supply > 0 and amount > 0:
+            network_pct += amount / supply * 100
+    if network_pct > 100:                             # Einheiten passen nicht zusammen
+        network_pct = 0.0
+    risks = [str(r.get("name") or "") for r in data.get("risks") or []]
+    return {
+        "quelle": "rugcheck",
+        "bundle_holding_pct": round(max(insider_pct, network_pct), 2),
+        "insider_holder_pct": round(insider_pct, 2),
+        "insider_network_pct": round(network_pct, 2),
+        "insider_wallets": int(as_float(data.get("graphInsidersDetected"))),
+        "top_holders_listed": len(holders),
+        "rugged": bool(data.get("rugged")),
+        "risks": risks[:8],
+    }
 
 
 def as_float(value, default=0.0):
@@ -278,6 +439,9 @@ def token_view(tok, now):
         "mint_disabled": audit.get("mintAuthorityDisabled"),
         "freeze_disabled": audit.get("freezeAuthorityDisabled"),
         "is_sus": "isSus" in audit and bool(audit.get("isSus", True)),
+        "dev_mints": int(as_float(audit.get("devMints"))),
+        "dev_balance_pct": as_float(audit.get("devBalancePercentage")),
+        "top_holders_pct": as_float(audit.get("topHoldersPercentage")),
     }
 
 
@@ -313,8 +477,12 @@ def quick_checks(v):
         return "ZU_JUNG"
     if v["age_h"] > MAX_AGE_H:
         return "STORY_ZU_ALT"                                   # Tag 5
-    if v["mcap"] > MAX_MCAP_USD or v["price_change_1h"] > MAX_PRICE_CHANGE_1H:
+    if v["mcap"] > MAX_MCAP_USD:
         return "SCHON_GELAUFEN"                                 # Tag 7
+    if v["age_h"] >= CHASE_CHECK_MIN_AGE_H and v["price_change_1h"] > MAX_PRICE_CHANGE_1H:
+        return "SCHON_GELAUFEN"
+    if v["dev_mints"] > MAX_DEV_MINTS or v["dev_balance_pct"] > MAX_CREATOR_HOLDING_PCT:
+        return "DEV_VERDAECHTIG"                                # Tag 6
     if v["holder_growth_1h"] < MIN_HOLDER_GROWTH_1H or v["holder_growth_5m"] <= 0:
         return "VERBREITUNG_STOCKT"                             # Tag 5
     if v["net_buyers_5m"] < MIN_NET_BUYERS_5M or v["organic_buyers_5m"] < MIN_ORGANIC_BUYERS_5M:
@@ -334,34 +502,42 @@ def quick_checks(v):
 
 
 def bundle_dev_check(mint):
-    """Tag 1 + Tag 6. Rueckgabe (Grund oder None, Kennzahlen)."""
-    cached = _trench_cache.get(mint)
+    """Tag 1. Hauptpruefung: eigener Block-0-Check. Zweitmeinung: RugCheck-Insider.
+    Ohne jede Datenquelle kein Kauf. Rueckgabe (Grund oder None, Kennzahlen)."""
+    cached = _bundle_cache.get(mint)
     if cached and time.time() - cached[0] < 600:
         return cached[1], cached[2]
-    data = trench_get(mint)
-    if data is None:
-        return ("BUNDLE_CHECK_NICHT_MOEGLICH" if BUNDLE_CHECK_REQUIRED else None), {}
 
-    creator = data.get("creator_analysis") or {}
-    history = creator.get("history") or {}
-    info = {
-        "bundle_holding_pct": as_float(data.get("total_holding_percentage")),
-        "bundle_initial_pct": as_float(data.get("total_percentage_bundled")),
-        "bundles": int(as_float(data.get("total_bundles"))),
-        "creator_rugs": int(as_float(history.get("rug_count"))),
-        "creator_coins": int(as_float(history.get("total_coins_created"))),
-        "creator_holding_pct": as_float(creator.get("holding_percentage")),
-        "creator_risk": str(creator.get("risk_level") or ""),
-    }
-    reason = None
-    if info["bundle_holding_pct"] >= MAX_BUNDLE_HOLDING_PCT or \
-            info["bundle_initial_pct"] >= MAX_BUNDLE_INITIAL_PCT:
-        reason = "GEBUENDELT"
-    elif info["creator_rugs"] > MAX_CREATOR_RUGS or info["creator_risk"].upper() == "HIGH":
-        reason = "DEV_MIT_RUGS"
-    elif info["creator_holding_pct"] > MAX_CREATOR_HOLDING_PCT:
-        reason = "DEV_HAELT_ZU_VIEL"
-    _trench_cache[mint] = (time.time(), reason, info)
+    info, reason = {}, None
+    b0 = block0_analysis(mint) if HELIUS_RPC else None
+    if b0:
+        info = dict(b0)
+        if b0["block0_wallets"] >= BUNDLE_MIN_WALLETS and \
+                b0["block0_supply_pct"] >= BUNDLE_MAX_SUPPLY_PCT:
+            reason = "GEBUENDELT"
+        elif b0["block0_still_held_pct"] >= BUNDLE_MAX_STILL_HELD_PCT:
+            reason = "BUNDLER_HALTEN_NOCH"
+
+    if reason is None:
+        rc = rugcheck_get(mint)
+        rc_ok = bool(rc) and (rc.get("topHolders") or rc.get("insiderNetworks")
+                              or rc.get("graphInsidersDetected") is not None)
+        if rc_ok:
+            m = rugcheck_metrics(rc)
+            info["rugcheck_insider_pct"] = m["bundle_holding_pct"]
+            info["rugcheck_rugged"] = m["rugged"]
+            if not b0:
+                info["quelle"] = "rugcheck"
+                info["bundle_holding_pct"] = m["bundle_holding_pct"]
+            if m["rugged"]:
+                reason = "BEREITS_GERUGGT"
+            elif m["bundle_holding_pct"] >= MAX_BUNDLE_HOLDING_PCT:
+                reason = "INSIDER_NETZWERK"
+        elif not b0:
+            # Weder Block-0-Check noch RugCheck: ohne Check kein Kauf
+            return ("BUNDLE_CHECK_NICHT_MOEGLICH" if BUNDLE_CHECK_REQUIRED else None), {}
+
+    _bundle_cache[mint] = (time.time(), reason, info)
     return reason, info
 
 
@@ -478,7 +654,7 @@ def current_phase():
 
 # ================================================================ Kauf / Verkauf
 
-def open_position(p, v, trench, sol_usd):
+def open_position(p, v, bundle, sol_usd):
     decimals = v.get("decimals")
     if decimals is None:
         log_reject(v, "KEINE_DECIMALS")
@@ -494,10 +670,15 @@ def open_position(p, v, trench, sol_usd):
     back = quote(v["mint"], WSOL_MINT, raw_out)
     roundtrip = round((1 - back / lamports) * 100, 2) if back > 0 else None
 
+    if bundle.get("quelle") == "block0":
+        bundle_txt = (f"Block 0: {bundle['block0_wallets']} Kaeufer, "
+                      f"{bundle['block0_supply_pct']:.1f}% gekauft, "
+                      f"{bundle['block0_still_held_pct']:.1f}% noch gehalten")
+    else:
+        bundle_txt = f"Insider halten {bundle.get('bundle_holding_pct', 0):.1f}% (RugCheck)"
     thesis = (f"Story verbreitet sich: Holder +{v['holder_growth_1h']:.0f}%/h, "
               f"{v['net_buyers_5m']} Netto-Kaeufer 5m, {v['organic_buyers_5m']} organisch; "
-              f"Bundle haelt {trench.get('bundle_holding_pct', 0):.1f}%, "
-              f"Dev-Rugs {trench.get('creator_rugs', 0)}")
+              f"{bundle_txt}; Dev-Coins {v['dev_mints']}")
     exit_rule = (f"Haelfte bei {TP1_MULTIPLE:.0f}x; Rest raus, wenn Holder schrumpfen und "
                  f"Netto-Verkaeufer {THESIS_BREAK_CHECKS}x in Folge, Liquiditaet -{LIQ_DROP_EXIT_PCT:.0f}%, "
                  f"{EMERGENCY_STOP_PCT:.0f}% oder nach 2x {TRAIL_AFTER_TP1_PCT:.0f}% vom Hoch")
@@ -513,7 +694,7 @@ def open_position(p, v, trench, sol_usd):
            "entry_view": {k: v[k] for k in ("age_h", "mcap", "holders", "holder_growth_1h",
                                             "net_buyers_5m", "organic_buyers_5m",
                                             "organic_score", "price_change_1h")},
-           "trench": trench, "phase": current_phase(), "thesis": thesis, "exit_rule": exit_rule}
+           "bundle": bundle, "phase": current_phase(), "thesis": thesis, "exit_rule": exit_rule}
     p["positions"][v["mint"]] = pos
     p["cooldown"][v["mint"]] = time.time()
     journal("KAUF", pos, fill_usd, POSITION_SOL)
@@ -558,7 +739,7 @@ def close_position(p, pos, price_usd, reason, sol_usd):
     peak_x = pos["peak_usd"] / pos["entry_fill_usd"] if pos["entry_fill_usd"] else 0
     record = {k: pos[k] for k in ("symbol", "mint", "invested_sol", "entry_fill_usd",
                                   "entry_slippage_pct", "roundtrip_cost_pct", "tp1_done",
-                                  "entry_view", "trench", "phase", "thesis")}
+                                  "entry_view", "bundle", "phase", "thesis")}
     record.update({"proceeds_sol": round(pos["proceeds_sol"], 6), "pnl_sol": round(pnl, 6),
                    "pnl_pct": round(pnl_pct, 2), "peak_multiple": round(peak_x, 2),
                    "exit_usd": price_usd, "exit_reason": reason,
@@ -666,11 +847,11 @@ def scan(p, sol_usd, now):
         if reason:
             log_reject(v, reason)
             continue
-        reason, trench = bundle_dev_check(v["mint"])
+        reason, bundle = bundle_dev_check(v["mint"])
         if reason:
             log_reject(v, reason)
             continue
-        if open_position(p, v, trench, sol_usd):
+        if open_position(p, v, bundle, sol_usd):
             slots -= 1
 
 
@@ -724,7 +905,8 @@ def shift_summary(p, start_value, started, reason):
     if top:
         lines.append("**Haeufigste Ablehnungen:** " + ", ".join(f"{k} {v}" for k, v in top))
     lines.append(f"**Jupiter:** {STATS['jup_ok']} ok / {STATS['jup_fail']} Fehler | "
-                 f"**TrenchBot:** {STATS['trench_ok']} ok / {STATS['trench_fail']} Fehler")
+                 f"**RugCheck:** {STATS['rugcheck_ok']} ok / {STATS['rugcheck_fail']} Fehler | "
+                 f"**Helius:** {STATS['helius_ok']} ok / {STATS['helius_fail']} Fehler")
     lines.append(f"**Loop-Fehler:** {STATS['loop_errors']}"
                  + (f" ({STATS['last_error'][:150]})" if STATS["loop_errors"] else ""))
     ok = reason.startswith("regulaer") and STATS["loop_errors"] == 0
@@ -793,6 +975,7 @@ def run():
 
 def probe():
     print(f"[PROBE] Jupiter: {JUP_BASE} ({'mit Key' if JUPITER_API_KEY else 'ohne Key'})")
+    print(f"[PROBE] Helius: {'Key vorhanden' if HELIUS_API_KEY else 'KEIN KEY - Block-0-Check aus'}")
     print(f"[PROBE] SOL-Kurs: {sol_price()}")
     tokens = jup_category("toptrending", "1h", 20)
     print(f"[PROBE] Trending 1h: {len(tokens)} Token")
@@ -805,8 +988,9 @@ def probe():
         print(f"  {v['symbol']:<12} Alter {v['age_h'] if v['age_h'] is None else round(v['age_h'], 1)} h | "
               f"MC ${v['mcap']:,.0f} | Holder {v['holders']} ({v['holder_growth_1h']:+.1f}%/h) | "
               f"Netto 5m {v['net_buyers_5m']} | Social {v['social']} | Check: {quick_checks(v)}")
-    pool = jup_category("toptrending", "5m", 100) + jup_category("toptrending", "1h", 100)
-    young = [token_view(t, now) for t in pool]
+    pool = {t["id"]: t for t in jup_category("toptrending", "5m", 100)
+            + jup_category("toptrending", "1h", 100) if t.get("id")}
+    young = [token_view(t, now) for t in pool.values()]
     young = sorted((v for v in young if v["age_h"] is not None and v["age_h"] <= 24),
                    key=lambda v: v["age_h"])
     print(f"[PROBE] Junge Coins (unter 24 h) in den Trending-Listen: {len(young)}")
@@ -814,17 +998,34 @@ def probe():
         print(f"  {v['symbol']:<12} Alter {v['age_h']:.1f} h | MC ${v['mcap']:,.0f} | "
               f"Holder {v['holders']} ({v['holder_growth_1h']:+.1f}%/h) | Check: {quick_checks(v)}")
     if not young:
-        print("[PROBE] Kein junger Coin gefunden, TrenchBot-Test entfaellt.")
+        print("[PROBE] Kein junger Coin gefunden, RugCheck-Test entfaellt.")
         return
     test = young[0]
     print(f"[PROBE] Social-Links fuer {test['symbol']} (DexScreener): {has_social(test)}")
-    t0 = time.time()
-    data = trench_get(test["mint"])
-    print(f"[PROBE] TrenchBot fuer {test['symbol']}: "
-          f"{'nicht erreichbar' if data is None else 'erreichbar'} nach {time.time() - t0:.1f} s")
-    if data:
-        print(f"[PROBE] TrenchBot-Felder: {sorted(data.keys())}")
-        print(f"[PROBE] Bewertung: {bundle_dev_check(test['mint'])}")
+    print(f"[PROBE] Jupiter-Dev-Daten: Dev-Coins {test['dev_mints']}, "
+          f"Dev haelt {test['dev_balance_pct']:.2f}%, Top-Holder {test['top_holders_pct']:.1f}%")
+    for v in young[:3]:
+        t0 = time.time()
+        rc = rugcheck_get(v["mint"])
+        print(f"[PROBE] RugCheck fuer {v['symbol']}: "
+              f"{'nicht erreichbar' if rc is None else 'erreichbar'} nach {time.time() - t0:.1f} s")
+        if rc:
+            print(f"        Felder: {sorted(rc.keys())}")
+            nets = rc.get("insiderNetworks") or []
+            print(f"        topHolders: {len(rc.get('topHolders') or [])}, "
+                  f"Insider markiert: {sum(1 for h in rc.get('topHolders') or [] if h.get('insider'))}, "
+                  f"graphInsidersDetected: {rc.get('graphInsidersDetected')}, "
+                  f"insiderNetworks: {len(nets)}, Beispiel: {json.dumps(nets[:1])[:200]}")
+            print(f"        token.supply: {(rc.get('token') or {}).get('supply')} | "
+                  f"Kennzahlen: {rugcheck_metrics(rc)}")
+    for v in young[:3]:
+        t0 = time.time()
+        calls_before = STATS["helius_ok"] + STATS["helius_fail"]
+        b0 = block0_analysis(v["mint"]) if HELIUS_RPC else None
+        calls = STATS["helius_ok"] + STATS["helius_fail"] - calls_before
+        print(f"[PROBE] Block 0 fuer {v['symbol']} ({v['age_h']:.1f} h): "
+              f"{b0 if b0 else 'keine Daten'} | {time.time() - t0:.1f} s, {calls} Abfragen")
+    print(f"[PROBE] Gesamtbewertung {test['symbol']}: {bundle_dev_check(test['mint'])}")
     print("[PROBE] fertig. Diese Ausgabe bitte an Claude schicken.")
 
 
