@@ -41,6 +41,7 @@ jobs:
         env:
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
           JUPITER_API_KEY: ${{ secrets.JUPITER_API_KEY }}
+          HELIUS_API_KEY: ${{ secrets.HELIUS_API_KEY }}
           PYTHONUNBUFFERED: "1"
         run: |
           if [ "${{ github.event.inputs.modus }}" = "probe" ]; then
