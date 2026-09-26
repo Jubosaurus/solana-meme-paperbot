@@ -1,54 +1,8 @@
 {
   "strategy": "NARRATIV",
   "started": "2026-09-26T02:46:00.825468+00:00",
-  "bankroll_sol": 9.576838,
-  "positions": {
-    "FTBq3qcxyehLD5VzDG5EfKhWBB5vXZtq7g6qepUAoVpx": {
-      "mint": "FTBq3qcxyehLD5VzDG5EfKhWBB5vXZtq7g6qepUAoVpx",
-      "symbol": "K/ACC",
-      "opened": 1790412486.7829714,
-      "invested_sol": 0.2,
-      "fees_sol": 0.0015,
-      "entry_signal_usd": 2.507506918029447e-05,
-      "entry_fill_usd": 2.560083991598391e-05,
-      "entry_slippage_pct": 2.1,
-      "roundtrip_cost_pct": 2.94,
-      "tokens_initial": 944038.263704,
-      "tokens_left": 944038.263704,
-      "decimals": 6,
-      "proceeds_sol": 0.0,
-      "peak_usd": 2.8101293968207067e-05,
-      "tp1_done": false,
-      "thesis_breaks": 0,
-      "missing_loops": 0,
-      "entry_liquidity": 9883.842796902069,
-      "entry_view": {
-        "age_h": 0.880347910589642,
-        "mcap": 25075.06918029447,
-        "holders": 172,
-        "holder_growth_1h": 1333.3333333333335,
-        "net_buyers_5m": 22,
-        "organic_buyers_5m": 3,
-        "organic_score": 42.61256251068805,
-        "price_change_1h": 563.1503677339014
-      },
-      "bundle": {
-        "quelle": "block0",
-        "slot": 450613271,
-        "block0_wallets": 1,
-        "block0_supply_pct": 5.03,
-        "block0_still_held_pct": 0.0,
-        "block0_exited": 1,
-        "early_tx_slot1_2": 5,
-        "bundle_holding_pct": 0.0,
-        "gebuendelt": false,
-        "rugcheck_insider_pct": 0
-      },
-      "phase": "normal",
-      "thesis": "Story verbreitet sich: Holder +1333%/h, 22 Netto-Kaeufer 5m, 3 organisch; Block 0: 1 Kaeufer, 5.0% gekauft, 0.0% noch gehalten; Dev-Coins 7",
-      "exit_rule": "Haelfte bei 2x; Rest raus, wenn Holder schrumpfen und Netto-Verkaeufer 2x in Folge, Liquiditaet -30%, -40% oder nach 2x 40% vom Hoch"
-    }
-  },
+  "bankroll_sol": 9.678368,
+  "positions": {},
   "closed": [
     {
       "symbol": "SHOGGOTH",
@@ -172,6 +126,47 @@
       "exit_reason": "THESE_GEBROCHEN (Holder schrumpfen, Netto-Verkaeufer)",
       "hold_h": 0.42,
       "closed_at": "2026-09-26T08:49:23.449298+00:00"
+    },
+    {
+      "symbol": "K/ACC",
+      "mint": "FTBq3qcxyehLD5VzDG5EfKhWBB5vXZtq7g6qepUAoVpx",
+      "invested_sol": 0.2,
+      "entry_fill_usd": 2.560083991598391e-05,
+      "entry_slippage_pct": 2.1,
+      "roundtrip_cost_pct": 2.94,
+      "tp1_done": false,
+      "entry_view": {
+        "age_h": 0.880347910589642,
+        "mcap": 25075.06918029447,
+        "holders": 172,
+        "holder_growth_1h": 1333.3333333333335,
+        "net_buyers_5m": 22,
+        "organic_buyers_5m": 3,
+        "organic_score": 42.61256251068805,
+        "price_change_1h": 563.1503677339014
+      },
+      "bundle": {
+        "quelle": "block0",
+        "slot": 450613271,
+        "block0_wallets": 1,
+        "block0_supply_pct": 5.03,
+        "block0_still_held_pct": 0.0,
+        "block0_exited": 1,
+        "early_tx_slot1_2": 5,
+        "bundle_holding_pct": 0.0,
+        "gebuendelt": false,
+        "rugcheck_insider_pct": 0
+      },
+      "phase": "normal",
+      "thesis": "Story verbreitet sich: Holder +1333%/h, 22 Netto-Kaeufer 5m, 3 organisch; Block 0: 1 Kaeufer, 5.0% gekauft, 0.0% noch gehalten; Dev-Coins 7",
+      "proceeds_sol": 0.10153,
+      "pnl_sol": -0.09997,
+      "pnl_pct": -49.98,
+      "peak_multiple": 1.1,
+      "exit_usd": 1.3396988228118801e-05,
+      "exit_reason": "NOTBREMSE (-48%)",
+      "hold_h": 0.19,
+      "closed_at": "2026-09-26T08:59:36.480225+00:00"
     }
   ],
   "cooldown": {
