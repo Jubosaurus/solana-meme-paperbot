@@ -1,7 +1,7 @@
 {
   "strategy": "NARRATIV",
   "started": "2026-09-26T02:46:00.825468+00:00",
-  "bankroll_sol": 10.569395,
+  "bankroll_sol": 10.367895,
   "positions": {
     "CeVVQMZx8QcVNZ5PJ4YgF8Sz4FqfudCKABMAYN3RGxmr": {
       "mint": "CeVVQMZx8QcVNZ5PJ4YgF8Sz4FqfudCKABMAYN3RGxmr",
@@ -17,7 +17,7 @@
       "tokens_left": 465120.485026,
       "decimals": 6,
       "proceeds_sol": 0.0,
-      "peak_usd": 5.012944161057779e-05,
+      "peak_usd": 5.112540620186731e-05,
       "tp1_done": false,
       "thesis_breaks": 0,
       "missing_loops": 0,
@@ -91,6 +91,51 @@
       },
       "phase": "heiss",
       "thesis": "Story verbreitet sich: Holder +751%/h, 74 Netto-Kaeufer 5m, 17 organisch; Block 0: 3 Kaeufer, 11.2% gekauft, 0.0% noch gehalten; Dev-Coins 1",
+      "exit_rule": "Haelfte bei 2x; Rest raus, wenn Holder schrumpfen und Netto-Verkaeufer 2x in Folge, Liquiditaet -30%, -40% oder nach 2x 40/30/25 % vom Hoch (Stufen 4x/10x)"
+    },
+    "5cDPo1jjEEtxWf2y1HTx4WyMydVmErN3YnbYtxLVcmg9": {
+      "mint": "5cDPo1jjEEtxWf2y1HTx4WyMydVmErN3YnbYtxLVcmg9",
+      "symbol": "KUNO",
+      "opened": 1790552813.921501,
+      "invested_sol": 0.2,
+      "fees_sol": 0.0015,
+      "entry_signal_usd": 4.563891090138264e-05,
+      "entry_fill_usd": 4.840258793472198e-05,
+      "entry_slippage_pct": 6.06,
+      "roundtrip_cost_pct": 2.55,
+      "tokens_initial": 503451.30435,
+      "tokens_left": 503451.30435,
+      "decimals": 6,
+      "proceeds_sol": 0.0,
+      "peak_usd": 4.563891090138264e-05,
+      "tp1_done": false,
+      "thesis_breaks": 0,
+      "missing_loops": 0,
+      "entry_liquidity": 7861.089372074189,
+      "entry_view": {
+        "age_h": 0.9327782031562594,
+        "mcap": 43253.529535431684,
+        "holders": 422,
+        "holder_growth_1h": 3736.3636363636365,
+        "net_buyers_5m": 40,
+        "organic_buyers_5m": 13,
+        "organic_score": 54.23634935969463,
+        "price_change_1h": 1066.417396382713
+      },
+      "bundle": {
+        "quelle": "block0",
+        "slot": 451136071,
+        "block0_wallets": 4,
+        "block0_supply_pct": 7.48,
+        "block0_still_held_pct": 0.0,
+        "block0_exited": 4,
+        "early_tx_slot1_2": 5,
+        "bundle_holding_pct": 0.0,
+        "gebuendelt": false,
+        "rugcheck_insider_pct": 0
+      },
+      "phase": "heiss",
+      "thesis": "Story verbreitet sich: Holder +3736%/h, 40 Netto-Kaeufer 5m, 13 organisch; Block 0: 4 Kaeufer, 7.5% gekauft, 0.0% noch gehalten; Dev-Coins 1",
       "exit_rule": "Haelfte bei 2x; Rest raus, wenn Holder schrumpfen und Netto-Verkaeufer 2x in Folge, Liquiditaet -30%, -40% oder nach 2x 40/30/25 % vom Hoch (Stufen 4x/10x)"
     }
   },
@@ -1231,7 +1276,8 @@
     "H61fq5HQGXAr5rJ3BCVRHfHDdoBgFR4Ttz8F8gjmFaV4": 1790541153.1515033,
     "2xrw9WoHD5EWPT77rgYdubFGCxySPQxtbP69XWmU8eBM": 1790551483.6529286,
     "CeVVQMZx8QcVNZ5PJ4YgF8Sz4FqfudCKABMAYN3RGxmr": 1790552561.5428126,
-    "GhRJXatdMGdDcGmfxZPKWyUW4FNvMM4fSHRquyvgpump": 1790552725.4163837
+    "GhRJXatdMGdDcGmfxZPKWyUW4FNvMM4fSHRquyvgpump": 1790552725.4163837,
+    "5cDPo1jjEEtxWf2y1HTx4WyMydVmErN3YnbYtxLVcmg9": 1790552813.9215822
   },
   "watch": {
     "6XnC2YXRnvT8Nx16Kny61sz3UgGjWGRKsGomTDRe8haa": {
@@ -1280,5 +1326,5 @@
       "until": 1790573628.1530845
     }
   },
-  "saved_at": 1790552763.448123
+  "saved_at": 1790552814.1446095
 }
