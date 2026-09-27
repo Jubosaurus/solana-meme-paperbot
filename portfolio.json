@@ -1,8 +1,54 @@
 {
   "strategy": "NARRATIV",
   "started": "2026-09-26T02:46:00.825468+00:00",
-  "bankroll_sol": 11.064242,
-  "positions": {},
+  "bankroll_sol": 10.862742,
+  "positions": {
+    "2xrw9WoHD5EWPT77rgYdubFGCxySPQxtbP69XWmU8eBM": {
+      "mint": "2xrw9WoHD5EWPT77rgYdubFGCxySPQxtbP69XWmU8eBM",
+      "symbol": "BAGGED",
+      "opened": 1790551483.6527207,
+      "invested_sol": 0.2,
+      "fees_sol": 0.0015,
+      "entry_signal_usd": 0.0001652542457127512,
+      "entry_fill_usd": 0.0001531415104730808,
+      "entry_slippage_pct": -7.33,
+      "roundtrip_cost_pct": 2.63,
+      "tokens_initial": 159082.465614,
+      "tokens_left": 159082.465614,
+      "decimals": 6,
+      "proceeds_sol": 0.0,
+      "peak_usd": 0.0001652542457127512,
+      "tp1_done": false,
+      "thesis_breaks": 0,
+      "missing_loops": 0,
+      "entry_liquidity": 17165.3478011045,
+      "entry_view": {
+        "age_h": 5.387248078982036,
+        "mcap": 161193.14185869828,
+        "holders": 519,
+        "holder_growth_1h": 135.9090909090909,
+        "net_buyers_5m": 44,
+        "organic_buyers_5m": 3,
+        "organic_score": 49.790506527100135,
+        "price_change_1h": 62.292144370079264
+      },
+      "bundle": {
+        "quelle": "block0",
+        "slot": 451071412,
+        "block0_wallets": 1,
+        "block0_supply_pct": 2.13,
+        "block0_still_held_pct": 3.42,
+        "block0_exited": 0,
+        "early_tx_slot1_2": 8,
+        "bundle_holding_pct": 3.42,
+        "gebuendelt": false,
+        "rugcheck_insider_pct": 0
+      },
+      "phase": "heiss",
+      "thesis": "Story verbreitet sich: Holder +136%/h, 44 Netto-Kaeufer 5m, 3 organisch; Block 0: 1 Kaeufer, 2.1% gekauft, 3.4% noch gehalten; Dev-Coins 1",
+      "exit_rule": "Haelfte bei 2x; Rest raus, wenn Holder schrumpfen und Netto-Verkaeufer 2x in Folge, Liquiditaet -30%, -40% oder nach 2x 40/30/25 % vom Hoch (Stufen 4x/10x)"
+    }
+  },
   "closed": [
     {
       "symbol": "SHOGGOTH",
@@ -1096,7 +1142,8 @@
     "8C45BmADgZjG3KPCNHCW37XxJujj96A1U8rJb13HWbag": 1790527172.2023034,
     "6XnC2YXRnvT8Nx16Kny61sz3UgGjWGRKsGomTDRe8haa": 1790530302.18021,
     "F4K2SbLNgyz9gzNqT8bPeLpRkxy4oMA9twaffUDdZtB6": 1790531675.9275117,
-    "H61fq5HQGXAr5rJ3BCVRHfHDdoBgFR4Ttz8F8gjmFaV4": 1790541153.1515033
+    "H61fq5HQGXAr5rJ3BCVRHfHDdoBgFR4Ttz8F8gjmFaV4": 1790541153.1515033,
+    "2xrw9WoHD5EWPT77rgYdubFGCxySPQxtbP69XWmU8eBM": 1790551483.6529286
   },
   "watch": {
     "6XnC2YXRnvT8Nx16Kny61sz3UgGjWGRKsGomTDRe8haa": {
@@ -1136,5 +1183,5 @@
       "until": 1790564604.0275924
     }
   },
-  "saved_at": 1790551437.8678155
+  "saved_at": 1790551484.1189532
 }
