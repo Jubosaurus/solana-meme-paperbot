@@ -22,6 +22,7 @@ PORTFOLIO_FILE = "portfolio.json"
 JOURNAL_FILE = "journal.csv"
 REJECT_FILE = "abgelehnt.csv"
 PHASE_FILE = "marktphase.json"
+VERLAUF_FILE = "verlauf.csv"
 
 DISCORD_WEBHOOK_URL = os.environ.get("DISCORD_WEBHOOK_URL")
 JUPITER_API_KEY = (os.environ.get("JUPITER_API_KEY") or "").strip()
@@ -86,11 +87,17 @@ CHASE_CHECK_MIN_AGE_H = 2.0
 # ================================================================ Ausstieg
 TP1_MULTIPLE = 2.0                      # Tag 2: bei 2x ...
 TP1_SELL_FRACTION = 0.5                 # ... die Haelfte vom Tisch
-TRAIL_AFTER_TP1_PCT = 40.0              # Tag 4: Rest laufen lassen, Schutz vom Hoch
+# Tag 4: Rest laufen lassen, Schutz vom Hoch. Je hoeher das erreichte Vielfache
+# seit dem Kauf, desto enger folgt die Verkaufsgrenze (Stufen, die nie absinken).
+# Aktiv seit 27.09.2026. Bewertung laeuft ueber verlauf.csv.
+TRAIL_TIERS = [(10.0, 25.0),            # ab 10x Hoch: 25 % Abstand
+               (4.0, 30.0),             # ab 4x Hoch:  30 % Abstand
+               (0.0, 40.0)]             # darunter:    40 % Abstand
 THESIS_BREAK_CHECKS = 2                 # Tag 3: These gebrochen, wenn 2x hintereinander
 LIQ_DROP_EXIT_PCT = 30.0                # Liquiditaet abgezogen -> raus
 EMERGENCY_STOP_PCT = -40.0              # Notbremse
 MAX_HOLD_H = 24
+WATCH_AFTER_EXIT_H = 6                  # nach dem Verkauf weiter beobachten (nur Aufzeichnung)
 DEAD_TOKEN_LOOPS = 10
 
 # ================================================================ Marktphase
@@ -108,12 +115,14 @@ SESSION.headers.update({"User-Agent": "narrativ-paperbot/1.0"})
 
 STATS = {"loops": 0, "loop_errors": 0, "last_error": "", "entries": [], "exits": [],
          "partials": [], "rejects": {}, "jup_ok": 0, "jup_fail": 0,
-         "rugcheck_ok": 0, "rugcheck_fail": 0, "helius_ok": 0, "helius_fail": 0}
+         "rugcheck_ok": 0, "rugcheck_fail": 0, "helius_ok": 0, "helius_fail": 0,
+         "git_ok": 0, "git_fail": 0}
 _jup_last = [0.0]
 _rugcheck_last = [0.0]
 _helius_last = [0.0]
 _block0_cache = {}
 _bundle_cache = {}
+_portfolio_alarm = [False]
 _shield_cache = {}
 _reject_seen = {}
 _symbol_leaders = {}                    # Tag 12: Symbol -> (mint, holder, zeit)
@@ -514,7 +523,11 @@ def bundle_dev_check(mint):
 
     b0 = block0_analysis(mint) if HELIUS_RPC else None
     if not b0:
-        return ("BUNDLE_CHECK_NICHT_MOEGLICH" if BUNDLE_CHECK_REQUIRED else None), {}
+        # 30 min merken: sonst geht der Bot bei Coins mit >40.000 Transaktionen
+        # alle 70 Sekunden erneut 40 Seiten zurueck
+        reason = "BUNDLE_CHECK_NICHT_MOEGLICH" if BUNDLE_CHECK_REQUIRED else None
+        _bundle_cache[mint] = (time.time(), reason, {}, 1800)
+        return reason, {}
 
     info, reason, keep_s = dict(b0), None, 600
     bundled = (b0["block0_wallets"] >= BUNDLE_MIN_WALLETS
@@ -556,14 +569,22 @@ def load_portfolio():
                 data.setdefault("positions", {})
                 data.setdefault("closed", [])
                 data.setdefault("cooldown", {})
+                data.setdefault("watch", {})
                 return data
         except Exception as err:
-            print(f"[PORTFOLIO] {err} -> neues Portfolio")
+            # Nie still bei null anfangen: das wuerde echte Positionen und Ergebnisse verwerfen
+            if not _portfolio_alarm[0]:
+                _portfolio_alarm[0] = True
+                discord("🛑 portfolio.json unlesbar - Bot handelt nicht",
+                        f"Fehler: {str(err)[:300]}\nBitte Claude Bescheid geben.", 0xEF4444)
+            raise RuntimeError(f"portfolio.json unlesbar: {err}")
     return {"strategy": "NARRATIV", "started": datetime.now(timezone.utc).isoformat(),
-            "bankroll_sol": START_BANKROLL_SOL, "positions": {}, "closed": [], "cooldown": {}}
+            "bankroll_sol": START_BANKROLL_SOL, "positions": {}, "closed": [], "cooldown": {},
+            "watch": {}}
 
 
 def save_portfolio(p):
+    p["saved_at"] = time.time()
     tmp = PORTFOLIO_FILE + ".tmp"
     with open(tmp, "w", encoding="utf-8") as f:
         json.dump(p, f, indent=2)
@@ -583,6 +604,24 @@ def journal(action, pos, price_usd, sol, reason="", pnl_sol="", pnl_pct=""):
                     pos.get("thesis", ""), pos.get("exit_rule", ""), reason,
                     pnl_sol if pnl_sol == "" else f"{pnl_sol:+.4f}",
                     pnl_pct if pnl_pct == "" else f"{pnl_pct:+.1f}"])
+
+
+def log_path(stage, mint, symbol, v, entry_fill, opened, peak_usd, tp1_done):
+    """Kursverlauf als Vielfaches des Einstiegs, fuer die spaetere Bewertung der Ausstiegsregeln."""
+    if not entry_fill:
+        return
+    new = not os.path.exists(VERLAUF_FILE)
+    with open(VERLAUF_FILE, "a", newline="", encoding="utf-8") as f:
+        w = csv.writer(f)
+        if new:
+            w.writerow(["zeit", "mint", "symbol", "phase", "minuten_seit_kauf", "vielfaches",
+                        "hoch_vielfaches", "teilverkauf", "holder_1h_pct", "netto_kaeufer_5m",
+                        "liquiditaet", "preis_usd"])
+        w.writerow([datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S"), mint, symbol, stage,
+                    f"{(time.time() - opened) / 60:.1f}", f"{v['price'] / entry_fill:.4f}",
+                    f"{peak_usd / entry_fill:.4f}", int(bool(tp1_done)),
+                    f"{v['holder_growth_1h']:.1f}", v["net_buyers_5m"], f"{v['liquidity']:.0f}",
+                    f"{v['price']:.12g}"])
 
 
 def log_reject(v, reason):
@@ -680,7 +719,7 @@ def open_position(p, v, bundle, sol_usd):
               f"{bundle_txt}; Dev-Coins {v['dev_mints']}")
     exit_rule = (f"Haelfte bei {TP1_MULTIPLE:.0f}x; Rest raus, wenn Holder schrumpfen und "
                  f"Netto-Verkaeufer {THESIS_BREAK_CHECKS}x in Folge, Liquiditaet -{LIQ_DROP_EXIT_PCT:.0f}%, "
-                 f"{EMERGENCY_STOP_PCT:.0f}% oder nach 2x {TRAIL_AFTER_TP1_PCT:.0f}% vom Hoch")
+                 f"{EMERGENCY_STOP_PCT:.0f}% oder nach 2x 40/30/25 % vom Hoch (Stufen 4x/10x)")
 
     p["bankroll_sol"] = round(p["bankroll_sol"] - POSITION_SOL - TX_FEE_SOL, 6)
     pos = {"mint": v["mint"], "symbol": v["symbol"], "opened": time.time(),
@@ -745,6 +784,10 @@ def close_position(p, pos, price_usd, reason, sol_usd):
                    "hold_h": round((time.time() - pos["opened"]) / 3600, 2),
                    "closed_at": datetime.now(timezone.utc).isoformat()})
     p["closed"].append(record)
+    p.setdefault("watch", {})[pos["mint"]] = {
+        "symbol": pos["symbol"], "entry_fill_usd": pos["entry_fill_usd"], "opened": pos["opened"],
+        "peak_usd": pos["peak_usd"], "exit_usd": price_usd, "exit_reason": reason,
+        "until": time.time() + WATCH_AFTER_EXIT_H * 3600}
     del p["positions"][pos["mint"]]
     journal("ERGEBNIS", pos, price_usd, pos["proceeds_sol"], reason, pnl, pnl_pct)
     STATS["exits"].append({"symbol": pos["symbol"], "pnl_sol": pnl, "pnl_pct": pnl_pct,
@@ -757,10 +800,20 @@ def close_position(p, pos, price_usd, reason, sol_usd):
             0x10B981 if pnl > 0 else 0xEF4444)
 
 
+def trail_pct(peak_multiple):
+    for min_multiple, pct in TRAIL_TIERS:
+        if peak_multiple >= min_multiple:
+            return pct
+    return TRAIL_TIERS[-1][1]
+
+
 def manage_positions(p, sol_usd, now):
-    if not p["positions"]:
+    watch = p.setdefault("watch", {})
+    for mint in [m for m, w in watch.items() if now > w["until"]]:
+        del watch[mint]
+    if not p["positions"] and not watch:
         return
-    data = jup_tokens(list(p["positions"]))
+    data = jup_tokens(list(p["positions"]) + [m for m in watch if m not in p["positions"]])
     for mint, pos in list(p["positions"].items()):
         tok = data.get(mint)
         if not tok:
@@ -774,6 +827,8 @@ def manage_positions(p, sol_usd, now):
         if price <= 0:
             continue
         pos["peak_usd"] = max(pos["peak_usd"], price)
+        log_path("offen", mint, pos["symbol"], v, pos["entry_fill_usd"], pos["opened"],
+                 pos["peak_usd"], pos["tp1_done"])
         multiple = price / pos["entry_fill_usd"]
         change_pct = (multiple - 1) * 100
 
@@ -799,12 +854,25 @@ def manage_positions(p, sol_usd, now):
             reason = "LIQUIDITAET_ABGEZOGEN"
         elif pos["thesis_breaks"] >= THESIS_BREAK_CHECKS:
             reason = "THESE_GEBROCHEN (Holder schrumpfen, Netto-Verkaeufer)"
-        elif pos["tp1_done"] and price <= pos["peak_usd"] * (1 - TRAIL_AFTER_TP1_PCT / 100):
-            reason = f"STORY_ABGEKUEHLT ({TRAIL_AFTER_TP1_PCT:.0f}% vom Hoch)"      # Tag 4
-        elif now - pos["opened"] > MAX_HOLD_H * 3600:
+        elif pos["tp1_done"]:
+            peak_x = pos["peak_usd"] / pos["entry_fill_usd"]
+            trail = trail_pct(peak_x)
+            if price <= pos["peak_usd"] * (1 - trail / 100):                          # Tag 4
+                reason = f"STORY_ABGEKUEHLT ({trail:.0f}% unter dem Hoch von {peak_x:.1f}x)"
+        if reason is None and now - pos["opened"] > MAX_HOLD_H * 3600:
             reason = "MAX_HALTEDAUER"
         if reason:
             close_position(p, pos, price, reason, sol_usd)
+
+    # Nach dem Verkauf: nur aufzeichnen, nicht handeln
+    for mint, w in list(watch.items()):
+        if mint in p["positions"] or mint not in data:
+            continue
+        v = token_view(data[mint], now)
+        if v["price"] > 0:
+            w["peak_usd"] = max(w["peak_usd"], v["price"])
+            log_path("nach_verkauf", mint, w["symbol"], v, w["entry_fill_usd"], w["opened"],
+                     w["peak_usd"], True)
     save_portfolio(p)
 
 
@@ -868,18 +936,64 @@ def discord(title, text, color=0x6366F1):
         print(f"[DISCORD] {err}")
 
 
+def _git(*args):
+    return subprocess.run(["git", *args], capture_output=True, text=True)
+
+
+def _abort_stuck_rebase():
+    if os.path.exists(".git/rebase-merge") or os.path.exists(".git/rebase-apply"):
+        _git("rebase", "--abort")
+
+
+def git_sync_start():
+    """Vor dem Laden: auf den neuesten Stand von main bringen. Schuetzt davor, mit einem
+    veralteten Portfolio zu starten, wenn der Lauf in der Warteschlange gewartet hat."""
+    _abort_stuck_rebase()
+    res = _git("pull", "--rebase", "origin", "main")
+    if res.returncode != 0:
+        print(f"[GIT] Aktualisierung beim Start fehlgeschlagen: {res.stderr.strip()[-200:]}")
+        _abort_stuck_rebase()
+        return False
+    return True
+
+
 def git_push():
-    files = [f for f in (PORTFOLIO_FILE, JOURNAL_FILE, REJECT_FILE, PHASE_FILE) if os.path.exists(f)]
+    """Sichert die Zustandsdateien auf main. Jede Datei wird als Ganzes ersetzt, nichts
+    wird zeilenweise gemischt (das zerstoert JSON). Andere Dateien auf main, etwa eine
+    zwischendurch hochgeladene bot.py, bleiben unangetastet."""
+    files = [f for f in (PORTFOLIO_FILE, JOURNAL_FILE, REJECT_FILE, PHASE_FILE, VERLAUF_FILE)
+             if os.path.exists(f)]
     if not files:
         return
-    subprocess.run(["git", "config", "--global", "user.name", "github-actions[bot]"], check=False)
-    subprocess.run(["git", "config", "--global", "user.email",
-                    "github-actions[bot]@users.noreply.github.com"], check=False)
-    subprocess.run(["git", "add", *files], check=False)
-    if subprocess.run(["git", "diff", "--cached", "--quiet"]).returncode != 0:
-        subprocess.run(["git", "commit", "-m", "NARRATIV Update [skip ci]"], check=False)
-        subprocess.run(["git", "pull", "--rebase", "origin", "main"], check=False)
-        subprocess.run(["git", "push", "origin", "main"], check=False)
+    _git("config", "user.name", "github-actions[bot]")
+    _git("config", "user.email", "github-actions[bot]@users.noreply.github.com")
+    _abort_stuck_rebase()
+    detail = ""
+    for _ in range(2):
+        fetch = _git("fetch", "-q", "origin", "main")
+        if fetch.returncode != 0:
+            detail = f"fetch: {fetch.stderr.strip()[-200:]}"
+            continue
+        _git("reset", "-q", "origin/main")          # Index = neuester Stand, eigene Dateien bleiben
+        _git("add", *files)
+        if _git("diff", "--cached", "--quiet").returncode == 0:
+            return                                   # nichts Neues
+        _git("commit", "-q", "-m", "NARRATIV Update [skip ci]")
+        push = _git("push", "-q", "origin", "HEAD:main")
+        if push.returncode == 0:
+            STATS["git_ok"] += 1
+            return
+        detail = f"push: {push.stderr.strip()[-200:]}"   # main hat sich bewegt, neuer Versuch
+    _git_failed(detail)
+
+
+def _git_failed(detail):
+    STATS["git_fail"] += 1
+    print(f"[GIT] {detail}")
+    if STATS["git_fail"] in (1, 10):
+        discord("⚠️ Speichern auf GitHub fehlgeschlagen",
+                f"Der Bot konnte seinen Stand nicht sichern ({STATS['git_fail']}x).\n{detail}",
+                0xF59E0B)
 
 
 def shift_summary(p, start_value, started, reason):
@@ -906,9 +1020,10 @@ def shift_summary(p, start_value, started, reason):
     lines.append(f"**Jupiter:** {STATS['jup_ok']} ok / {STATS['jup_fail']} Fehler | "
                  f"**RugCheck:** {STATS['rugcheck_ok']} ok / {STATS['rugcheck_fail']} Fehler | "
                  f"**Helius:** {STATS['helius_ok']} ok / {STATS['helius_fail']} Fehler")
+    lines.append(f"**GitHub-Sicherung:** {STATS['git_ok']} ok / {STATS['git_fail']} Fehler")
     lines.append(f"**Loop-Fehler:** {STATS['loop_errors']}"
                  + (f" ({STATS['last_error'][:150]})" if STATS["loop_errors"] else ""))
-    ok = reason.startswith("regulaer") and STATS["loop_errors"] == 0
+    ok = reason.startswith("regulaer") and STATS["loop_errors"] == 0 and STATS["git_fail"] == 0
     discord("🔴 Schicht beendet" if ok else "⚠️ Schicht beendet (pruefen)", "\n".join(lines),
             0x6366F1 if ok else 0xF59E0B)
 
@@ -927,8 +1042,17 @@ def run():
     signal.signal(signal.SIGTERM, _on_signal)
     signal.signal(signal.SIGINT, _on_signal)
     started = time.time()
+    synced = git_sync_start()
     p = load_portfolio()
     sol_usd = sol_price()
+    age_min = (time.time() - p["saved_at"]) / 60 if p.get("saved_at") else None
+    if not synced or (age_min is not None and age_min > 45 and p["positions"]):
+        lines = [f"**Aktualisierung von GitHub:** {'ok' if synced else 'FEHLGESCHLAGEN'}"]
+        if age_min is not None:
+            lines.append(f"**Letzte Speicherung:** vor {age_min:.0f} Minuten")
+        if p["positions"]:
+            lines.append("**Offen:** " + ", ".join(x["symbol"] for x in p["positions"].values()))
+        discord("⚠️ Portfolio-Stand pruefen", "\n".join(lines), 0xF59E0B)
     start_value = p["bankroll_sol"] + sum(x["invested_sol"] for x in p["positions"].values())
     discord("🟢 Schicht gestartet (NARRATIV)",
             f"**Bankroll:** {start_value:.4f} SOL | **Offen:** {len(p['positions'])}\n"
