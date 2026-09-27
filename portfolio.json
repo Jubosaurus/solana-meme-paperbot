@@ -1,53 +1,8 @@
 {
   "strategy": "NARRATIV",
   "started": "2026-09-26T02:46:00.825468+00:00",
-  "bankroll_sol": 10.572172,
+  "bankroll_sol": 10.83086,
   "positions": {
-    "9fno96crbJq887w3DuDFFaurYE7sHA8GrtZutzSa72j2": {
-      "mint": "9fno96crbJq887w3DuDFFaurYE7sHA8GrtZutzSa72j2",
-      "symbol": "UNICEF",
-      "opened": 1790503011.5871825,
-      "invested_sol": 0.2,
-      "fees_sol": 0.003,
-      "entry_signal_usd": 4.5872860269366035e-05,
-      "entry_fill_usd": 4.720949133471008e-05,
-      "entry_slippage_pct": 2.91,
-      "roundtrip_cost_pct": 2.94,
-      "tokens_initial": 526919.433079,
-      "tokens_left": 263459.7165395,
-      "decimals": 6,
-      "proceeds_sol": 0.19836682,
-      "peak_usd": 0.00022025783698060927,
-      "tp1_done": true,
-      "thesis_breaks": 0,
-      "missing_loops": 0,
-      "entry_liquidity": 7971.789414967197,
-      "entry_view": {
-        "age_h": 2.9536000535885494,
-        "mcap": 44156.57644439924,
-        "holders": 284,
-        "holder_growth_1h": 24.017467248908297,
-        "net_buyers_5m": 13,
-        "organic_buyers_5m": 4,
-        "organic_score": 54.147956852377476,
-        "price_change_1h": 129.3841265920181
-      },
-      "bundle": {
-        "quelle": "block0",
-        "slot": 450923122,
-        "block0_wallets": 3,
-        "block0_supply_pct": 5.34,
-        "block0_still_held_pct": 0.0,
-        "block0_exited": 3,
-        "early_tx_slot1_2": 4,
-        "bundle_holding_pct": 0.0,
-        "gebuendelt": false,
-        "rugcheck_insider_pct": 0
-      },
-      "phase": "heiss",
-      "thesis": "Story verbreitet sich: Holder +24%/h, 13 Netto-Kaeufer 5m, 4 organisch; Block 0: 3 Kaeufer, 5.3% gekauft, 0.0% noch gehalten; Dev-Coins 1",
-      "exit_rule": "Haelfte bei 2x; Rest raus, wenn Holder schrumpfen und Netto-Verkaeufer 2x in Folge, Liquiditaet -30%, -40% oder nach 2x 40/30/25 % vom Hoch (Stufen 4x/10x)"
-    },
     "64tUZQBCDKhkxPYNey9PXdV8Hz36ra28FuDhMMULpump": {
       "mint": "64tUZQBCDKhkxPYNey9PXdV8Hz36ra28FuDhMMULpump",
       "symbol": "WARP",
@@ -914,6 +869,47 @@
       "exit_reason": "NOTBREMSE (-43%)",
       "hold_h": 0.98,
       "closed_at": "2026-09-27T13:06:46.097084+00:00"
+    },
+    {
+      "symbol": "UNICEF",
+      "mint": "9fno96crbJq887w3DuDFFaurYE7sHA8GrtZutzSa72j2",
+      "invested_sol": 0.2,
+      "entry_fill_usd": 4.720949133471008e-05,
+      "entry_slippage_pct": 2.91,
+      "roundtrip_cost_pct": 2.94,
+      "tp1_done": true,
+      "entry_view": {
+        "age_h": 2.9536000535885494,
+        "mcap": 44156.57644439924,
+        "holders": 284,
+        "holder_growth_1h": 24.017467248908297,
+        "net_buyers_5m": 13,
+        "organic_buyers_5m": 4,
+        "organic_score": 54.147956852377476,
+        "price_change_1h": 129.3841265920181
+      },
+      "bundle": {
+        "quelle": "block0",
+        "slot": 450923122,
+        "block0_wallets": 3,
+        "block0_supply_pct": 5.34,
+        "block0_still_held_pct": 0.0,
+        "block0_exited": 3,
+        "early_tx_slot1_2": 4,
+        "bundle_holding_pct": 0.0,
+        "gebuendelt": false,
+        "rugcheck_insider_pct": 0
+      },
+      "phase": "heiss",
+      "thesis": "Story verbreitet sich: Holder +24%/h, 13 Netto-Kaeufer 5m, 4 organisch; Block 0: 3 Kaeufer, 5.3% gekauft, 0.0% noch gehalten; Dev-Coins 1",
+      "proceeds_sol": 0.457055,
+      "pnl_sol": 0.255555,
+      "pnl_pct": 127.78,
+      "peak_multiple": 4.67,
+      "exit_usd": 0.00012354478805959993,
+      "exit_reason": "STORY_ABGEKUEHLT (30% unter dem Hoch von 4.7x)",
+      "hold_h": 3.7,
+      "closed_at": "2026-09-27T13:38:39.198188+00:00"
     }
   ],
   "cooldown": {
@@ -949,7 +945,16 @@
       "exit_usd": 1.2819223182141657e-05,
       "exit_reason": "NOTBREMSE (-43%)",
       "until": 1790536006.0970933
+    },
+    "9fno96crbJq887w3DuDFFaurYE7sHA8GrtZutzSa72j2": {
+      "symbol": "UNICEF",
+      "entry_fill_usd": 4.720949133471008e-05,
+      "opened": 1790503011.5871825,
+      "peak_usd": 0.00022025783698060927,
+      "exit_usd": 0.00012354478805959993,
+      "exit_reason": "STORY_ABGEKUEHLT (30% unter dem Hoch von 4.7x)",
+      "until": 1790537919.1981983
     }
   },
-  "saved_at": 1790516280.166625
+  "saved_at": 1790516319.481586
 }
