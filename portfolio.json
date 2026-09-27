@@ -1,54 +1,8 @@
 {
   "strategy": "NARRATIV",
   "started": "2026-09-26T02:46:00.825468+00:00",
-  "bankroll_sol": 10.862742,
-  "positions": {
-    "2xrw9WoHD5EWPT77rgYdubFGCxySPQxtbP69XWmU8eBM": {
-      "mint": "2xrw9WoHD5EWPT77rgYdubFGCxySPQxtbP69XWmU8eBM",
-      "symbol": "BAGGED",
-      "opened": 1790551483.6527207,
-      "invested_sol": 0.2,
-      "fees_sol": 0.0015,
-      "entry_signal_usd": 0.0001652542457127512,
-      "entry_fill_usd": 0.0001531415104730808,
-      "entry_slippage_pct": -7.33,
-      "roundtrip_cost_pct": 2.63,
-      "tokens_initial": 159082.465614,
-      "tokens_left": 159082.465614,
-      "decimals": 6,
-      "proceeds_sol": 0.0,
-      "peak_usd": 0.00016778283821612647,
-      "tp1_done": false,
-      "thesis_breaks": 0,
-      "missing_loops": 0,
-      "entry_liquidity": 17165.3478011045,
-      "entry_view": {
-        "age_h": 5.387248078982036,
-        "mcap": 161193.14185869828,
-        "holders": 519,
-        "holder_growth_1h": 135.9090909090909,
-        "net_buyers_5m": 44,
-        "organic_buyers_5m": 3,
-        "organic_score": 49.790506527100135,
-        "price_change_1h": 62.292144370079264
-      },
-      "bundle": {
-        "quelle": "block0",
-        "slot": 451071412,
-        "block0_wallets": 1,
-        "block0_supply_pct": 2.13,
-        "block0_still_held_pct": 3.42,
-        "block0_exited": 0,
-        "early_tx_slot1_2": 8,
-        "bundle_holding_pct": 3.42,
-        "gebuendelt": false,
-        "rugcheck_insider_pct": 0
-      },
-      "phase": "heiss",
-      "thesis": "Story verbreitet sich: Holder +136%/h, 44 Netto-Kaeufer 5m, 3 organisch; Block 0: 1 Kaeufer, 2.1% gekauft, 3.4% noch gehalten; Dev-Coins 1",
-      "exit_rule": "Haelfte bei 2x; Rest raus, wenn Holder schrumpfen und Netto-Verkaeufer 2x in Folge, Liquiditaet -30%, -40% oder nach 2x 40/30/25 % vom Hoch (Stufen 4x/10x)"
-    }
-  },
+  "bankroll_sol": 10.972395,
+  "positions": {},
   "closed": [
     {
       "symbol": "SHOGGOTH",
@@ -1114,6 +1068,47 @@
       "exit_reason": "STORY_ABGEKUEHLT (40% unter dem Hoch von 2.6x)",
       "hold_h": 0.51,
       "closed_at": "2026-09-27T21:03:24.027583+00:00"
+    },
+    {
+      "symbol": "BAGGED",
+      "mint": "2xrw9WoHD5EWPT77rgYdubFGCxySPQxtbP69XWmU8eBM",
+      "invested_sol": 0.2,
+      "entry_fill_usd": 0.0001531415104730808,
+      "entry_slippage_pct": -7.33,
+      "roundtrip_cost_pct": 2.63,
+      "tp1_done": false,
+      "entry_view": {
+        "age_h": 5.387248078982036,
+        "mcap": 161193.14185869828,
+        "holders": 519,
+        "holder_growth_1h": 135.9090909090909,
+        "net_buyers_5m": 44,
+        "organic_buyers_5m": 3,
+        "organic_score": 49.790506527100135,
+        "price_change_1h": 62.292144370079264
+      },
+      "bundle": {
+        "quelle": "block0",
+        "slot": 451071412,
+        "block0_wallets": 1,
+        "block0_supply_pct": 2.13,
+        "block0_still_held_pct": 3.42,
+        "block0_exited": 0,
+        "early_tx_slot1_2": 8,
+        "bundle_holding_pct": 3.42,
+        "gebuendelt": false,
+        "rugcheck_insider_pct": 0
+      },
+      "phase": "heiss",
+      "thesis": "Story verbreitet sich: Holder +136%/h, 44 Netto-Kaeufer 5m, 3 organisch; Block 0: 1 Kaeufer, 2.1% gekauft, 3.4% noch gehalten; Dev-Coins 1",
+      "proceeds_sol": 0.109653,
+      "pnl_sol": -0.091847,
+      "pnl_pct": -45.92,
+      "peak_multiple": 1.1,
+      "exit_usd": 8.54865315171539e-05,
+      "exit_reason": "NOTBREMSE (-44%)",
+      "hold_h": 0.15,
+      "closed_at": "2026-09-27T23:33:48.153078+00:00"
     }
   ],
   "cooldown": {
@@ -1181,7 +1176,16 @@
       "exit_usd": 4.2884776110940575e-05,
       "exit_reason": "STORY_ABGEKUEHLT (40% unter dem Hoch von 2.6x)",
       "until": 1790564604.0275924
+    },
+    "2xrw9WoHD5EWPT77rgYdubFGCxySPQxtbP69XWmU8eBM": {
+      "symbol": "BAGGED",
+      "entry_fill_usd": 0.0001531415104730808,
+      "opened": 1790551483.6527207,
+      "peak_usd": 0.00016778283821612647,
+      "exit_usd": 8.54865315171539e-05,
+      "exit_reason": "NOTBREMSE (-44%)",
+      "until": 1790573628.1530845
     }
   },
-  "saved_at": 1790551989.1104202
+  "saved_at": 1790552028.2960367
 }
