@@ -1,7 +1,7 @@
 {
   "strategy": "NARRATIV",
   "started": "2026-09-26T02:46:00.825468+00:00",
-  "bankroll_sol": 10.66457,
+  "bankroll_sol": 10.773672,
   "positions": {
     "9fno96crbJq887w3DuDFFaurYE7sHA8GrtZutzSa72j2": {
       "mint": "9fno96crbJq887w3DuDFFaurYE7sHA8GrtZutzSa72j2",
@@ -46,51 +46,6 @@
       },
       "phase": "heiss",
       "thesis": "Story verbreitet sich: Holder +24%/h, 13 Netto-Kaeufer 5m, 4 organisch; Block 0: 3 Kaeufer, 5.3% gekauft, 0.0% noch gehalten; Dev-Coins 1",
-      "exit_rule": "Haelfte bei 2x; Rest raus, wenn Holder schrumpfen und Netto-Verkaeufer 2x in Folge, Liquiditaet -30%, -40% oder nach 2x 40/30/25 % vom Hoch (Stufen 4x/10x)"
-    },
-    "DuHPrr5mEDPaipbFGGQAA2MoCRg2C3AXixYnyJnopump": {
-      "mint": "DuHPrr5mEDPaipbFGGQAA2MoCRg2C3AXixYnyJnopump",
-      "symbol": "NPP",
-      "opened": 1790510864.3957243,
-      "invested_sol": 0.2,
-      "fees_sol": 0.0015,
-      "entry_signal_usd": 2.2139496249952355e-05,
-      "entry_fill_usd": 2.237241591254713e-05,
-      "entry_slippage_pct": 1.05,
-      "roundtrip_cost_pct": 3.21,
-      "tokens_initial": 1110436.48716,
-      "tokens_left": 1110436.48716,
-      "decimals": 6,
-      "proceeds_sol": 0.0,
-      "peak_usd": 2.7195062191158134e-05,
-      "tp1_done": false,
-      "thesis_breaks": 0,
-      "missing_loops": 0,
-      "entry_liquidity": 9413.050512759764,
-      "entry_view": {
-        "age_h": 0.7411292958259582,
-        "mcap": 22139.467543129238,
-        "holders": 186,
-        "holder_growth_1h": 72.22222222222221,
-        "net_buyers_5m": 27,
-        "organic_buyers_5m": 3,
-        "organic_score": 31.21231578922145,
-        "price_change_1h": 134.30450557944272
-      },
-      "bundle": {
-        "quelle": "block0",
-        "slot": 450982284,
-        "block0_wallets": 2,
-        "block0_supply_pct": 28.0,
-        "block0_still_held_pct": 0.0,
-        "block0_exited": 2,
-        "early_tx_slot1_2": 27,
-        "bundle_holding_pct": 0.0,
-        "gebuendelt": false,
-        "rugcheck_insider_pct": 0
-      },
-      "phase": "normal",
-      "thesis": "Story verbreitet sich: Holder +72%/h, 27 Netto-Kaeufer 5m, 3 organisch; Block 0: 2 Kaeufer, 28.0% gekauft, 0.0% noch gehalten; Dev-Coins 1",
       "exit_rule": "Haelfte bei 2x; Rest raus, wenn Holder schrumpfen und Netto-Verkaeufer 2x in Folge, Liquiditaet -30%, -40% oder nach 2x 40/30/25 % vom Hoch (Stufen 4x/10x)"
     }
   },
@@ -873,6 +828,47 @@
       "exit_reason": "STORY_ABGEKUEHLT (40% vom Hoch)",
       "hold_h": 0.14,
       "closed_at": "2026-09-26T23:56:26.323819+00:00"
+    },
+    {
+      "symbol": "NPP",
+      "mint": "DuHPrr5mEDPaipbFGGQAA2MoCRg2C3AXixYnyJnopump",
+      "invested_sol": 0.2,
+      "entry_fill_usd": 2.237241591254713e-05,
+      "entry_slippage_pct": 1.05,
+      "roundtrip_cost_pct": 3.21,
+      "tp1_done": false,
+      "entry_view": {
+        "age_h": 0.7411292958259582,
+        "mcap": 22139.467543129238,
+        "holders": 186,
+        "holder_growth_1h": 72.22222222222221,
+        "net_buyers_5m": 27,
+        "organic_buyers_5m": 3,
+        "organic_score": 31.21231578922145,
+        "price_change_1h": 134.30450557944272
+      },
+      "bundle": {
+        "quelle": "block0",
+        "slot": 450982284,
+        "block0_wallets": 2,
+        "block0_supply_pct": 28.0,
+        "block0_still_held_pct": 0.0,
+        "block0_exited": 2,
+        "early_tx_slot1_2": 27,
+        "bundle_holding_pct": 0.0,
+        "gebuendelt": false,
+        "rugcheck_insider_pct": 0
+      },
+      "phase": "normal",
+      "thesis": "Story verbreitet sich: Holder +72%/h, 27 Netto-Kaeufer 5m, 3 organisch; Block 0: 2 Kaeufer, 28.0% gekauft, 0.0% noch gehalten; Dev-Coins 1",
+      "proceeds_sol": 0.109102,
+      "pnl_sol": -0.092398,
+      "pnl_pct": -46.2,
+      "peak_multiple": 1.22,
+      "exit_usd": 1.2819223182141657e-05,
+      "exit_reason": "NOTBREMSE (-43%)",
+      "hold_h": 0.98,
+      "closed_at": "2026-09-27T13:06:46.097084+00:00"
     }
   ],
   "cooldown": {
@@ -898,6 +894,16 @@
     "9fno96crbJq887w3DuDFFaurYE7sHA8GrtZutzSa72j2": 1790503011.587353,
     "DuHPrr5mEDPaipbFGGQAA2MoCRg2C3AXixYnyJnopump": 1790510864.395874
   },
-  "watch": {},
-  "saved_at": 1790514366.1564488
+  "watch": {
+    "DuHPrr5mEDPaipbFGGQAA2MoCRg2C3AXixYnyJnopump": {
+      "symbol": "NPP",
+      "entry_fill_usd": 2.237241591254713e-05,
+      "opened": 1790510864.3957243,
+      "peak_usd": 2.7195062191158134e-05,
+      "exit_usd": 1.2819223182141657e-05,
+      "exit_reason": "NOTBREMSE (-43%)",
+      "until": 1790536006.0970933
+    }
+  },
+  "saved_at": 1790514445.3415358
 }
