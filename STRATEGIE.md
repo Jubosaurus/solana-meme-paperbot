@@ -11,7 +11,7 @@ Papier gehandelt.
 | 1 | Nur Coins kaufen, die nicht gebündelt sind | Eigener Block-0-Check (Methode wie SolBundler): ab 3 Käufern mit zusammen 15 % im Erstellungsblock gilt ein Coin als gebündelt, ebenso wenn diese Käufer noch 10 % halten. Zweitmeinung RugCheck-Insider. Ohne Daten kein Kauf |
 | 2 | Bei großem Gewinn etwas vom Tisch nehmen | Bei 2x wird die Hälfte verkauft |
 | 3 | Vor dem Kauf These und Verkaufsbedingung notieren | `journal.csv` mit These und Verkaufsbedingung. Verkauf, wenn die These bricht |
-| 4 | Gewinner halten, solange die Story wächst | Der Rest nach 2x läuft weiter, Ausstieg erst 40 % unter dem Hoch oder bei Thesenbruch |
+| 4 | Gewinner halten, solange die Story wächst | Der Rest nach 2x läuft weiter, Ausstieg bei Thesenbruch oder mit Abstand vom Hoch, der mit dem Gewinn enger wird (40/30/25 %) |
 | 5 | Früh rein, solange es sich verbreitet | 15 Minuten bis 6 Stunden alt, Holder +15 % pro Stunde, Netto-Käufer, mindestens 3 organische Käufer, Social-Links vorhanden |
 | 6 | Dev prüfen | Dev hat höchstens 50 Coins gestartet und hält höchstens 10 % (Jupiter) |
 | 7 | Nicht hinterherjagen, nicht größer setzen | Höchstens 3 Mio. USD Marktwert, höchstens +150 % in der letzten Stunde, feste Größe 0,2 SOL |
@@ -29,7 +29,7 @@ On-Chain-Spur, die eine Story hinterlässt.
 1. **2x erreicht:** Hälfte verkaufen
 2. **These gebrochen:** Holder schrumpfen und Netto-Verkäufer, zweimal in Folge
 3. **Liquidität abgezogen:** 30 % unter dem Einstieg
-4. **Story abgekühlt:** nach dem Teilverkauf 40 % unter dem Hoch
+4. **Story abgekühlt:** nach dem Teilverkauf, gemessen am Höchststand seit dem Kauf: 40 % unter dem Hoch bis 4x, 30 % ab 4x, 25 % ab 10x. Die Verkaufsgrenze sinkt beim Wechsel der Stufe nie
 5. **Notbremse:** −40 %
 6. **Höchstdauer:** 24 Stunden
 
