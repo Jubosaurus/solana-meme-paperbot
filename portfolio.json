@@ -1,53 +1,8 @@
 {
   "strategy": "NARRATIV",
   "started": "2026-09-26T02:46:00.825468+00:00",
-  "bankroll_sol": 10.487975,
+  "bankroll_sol": 10.582724,
   "positions": {
-    "CeVVQMZx8QcVNZ5PJ4YgF8Sz4FqfudCKABMAYN3RGxmr": {
-      "mint": "CeVVQMZx8QcVNZ5PJ4YgF8Sz4FqfudCKABMAYN3RGxmr",
-      "symbol": "XMRPAD",
-      "opened": 1790552561.5426145,
-      "invested_sol": 0.2,
-      "fees_sol": 0.0015,
-      "entry_signal_usd": 5.012944161057779e-05,
-      "entry_fill_usd": 5.2354361688643656e-05,
-      "entry_slippage_pct": 4.44,
-      "roundtrip_cost_pct": 7.56,
-      "tokens_initial": 465120.485026,
-      "tokens_left": 465120.485026,
-      "decimals": 6,
-      "proceeds_sol": 0.0,
-      "peak_usd": 5.474732488840986e-05,
-      "tp1_done": false,
-      "thesis_breaks": 0,
-      "missing_loops": 0,
-      "entry_liquidity": 9180.706378261251,
-      "entry_view": {
-        "age_h": 0.8999218144019445,
-        "mcap": 48257.856809573605,
-        "holders": 658,
-        "holder_growth_1h": 1270.8333333333335,
-        "net_buyers_5m": 108,
-        "organic_buyers_5m": 31,
-        "organic_score": 60.15866009364449,
-        "price_change_1h": 272.01160546861786
-      },
-      "bundle": {
-        "quelle": "block0",
-        "slot": 451135574,
-        "block0_wallets": 2,
-        "block0_supply_pct": 54.02,
-        "block0_still_held_pct": 0.0,
-        "block0_exited": 2,
-        "early_tx_slot1_2": 7,
-        "bundle_holding_pct": 0.0,
-        "gebuendelt": false,
-        "rugcheck_insider_pct": 3.55
-      },
-      "phase": "heiss",
-      "thesis": "Story verbreitet sich: Holder +1271%/h, 108 Netto-Kaeufer 5m, 31 organisch; Block 0: 2 Kaeufer, 54.0% gekauft, 0.0% noch gehalten; Dev-Coins 1",
-      "exit_rule": "Haelfte bei 2x; Rest raus, wenn Holder schrumpfen und Netto-Verkaeufer 2x in Folge, Liquiditaet -30%, -40% oder nach 2x 40/30/25 % vom Hoch (Stufen 4x/10x)"
-    },
     "GhRJXatdMGdDcGmfxZPKWyUW4FNvMM4fSHRquyvgpump": {
       "mint": "GhRJXatdMGdDcGmfxZPKWyUW4FNvMM4fSHRquyvgpump",
       "symbol": "AGENTS",
@@ -1241,6 +1196,47 @@
       "exit_reason": "NOTBREMSE (-42%)",
       "hold_h": 0.04,
       "closed_at": "2026-09-27T23:49:26.070982+00:00"
+    },
+    {
+      "symbol": "XMRPAD",
+      "mint": "CeVVQMZx8QcVNZ5PJ4YgF8Sz4FqfudCKABMAYN3RGxmr",
+      "invested_sol": 0.2,
+      "entry_fill_usd": 5.2354361688643656e-05,
+      "entry_slippage_pct": 4.44,
+      "roundtrip_cost_pct": 7.56,
+      "tp1_done": false,
+      "entry_view": {
+        "age_h": 0.8999218144019445,
+        "mcap": 48257.856809573605,
+        "holders": 658,
+        "holder_growth_1h": 1270.8333333333335,
+        "net_buyers_5m": 108,
+        "organic_buyers_5m": 31,
+        "organic_score": 60.15866009364449,
+        "price_change_1h": 272.01160546861786
+      },
+      "bundle": {
+        "quelle": "block0",
+        "slot": 451135574,
+        "block0_wallets": 2,
+        "block0_supply_pct": 54.02,
+        "block0_still_held_pct": 0.0,
+        "block0_exited": 2,
+        "early_tx_slot1_2": 7,
+        "bundle_holding_pct": 0.0,
+        "gebuendelt": false,
+        "rugcheck_insider_pct": 3.55
+      },
+      "phase": "heiss",
+      "thesis": "Story verbreitet sich: Holder +1271%/h, 108 Netto-Kaeufer 5m, 31 organisch; Block 0: 2 Kaeufer, 54.0% gekauft, 0.0% noch gehalten; Dev-Coins 1",
+      "proceeds_sol": 0.094749,
+      "pnl_sol": -0.106751,
+      "pnl_pct": -53.38,
+      "peak_multiple": 1.05,
+      "exit_usd": 2.6291021375342627e-05,
+      "exit_reason": "NOTBREMSE (-50%)",
+      "hold_h": 0.16,
+      "closed_at": "2026-09-27T23:52:02.925126+00:00"
     }
   ],
   "cooldown": {
@@ -1329,7 +1325,16 @@
       "exit_usd": 2.8265034183622554e-05,
       "exit_reason": "NOTBREMSE (-42%)",
       "until": 1790574566.0709887
+    },
+    "CeVVQMZx8QcVNZ5PJ4YgF8Sz4FqfudCKABMAYN3RGxmr": {
+      "symbol": "XMRPAD",
+      "entry_fill_usd": 5.2354361688643656e-05,
+      "opened": 1790552561.5426145,
+      "peak_usd": 5.474732488840986e-05,
+      "exit_usd": 2.6291021375342627e-05,
+      "exit_reason": "NOTBREMSE (-50%)",
+      "until": 1790574722.9251337
     }
   },
-  "saved_at": 1790553084.1984963
+  "saved_at": 1790553125.1990137
 }
