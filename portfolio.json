@@ -1,54 +1,8 @@
 {
   "strategy": "NARRATIV",
   "started": "2026-09-26T02:46:00.825468+00:00",
-  "bankroll_sol": 10.78296,
-  "positions": {
-    "GhRJXatdMGdDcGmfxZPKWyUW4FNvMM4fSHRquyvgpump": {
-      "mint": "GhRJXatdMGdDcGmfxZPKWyUW4FNvMM4fSHRquyvgpump",
-      "symbol": "AGENTS",
-      "opened": 1790552725.4163,
-      "invested_sol": 0.2,
-      "fees_sol": 0.003,
-      "entry_signal_usd": 7.385937817427844e-05,
-      "entry_fill_usd": 7.577690673030576e-05,
-      "entry_slippage_pct": 2.6,
-      "roundtrip_cost_pct": 2.71,
-      "tokens_initial": 321294.153791,
-      "tokens_left": 160647.0768955,
-      "decimals": 6,
-      "proceeds_sol": 0.20023609,
-      "peak_usd": 0.00018017531655895573,
-      "tp1_done": true,
-      "thesis_breaks": 0,
-      "missing_loops": 0,
-      "entry_liquidity": 10498.041224205348,
-      "entry_view": {
-        "age_h": 0.8250419251786338,
-        "mcap": 69262.88896031644,
-        "holders": 485,
-        "holder_growth_1h": 750.8771929824561,
-        "net_buyers_5m": 74,
-        "organic_buyers_5m": 17,
-        "organic_score": 49.985291532889235,
-        "price_change_1h": 1643.0925337917827
-      },
-      "bundle": {
-        "quelle": "block0",
-        "slot": 451137199,
-        "block0_wallets": 3,
-        "block0_supply_pct": 11.21,
-        "block0_still_held_pct": 0.0,
-        "block0_exited": 3,
-        "early_tx_slot1_2": 14,
-        "bundle_holding_pct": 0.0,
-        "gebuendelt": false,
-        "rugcheck_insider_pct": 0
-      },
-      "phase": "heiss",
-      "thesis": "Story verbreitet sich: Holder +751%/h, 74 Netto-Kaeufer 5m, 17 organisch; Block 0: 3 Kaeufer, 11.2% gekauft, 0.0% noch gehalten; Dev-Coins 1",
-      "exit_rule": "Haelfte bei 2x; Rest raus, wenn Holder schrumpfen und Netto-Verkaeufer 2x in Folge, Liquiditaet -30%, -40% oder nach 2x 40/30/25 % vom Hoch (Stufen 4x/10x)"
-    }
-  },
+  "bankroll_sol": 10.90006,
+  "positions": {},
   "closed": [
     {
       "symbol": "SHOGGOTH",
@@ -1237,6 +1191,47 @@
       "exit_reason": "NOTBREMSE (-50%)",
       "hold_h": 0.16,
       "closed_at": "2026-09-27T23:52:02.925126+00:00"
+    },
+    {
+      "symbol": "AGENTS",
+      "mint": "GhRJXatdMGdDcGmfxZPKWyUW4FNvMM4fSHRquyvgpump",
+      "invested_sol": 0.2,
+      "entry_fill_usd": 7.577690673030576e-05,
+      "entry_slippage_pct": 2.6,
+      "roundtrip_cost_pct": 2.71,
+      "tp1_done": true,
+      "entry_view": {
+        "age_h": 0.8250419251786338,
+        "mcap": 69262.88896031644,
+        "holders": 485,
+        "holder_growth_1h": 750.8771929824561,
+        "net_buyers_5m": 74,
+        "organic_buyers_5m": 17,
+        "organic_score": 49.985291532889235,
+        "price_change_1h": 1643.0925337917827
+      },
+      "bundle": {
+        "quelle": "block0",
+        "slot": 451137199,
+        "block0_wallets": 3,
+        "block0_supply_pct": 11.21,
+        "block0_still_held_pct": 0.0,
+        "block0_exited": 3,
+        "early_tx_slot1_2": 14,
+        "bundle_holding_pct": 0.0,
+        "gebuendelt": false,
+        "rugcheck_insider_pct": 0
+      },
+      "phase": "heiss",
+      "thesis": "Story verbreitet sich: Holder +751%/h, 74 Netto-Kaeufer 5m, 17 organisch; Block 0: 3 Kaeufer, 11.2% gekauft, 0.0% noch gehalten; Dev-Coins 1",
+      "proceeds_sol": 0.317336,
+      "pnl_sol": 0.115836,
+      "pnl_pct": 57.92,
+      "peak_multiple": 2.38,
+      "exit_usd": 9.058296930709423e-05,
+      "exit_reason": "STORY_ABGEKUEHLT (40% unter dem Hoch von 2.4x)",
+      "hold_h": 0.33,
+      "closed_at": "2026-09-28T00:05:19.483334+00:00"
     }
   ],
   "cooldown": {
@@ -1325,7 +1320,16 @@
       "exit_usd": 2.6291021375342627e-05,
       "exit_reason": "NOTBREMSE (-50%)",
       "until": 1790574722.9251337
+    },
+    "GhRJXatdMGdDcGmfxZPKWyUW4FNvMM4fSHRquyvgpump": {
+      "symbol": "AGENTS",
+      "entry_fill_usd": 7.577690673030576e-05,
+      "opened": 1790552725.4163,
+      "peak_usd": 0.00018017531655895573,
+      "exit_usd": 9.058296930709423e-05,
+      "exit_reason": "STORY_ABGEKUEHLT (40% unter dem Hoch von 2.4x)",
+      "until": 1790575519.483341
     }
   },
-  "saved_at": 1790553880.8618476
+  "saved_at": 1790553921.7416203
 }
