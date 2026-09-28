@@ -1,8 +1,74 @@
 {
   "strategy": "NARRATIV",
   "started": "2026-09-26T02:46:00.825468+00:00",
-  "bankroll_sol": 10.654727,
-  "positions": {},
+  "bankroll_sol": 10.453227,
+  "positions": {
+    "CZWyKU9MghRchXXw6x34aPN7MGeQR8QJKwymX6cpump": {
+      "mint": "CZWyKU9MghRchXXw6x34aPN7MGeQR8QJKwymX6cpump",
+      "symbol": "AZZ",
+      "opened": 1790612176.3375661,
+      "invested_sol": 0.2,
+      "fees_sol": 0.0015,
+      "entry_signal_usd": 8.852297108642437e-05,
+      "entry_fill_usd": 9.630350942170144e-05,
+      "entry_slippage_pct": 8.79,
+      "roundtrip_cost_pct": 6.61,
+      "tokens_initial": 246307.091935,
+      "tokens_left": 246307.091935,
+      "decimals": 6,
+      "proceeds_sol": 0.0,
+      "peak_usd": 8.852297108642437e-05,
+      "tp1_done": false,
+      "thesis_breaks": 0,
+      "missing_loops": 0,
+      "entry_liquidity": 12618.345806036707,
+      "entry_view": {
+        "age_h": 1.4144075242678324,
+        "mcap": 86293.53158683816,
+        "liquidity": 12618.345806036707,
+        "holders": 476,
+        "holder_growth_1h": 693.3333333333334,
+        "holder_growth_5m": 5.777777777777778,
+        "net_buyers_5m": 64,
+        "organic_buyers_5m": 14,
+        "organic_score": 53.87917884144003,
+        "price_change_1h": 475.0036025359373,
+        "price_change_5m": 33.105975508649735,
+        "buys_5m": 82,
+        "sells_5m": 26,
+        "traders_5m": 75,
+        "traders_1h": 1027,
+        "buy_vol_5m": 4336.19997698222,
+        "sell_vol_5m": 1620.6964253524416,
+        "buy_vol_1h": 105989.08129600412,
+        "sell_vol_1h": 94610.5955361661,
+        "organic_buy_vol_1h": 6264.048886568093,
+        "top_holders_pct": 22.122727866191877,
+        "dev_balance_pct": 0.0,
+        "dev_mints": 1,
+        "launchpad": "pump.fun",
+        "graduated": true,
+        "social": false,
+        "hour_utc": 16
+      },
+      "bundle": {
+        "quelle": "block0",
+        "slot": 451350968,
+        "block0_wallets": 2,
+        "block0_supply_pct": 2.5,
+        "block0_still_held_pct": 0.0,
+        "block0_exited": 2,
+        "early_tx_slot1_2": 11,
+        "bundle_holding_pct": 0.0,
+        "gebuendelt": false,
+        "rugcheck_insider_pct": 0
+      },
+      "phase": "normal",
+      "thesis": "Story verbreitet sich: Holder +693%/h, 64 Netto-Kaeufer 5m, 14 organisch; Block 0: 2 Kaeufer, 2.5% gekauft, 0.0% noch gehalten; Dev-Coins 1",
+      "exit_rule": "Haelfte bei 2x; Rest raus, wenn Holder schrumpfen und Netto-Verkaeufer 2x in Folge, Liquiditaet -30%, -40%, nach 1,5x nicht unter Einstand, nach 2x 30 % vom Hoch (ab 10x 25 %)",
+      "mitlaeufer": null
+    }
+  },
   "closed": [
     {
       "symbol": "SHOGGOTH",
@@ -1871,7 +1937,8 @@
     "BH2PVkGqyQDUUpAB1pdk75Q2zLh4dyfbfUsXUDvBX2FL": 1790587738.1875243,
     "3mDPurKkrujzqQ3UFhuVp6fX9nzVP69mcUJ5sF7jtron": 1790592098.8792896,
     "2EUKLvNQ63YCmjSDyJ14Tzj7ASeHGXgseYWrKAa2mine": 1790605952.250984,
-    "8zFFYjtYqxWu5JvKgZzkKaxE3aPpJAiVpNuA1ETupump": 1790609539.46792
+    "8zFFYjtYqxWu5JvKgZzkKaxE3aPpJAiVpNuA1ETupump": 1790609539.46792,
+    "CZWyKU9MghRchXXw6x34aPN7MGeQR8QJKwymX6cpump": 1790612176.3378823
   },
   "watch": {
     "3mDPurKkrujzqQ3UFhuVp6fX9nzVP69mcUJ5sF7jtron": {
@@ -1902,7 +1969,7 @@
       "until": 1790631707.678199
     }
   },
-  "saved_at": 1790612140.829184,
+  "saved_at": 1790612237.1833498,
   "shadow": {
     "HKEDNYCrTJJ5shhyLPyMSEJowTJTnwcS5XzKwDreGnwp": {
       "symbol": "Wazz",
@@ -2155,6 +2222,24 @@
       "since": 1790611902.3906326,
       "peak_usd": 0.0001686637344893539,
       "until": 1790633502.3906326
+    },
+    "3ErG8UG3VBgHtNUWcUJK74KxEKCPSCviDgx453ytW4bW": {
+      "symbol": "PNN",
+      "reason": "BUNDLE_CHECK_NICHT_MOEGLICH",
+      "detail": "Bundle-Check nicht moeglich",
+      "ref_price": 2.617404434430506e-05,
+      "since": 1790612155.8670874,
+      "peak_usd": 2.617404434430506e-05,
+      "until": 1790633755.8670874
+    },
+    "Emu53kQjsHKiVad7cGYR7YbGnpFCZmRKk1egcAE718ar": {
+      "symbol": "WORM",
+      "reason": "BUNDLE_CHECK_NICHT_MOEGLICH",
+      "detail": "Bundle-Check nicht moeglich",
+      "ref_price": 0.00011318051660696463,
+      "since": 1790612155.8670874,
+      "peak_usd": 0.00011318051660696463,
+      "until": 1790633755.8670874
     }
   }
 }
