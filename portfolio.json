@@ -1,8 +1,74 @@
 {
   "strategy": "NARRATIV",
   "started": "2026-09-26T02:46:00.825468+00:00",
-  "bankroll_sol": 10.748009,
-  "positions": {},
+  "bankroll_sol": 10.546509,
+  "positions": {
+    "8zFFYjtYqxWu5JvKgZzkKaxE3aPpJAiVpNuA1ETupump": {
+      "mint": "8zFFYjtYqxWu5JvKgZzkKaxE3aPpJAiVpNuA1ETupump",
+      "symbol": "GRAILSHOT",
+      "opened": 1790609539.4676023,
+      "invested_sol": 0.2,
+      "fees_sol": 0.0015,
+      "entry_signal_usd": 4.68618533939273e-05,
+      "entry_fill_usd": 5.111827881887515e-05,
+      "entry_slippage_pct": 9.08,
+      "roundtrip_cost_pct": 6.82,
+      "tokens_initial": 461990.621742,
+      "tokens_left": 461990.621742,
+      "decimals": 6,
+      "proceeds_sol": 0.0,
+      "peak_usd": 5.509950248039503e-05,
+      "tp1_done": false,
+      "thesis_breaks": 0,
+      "missing_loops": 0,
+      "entry_liquidity": 8379.820230479883,
+      "entry_view": {
+        "age_h": 0.8585790062612958,
+        "mcap": 43853.91692686487,
+        "liquidity": 8379.820230479883,
+        "holders": 195,
+        "holder_growth_1h": 786.3636363636364,
+        "holder_growth_5m": 25.806451612903224,
+        "net_buyers_5m": 53,
+        "organic_buyers_5m": 5,
+        "organic_score": 41.983814617728974,
+        "price_change_1h": 1126.2136723126735,
+        "price_change_5m": 6.417445723452387,
+        "buys_5m": 164,
+        "sells_5m": 156,
+        "traders_5m": 91,
+        "traders_1h": 373,
+        "buy_vol_5m": 10434.212471903058,
+        "sell_vol_5m": 9665.483735906568,
+        "buy_vol_1h": 66847.17395840384,
+        "sell_vol_1h": 57019.07726179291,
+        "organic_buy_vol_1h": 2892.0792102151227,
+        "top_holders_pct": 24.115525220782118,
+        "dev_balance_pct": 0.0,
+        "dev_mints": 1,
+        "launchpad": "pump.fun",
+        "graduated": true,
+        "social": false,
+        "hour_utc": 15
+      },
+      "bundle": {
+        "quelle": "block0",
+        "slot": 451348660,
+        "block0_wallets": 1,
+        "block0_supply_pct": 0.32,
+        "block0_still_held_pct": 0.0,
+        "block0_exited": 1,
+        "early_tx_slot1_2": 1,
+        "bundle_holding_pct": 0.0,
+        "gebuendelt": false,
+        "rugcheck_insider_pct": 6.7
+      },
+      "phase": "ruhig",
+      "thesis": "Story verbreitet sich: Holder +786%/h, 53 Netto-Kaeufer 5m, 5 organisch; Block 0: 1 Kaeufer, 0.3% gekauft, 0.0% noch gehalten; Dev-Coins 1",
+      "exit_rule": "Haelfte bei 2x; Rest raus, wenn Holder schrumpfen und Netto-Verkaeufer 2x in Folge, Liquiditaet -30%, -40%, nach 1,5x nicht unter Einstand, nach 2x 30 % vom Hoch (ab 10x 25 %)",
+      "mitlaeufer": null
+    }
+  },
   "closed": [
     {
       "symbol": "SHOGGOTH",
@@ -1809,7 +1875,8 @@
     "ELP7DpZvv41KzWewe513ZPBwTESsuxgzCJzh9zXn8WGd": 1790585538.4374442,
     "BH2PVkGqyQDUUpAB1pdk75Q2zLh4dyfbfUsXUDvBX2FL": 1790587738.1875243,
     "3mDPurKkrujzqQ3UFhuVp6fX9nzVP69mcUJ5sF7jtron": 1790592098.8792896,
-    "2EUKLvNQ63YCmjSDyJ14Tzj7ASeHGXgseYWrKAa2mine": 1790605952.250984
+    "2EUKLvNQ63YCmjSDyJ14Tzj7ASeHGXgseYWrKAa2mine": 1790605952.250984,
+    "8zFFYjtYqxWu5JvKgZzkKaxE3aPpJAiVpNuA1ETupump": 1790609539.46792
   },
   "watch": {
     "BH2PVkGqyQDUUpAB1pdk75Q2zLh4dyfbfUsXUDvBX2FL": {
@@ -1840,17 +1907,8 @@
       "until": 1790627721.6322732
     }
   },
-  "saved_at": 1790609496.7545986,
+  "saved_at": 1790609564.002505,
   "shadow": {
-    "BgZUuSMr6ni6jdQTGsF1seANXFJU49Wd5nwNbrvGukDQ": {
-      "symbol": "SI",
-      "reason": "DEV_VERDAECHTIG",
-      "detail": "Dev 73 Coins (Grenze 50)",
-      "ref_price": 7.946553473684808e-06,
-      "since": 1790587897.0565038,
-      "peak_usd": 7.946553473684808e-06,
-      "until": 1790609497.0565038
-    },
     "135JdCzuKJtF5dF5VUMErtrDsKKbwwbmujbRDYTXk25i": {
       "symbol": "O",
       "reason": "DEV_VERDAECHTIG",
@@ -2084,6 +2142,15 @@
       "since": 1790608909.0961044,
       "peak_usd": 8.867568534753845e-06,
       "until": 1790630509.0961044
+    },
+    "FPT65CmLh8gDJq6nZnpFMSQN7dkGBTchzypfeA4FPrFA": {
+      "symbol": "o",
+      "reason": "STORY_ZU_ALT",
+      "detail": "6.0 h alt (Grenze 6)",
+      "ref_price": 6.378584871438877e-05,
+      "since": 1790609534.8844225,
+      "peak_usd": 6.378584871438877e-05,
+      "until": 1790631134.8844225
     }
   }
 }
