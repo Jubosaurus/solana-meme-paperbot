@@ -22,7 +22,8 @@ PORTFOLIO_FILE = "portfolio.json"
 JOURNAL_FILE = "journal.csv"
 REJECT_FILE = "abgelehnt.csv"
 PHASE_FILE = "marktphase.json"
-VERLAUF_FILE = "verlauf.csv"
+VERLAUF_DIR = "verlauf"                  # eine Datei pro Tag (UTC), z. B. verlauf/2026-09-28.csv
+NEAR_MISS_FILE = "knapp_abgelehnt.csv"
 
 DISCORD_WEBHOOK_URL = os.environ.get("DISCORD_WEBHOOK_URL")
 JUPITER_API_KEY = (os.environ.get("JUPITER_API_KEY") or "").strip()
@@ -39,10 +40,15 @@ IGNORED_MINTS = {
 }
 
 # ================================================================ Schicht
-LOOP_SLEEP_SECONDS = 35
+LOOP_SLEEP_SECONDS = 12                 # offene Positionen alle ~12 s (seit 28.09., vorher 35 s)
 SHIFT_DURATION_SECONDS = 20700          # 5h45 bei 6h-Takt
-SCAN_EVERY_LOOPS = 2                    # Kandidaten ca. alle 70 s
-PHASE_EVERY_LOOPS = 10                  # Marktphase ca. alle 6 min
+SCAN_EVERY_LOOPS = 6                    # Kandidaten ca. alle 70 s
+PHASE_EVERY_LOOPS = 30                  # Marktphase ca. alle 6 min
+THESIS_EVERY_LOOPS = 3                  # These ca. alle 36 s pruefen (Jupiter-Daten brauchen Zeit)
+SOL_PRICE_EVERY_LOOPS = 5
+GIT_PUSH_EVERY_LOOPS = 5                # Sicherung ca. jede Minute
+WATCH_LOG_EVERY_LOOPS = 3               # Verlauf nach Verkauf ca. alle 36 s
+NEAR_MISS_LOG_EVERY_LOOPS = 10          # Verlauf knapp Abgelehnter ca. alle 2 min
 
 # ================================================================ Kapital
 START_BANKROLL_SOL = 10.0
@@ -67,7 +73,7 @@ IMPERSONATION_SYMBOLS = {"SOL", "WSOL", "USDC", "USDT", "BTC", "WBTC", "ETH", "W
 # Tag 1: Bundle-Check
 MAX_BUNDLE_HOLDING_PCT = 10.0           # Anteil verbundener Insider-Wallets (RugCheck)
 # Eigener Block-0-Check (Methode wie SolBundler): wer hat im Erstellungsblock gekauft?
-BUNDLE_MIN_WALLETS = 3                  # ab so vielen Kaeufern in Block 0 ...
+BUNDLE_MIN_WALLETS = 2                  # ab so vielen Kaeufern in Block 0 ... (seit 28.09.: 2 statt 3)
 BUNDLE_MAX_SUPPLY_PCT = 15.0            # ... und diesem Anteil gilt ein Coin als gebuendelt
 BUNDLE_MAX_STILL_HELD_PCT = 10.0        # Block-0-Kaeufer halten noch zu viel
 # "streng": jeder gebuendelte Launch wird abgelehnt (Tag 1 woertlich)
@@ -89,16 +95,18 @@ TP1_MULTIPLE = 2.0                      # Tag 2: bei 2x ...
 TP1_SELL_FRACTION = 0.5                 # ... die Haelfte vom Tisch
 # Tag 4: Rest laufen lassen, Schutz vom Hoch. Je hoeher das erreichte Vielfache
 # seit dem Kauf, desto enger folgt die Verkaufsgrenze (Stufen, die nie absinken).
-# Aktiv seit 27.09.2026. Bewertung laeuft ueber verlauf.csv.
+# Seit 28.09.2026: 30 % bis 10x, darueber 25 % (vorher 40/30/25). Grundlage: verlauf.csv vom 27.09.
 TRAIL_TIERS = [(10.0, 25.0),            # ab 10x Hoch: 25 % Abstand
-               (4.0, 30.0),             # ab 4x Hoch:  30 % Abstand
-               (0.0, 40.0)]             # darunter:    40 % Abstand
+               (0.0, 30.0)]             # darunter:    30 % Abstand
 THESIS_BREAK_CHECKS = 2                 # Tag 3: These gebrochen, wenn 2x hintereinander
 LIQ_DROP_EXIT_PCT = 30.0                # Liquiditaet abgezogen -> raus
 EMERGENCY_STOP_PCT = -40.0              # Notbremse
+# Seit 28.09.2026: Wer vor dem Teilverkauf 1,5x erreicht hat, wird nicht mehr unter Einstand verkauft
+PROTECT_AT_MULTIPLE = 1.5
+PROTECT_FLOOR_MULTIPLE = 1.0
 MAX_HOLD_H = 24
 WATCH_AFTER_EXIT_H = 6                  # nach dem Verkauf weiter beobachten (nur Aufzeichnung)
-DEAD_TOKEN_LOOPS = 10
+DEAD_TOKEN_LOOPS = 30
 
 # ================================================================ Marktphase
 # Tag 9 + 13: frische Coins und Volumen messen, bei ruhigem Markt weniger handeln
@@ -109,6 +117,19 @@ PHASE_MIN_HISTORY = 12
 PHASE_HISTORY_MAX = 1000
 
 REJECT_REPEAT_SECONDS = 3600
+
+# ================================================================ Knapp abgelehnt (nur Beobachtung)
+NEAR_MISS_WATCH_H = 6
+NEAR_MISS_MAX_TRACKED = 60
+
+# ================================================================ Mitlaeufer-Verdacht
+# Nur Beobachtung, keine Kaufregel: Teilt ein Kandidat einen Namensteil mit einem viel
+# groesseren Trending-Coin (z. B. "K/ACC" und "e/acc"), wird er markiert.
+NARRATIVE_LEADER_MIN_MCAP = 5_000_000
+NARRATIVE_LEADER_FACTOR = 10
+NARRATIVE_MIN_PART_LEN = 3
+NARRATIVE_STOPWORDS = {"THE", "COIN", "TOKEN", "SOL", "SOLANA", "MEME", "AND", "FOR",
+                       "OFFICIAL", "WITH", "FROM", "THIS", "THAT"}
 
 SESSION = requests.Session()
 SESSION.headers.update({"User-Agent": "narrativ-paperbot/1.0"})
@@ -126,6 +147,7 @@ _portfolio_alarm = [False]
 _shield_cache = {}
 _reject_seen = {}
 _symbol_leaders = {}                    # Tag 12: Symbol -> (mint, holder, zeit)
+_narrative_leaders = {}                 # Namensteil -> (mint, symbol, mcap, zeit)
 _sol_price = [0.0]
 
 
@@ -454,6 +476,19 @@ def token_view(tok, now):
         "dev_mints": int(as_float(audit.get("devMints"))),
         "dev_balance_pct": as_float(audit.get("devBalancePercentage")),
         "top_holders_pct": as_float(audit.get("topHoldersPercentage")),
+        "dev": tok.get("dev"),
+        "launchpad": tok.get("launchpad"),
+        "graduated": bool(tok.get("graduatedPool")),
+        "price_change_5m": as_float(s5.get("priceChange")),
+        "buys_5m": int(as_float(s5.get("numBuys"))),
+        "sells_5m": int(as_float(s5.get("numSells"))),
+        "traders_5m": int(as_float(s5.get("numTraders"))),
+        "buy_vol_5m": as_float(s5.get("buyVolume")),
+        "sell_vol_5m": as_float(s5.get("sellVolume")),
+        "buy_vol_1h": as_float(s1.get("buyVolume")),
+        "sell_vol_1h": as_float(s1.get("sellVolume")),
+        "organic_buy_vol_1h": as_float(s1.get("buyOrganicVolume")),
+        "traders_1h": int(as_float(s1.get("numTraders"))),
     }
 
 
@@ -469,6 +504,36 @@ def update_symbol_leaders(views, now):
             if (leader is None or now - leader[2] > 6 * 3600
                     or leader[0] == v["mint"] or v["holders"] > leader[1]):
                 _symbol_leaders[key] = (v["mint"], v["holders"], now)
+
+
+def name_parts(v):
+    parts = set()
+    for text in (v.get("symbol"), v.get("name")):
+        for part in re.split(r"[^A-Za-z0-9]+", str(text or "").upper()):
+            if len(part) >= NARRATIVE_MIN_PART_LEN and part not in NARRATIVE_STOPWORDS:
+                parts.add(part)
+    return parts
+
+
+def update_narrative_leaders(views, now):
+    for v in views:
+        if v["mcap"] < NARRATIVE_LEADER_MIN_MCAP:
+            continue
+        for part in name_parts(v):
+            cur = _narrative_leaders.get(part)
+            if cur is None or now - cur[3] > 24 * 3600 or cur[0] == v["mint"] or v["mcap"] > cur[2]:
+                _narrative_leaders[part] = (v["mint"], v["symbol"], v["mcap"], now)
+
+
+def follower_of(v, now):
+    """Mitlaeufer-Verdacht: Namensteil gehoert zu einem viel groesseren Coin."""
+    for part in sorted(name_parts(v)):
+        lead = _narrative_leaders.get(part)
+        if lead and lead[0] != v["mint"] and now - lead[3] <= 24 * 3600 and \
+                lead[2] >= max(NARRATIVE_LEADER_MIN_MCAP, v["mcap"] * NARRATIVE_LEADER_FACTOR):
+            return {"teil": part, "leader": lead[1], "leader_mint": lead[0],
+                    "leader_mcap": round(lead[2])}
+    return None
 
 
 def vamp_copy_of(v):
@@ -606,12 +671,26 @@ def journal(action, pos, price_usd, sol, reason="", pnl_sol="", pnl_pct=""):
                     pnl_pct if pnl_pct == "" else f"{pnl_pct:+.1f}"])
 
 
+ENTRY_FEATURES = ("age_h", "mcap", "liquidity", "holders", "holder_growth_1h", "holder_growth_5m",
+                  "net_buyers_5m", "organic_buyers_5m", "organic_score", "price_change_1h",
+                  "price_change_5m", "buys_5m", "sells_5m", "traders_5m", "traders_1h",
+                  "buy_vol_5m", "sell_vol_5m", "buy_vol_1h", "sell_vol_1h", "organic_buy_vol_1h",
+                  "top_holders_pct", "dev_balance_pct", "dev_mints", "launchpad", "graduated",
+                  "social")
+
+
+def verlauf_file():
+    return os.path.join(VERLAUF_DIR, datetime.now(timezone.utc).strftime("%Y-%m-%d") + ".csv")
+
+
 def log_path(stage, mint, symbol, v, entry_fill, opened, peak_usd, tp1_done):
     """Kursverlauf als Vielfaches des Einstiegs, fuer die spaetere Bewertung der Ausstiegsregeln."""
     if not entry_fill:
         return
-    new = not os.path.exists(VERLAUF_FILE)
-    with open(VERLAUF_FILE, "a", newline="", encoding="utf-8") as f:
+    path = verlauf_file()
+    os.makedirs(VERLAUF_DIR, exist_ok=True)
+    new = not os.path.exists(path)
+    with open(path, "a", newline="", encoding="utf-8") as f:
         w = csv.writer(f)
         if new:
             w.writerow(["zeit", "mint", "symbol", "phase", "minuten_seit_kauf", "vielfaches",
@@ -622,6 +701,64 @@ def log_path(stage, mint, symbol, v, entry_fill, opened, peak_usd, tp1_done):
                     f"{peak_usd / entry_fill:.4f}", int(bool(tp1_done)),
                     f"{v['holder_growth_1h']:.1f}", v["net_buyers_5m"], f"{v['liquidity']:.0f}",
                     f"{v['price']:.12g}"])
+
+
+def near_miss_detail(v, reason, extra=None):
+    """Gibt eine kurze Beschreibung zurueck, wenn die Ablehnung knapp war, sonst None."""
+    if reason == "VERBREITUNG_STOCKT" and 10 <= v["holder_growth_1h"] < MIN_HOLDER_GROWTH_1H \
+            and v["holder_growth_5m"] > 0:
+        return f"Holder +{v['holder_growth_1h']:.0f}%/h (Grenze {MIN_HOLDER_GROWTH_1H:.0f})"
+    if reason == "KEINE_ECHTEN_KAEUFER":
+        if v["organic_buyers_5m"] == MIN_ORGANIC_BUYERS_5M - 1 and v["net_buyers_5m"] >= MIN_NET_BUYERS_5M:
+            return f"{v['organic_buyers_5m']} organische Kaeufer (Grenze {MIN_ORGANIC_BUYERS_5M})"
+        if v["organic_buyers_5m"] >= MIN_ORGANIC_BUYERS_5M and v["net_buyers_5m"] == 0:
+            return "0 Netto-Kaeufer"
+    if reason == "SCHON_GELAUFEN":
+        if MAX_MCAP_USD < v["mcap"] <= MAX_MCAP_USD * 5 / 3:
+            return f"Marktwert ${v['mcap']:,.0f} (Grenze ${MAX_MCAP_USD:,.0f})"
+        if v["mcap"] <= MAX_MCAP_USD and MAX_PRICE_CHANGE_1H < v["price_change_1h"] <= 250:
+            return f"+{v['price_change_1h']:.0f}% in 1 h (Grenze {MAX_PRICE_CHANGE_1H:.0f})"
+    if reason == "STORY_ZU_ALT" and v["age_h"] is not None and MAX_AGE_H < v["age_h"] <= MAX_AGE_H + 2:
+        return f"{v['age_h']:.1f} h alt (Grenze {MAX_AGE_H})"
+    if reason == "DEV_VERDAECHTIG":
+        if MAX_DEV_MINTS < v["dev_mints"] <= 100:
+            return f"Dev {v['dev_mints']} Coins (Grenze {MAX_DEV_MINTS})"
+        if MAX_CREATOR_HOLDING_PCT < v["dev_balance_pct"] <= 15:
+            return f"Dev haelt {v['dev_balance_pct']:.1f}%"
+    if reason == "NICHT_ORGANISCH" and 25 <= v["organic_score"] < MIN_ORGANIC_SCORE:
+        return f"Organic Score {v['organic_score']:.0f} (Grenze {MIN_ORGANIC_SCORE})"
+    if reason == "LIQUIDITAET_ZU_GERING" and 3000 <= v["liquidity"] < MIN_LIQUIDITY_USD:
+        return f"Liquiditaet ${v['liquidity']:,.0f}"
+    if reason == "GEBUENDELT" and extra and extra.get("block0_supply_pct", 0) < BUNDLE_MAX_SUPPLY_PCT + 5:
+        return f"Block 0: {extra.get('block0_wallets')} Kaeufer, {extra.get('block0_supply_pct')}%"
+    if reason == "BUNDLE_CHECK_NICHT_MOEGLICH":
+        return "Bundle-Check nicht moeglich"
+    if reason == "KEIN_PLATZ":
+        return "alle Schnellpruefungen bestanden, Positionslimit erreicht (ohne Bundle-Check)"
+    return None
+
+
+def track_near_miss(p, v, reason, now, extra=None):
+    """Knapp abgelehnte Coins 6 h weiter beobachten (nur Aufzeichnung, kein Handel)."""
+    detail = near_miss_detail(v, reason, extra)
+    if not detail or v["price"] <= 0:
+        return
+    shadow = p.setdefault("shadow", {})
+    mint = v["mint"]
+    if mint in shadow or mint in p["positions"] or mint in p.get("watch", {}) \
+            or len(shadow) >= NEAR_MISS_MAX_TRACKED:
+        return
+    shadow[mint] = {"symbol": v["symbol"], "reason": reason, "detail": detail,
+                    "ref_price": v["price"], "since": now, "peak_usd": v["price"],
+                    "until": now + NEAR_MISS_WATCH_H * 3600}
+    STATS["near_misses"] = STATS.get("near_misses", 0) + 1
+    new = not os.path.exists(NEAR_MISS_FILE)
+    with open(NEAR_MISS_FILE, "a", newline="", encoding="utf-8") as f:
+        w = csv.writer(f)
+        if new:
+            w.writerow(["zeit", "symbol", "mint", "grund", "detail", "preis_usd", *ENTRY_FEATURES])
+        w.writerow([datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S"), v["symbol"], mint,
+                    reason, detail, f"{v['price']:.12g}", *[v.get(k) for k in ENTRY_FEATURES]])
 
 
 def log_reject(v, reason):
@@ -653,6 +790,7 @@ def update_phase(now):
         return None
     views = [token_view(t, now) for t in tokens]
     update_symbol_leaders(views, now)
+    update_narrative_leaders(views, now)
     young = [v for v in views if v["age_h"] is not None and v["age_h"] <= YOUNG_TOKEN_H]
     hot_count = sum(1 for v in young if v["mcap"] >= HOT_MCAP_USD)
     volume = sum(v["volume_1h"] for v in young)
@@ -719,7 +857,8 @@ def open_position(p, v, bundle, sol_usd):
               f"{bundle_txt}; Dev-Coins {v['dev_mints']}")
     exit_rule = (f"Haelfte bei {TP1_MULTIPLE:.0f}x; Rest raus, wenn Holder schrumpfen und "
                  f"Netto-Verkaeufer {THESIS_BREAK_CHECKS}x in Folge, Liquiditaet -{LIQ_DROP_EXIT_PCT:.0f}%, "
-                 f"{EMERGENCY_STOP_PCT:.0f}% oder nach 2x 40/30/25 % vom Hoch (Stufen 4x/10x)")
+                 f"{EMERGENCY_STOP_PCT:.0f}%, nach 1,5x nicht unter Einstand, "
+                 f"nach 2x 30 % vom Hoch (ab 10x 25 %)")
 
     p["bankroll_sol"] = round(p["bankroll_sol"] - POSITION_SOL - TX_FEE_SOL, 6)
     pos = {"mint": v["mint"], "symbol": v["symbol"], "opened": time.time(),
@@ -729,14 +868,18 @@ def open_position(p, v, bundle, sol_usd):
            "tokens_initial": tokens, "tokens_left": tokens, "decimals": int(decimals),
            "proceeds_sol": 0.0, "peak_usd": v["price"], "tp1_done": False,
            "thesis_breaks": 0, "missing_loops": 0, "entry_liquidity": v["liquidity"],
-           "entry_view": {k: v[k] for k in ("age_h", "mcap", "holders", "holder_growth_1h",
-                                            "net_buyers_5m", "organic_buyers_5m",
-                                            "organic_score", "price_change_1h")},
-           "bundle": bundle, "phase": current_phase(), "thesis": thesis, "exit_rule": exit_rule}
+           "entry_view": {**{k: v.get(k) for k in ENTRY_FEATURES},
+                          "hour_utc": datetime.now(timezone.utc).hour},
+           "bundle": bundle, "phase": current_phase(), "thesis": thesis, "exit_rule": exit_rule,
+           "mitlaeufer": v.get("mitlaeufer")}
     p["positions"][v["mint"]] = pos
     p["cooldown"][v["mint"]] = time.time()
     journal("KAUF", pos, fill_usd, POSITION_SOL)
-    STATS["entries"].append({"symbol": v["symbol"], "roundtrip": roundtrip})
+    STATS["entries"].append({"symbol": v["symbol"], "roundtrip": roundtrip,
+                             "mitlaeufer": bool(v.get("mitlaeufer"))})
+    ml = v.get("mitlaeufer")
+    ml_line = (f"**Mitlaeufer-Verdacht:** teilt \"{ml['teil']}\" mit {ml['leader']} "
+               f"(${ml['leader_mcap']:,.0f}), nur zur Beobachtung\n") if ml else ""
     discord(f"🎯 Kauf: {v['symbol']}",
             f"**These:** {thesis}\n**Verkauf wenn:** {exit_rule}\n"
             f"**Marktwert:** ${v['mcap']:,.0f} | **LP:** ${v['liquidity']:,.0f} | "
@@ -744,6 +887,7 @@ def open_position(p, v, bundle, sol_usd):
             f"**Einstieg:** {POSITION_SOL} SOL, Slippage {slippage:+.2f}%, "
             f"Hin+zurueck {roundtrip if roundtrip is not None else '?'}%\n"
             f"**Marktphase:** {pos['phase']} | **Bankroll frei:** {p['bankroll_sol']:.4f} SOL\n"
+            + ml_line +
             f"https://jup.ag/tokens/{v['mint']}", 0x3B82F6)
     save_portfolio(p)
     return True
@@ -778,6 +922,7 @@ def close_position(p, pos, price_usd, reason, sol_usd):
     record = {k: pos[k] for k in ("symbol", "mint", "invested_sol", "entry_fill_usd",
                                   "entry_slippage_pct", "roundtrip_cost_pct", "tp1_done",
                                   "entry_view", "bundle", "phase", "thesis")}
+    record["mitlaeufer"] = pos.get("mitlaeufer")
     record.update({"proceeds_sol": round(pos["proceeds_sol"], 6), "pnl_sol": round(pnl, 6),
                    "pnl_pct": round(pnl_pct, 2), "peak_multiple": round(peak_x, 2),
                    "exit_usd": price_usd, "exit_reason": reason,
@@ -808,12 +953,22 @@ def trail_pct(peak_multiple):
 
 
 def manage_positions(p, sol_usd, now):
+    loop = STATS["loops"]
     watch = p.setdefault("watch", {})
-    for mint in [m for m, w in watch.items() if now > w["until"]]:
-        del watch[mint]
-    if not p["positions"] and not watch:
+    shadow = p.setdefault("shadow", {})
+    for store in (watch, shadow):
+        for mint in [m for m, w in store.items() if now > w["until"]]:
+            del store[mint]
+    log_watch = loop % WATCH_LOG_EVERY_LOOPS == 0
+    log_shadow = loop % NEAR_MISS_LOG_EVERY_LOOPS == 0
+    wanted = list(p["positions"])
+    if log_watch:
+        wanted += [m for m in watch if m not in p["positions"]]
+    if log_shadow:
+        wanted += [m for m in shadow if m not in p["positions"] and m not in watch]
+    if not wanted:
         return
-    data = jup_tokens(list(p["positions"]) + [m for m in watch if m not in p["positions"]])
+    data = jup_tokens(wanted)
     for mint, pos in list(p["positions"].items()):
         tok = data.get(mint)
         if not tok:
@@ -842,9 +997,10 @@ def manage_positions(p, sol_usd, now):
                     f"Der Rest laeuft weiter, solange die Story waechst.", 0xF59E0B)
             continue
 
-        # Tag 3: These pruefen
-        thesis_ok = not (v["holder_growth_1h"] < 0 and v["net_buyers_5m"] <= 0)
-        pos["thesis_breaks"] = 0 if thesis_ok else pos["thesis_breaks"] + 1
+        # Tag 3: These pruefen (im Takt der Jupiter-Daten, nicht bei jeder Kurspruefung)
+        if loop % THESIS_EVERY_LOOPS == 0:
+            thesis_ok = not (v["holder_growth_1h"] < 0 and v["net_buyers_5m"] <= 0)
+            pos["thesis_breaks"] = 0 if thesis_ok else pos["thesis_breaks"] + 1
 
         reason = None
         if change_pct <= EMERGENCY_STOP_PCT:
@@ -854,6 +1010,10 @@ def manage_positions(p, sol_usd, now):
             reason = "LIQUIDITAET_ABGEZOGEN"
         elif pos["thesis_breaks"] >= THESIS_BREAK_CHECKS:
             reason = "THESE_GEBROCHEN (Holder schrumpfen, Netto-Verkaeufer)"
+        elif (not pos["tp1_done"] and pos["peak_usd"] / pos["entry_fill_usd"] >= PROTECT_AT_MULTIPLE
+              and multiple <= PROTECT_FLOOR_MULTIPLE):
+            reason = (f"GEWINN_GESCHUETZT (Hoch {pos['peak_usd'] / pos['entry_fill_usd']:.1f}x, "
+                      f"zurueck auf Einstand)")
         elif pos["tp1_done"]:
             peak_x = pos["peak_usd"] / pos["entry_fill_usd"]
             trail = trail_pct(peak_x)
@@ -865,7 +1025,7 @@ def manage_positions(p, sol_usd, now):
             close_position(p, pos, price, reason, sol_usd)
 
     # Nach dem Verkauf: nur aufzeichnen, nicht handeln
-    for mint, w in list(watch.items()):
+    for mint, w in list(watch.items()) if log_watch else []:
         if mint in p["positions"] or mint not in data:
             continue
         v = token_view(data[mint], now)
@@ -873,6 +1033,16 @@ def manage_positions(p, sol_usd, now):
             w["peak_usd"] = max(w["peak_usd"], v["price"])
             log_path("nach_verkauf", mint, w["symbol"], v, w["entry_fill_usd"], w["opened"],
                      w["peak_usd"], True)
+
+    # Knapp abgelehnt: nur aufzeichnen, Vielfaches bezogen auf den Kurs bei der Ablehnung
+    for mint, s in list(shadow.items()) if log_shadow else []:
+        if mint in p["positions"] or mint in watch or mint not in data:
+            continue
+        v = token_view(data[mint], now)
+        if v["price"] > 0:
+            s["peak_usd"] = max(s["peak_usd"], v["price"])
+            log_path("abgelehnt_" + s["reason"], mint, s["symbol"], v, s["ref_price"], s["since"],
+                     s["peak_usd"], False)
     save_portfolio(p)
 
 
@@ -881,8 +1051,8 @@ def manage_positions(p, sol_usd, now):
 def scan(p, sol_usd, now):
     phase = current_phase()
     slots = MAX_POSITIONS.get(phase, 2) - len(p["positions"])          # Tag 9
-    if slots <= 0 or p["bankroll_sol"] < POSITION_SOL + TX_FEE_SOL:
-        return
+    if p["bankroll_sol"] < POSITION_SOL + TX_FEE_SOL:
+        slots = 0
 
     seen = {}
     for interval in ("5m", "1h"):
@@ -891,6 +1061,7 @@ def scan(p, sol_usd, now):
                 seen[tok["id"]] = tok
     views = [token_view(t, now) for t in seen.values()]
     update_symbol_leaders(views, now)
+    update_narrative_leaders(views, now)
 
     passed = []
     for v in views:
@@ -899,6 +1070,7 @@ def scan(p, sol_usd, now):
         reason = quick_checks(v)
         if reason:
             log_reject(v, reason)
+            track_near_miss(p, v, reason, now)
             continue
         passed.append(v)
 
@@ -906,7 +1078,10 @@ def scan(p, sol_usd, now):
     passed.sort(key=lambda x: x["holder_growth_1h"], reverse=True)
     for v in passed:
         if slots <= 0:
-            break
+            # Limit erreicht: nicht kaufen, aber beobachten (ohne teuren Bundle-Check)
+            log_reject(v, "KEIN_PLATZ")
+            track_near_miss(p, v, "KEIN_PLATZ", now)
+            continue
         if REQUIRE_SOCIAL_LINK and not has_social(v):
             log_reject(v, "KEINE_STORY_LINKS")
             continue
@@ -917,7 +1092,9 @@ def scan(p, sol_usd, now):
         reason, bundle = bundle_dev_check(v["mint"])
         if reason:
             log_reject(v, reason)
+            track_near_miss(p, v, reason, now, bundle)
             continue
+        v["mitlaeufer"] = follower_of(v, now)
         if open_position(p, v, bundle, sol_usd):
             slots -= 1
 
@@ -961,8 +1138,8 @@ def git_push():
     """Sichert die Zustandsdateien auf main. Jede Datei wird als Ganzes ersetzt, nichts
     wird zeilenweise gemischt (das zerstoert JSON). Andere Dateien auf main, etwa eine
     zwischendurch hochgeladene bot.py, bleiben unangetastet."""
-    files = [f for f in (PORTFOLIO_FILE, JOURNAL_FILE, REJECT_FILE, PHASE_FILE, VERLAUF_FILE)
-             if os.path.exists(f)]
+    files = [f for f in (PORTFOLIO_FILE, JOURNAL_FILE, REJECT_FILE, PHASE_FILE, VERLAUF_DIR,
+                         NEAR_MISS_FILE, "verlauf.csv") if os.path.exists(f)]
     if not files:
         return
     _git("config", "user.name", "github-actions[bot]")
@@ -1015,11 +1192,16 @@ def shift_summary(p, start_value, started, reason):
     ]
     if rts:
         lines.append(f"**Hin+zurueck (Ø):** {sum(rts) / len(rts):.2f}%")
+    ml = sum(1 for e in STATS["entries"] if e.get("mitlaeufer"))
+    if ml:
+        lines.append(f"**Kaeufe mit Mitlaeufer-Verdacht:** {ml} von {len(STATS['entries'])}")
     if top:
         lines.append("**Haeufigste Ablehnungen:** " + ", ".join(f"{k} {v}" for k, v in top))
     lines.append(f"**Jupiter:** {STATS['jup_ok']} ok / {STATS['jup_fail']} Fehler | "
                  f"**RugCheck:** {STATS['rugcheck_ok']} ok / {STATS['rugcheck_fail']} Fehler | "
                  f"**Helius:** {STATS['helius_ok']} ok / {STATS['helius_fail']} Fehler")
+    if STATS.get("near_misses"):
+        lines.append(f"**Knapp abgelehnt, neu beobachtet:** {STATS['near_misses']}")
     lines.append(f"**GitHub-Sicherung:** {STATS['git_ok']} ok / {STATS['git_fail']} Fehler")
     lines.append(f"**Loop-Fehler:** {STATS['loop_errors']}"
                  + (f" ({STATS['last_error'][:150]})" if STATS["loop_errors"] else ""))
@@ -1066,7 +1248,8 @@ def run():
             STATS["loops"] = loop
             try:
                 now = time.time()
-                sol_usd = sol_price()
+                if loop % SOL_PRICE_EVERY_LOOPS == 1:
+                    sol_usd = sol_price()
                 p = load_portfolio()
                 if loop % PHASE_EVERY_LOOPS == 1:
                     update_phase(now)
@@ -1074,7 +1257,8 @@ def run():
                 if loop % SCAN_EVERY_LOOPS == 1:
                     scan(p, sol_usd, now)
                 save_portfolio(p)
-                git_push()
+                if loop % GIT_PUSH_EVERY_LOOPS == 0:
+                    git_push()
             except Interrupted:
                 raise
             except Exception as err:
@@ -1149,7 +1333,53 @@ def probe():
         print(f"[PROBE] Block 0 fuer {v['symbol']} ({v['age_h']:.1f} h): "
               f"{b0 if b0 else 'keine Daten'} | {time.time() - t0:.1f} s, {calls} Abfragen")
     print(f"[PROBE] Gesamtbewertung {test['symbol']}: {bundle_dev_check(test['mint'])}")
+    probe_new_sources(young)
     print("[PROBE] fertig. Diese Ausgabe bitte an Claude schicken.")
+
+
+def probe_new_sources(young):
+    """Testet zwei moegliche Quellen. Noch nicht Teil der Strategie."""
+    pump = [v for v in young if str(v["mint"]).endswith("pump")] or young
+    if pump:
+        v = pump[0]
+        for base in ("https://frontend-api-v3.pump.fun", "https://frontend-api.pump.fun",
+                     "https://frontend-api-v2.pump.fun"):
+            try:
+                t0 = time.time()
+                res = SESSION.get(f"{base}/coins/{v['mint']}", timeout=10,
+                                  headers={"Accept": "application/json"})
+                info = f"HTTP {res.status_code} nach {time.time() - t0:.1f} s"
+                data = res.json() if res.status_code == 200 else None
+            except (requests.RequestException, ValueError) as err:
+                info, data = f"Fehler: {str(err)[:100]}", None
+            print(f"[PROBE] Pump.fun {base.split('//')[1]} fuer {v['symbol']}: {info}")
+            if isinstance(data, dict):
+                keys = sorted(data.keys())
+                print(f"        Felder ({len(keys)}): {keys[:40]}")
+                print("        " + ", ".join(f"{k}={data.get(k)}" for k in
+                      ("reply_count", "king_of_the_hill_timestamp", "usd_market_cap", "complete",
+                       "twitter", "website", "is_currently_live") if k in data))
+                break
+    devs = [v for v in young if v.get("dev")]
+    if not devs or not HELIUS_RPC:
+        print("[PROBE] Dev-Historie: kein Dev-Feld oder kein Helius-Key")
+        return
+    v = devs[0]
+    print(f"[PROBE] Dev-Historie fuer {v['symbol']}: Dev {str(v['dev'])[:8]}..., Jupiter sagt {v['dev_mints']} Coins")
+    t0 = time.time()
+    res = rpc("getAssetsByCreator", {"creatorAddress": v["dev"], "onlyVerified": False,
+                                     "page": 1, "limit": 20})
+    items = (res or {}).get("items") or []
+    print(f"        getAssetsByCreator: {'Antwort' if res is not None else 'keine Antwort'}, "
+          f"total={(res or {}).get('total')}, {len(items)} Eintraege, {time.time() - t0:.1f} s")
+    mints = [i.get("id") for i in items if i.get("id") and i.get("id") != v["mint"]][:10]
+    if mints:
+        tokens = jup_tokens(mints)
+        dead = sum(1 for m in mints if m not in tokens or
+                   as_float(tokens[m].get("liquidity")) < 1000)
+        print(f"        fruehere Coins geprueft: {len(mints)}, davon tot oder ohne Liquiditaet: {dead}")
+    else:
+        print("        keine frueheren Coins gefunden (Pump.fun traegt den Dev evtl. nicht als Creator ein)")
 
 
 if __name__ == "__main__":
