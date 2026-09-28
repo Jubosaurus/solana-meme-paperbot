@@ -8,10 +8,10 @@ Papier gehandelt.
 
 | Tag | Aussage im Video | Umsetzung im Bot |
 |---|---|---|
-| 1 | Nur Coins kaufen, die nicht gebündelt sind | Eigener Block-0-Check (Methode wie SolBundler): ab 3 Käufern mit zusammen 15 % im Erstellungsblock gilt ein Coin als gebündelt, ebenso wenn diese Käufer noch 10 % halten. Zweitmeinung RugCheck-Insider. Ohne Daten kein Kauf |
+| 1 | Nur Coins kaufen, die nicht gebündelt sind | Eigener Block-0-Check (Methode wie SolBundler): ab 2 Käufern mit zusammen 15 % im Erstellungsblock gilt ein Coin als gebündelt, ebenso wenn diese Käufer noch 10 % halten. Zweitmeinung RugCheck-Insider. Ohne Daten kein Kauf |
 | 2 | Bei großem Gewinn etwas vom Tisch nehmen | Bei 2x wird die Hälfte verkauft |
 | 3 | Vor dem Kauf These und Verkaufsbedingung notieren | `journal.csv` mit These und Verkaufsbedingung. Verkauf, wenn die These bricht |
-| 4 | Gewinner halten, solange die Story wächst | Der Rest nach 2x läuft weiter, Ausstieg bei Thesenbruch oder mit Abstand vom Hoch, der mit dem Gewinn enger wird (40/30/25 %) |
+| 4 | Gewinner halten, solange die Story wächst | Der Rest nach 2x läuft weiter, Ausstieg bei Thesenbruch oder 30 % unter dem Hoch (ab 10x 25 %) |
 | 5 | Früh rein, solange es sich verbreitet | 15 Minuten bis 6 Stunden alt, Holder +15 % pro Stunde, Netto-Käufer, mindestens 3 organische Käufer, Social-Links vorhanden |
 | 6 | Dev prüfen | Dev hat höchstens 50 Coins gestartet und hält höchstens 10 % (Jupiter) |
 | 7 | Nicht hinterherjagen, nicht größer setzen | Höchstens 3 Mio. USD Marktwert, höchstens +150 % in der letzten Stunde, feste Größe 0,2 SOL |
@@ -19,6 +19,8 @@ Papier gehandelt.
 | 9 | Ruhiger Markt: weniger handeln | Marktphase begrenzt die Positionen: heiß 3, normal 2, ruhig 1 |
 | 12 | Vamping: den echten Coin finden | Bei gleichem Namen oder Symbol nur der Coin mit den meisten Holdern |
 | 13 | Marktsignale prüfen | Marktphase aus Anzahl frischer Coins über 1 Mio. USD und deren Volumen, verglichen mit dem eigenen Verlauf |
+
+**Mitläufer-Verdacht (nur Beobachtung, seit Tag 15):** Teilt ein gekaufter Coin einen Namensteil mit einem mindestens zehnmal größeren Trending-Coin ab 5 Mio. USD (z. B. „K/ACC" und „e/acc"), wird das beim Kauf vermerkt. Das beeinflusst den Kauf nicht, sondern dient der späteren Auswertung.
 
 Nicht automatisierbar: Tag 10 und 11 (Netzwerk, Community). Die Verbreitung
 auf X oder TikTok (Tag 5) kann der Bot nicht direkt lesen. Er misst die
@@ -29,9 +31,10 @@ On-Chain-Spur, die eine Story hinterlässt.
 1. **2x erreicht:** Hälfte verkaufen
 2. **These gebrochen:** Holder schrumpfen und Netto-Verkäufer, zweimal in Folge
 3. **Liquidität abgezogen:** 30 % unter dem Einstieg
-4. **Story abgekühlt:** nach dem Teilverkauf, gemessen am Höchststand seit dem Kauf: 40 % unter dem Hoch bis 4x, 30 % ab 4x, 25 % ab 10x. Die Verkaufsgrenze sinkt beim Wechsel der Stufe nie
-5. **Notbremse:** −40 %
-6. **Höchstdauer:** 24 Stunden
+4. **Story abgekühlt:** nach dem Teilverkauf, gemessen am Höchststand seit dem Kauf: 30 % unter dem Hoch, ab 10x 25 %
+5. **Gewinn geschützt:** Wer vor dem Teilverkauf 1,5x erreicht hat, wird spätestens bei Einstand verkauft
+6. **Notbremse:** −40 %
+7. **Höchstdauer:** 24 Stunden
 
 ## Dateien
 
@@ -44,3 +47,25 @@ On-Chain-Spur, die eine Story hinterlässt.
 | `marktphase.json` | Verlauf der Marktphase |
 
 Alle Schwellen stehen oben in `bot.py` und lassen sich dort ändern.
+
+## Änderungen
+
+| Datum | Änderung | Grund |
+|---|---|---|
+| 27.09. | Abstand vom Hoch gestaffelt 40/30/25 % | Große Gewinner gaben zu viel zurück |
+| 28.09. | Abstand 30 % bis 10x, darüber 25 % | Kursverläufe vom 27.09.: alle 4 betroffenen Gewinner besser |
+| 28.09. | Gewinnschutz ab 1,5x | WARP und SOCIALBAGS standen bei 1,8x/1,9x und endeten bei −44 %/−56 % |
+| 28.09. | Bundle-Regel: 2 statt 3 Käufer | Alle 3 Coins mit ≥15 % in Block 0 verloren (u. a. 2 Wallets mit 54 %) |
+| 28.09. | Mitläufer-Verdacht (nur Beobachtung) | Vier ACC-Mitläufer am 26.09. alle verloren |
+| 28.09. | Offene Positionen alle ~12 s statt 35 s prüfen | Notbremse verkaufte im Schnitt bei −46 % statt −40 % |
+| 28.09. | Knapp abgelehnte Coins 6 h beobachten | Klären, ob Regeln spätere Gewinner aussortieren |
+| 28.09. | Mehr Merkmale beim Kauf speichern | Später auswerten, was Gewinner von Verlierern unterscheidet |
+
+## Dateien seit 28.09.
+
+| Datei | Inhalt |
+|---|---|
+| `verlauf/JJJJ-MM-TT.csv` | Kursverläufe eines Tages: offene Positionen (~12 s), nach dem Verkauf (~36 s), knapp abgelehnt (~2 min) |
+| `knapp_abgelehnt.csv` | Jeder knapp abgelehnte Coin mit Grund, Abstand zur Grenze und allen Merkmalen |
+| `verlauf.csv` | Alte Datei bis 27.09., wird nicht mehr fortgeschrieben |
+
