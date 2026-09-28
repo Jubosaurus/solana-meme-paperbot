@@ -1,54 +1,8 @@
 {
   "strategy": "NARRATIV",
   "started": "2026-09-26T02:46:00.825468+00:00",
-  "bankroll_sol": 10.941944,
-  "positions": {
-    "nspzEbY9m1rLDaHMw19RjEv1cUfX8k2c9t1nxXVpump": {
-      "mint": "nspzEbY9m1rLDaHMw19RjEv1cUfX8k2c9t1nxXVpump",
-      "symbol": "SIRI",
-      "opened": 1790564479.322805,
-      "invested_sol": 0.2,
-      "fees_sol": 0.0015,
-      "entry_signal_usd": 4.290135707323593e-05,
-      "entry_fill_usd": 4.674693242095725e-05,
-      "entry_slippage_pct": 8.96,
-      "roundtrip_cost_pct": 3.34,
-      "tokens_initial": 514700.140289,
-      "tokens_left": 514700.140289,
-      "decimals": 6,
-      "proceeds_sol": 0.0,
-      "peak_usd": 4.573651929036842e-05,
-      "tp1_done": false,
-      "thesis_breaks": 0,
-      "missing_loops": 0,
-      "entry_liquidity": 7446.9978589517905,
-      "entry_view": {
-        "age_h": 0.7244180556138357,
-        "mcap": 40935.741648068746,
-        "holders": 528,
-        "holder_growth_1h": 1500.0,
-        "net_buyers_5m": 171,
-        "organic_buyers_5m": 10,
-        "organic_score": 44.81939775759291,
-        "price_change_1h": 781.1197177500862
-      },
-      "bundle": {
-        "quelle": "block0",
-        "slot": 451182239,
-        "block0_wallets": 1,
-        "block0_supply_pct": 1.1,
-        "block0_still_held_pct": 0.0,
-        "block0_exited": 1,
-        "early_tx_slot1_2": 7,
-        "bundle_holding_pct": 0.0,
-        "gebuendelt": false,
-        "rugcheck_insider_pct": 0
-      },
-      "phase": "normal",
-      "thesis": "Story verbreitet sich: Holder +1500%/h, 171 Netto-Kaeufer 5m, 10 organisch; Block 0: 1 Kaeufer, 1.1% gekauft, 0.0% noch gehalten; Dev-Coins 1",
-      "exit_rule": "Haelfte bei 2x; Rest raus, wenn Holder schrumpfen und Netto-Verkaeufer 2x in Folge, Liquiditaet -30%, -40% oder nach 2x 40/30/25 % vom Hoch (Stufen 4x/10x)"
-    }
-  },
+  "bankroll_sol": 11.016192,
+  "positions": {},
   "closed": [
     {
       "symbol": "SHOGGOTH",
@@ -1401,6 +1355,47 @@
       "exit_reason": "STORY_ABGEKUEHLT (40% unter dem Hoch von 3.8x)",
       "hold_h": 1.26,
       "closed_at": "2026-09-28T03:01:58.711931+00:00"
+    },
+    {
+      "symbol": "SIRI",
+      "mint": "nspzEbY9m1rLDaHMw19RjEv1cUfX8k2c9t1nxXVpump",
+      "invested_sol": 0.2,
+      "entry_fill_usd": 4.674693242095725e-05,
+      "entry_slippage_pct": 8.96,
+      "roundtrip_cost_pct": 3.34,
+      "tp1_done": false,
+      "entry_view": {
+        "age_h": 0.7244180556138357,
+        "mcap": 40935.741648068746,
+        "holders": 528,
+        "holder_growth_1h": 1500.0,
+        "net_buyers_5m": 171,
+        "organic_buyers_5m": 10,
+        "organic_score": 44.81939775759291,
+        "price_change_1h": 781.1197177500862
+      },
+      "bundle": {
+        "quelle": "block0",
+        "slot": 451182239,
+        "block0_wallets": 1,
+        "block0_supply_pct": 1.1,
+        "block0_still_held_pct": 0.0,
+        "block0_exited": 1,
+        "early_tx_slot1_2": 7,
+        "bundle_holding_pct": 0.0,
+        "gebuendelt": false,
+        "rugcheck_insider_pct": 0
+      },
+      "phase": "normal",
+      "thesis": "Story verbreitet sich: Holder +1500%/h, 171 Netto-Kaeufer 5m, 10 organisch; Block 0: 1 Kaeufer, 1.1% gekauft, 0.0% noch gehalten; Dev-Coins 1",
+      "proceeds_sol": 0.074248,
+      "pnl_sol": -0.127252,
+      "pnl_pct": -63.63,
+      "peak_multiple": 0.98,
+      "exit_usd": 1.760179139268688e-05,
+      "exit_reason": "NOTBREMSE (-62%)",
+      "hold_h": 0.03,
+      "closed_at": "2026-09-28T03:03:17.880819+00:00"
     }
   ],
   "cooldown": {
@@ -1511,7 +1506,16 @@
       "exit_usd": 0.0005678552091626307,
       "exit_reason": "STORY_ABGEKUEHLT (40% unter dem Hoch von 3.8x)",
       "until": 1790586118.7119384
+    },
+    "nspzEbY9m1rLDaHMw19RjEv1cUfX8k2c9t1nxXVpump": {
+      "symbol": "SIRI",
+      "entry_fill_usd": 4.674693242095725e-05,
+      "opened": 1790564479.322805,
+      "peak_usd": 4.573651929036842e-05,
+      "exit_usd": 1.760179139268688e-05,
+      "exit_reason": "NOTBREMSE (-62%)",
+      "until": 1790586197.8808258
     }
   },
-  "saved_at": 1790564558.7351403
+  "saved_at": 1790564598.0600595
 }
