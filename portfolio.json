@@ -1,7 +1,7 @@
 {
   "strategy": "NARRATIV",
   "started": "2026-09-26T02:46:00.825468+00:00",
-  "bankroll_sol": 10.706575,
+  "bankroll_sol": 10.811772,
   "positions": {
     "5H7CxPsc7Pcjz6bjf9RJqG2ECYNyyPa2STwBZZSTpump": {
       "mint": "5H7CxPsc7Pcjz6bjf9RJqG2ECYNyyPa2STwBZZSTpump",
@@ -46,51 +46,6 @@
       },
       "phase": "normal",
       "thesis": "Story verbreitet sich: Holder +61%/h, 6 Netto-Kaeufer 5m, 3 organisch; Block 0: 3 Kaeufer, 5.7% gekauft, 0.0% noch gehalten; Dev-Coins 1",
-      "exit_rule": "Haelfte bei 2x; Rest raus, wenn Holder schrumpfen und Netto-Verkaeufer 2x in Folge, Liquiditaet -30%, -40% oder nach 2x 40/30/25 % vom Hoch (Stufen 4x/10x)"
-    },
-    "CVFwKfMD1auppBz8uEp9chVUxBPzfVqWxgejn5Lxpump": {
-      "mint": "CVFwKfMD1auppBz8uEp9chVUxBPzfVqWxgejn5Lxpump",
-      "symbol": "CINDER",
-      "opened": 1790558367.3832197,
-      "invested_sol": 0.2,
-      "fees_sol": 0.003,
-      "entry_signal_usd": 2.8412800388895777e-05,
-      "entry_fill_usd": 2.8569757844787478e-05,
-      "entry_slippage_pct": 0.55,
-      "roundtrip_cost_pct": 3.74,
-      "tokens_initial": 849785.52241,
-      "tokens_left": 424892.761205,
-      "decimals": 6,
-      "proceeds_sol": 0.209515335,
-      "peak_usd": 6.35870379590286e-05,
-      "tp1_done": true,
-      "thesis_breaks": 0,
-      "missing_loops": 0,
-      "entry_liquidity": 5879.355452345812,
-      "entry_view": {
-        "age_h": 1.6058371962441338,
-        "mcap": 26514.024856085794,
-        "holders": 350,
-        "holder_growth_1h": 78.57142857142857,
-        "net_buyers_5m": 59,
-        "organic_buyers_5m": 8,
-        "organic_score": 46.631988575213306,
-        "price_change_1h": 10.253922518518365
-      },
-      "bundle": {
-        "quelle": "block0",
-        "slot": 451147794,
-        "block0_wallets": 1,
-        "block0_supply_pct": 9.11,
-        "block0_still_held_pct": 0.0,
-        "block0_exited": 1,
-        "early_tx_slot1_2": 18,
-        "bundle_holding_pct": 0.0,
-        "gebuendelt": false,
-        "rugcheck_insider_pct": 0
-      },
-      "phase": "heiss",
-      "thesis": "Story verbreitet sich: Holder +79%/h, 59 Netto-Kaeufer 5m, 8 organisch; Block 0: 1 Kaeufer, 9.1% gekauft, 0.0% noch gehalten; Dev-Coins 1",
       "exit_rule": "Haelfte bei 2x; Rest raus, wenn Holder schrumpfen und Netto-Verkaeufer 2x in Folge, Liquiditaet -30%, -40% oder nach 2x 40/30/25 % vom Hoch (Stufen 4x/10x)"
     }
   },
@@ -1323,6 +1278,47 @@
       "exit_reason": "STORY_ABGEKUEHLT (40% unter dem Hoch von 2.4x)",
       "hold_h": 0.33,
       "closed_at": "2026-09-28T00:05:19.483334+00:00"
+    },
+    {
+      "symbol": "CINDER",
+      "mint": "CVFwKfMD1auppBz8uEp9chVUxBPzfVqWxgejn5Lxpump",
+      "invested_sol": 0.2,
+      "entry_fill_usd": 2.8569757844787478e-05,
+      "entry_slippage_pct": 0.55,
+      "roundtrip_cost_pct": 3.74,
+      "tp1_done": true,
+      "entry_view": {
+        "age_h": 1.6058371962441338,
+        "mcap": 26514.024856085794,
+        "holders": 350,
+        "holder_growth_1h": 78.57142857142857,
+        "net_buyers_5m": 59,
+        "organic_buyers_5m": 8,
+        "organic_score": 46.631988575213306,
+        "price_change_1h": 10.253922518518365
+      },
+      "bundle": {
+        "quelle": "block0",
+        "slot": 451147794,
+        "block0_wallets": 1,
+        "block0_supply_pct": 9.11,
+        "block0_still_held_pct": 0.0,
+        "block0_exited": 1,
+        "early_tx_slot1_2": 18,
+        "bundle_holding_pct": 0.0,
+        "gebuendelt": false,
+        "rugcheck_insider_pct": 0
+      },
+      "phase": "heiss",
+      "thesis": "Story verbreitet sich: Holder +79%/h, 59 Netto-Kaeufer 5m, 8 organisch; Block 0: 1 Kaeufer, 9.1% gekauft, 0.0% noch gehalten; Dev-Coins 1",
+      "proceeds_sol": 0.314712,
+      "pnl_sol": 0.113212,
+      "pnl_pct": 56.61,
+      "peak_multiple": 2.23,
+      "exit_usd": 3.149417125029848e-05,
+      "exit_reason": "STORY_ABGEKUEHLT (40% unter dem Hoch von 2.2x)",
+      "hold_h": 0.21,
+      "closed_at": "2026-09-28T01:32:16.968545+00:00"
     }
   ],
   "cooldown": {
@@ -1404,7 +1400,16 @@
       "exit_usd": 9.058296930709423e-05,
       "exit_reason": "STORY_ABGEKUEHLT (40% unter dem Hoch von 2.4x)",
       "until": 1790575519.483341
+    },
+    "CVFwKfMD1auppBz8uEp9chVUxBPzfVqWxgejn5Lxpump": {
+      "symbol": "CINDER",
+      "entry_fill_usd": 2.8569757844787478e-05,
+      "opened": 1790558367.3832197,
+      "peak_usd": 6.35870379590286e-05,
+      "exit_usd": 3.149417125029848e-05,
+      "exit_reason": "STORY_ABGEKUEHLT (40% unter dem Hoch von 2.2x)",
+      "until": 1790580736.9685516
     }
   },
-  "saved_at": 1790559097.9170012
+  "saved_at": 1790559137.1535861
 }
