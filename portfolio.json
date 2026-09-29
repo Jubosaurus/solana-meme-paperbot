@@ -1,8 +1,96 @@
 {
   "strategy": "NARRATIV",
   "started": "2026-09-26T02:46:00.825468+00:00",
-  "bankroll_sol": 10.503585,
-  "positions": {},
+  "bankroll_sol": 10.302085,
+  "positions": {
+    "6M8CWurfztGraRKK7y6Nz7pavLabYC2LwNsUzaEwpump": {
+      "mint": "6M8CWurfztGraRKK7y6Nz7pavLabYC2LwNsUzaEwpump",
+      "symbol": "STAR",
+      "opened": 1790719261.3337703,
+      "invested_sol": 0.2,
+      "fees_sol": 0.0015,
+      "entry_signal_usd": 7.571763673161738e-05,
+      "entry_fill_usd": 8.22709191052536e-05,
+      "entry_slippage_pct": 8.65,
+      "roundtrip_cost_pct": 2.72,
+      "tokens_initial": 289215.243694,
+      "tokens_left": 289215.243694,
+      "decimals": 6,
+      "proceeds_sol": 0.0,
+      "peak_usd": 8.137075319713573e-05,
+      "tp1_done": false,
+      "thesis_breaks": 0,
+      "missing_loops": 0,
+      "entry_liquidity": 10896.037980334106,
+      "entry_view": {
+        "age_h": 0.5045579124159283,
+        "mcap": 73681.5327562419,
+        "liquidity": 10896.037980334106,
+        "holders": 263,
+        "holder_growth_1h": 8666.666666666668,
+        "holder_growth_5m": 10.0418410041841,
+        "net_buyers_5m": 36,
+        "organic_buyers_5m": 7,
+        "organic_score": 45.11068029727683,
+        "price_change_1h": 1829.508741606168,
+        "price_change_5m": 23.698296985547447,
+        "buys_5m": 100,
+        "sells_5m": 92,
+        "traders_5m": 51,
+        "traders_1h": 397,
+        "buy_vol_5m": 10160.21514469366,
+        "sell_vol_5m": 8844.085621646287,
+        "buy_vol_1h": 99075.55646018949,
+        "sell_vol_1h": 87624.97727740018,
+        "organic_buy_vol_1h": 3511.237967919512,
+        "top_holders_pct": 31.320904317733817,
+        "dev_balance_pct": 3.913649752444022,
+        "dev_mints": 2,
+        "launchpad": "pump.fun",
+        "graduated": true,
+        "social": false,
+        "quelle": "organic5m+traded1h+traded5m+trend1h+trend5m",
+        "hour_utc": 22
+      },
+      "bundle": {
+        "quelle": "block0",
+        "slot": 451763113,
+        "block0_wallets": 2,
+        "block0_supply_pct": 7.9,
+        "block0_still_held_pct": 3.91,
+        "block0_exited": 1,
+        "early_tx_slot1_2": 8,
+        "bundle_holding_pct": 3.91,
+        "gebuendelt": false,
+        "rugcheck_insider_pct": 1.15
+      },
+      "phase": "heiss",
+      "thesis": "Story verbreitet sich: Holder +8667%/h, 36 Netto-Kaeufer 5m, 7 organisch; Block 0: 2 Kaeufer, 7.9% gekauft, 3.9% noch gehalten; Dev-Coins 2",
+      "exit_rule": "Haelfte bei 2x; Rest raus, wenn Holder schrumpfen und Netto-Verkaeufer 2x in Folge, Liquiditaet -30%, -40%, nach 1,5x nicht unter Einstand, nach 2x 30 % vom Hoch (ab 10x 25 %)",
+      "mitlaeufer": {
+        "teil": "STAR",
+        "leader": "USD*",
+        "leader_mint": "star9agSpjiFe3M49B3RniVU4CMBBEK3Qnaqn3RGiFM",
+        "leader_mcap": 11533835
+      },
+      "solana_tracker": {
+        "score": 10,
+        "rugged": false,
+        "snipers_pct": 0,
+        "insiders_pct": 0,
+        "bundlers_pct": 37.4207,
+        "top10_pct": 30.4787,
+        "risiken": [
+          "Top 10 Holders",
+          "Bundlers Detected",
+          "High Bundler Holdings",
+          "Dev Holdings"
+        ]
+      },
+      "graduated": true,
+      "liq_low_checks": 0
+    }
+  },
   "closed": [
     {
       "symbol": "SHOGGOTH",
@@ -2493,7 +2581,8 @@
     "4kYsZeMw45RXoeJg8BjyeZVtwoTQ2LAEoZckwK1kpump": 1790653889.3713672,
     "7UfcTJD2RSRg9AJ4k2V2rs71Ew8Zy2avaU5roc8bpump": 1790666596.1924908,
     "3qhCS4Qp24BCXaBsMnGDEh7Lw5SURqcSUTpUgGBApump": 1790700386.4718418,
-    "GFkfaUEJApu9Jf2AmAN2hgk5SteXRXJ19opJoL5bZwKw": 1790714620.3108885
+    "GFkfaUEJApu9Jf2AmAN2hgk5SteXRXJ19opJoL5bZwKw": 1790714620.3108885,
+    "6M8CWurfztGraRKK7y6Nz7pavLabYC2LwNsUzaEwpump": 1790719261.3341799
   },
   "watch": {
     "3qhCS4Qp24BCXaBsMnGDEh7Lw5SURqcSUTpUgGBApump": {
@@ -2515,7 +2604,7 @@
       "until": 1790737440.4573498
     }
   },
-  "saved_at": 1790719228.5249743,
+  "saved_at": 1790719314.235192,
   "shadow": {
     "RKLBnAXGqv31iZomqsuAWkQm1aqC7JwwvbCfzGdqAhz": {
       "symbol": "RKLB",
@@ -2817,6 +2906,6 @@
   },
   "st_usage": {
     "date": "2026-09-29",
-    "count": 3
+    "count": 4
   }
 }
