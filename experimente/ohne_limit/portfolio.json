@@ -1,27 +1,17 @@
 {
   "strategy": "EXPERIMENT_ohne_limit",
   "started": "2026-09-29T08:33:20.747730+00:00",
-  "bankroll_sol": 9.7985,
-  "positions": {
-    "3qhCS4Qp24BCXaBsMnGDEh7Lw5SURqcSUTpUgGBApump": {
-      "mint": "3qhCS4Qp24BCXaBsMnGDEh7Lw5SURqcSUTpUgGBApump",
+  "bankroll_sol": 9.915973,
+  "positions": {},
+  "closed": [
+    {
       "symbol": "swordinu",
-      "opened": 1790700383.1728323,
+      "mint": "3qhCS4Qp24BCXaBsMnGDEh7Lw5SURqcSUTpUgGBApump",
       "invested_sol": 0.2,
-      "fees_sol": 0.0015,
-      "entry_signal_usd": 4.450451734508942e-05,
       "entry_fill_usd": 4.5793839761429516e-05,
       "entry_slippage_pct": 2.9,
       "roundtrip_cost_pct": 2.92,
-      "tokens_initial": 514547.403932,
-      "tokens_left": 514547.403932,
-      "decimals": 6,
-      "proceeds_sol": 0.0,
-      "peak_usd": 4.607081469819826e-05,
       "tp1_done": false,
-      "thesis_breaks": 0,
-      "missing_loops": 0,
-      "entry_liquidity": 7701.773499544395,
       "entry_view": {
         "age_h": 2.2944207387500337,
         "mcap": 44504.51652408887,
@@ -66,20 +56,35 @@
       },
       "phase": "heiss",
       "thesis": "Story verbreitet sich: Holder +74%/h, 12 Netto-Kaeufer 5m, 6 organisch; Block 0: 1 Kaeufer, 3.4% gekauft, 1.9% noch gehalten; Dev-Coins 1",
-      "exit_rule": "Haelfte bei 2x; Rest raus, wenn Holder schrumpfen und Netto-Verkaeufer 2x in Folge, Liquiditaet -30%, -40%, nach 1,5x nicht unter Einstand, nach 2x 30 % vom Hoch (ab 10x 25 %)",
       "mitlaeufer": null,
       "solana_tracker": null,
-      "graduated": true,
-      "liq_low_checks": 0,
-      "graduated_during": true
+      "graduated_waehrend": true,
+      "proceeds_sol": 0.117473,
+      "pnl_sol": -0.084027,
+      "pnl_pct": -42.01,
+      "peak_multiple": 1.01,
+      "exit_usd": 2.6553351681507505e-05,
+      "exit_reason": "NOTBREMSE (-42%)",
+      "hold_h": 0.62,
+      "closed_at": "2026-09-29T17:23:24.518302+00:00",
+      "runde": 1
     }
-  },
-  "closed": [],
+  ],
   "cooldown": {
     "3qhCS4Qp24BCXaBsMnGDEh7Lw5SURqcSUTpUgGBApump": 1790700383.1731606
   },
-  "watch": {},
+  "watch": {
+    "3qhCS4Qp24BCXaBsMnGDEh7Lw5SURqcSUTpUgGBApump": {
+      "symbol": "swordinu",
+      "entry_fill_usd": 4.5793839761429516e-05,
+      "opened": 1790700383.1728323,
+      "peak_usd": 4.607081469819826e-05,
+      "exit_usd": 2.6553351681507505e-05,
+      "exit_reason": "NOTBREMSE (-42%)",
+      "until": 1790724204.5183134
+    }
+  },
   "runde": 1,
   "shadow": {},
-  "saved_at": 1790702569.6697521
+  "saved_at": 1790702651.8543386
 }
