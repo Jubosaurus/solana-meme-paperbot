@@ -1,8 +1,91 @@
 {
   "strategy": "NARRATIV",
   "started": "2026-09-26T02:46:00.825468+00:00",
-  "bankroll_sol": 10.444164,
-  "positions": {},
+  "bankroll_sol": 10.242664,
+  "positions": {
+    "7UfcTJD2RSRg9AJ4k2V2rs71Ew8Zy2avaU5roc8bpump": {
+      "mint": "7UfcTJD2RSRg9AJ4k2V2rs71Ew8Zy2avaU5roc8bpump",
+      "symbol": "Liza",
+      "opened": 1790666596.1921515,
+      "invested_sol": 0.2,
+      "fees_sol": 0.0015,
+      "entry_signal_usd": 1.7490048325957114e-05,
+      "entry_fill_usd": 1.7770877170664515e-05,
+      "entry_slippage_pct": 1.61,
+      "roundtrip_cost_pct": 3.03,
+      "tokens_initial": 1341625.081427,
+      "tokens_left": 1341625.081427,
+      "decimals": 6,
+      "proceeds_sol": 0.0,
+      "peak_usd": 1.751747659803804e-05,
+      "tp1_done": false,
+      "thesis_breaks": 0,
+      "missing_loops": 0,
+      "entry_liquidity": 8201.622232228538,
+      "entry_view": {
+        "age_h": 1.6218649362193214,
+        "mcap": 17490.048325957116,
+        "liquidity": 8201.622232228538,
+        "holders": 127,
+        "holder_growth_1h": 25.742574257425744,
+        "holder_growth_5m": 0.7936507936507936,
+        "net_buyers_5m": 12,
+        "organic_buyers_5m": 3,
+        "organic_score": 44.188945681067594,
+        "price_change_1h": 76.14110942521235,
+        "price_change_5m": 9.965901543621577,
+        "buys_5m": 18,
+        "sells_5m": 8,
+        "traders_5m": 20,
+        "traders_1h": 179,
+        "buy_vol_5m": 691.0345875012256,
+        "sell_vol_5m": 301.6349820569827,
+        "buy_vol_1h": 15422.355552283017,
+        "sell_vol_1h": 13547.34110171452,
+        "organic_buy_vol_1h": 912.4326488330001,
+        "top_holders_pct": 24.9049069586311,
+        "dev_balance_pct": 9.999999999999999e-14,
+        "dev_mints": 1,
+        "launchpad": "pump.fun",
+        "graduated": false,
+        "social": false,
+        "quelle": "organic1h+organic5m+traded1h+trend5m",
+        "hour_utc": 7
+      },
+      "bundle": {
+        "quelle": "block0",
+        "slot": 451551342,
+        "block0_wallets": 4,
+        "block0_supply_pct": 10.69,
+        "block0_still_held_pct": 0.0,
+        "block0_exited": 4,
+        "early_tx_slot1_2": 8,
+        "bundle_holding_pct": 0.0,
+        "gebuendelt": false,
+        "rugcheck_insider_pct": 0
+      },
+      "phase": "normal",
+      "thesis": "Story verbreitet sich: Holder +26%/h, 12 Netto-Kaeufer 5m, 3 organisch; Block 0: 4 Kaeufer, 10.7% gekauft, 0.0% noch gehalten; Dev-Coins 1",
+      "exit_rule": "Haelfte bei 2x; Rest raus, wenn Holder schrumpfen und Netto-Verkaeufer 2x in Folge, Liquiditaet -30%, -40%, nach 1,5x nicht unter Einstand, nach 2x 30 % vom Hoch (ab 10x 25 %)",
+      "mitlaeufer": null,
+      "solana_tracker": {
+        "score": 10,
+        "rugged": false,
+        "snipers_pct": 2.8163,
+        "insiders_pct": 0,
+        "bundlers_pct": 4.7276,
+        "top10_pct": 25.105600000000003,
+        "risiken": [
+          "No social media",
+          "Bonding curve not complete",
+          "Top 10 Holders",
+          "High Bundler Count"
+        ]
+      },
+      "graduated": false,
+      "liq_low_checks": 0
+    }
+  },
   "closed": [
     {
       "symbol": "SHOGGOTH",
@@ -2248,7 +2331,8 @@
     "HMXe89qJWYDCH3VmN85JwvdDsW6v6GkJc7pobG4AnZct": 1790647410.8553643,
     "367vwbRPVi2vgEZqdEwEoMYNo5ESdypuznPT3isdpump": 1790650466.6425886,
     "8SkU9FvZnW5KN8SyPJGg9jepHRcR4pjfk9KwwCSyfYSB": 1790653557.3395014,
-    "4kYsZeMw45RXoeJg8BjyeZVtwoTQ2LAEoZckwK1kpump": 1790653889.3713672
+    "4kYsZeMw45RXoeJg8BjyeZVtwoTQ2LAEoZckwK1kpump": 1790653889.3713672,
+    "7UfcTJD2RSRg9AJ4k2V2rs71Ew8Zy2avaU5roc8bpump": 1790666596.1924908
   },
   "watch": {
     "HMXe89qJWYDCH3VmN85JwvdDsW6v6GkJc7pobG4AnZct": {
@@ -2288,7 +2372,7 @@
       "until": 1790676419.0073192
     }
   },
-  "saved_at": 1790666535.490154,
+  "saved_at": 1790666608.7173016,
   "shadow": {
     "FJFZysCbtXXVCWYi1a6M7jcpURi2ytiFAeioBjYTpump": {
       "symbol": "BACKED",
@@ -2458,7 +2542,7 @@
       "detail": "Holder +14%/h (Grenze 15)",
       "ref_price": 3.9036164415444865e-05,
       "since": 1790654435.6215734,
-      "peak_usd": 0.00010263455523434951,
+      "peak_usd": 0.0001083681447948611,
       "until": 1790676035.6215734
     },
     "3PjwCqfGMR8CXZbcPEbGTSPQGduizdoVz4N1RQmJd8Uv": {
@@ -2632,5 +2716,9 @@
       "peak_usd": 3.9241166670419225e-05,
       "until": 1790687132.5863116
     }
+  },
+  "st_usage": {
+    "date": "2026-09-29",
+    "count": 1
   }
 }
