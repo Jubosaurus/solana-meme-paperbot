@@ -60,12 +60,17 @@ Alle Schwellen stehen oben in `bot.py` und lassen sich dort ändern.
 | 28.09. | Offene Positionen alle ~12 s statt 35 s prüfen | Notbremse verkaufte im Schnitt bei −46 % statt −40 % |
 | 28.09. | Knapp abgelehnte Coins 6 h beobachten | Klären, ob Regeln spätere Gewinner aussortieren |
 | 28.09. | Mehr Merkmale beim Kauf speichern | Später auswerten, was Gewinner von Verlierern unterscheidet |
+| 29.09. | Graduation zählt nicht mehr als Liquiditätsabzug, ein Abzug muss 2 Prüfungen bestehen | SHORK und MINEPAD wurden beim Umzug in den PumpSwap-Pool fälschlich verkauft |
+| 29.09. | 6 statt 2 Kandidatenlisten (Trending, meistgehandelt, organisch, je 5 min und 1 h), Herkunft wird gespeichert | Von 2.169 gesehenen Coins lagen nur 277 im Altersfenster |
+| 29.09. | Solana Tracker als Zweitmeinung (nur Beobachtung, höchstens 70 Abfragen am Tag) | Anteile von Snipern, Bundlern und Insidern |
+| 29.09. | Discord-Meldungen mit bis zu 3 Versuchen | Am 28.09. gingen 2 Meldungen verloren |
+| 29.09. | Positionslimit und Filtergrenzen unverändert | Nahfälle bringen im Schnitt +0,014 SOL pro Trade, praktisch wie echte Trades; Ausreißer treiben die Einzelwerte |
 
 ## Dateien seit 28.09.
 
 | Datei | Inhalt |
 |---|---|
 | `verlauf/JJJJ-MM-TT.csv` | Kursverläufe eines Tages: offene Positionen (~12 s), nach dem Verkauf (~36 s), knapp abgelehnt (~2 min) |
-| `knapp_abgelehnt.csv` | Jeder knapp abgelehnte Coin mit Grund, Abstand zur Grenze und allen Merkmalen |
+| `knapp_abgelehnt.csv` | Jeder knapp abgelehnte Coin mit Grund, Abstand zur Grenze und allen Merkmalen (seit 29.09. mit Herkunftsliste) |
 | `verlauf.csv` | Alte Datei bis 27.09., wird nicht mehr fortgeschrieben |
 
