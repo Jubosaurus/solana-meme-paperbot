@@ -31,6 +31,9 @@ JUP_BASE = "https://api.jup.ag" if JUPITER_API_KEY else "https://lite-api.jup.ag
 RUGCHECK_BASE = "https://api.rugcheck.xyz/v1"
 HELIUS_API_KEY = (os.environ.get("HELIUS_API_KEY") or "").strip()
 HELIUS_RPC = f"https://mainnet.helius-rpc.com/?api-key={HELIUS_API_KEY}" if HELIUS_API_KEY else None
+SOLANA_TRACKER_API_KEY = (os.environ.get("SOLANA_TRACKER_API_KEY") or "").strip()
+SOLANA_TRACKER_BASE = "https://data.solanatracker.io"
+SOLANA_TRACKER_DAILY_LIMIT = 70         # Gratis-Tarif: 2.500 Abfragen im Monat
 
 WSOL_MINT = "So11111111111111111111111111111111111111112"
 IGNORED_MINTS = {
@@ -100,6 +103,7 @@ TRAIL_TIERS = [(10.0, 25.0),            # ab 10x Hoch: 25 % Abstand
                (0.0, 30.0)]             # darunter:    30 % Abstand
 THESIS_BREAK_CHECKS = 2                 # Tag 3: These gebrochen, wenn 2x hintereinander
 LIQ_DROP_EXIT_PCT = 30.0                # Liquiditaet abgezogen -> raus
+LIQ_CONFIRM_CHECKS = 2                  # ... in 2 Pruefungen hintereinander (seit 29.09.)
 EMERGENCY_STOP_PCT = -40.0              # Notbremse
 # Seit 28.09.2026: Wer vor dem Teilverkauf 1,5x erreicht hat, wird nicht mehr unter Einstand verkauft
 PROTECT_AT_MULTIPLE = 1.5
@@ -117,6 +121,12 @@ PHASE_MIN_HISTORY = 12
 PHASE_HISTORY_MAX = 1000
 
 REJECT_REPEAT_SECONDS = 3600
+
+# Kandidaten-Listen (seit 29.09.: zusaetzlich meistgehandelt und organisch, vorher nur Trending)
+CANDIDATE_LISTS = {("toptrending", "5m"): "trend5m", ("toptrending", "1h"): "trend1h",
+                   ("toptraded", "5m"): "traded5m", ("toptraded", "1h"): "traded1h",
+                   ("toporganicscore", "5m"): "organic5m", ("toporganicscore", "1h"): "organic1h"}
+DISCORD_ATTEMPTS = 3
 
 # ================================================================ Knapp abgelehnt (nur Beobachtung)
 NEAR_MISS_WATCH_H = 6
@@ -137,7 +147,8 @@ SESSION.headers.update({"User-Agent": "narrativ-paperbot/1.0"})
 STATS = {"loops": 0, "loop_errors": 0, "last_error": "", "entries": [], "exits": [],
          "partials": [], "rejects": {}, "jup_ok": 0, "jup_fail": 0,
          "rugcheck_ok": 0, "rugcheck_fail": 0, "helius_ok": 0, "helius_fail": 0,
-         "git_ok": 0, "git_fail": 0}
+         "git_ok": 0, "git_fail": 0, "discord_fail": 0, "block0_too_many": 0, "graduations": 0,
+         "st_ok": 0, "st_fail": 0, "st_skipped": 0, "young_by_list": {}}
 _jup_last = [0.0]
 _rugcheck_last = [0.0]
 _helius_last = [0.0]
@@ -231,7 +242,7 @@ def find_creation_block(mint):
             break
         before = result[-1]["signature"]
     else:
-        print(f"[BLOCK0] {mint[:8]}: mehr als {BLOCK0_MAX_PAGES * 1000} Transaktionen, uebersprungen")
+        STATS["block0_too_many"] += 1       # erwartete Grenze, steht in der Endmeldung statt im Log
         return None
     sigs = prev_page + page
     if not sigs:
@@ -676,7 +687,10 @@ ENTRY_FEATURES = ("age_h", "mcap", "liquidity", "holders", "holder_growth_1h", "
                   "price_change_5m", "buys_5m", "sells_5m", "traders_5m", "traders_1h",
                   "buy_vol_5m", "sell_vol_5m", "buy_vol_1h", "sell_vol_1h", "organic_buy_vol_1h",
                   "top_holders_pct", "dev_balance_pct", "dev_mints", "launchpad", "graduated",
-                  "social")
+                  "social", "quelle")
+
+
+NEAR_MISS_HEADER = ["zeit", "symbol", "mint", "grund", "detail", "preis_usd", *ENTRY_FEATURES]
 
 
 def verlauf_file():
@@ -701,6 +715,43 @@ def log_path(stage, mint, symbol, v, entry_fill, opened, peak_usd, tp1_done):
                     f"{peak_usd / entry_fill:.4f}", int(bool(tp1_done)),
                     f"{v['holder_growth_1h']:.1f}", v["net_buyers_5m"], f"{v['liquidity']:.0f}",
                     f"{v['price']:.12g}"])
+
+
+def solana_tracker_summary(data):
+    risk = (data or {}).get("risk") or {}
+    def pct(key):
+        part = risk.get(key)
+        return part.get("totalPercentage") if isinstance(part, dict) else None
+    return {"score": risk.get("score"), "rugged": risk.get("rugged"), "snipers_pct": pct("snipers"),
+            "insiders_pct": pct("insiders"), "bundlers_pct": pct("bundlers"), "top10_pct": risk.get("top10"),
+            "risiken": [r.get("name") for r in risk.get("risks") or [] if isinstance(r, dict)][:12]}
+
+
+def solana_tracker_risk(p, mint):
+    """Zweitmeinung von Solana Tracker. Nur Aufzeichnung, beeinflusst den Kauf nicht.
+    Hoechstens SOLANA_TRACKER_DAILY_LIMIT Abfragen pro Tag (UTC), gezaehlt im Portfolio."""
+    if not SOLANA_TRACKER_API_KEY:
+        return None
+    today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    usage = p.setdefault("st_usage", {})
+    if usage.get("date") != today:
+        usage.clear()
+        usage.update(date=today, count=0)
+    if usage["count"] >= SOLANA_TRACKER_DAILY_LIMIT:
+        STATS["st_skipped"] += 1
+        return None
+    usage["count"] += 1
+    try:
+        res = SESSION.get(f"{SOLANA_TRACKER_BASE}/tokens/{mint}", timeout=8,
+                          headers={"x-api-key": SOLANA_TRACKER_API_KEY})
+        if res.status_code != 200:
+            STATS["st_fail"] += 1
+            return {"fehler": f"HTTP {res.status_code}"}
+        STATS["st_ok"] += 1
+        return solana_tracker_summary(res.json())
+    except (requests.RequestException, ValueError) as err:
+        STATS["st_fail"] += 1
+        return {"fehler": str(err)[:80]}
 
 
 def near_miss_detail(v, reason, extra=None):
@@ -756,9 +807,28 @@ def track_near_miss(p, v, reason, now, extra=None):
     with open(NEAR_MISS_FILE, "a", newline="", encoding="utf-8") as f:
         w = csv.writer(f)
         if new:
-            w.writerow(["zeit", "symbol", "mint", "grund", "detail", "preis_usd", *ENTRY_FEATURES])
+            w.writerow(NEAR_MISS_HEADER)
         w.writerow([datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S"), v["symbol"], mint,
                     reason, detail, f"{v['price']:.12g}", *[v.get(k) for k in ENTRY_FEATURES]])
+
+
+REJECT_HEADER = ["zeit", "symbol", "mint", "grund", "alter_h", "mcap", "liq", "holder",
+                 "holder_1h_pct", "netto_kaeufer_5m", "preis_usd", "quelle"]
+
+
+def ensure_csv_columns(path, header):
+    """Haengt neue Spalten an eine bestehende CSV an. Alte Zeilen bekommen leere Felder."""
+    if not os.path.exists(path):
+        return
+    with open(path, newline="", encoding="utf-8") as f:
+        rows = list(csv.reader(f))
+    if not rows or rows[0] == header or rows[0] != header[:len(rows[0])]:
+        return
+    extra = len(header) - len(rows[0])
+    tmp = path + ".tmp"
+    with open(tmp, "w", newline="", encoding="utf-8") as f:
+        csv.writer(f).writerows([header] + [r + [""] * extra for r in rows[1:]])
+    os.replace(tmp, path)
 
 
 def log_reject(v, reason):
@@ -771,14 +841,13 @@ def log_reject(v, reason):
     with open(REJECT_FILE, "a", newline="", encoding="utf-8") as f:
         w = csv.writer(f)
         if new:
-            w.writerow(["zeit", "symbol", "mint", "grund", "alter_h", "mcap", "liq",
-                        "holder", "holder_1h_pct", "netto_kaeufer_5m", "preis_usd"])
+            w.writerow(REJECT_HEADER)
         w.writerow([datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S"),
                     v.get("symbol"), v.get("mint"), reason,
                     "" if v.get("age_h") is None else f"{v['age_h']:.2f}",
                     f"{v.get('mcap', 0):.0f}", f"{v.get('liquidity', 0):.0f}", v.get("holders"),
                     f"{v.get('holder_growth_1h', 0):.1f}", v.get("net_buyers_5m"),
-                    f"{v.get('price', 0):.12g}"])
+                    f"{v.get('price', 0):.12g}", v.get("quelle", "")])
 
 
 # ================================================================ Marktphase
@@ -871,7 +940,8 @@ def open_position(p, v, bundle, sol_usd):
            "entry_view": {**{k: v.get(k) for k in ENTRY_FEATURES},
                           "hour_utc": datetime.now(timezone.utc).hour},
            "bundle": bundle, "phase": current_phase(), "thesis": thesis, "exit_rule": exit_rule,
-           "mitlaeufer": v.get("mitlaeufer")}
+           "mitlaeufer": v.get("mitlaeufer"), "solana_tracker": v.get("solana_tracker"),
+           "graduated": v.get("graduated", False), "liq_low_checks": 0}
     p["positions"][v["mint"]] = pos
     p["cooldown"][v["mint"]] = time.time()
     journal("KAUF", pos, fill_usd, POSITION_SOL)
@@ -880,6 +950,11 @@ def open_position(p, v, bundle, sol_usd):
     ml = v.get("mitlaeufer")
     ml_line = (f"**Mitlaeufer-Verdacht:** teilt \"{ml['teil']}\" mit {ml['leader']} "
                f"(${ml['leader_mcap']:,.0f}), nur zur Beobachtung\n") if ml else ""
+    st = v.get("solana_tracker") or {}
+    if "score" in st:
+        fmt = lambda x: "?" if x is None else f"{x:.0f}%"
+        ml_line += (f"**Solana Tracker:** Risiko {st['score']}/10, Sniper {fmt(st['snipers_pct'])}, "
+                    f"Insider {fmt(st['insiders_pct'])}, Bundler {fmt(st['bundlers_pct'])} (nur Beobachtung)\n")
     discord(f"🎯 Kauf: {v['symbol']}",
             f"**These:** {thesis}\n**Verkauf wenn:** {exit_rule}\n"
             f"**Marktwert:** ${v['mcap']:,.0f} | **LP:** ${v['liquidity']:,.0f} | "
@@ -923,6 +998,8 @@ def close_position(p, pos, price_usd, reason, sol_usd):
                                   "entry_slippage_pct", "roundtrip_cost_pct", "tp1_done",
                                   "entry_view", "bundle", "phase", "thesis")}
     record["mitlaeufer"] = pos.get("mitlaeufer")
+    record["solana_tracker"] = pos.get("solana_tracker")
+    record["graduated_waehrend"] = pos.get("graduated_during", False)
     record.update({"proceeds_sol": round(pos["proceeds_sol"], 6), "pnl_sol": round(pnl, 6),
                    "pnl_pct": round(pnl_pct, 2), "peak_multiple": round(peak_x, 2),
                    "exit_usd": price_usd, "exit_reason": reason,
@@ -987,6 +1064,17 @@ def manage_positions(p, sol_usd, now):
         multiple = price / pos["entry_fill_usd"]
         change_pct = (multiple - 1) * 100
 
+        # Graduation: Umzug von der Bonding Curve in einen neuen Pool, kein Liquiditaetsabzug
+        if v["graduated"] and not pos.get("graduated"):
+            pos["graduated"] = pos["graduated_during"] = True
+            pos["entry_liquidity"] = v["liquidity"]
+            pos["liq_low_checks"] = 0
+            STATS["graduations"] += 1
+            journal("GRADUATION", pos, price, 0, "Umzug in neuen Pool, Liquiditaetsbasis neu gesetzt")
+        liq_low = pos["entry_liquidity"] > 0 and \
+            v["liquidity"] < pos["entry_liquidity"] * (1 - LIQ_DROP_EXIT_PCT / 100)
+        pos["liq_low_checks"] = pos.get("liq_low_checks", 0) + 1 if liq_low else 0
+
         # Tag 2: Gewinne mitnehmen
         if not pos["tp1_done"] and multiple >= TP1_MULTIPLE:
             got = sell(p, pos, TP1_SELL_FRACTION, price, f"HAELFTE_BEI_{TP1_MULTIPLE:.0f}X", sol_usd)
@@ -1005,8 +1093,7 @@ def manage_positions(p, sol_usd, now):
         reason = None
         if change_pct <= EMERGENCY_STOP_PCT:
             reason = f"NOTBREMSE ({change_pct:+.0f}%)"
-        elif pos["entry_liquidity"] > 0 and \
-                v["liquidity"] < pos["entry_liquidity"] * (1 - LIQ_DROP_EXIT_PCT / 100):
+        elif pos["liq_low_checks"] >= LIQ_CONFIRM_CHECKS:
             reason = "LIQUIDITAET_ABGEZOGEN"
         elif pos["thesis_breaks"] >= THESIS_BREAK_CHECKS:
             reason = "THESE_GEBROCHEN (Holder schrumpfen, Netto-Verkaeufer)"
@@ -1054,12 +1141,21 @@ def scan(p, sol_usd, now):
     if p["bankroll_sol"] < POSITION_SOL + TX_FEE_SOL:
         slots = 0
 
-    seen = {}
-    for interval in ("5m", "1h"):
-        for tok in jup_category("toptrending", interval, 100):
-            if tok.get("id") and tok["id"] not in IGNORED_MINTS:
-                seen[tok["id"]] = tok
-    views = [token_view(t, now) for t in seen.values()]
+    seen, sources = {}, {}
+    for (category, interval), short in CANDIDATE_LISTS.items():
+        for tok in jup_category(category, interval, 100):
+            mint = tok.get("id")
+            if mint and mint not in IGNORED_MINTS:
+                seen[mint] = tok
+                sources.setdefault(mint, set()).add(short)
+    views = []
+    for tok in seen.values():
+        v = token_view(tok, now)
+        v["quelle"] = "+".join(sorted(sources[v["mint"]]))
+        views.append(v)
+        if v["age_h"] is not None and MIN_AGE_MIN / 60 <= v["age_h"] <= MAX_AGE_H:
+            for short in sources[v["mint"]]:          # Statistik: junge Kandidaten je Liste
+                STATS["young_by_list"].setdefault(short, set()).add(v["mint"])
     update_symbol_leaders(views, now)
     update_narrative_leaders(views, now)
 
@@ -1095,6 +1191,7 @@ def scan(p, sol_usd, now):
             track_near_miss(p, v, reason, now, bundle)
             continue
         v["mitlaeufer"] = follower_of(v, now)
+        v["solana_tracker"] = solana_tracker_risk(p, v["mint"])   # nur Beobachtung
         if open_position(p, v, bundle, sol_usd):
             slots -= 1
 
@@ -1105,12 +1202,26 @@ def discord(title, text, color=0x6366F1):
     if not DISCORD_WEBHOOK_URL:
         print(f"[DISCORD] {title}")
         return
-    try:
-        SESSION.post(DISCORD_WEBHOOK_URL, json={"embeds": [{
-            "title": title, "description": text[:4000], "color": color,
-            "timestamp": datetime.now(timezone.utc).isoformat()}]}, timeout=8)
-    except requests.RequestException as err:
-        print(f"[DISCORD] {err}")
+    payload = {"embeds": [{"title": title, "description": text[:4000], "color": color,
+                           "timestamp": datetime.now(timezone.utc).isoformat()}]}
+    err = ""
+    for attempt in range(DISCORD_ATTEMPTS):
+        try:
+            res = SESSION.post(DISCORD_WEBHOOK_URL, json=payload, timeout=15)
+            if res.status_code < 300:
+                return
+            err = f"HTTP {res.status_code}"
+            if res.status_code == 429:          # Discord bremst: angegebene Wartezeit einhalten
+                try:
+                    time.sleep(min(float(res.json().get("retry_after", 2)), 10))
+                except ValueError:
+                    time.sleep(2)
+                continue
+        except requests.RequestException as e:
+            err = str(e)[:120]
+        time.sleep(2 * (attempt + 1))
+    STATS["discord_fail"] += 1
+    print(f"[DISCORD] nicht zugestellt nach {DISCORD_ATTEMPTS} Versuchen: {title} ({err})")
 
 
 def _git(*args):
@@ -1202,6 +1313,19 @@ def shift_summary(p, start_value, started, reason):
                  f"**Helius:** {STATS['helius_ok']} ok / {STATS['helius_fail']} Fehler")
     if STATS.get("near_misses"):
         lines.append(f"**Knapp abgelehnt, neu beobachtet:** {STATS['near_misses']}")
+    ybl = STATS["young_by_list"]
+    if ybl:
+        lines.append("**Junge Kandidaten je Liste:** " + ", ".join(
+            f"{k} {len(ybl[k])}" for k in sorted(ybl, key=lambda k: -len(ybl[k]))))
+    if STATS["graduations"]:
+        lines.append(f"**Graduation waehrend offener Position:** {STATS['graduations']}")
+    if STATS["block0_too_many"]:
+        lines.append(f"**Bundle-Check wegen zu vieler Transaktionen uebersprungen:** {STATS['block0_too_many']}")
+    if SOLANA_TRACKER_API_KEY:
+        lines.append(f"**Solana Tracker:** {STATS['st_ok']} ok / {STATS['st_fail']} Fehler"
+                     + (f" / {STATS['st_skipped']} wegen Tageslimit ausgelassen" if STATS["st_skipped"] else ""))
+    if STATS["discord_fail"]:
+        lines.append(f"**Discord-Meldungen nicht zugestellt:** {STATS['discord_fail']}")
     lines.append(f"**GitHub-Sicherung:** {STATS['git_ok']} ok / {STATS['git_fail']} Fehler")
     lines.append(f"**Loop-Fehler:** {STATS['loop_errors']}"
                  + (f" ({STATS['last_error'][:150]})" if STATS["loop_errors"] else ""))
@@ -1225,6 +1349,8 @@ def run():
     signal.signal(signal.SIGINT, _on_signal)
     started = time.time()
     synced = git_sync_start()
+    ensure_csv_columns(REJECT_FILE, REJECT_HEADER)
+    ensure_csv_columns(NEAR_MISS_FILE, NEAR_MISS_HEADER)
     p = load_portfolio()
     sol_usd = sol_price()
     age_min = (time.time() - p["saved_at"]) / 60 if p.get("saved_at") else None
@@ -1333,53 +1459,32 @@ def probe():
         print(f"[PROBE] Block 0 fuer {v['symbol']} ({v['age_h']:.1f} h): "
               f"{b0 if b0 else 'keine Daten'} | {time.time() - t0:.1f} s, {calls} Abfragen")
     print(f"[PROBE] Gesamtbewertung {test['symbol']}: {bundle_dev_check(test['mint'])}")
-    probe_new_sources(young)
+    probe_solana_tracker(young)
     print("[PROBE] fertig. Diese Ausgabe bitte an Claude schicken.")
 
 
-def probe_new_sources(young):
-    """Testet zwei moegliche Quellen. Noch nicht Teil der Strategie."""
-    pump = [v for v in young if str(v["mint"]).endswith("pump")] or young
-    if pump:
-        v = pump[0]
-        for base in ("https://frontend-api-v3.pump.fun", "https://frontend-api.pump.fun",
-                     "https://frontend-api-v2.pump.fun"):
-            try:
-                t0 = time.time()
-                res = SESSION.get(f"{base}/coins/{v['mint']}", timeout=10,
-                                  headers={"Accept": "application/json"})
-                info = f"HTTP {res.status_code} nach {time.time() - t0:.1f} s"
-                data = res.json() if res.status_code == 200 else None
-            except (requests.RequestException, ValueError) as err:
-                info, data = f"Fehler: {str(err)[:100]}", None
-            print(f"[PROBE] Pump.fun {base.split('//')[1]} fuer {v['symbol']}: {info}")
-            if isinstance(data, dict):
-                keys = sorted(data.keys())
-                print(f"        Felder ({len(keys)}): {keys[:40]}")
-                print("        " + ", ".join(f"{k}={data.get(k)}" for k in
-                      ("reply_count", "king_of_the_hill_timestamp", "usd_market_cap", "complete",
-                       "twitter", "website", "is_currently_live") if k in data))
-                break
-    devs = [v for v in young if v.get("dev")]
-    if not devs or not HELIUS_RPC:
-        print("[PROBE] Dev-Historie: kein Dev-Feld oder kein Helius-Key")
+def probe_solana_tracker(young):
+    """Testet Solana Tracker mit zwei jungen Coins (zaehlt nicht gegen das Tageslimit des Bots)."""
+    if not SOLANA_TRACKER_API_KEY:
+        print("[PROBE] Solana Tracker: KEIN KEY (Secret SOLANA_TRACKER_API_KEY fehlt)")
         return
-    v = devs[0]
-    print(f"[PROBE] Dev-Historie fuer {v['symbol']}: Dev {str(v['dev'])[:8]}..., Jupiter sagt {v['dev_mints']} Coins")
-    t0 = time.time()
-    res = rpc("getAssetsByCreator", {"creatorAddress": v["dev"], "onlyVerified": False,
-                                     "page": 1, "limit": 20})
-    items = (res or {}).get("items") or []
-    print(f"        getAssetsByCreator: {'Antwort' if res is not None else 'keine Antwort'}, "
-          f"total={(res or {}).get('total')}, {len(items)} Eintraege, {time.time() - t0:.1f} s")
-    mints = [i.get("id") for i in items if i.get("id") and i.get("id") != v["mint"]][:10]
-    if mints:
-        tokens = jup_tokens(mints)
-        dead = sum(1 for m in mints if m not in tokens or
-                   as_float(tokens[m].get("liquidity")) < 1000)
-        print(f"        fruehere Coins geprueft: {len(mints)}, davon tot oder ohne Liquiditaet: {dead}")
-    else:
-        print("        keine frueheren Coins gefunden (Pump.fun traegt den Dev evtl. nicht als Creator ein)")
+    for v in young[:2]:
+        t0 = time.time()
+        try:
+            res = SESSION.get(f"{SOLANA_TRACKER_BASE}/tokens/{v['mint']}", timeout=8,
+                              headers={"x-api-key": SOLANA_TRACKER_API_KEY})
+            info = f"HTTP {res.status_code} nach {time.time() - t0:.1f} s"
+            data = res.json() if res.status_code == 200 else None
+            if res.status_code != 200:
+                info += f" | {res.text[:160]}"
+        except (requests.RequestException, ValueError) as err:
+            info, data = f"Fehler: {str(err)[:120]}", None
+        print(f"[PROBE] Solana Tracker fuer {v['symbol']}: {info}")
+        if isinstance(data, dict):
+            risk = data.get("risk") or {}
+            print(f"        Felder: {sorted(data.keys())}")
+            print(f"        risk-Felder: {sorted(risk.keys()) if isinstance(risk, dict) else type(risk)}")
+            print(f"        Zusammenfassung: {solana_tracker_summary(data)}")
 
 
 if __name__ == "__main__":
