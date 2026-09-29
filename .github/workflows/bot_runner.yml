@@ -29,11 +29,11 @@ jobs:
     steps:
       # Immer den NEUESTEN Stand von main laden, nicht den vom Ausloesezeitpunkt.
       # Wartet ein Lauf in der Schlange, waere der sonst Stunden alt.
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           ref: main
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: '3.11'
           cache: 'pip'
@@ -46,6 +46,7 @@ jobs:
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
           JUPITER_API_KEY: ${{ secrets.JUPITER_API_KEY }}
           HELIUS_API_KEY: ${{ secrets.HELIUS_API_KEY }}
+          SOLANA_TRACKER_API_KEY: ${{ secrets.SOLANA_TRACKER_API_KEY }}
           PYTHONUNBUFFERED: "1"
         run: |
           if [ "${{ github.event.inputs.modus }}" = "probe" ]; then
