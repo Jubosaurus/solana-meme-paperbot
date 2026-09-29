@@ -1,7 +1,7 @@
 {
   "strategy": "EXPERIMENT_heisse_coins",
   "started": "2026-09-29T08:33:20.747668+00:00",
-  "bankroll_sol": 9.597,
+  "bankroll_sol": 9.667,
   "positions": {
     "DdXVb6wPHqYqJLhKuKHFaFkppeftTfEGjFdDSK5Vpump": {
       "mint": "DdXVb6wPHqYqJLhKuKHFaFkppeftTfEGjFdDSK5Vpump",
@@ -63,26 +63,17 @@
       "solana_tracker": null,
       "graduated": false,
       "liq_low_checks": 0
-    },
-    "84D3VopU3g5qo7jUwzQK4P4BnVPQWr2MzeaRCFkHpump": {
-      "mint": "84D3VopU3g5qo7jUwzQK4P4BnVPQWr2MzeaRCFkHpump",
+    }
+  },
+  "closed": [
+    {
       "symbol": "POND",
-      "opened": 1790678821.2853692,
+      "mint": "84D3VopU3g5qo7jUwzQK4P4BnVPQWr2MzeaRCFkHpump",
       "invested_sol": 0.2,
-      "fees_sol": 0.0015,
-      "entry_signal_usd": 0.00015842331666894412,
       "entry_fill_usd": 0.00016196056951045317,
       "entry_slippage_pct": 2.23,
       "roundtrip_cost_pct": -3.97,
-      "tokens_initial": 147425.10228,
-      "tokens_left": 147425.10228,
-      "decimals": 6,
-      "proceeds_sol": 0.0,
-      "peak_usd": 0.00018854576550783497,
       "tp1_done": false,
-      "thesis_breaks": 0,
-      "missing_loops": 0,
-      "entry_liquidity": 18722.249791337876,
       "entry_view": {
         "age_h": 0.5116999453306198,
         "mcap": 156470.0162932152,
@@ -119,14 +110,20 @@
       },
       "phase": "normal",
       "thesis": "Story verbreitet sich: Holder +1142%/h, 204 Netto-Kaeufer 5m, 32 organisch; Bundle-Check nicht moeglich (zu viele Transaktionen), trotzdem gekauft; Dev-Coins 2",
-      "exit_rule": "Haelfte bei 2x; Rest raus, wenn Holder schrumpfen und Netto-Verkaeufer 2x in Folge, Liquiditaet -30%, -40%, nach 1,5x nicht unter Einstand, nach 2x 30 % vom Hoch (ab 10x 25 %)",
       "mitlaeufer": null,
       "solana_tracker": null,
-      "graduated": true,
-      "liq_low_checks": 0
+      "graduated_waehrend": false,
+      "proceeds_sol": 0.07,
+      "pnl_sol": -0.1315,
+      "pnl_pct": -65.75,
+      "peak_multiple": 1.16,
+      "exit_usd": 6.645995407646468e-05,
+      "exit_reason": "NOTBREMSE (-59%)",
+      "hold_h": 0.26,
+      "closed_at": "2026-09-29T11:02:29.702145+00:00",
+      "runde": 1
     }
-  },
-  "closed": [],
+  ],
   "cooldown": {
     "DdXVb6wPHqYqJLhKuKHFaFkppeftTfEGjFdDSK5Vpump": 1790675973.903088,
     "84D3VopU3g5qo7jUwzQK4P4BnVPQWr2MzeaRCFkHpump": 1790678821.2857418
@@ -134,5 +131,5 @@
   "watch": {},
   "runde": 1,
   "shadow": {},
-  "saved_at": 1790679674.928519
+  "saved_at": 1790679750.2745028
 }
