@@ -1,8 +1,89 @@
 {
   "strategy": "NARRATIV",
   "started": "2026-09-26T02:46:00.825468+00:00",
-  "bankroll_sol": 9.977426,
-  "positions": {},
+  "bankroll_sol": 9.775926,
+  "positions": {
+    "3xgJh5hwn6SMZ2XgsxYRLtos3AEKEgPyBepx529Tpump": {
+      "mint": "3xgJh5hwn6SMZ2XgsxYRLtos3AEKEgPyBepx529Tpump",
+      "symbol": "Vale",
+      "opened": 1790811922.2228723,
+      "invested_sol": 0.2,
+      "fees_sol": 0.0015,
+      "entry_signal_usd": 8.754255986479626e-05,
+      "entry_fill_usd": 7.776914340153421e-05,
+      "entry_slippage_pct": -11.16,
+      "roundtrip_cost_pct": -3.64,
+      "tokens_initial": 303696.741809,
+      "tokens_left": 303696.741809,
+      "decimals": 6,
+      "proceeds_sol": 0.0,
+      "peak_usd": 7.776914340153421e-05,
+      "tp1_done": false,
+      "thesis_breaks": 0,
+      "missing_loops": 0,
+      "entry_liquidity": 12405.30767891733,
+      "entry_view": {
+        "age_h": 0.7959190211693445,
+        "mcap": 82507.28622304971,
+        "liquidity": 12405.30767891733,
+        "holders": 602,
+        "holder_growth_1h": 9933.333333333332,
+        "holder_growth_5m": 68.15642458100558,
+        "net_buyers_5m": 212,
+        "organic_buyers_5m": 11,
+        "organic_score": 43.41936091955711,
+        "price_change_1h": 1991.3892053375373,
+        "price_change_5m": 127.20623078736834,
+        "buys_5m": 756,
+        "sells_5m": 585,
+        "traders_5m": 430,
+        "traders_1h": 957,
+        "buy_vol_5m": 50270.30040819012,
+        "sell_vol_5m": 44405.94892108227,
+        "buy_vol_1h": 121630.26554659005,
+        "sell_vol_1h": 109255.50561487948,
+        "organic_buy_vol_1h": 2535.0563763692994,
+        "top_holders_pct": 21.188693364230776,
+        "dev_balance_pct": 0.0,
+        "dev_mints": 1,
+        "launchpad": "pump.fun",
+        "graduated": true,
+        "social": false,
+        "quelle": "organic1h+traded1h+traded5m+trend1h+trend5m",
+        "hour_utc": 23
+      },
+      "bundle": {
+        "quelle": "block0",
+        "slot": 452105451,
+        "block0_wallets": 2,
+        "block0_supply_pct": 8.54,
+        "block0_still_held_pct": 0.0,
+        "block0_exited": 2,
+        "early_tx_slot1_2": 3,
+        "bundle_holding_pct": 0.0,
+        "gebuendelt": false,
+        "rugcheck_insider_pct": 0.87
+      },
+      "phase": "ruhig",
+      "thesis": "Story verbreitet sich: Holder +9933%/h, 212 Netto-Kaeufer 5m, 11 organisch; Block 0: 2 Kaeufer, 8.5% gekauft, 0.0% noch gehalten; Dev-Coins 1",
+      "exit_rule": "Haelfte bei 2x; Rest raus, wenn Holder schrumpfen und Netto-Verkaeufer 2x in Folge, Liquiditaet -30%, -40%, nach 1,5x nicht unter Einstand, nach 2x 30 % vom Hoch (ab 10x 25 %)",
+      "mitlaeufer": null,
+      "solana_tracker": {
+        "score": 7,
+        "rugged": false,
+        "snipers_pct": 0,
+        "insiders_pct": 0,
+        "bundlers_pct": 3.3491,
+        "top10_pct": 18.6046,
+        "risiken": [
+          "Top 10 Holders",
+          "High Bundler Count"
+        ]
+      },
+      "graduated": true,
+      "liq_low_checks": 0
+    }
+  },
   "closed": [
     {
       "symbol": "SHOGGOTH",
@@ -3268,7 +3349,8 @@
     "12AjaFcA1HAMR6SDctsooijm4ixTasYwvoWiKRptd33p": 1790789453.7586935,
     "3MPnePgPguPF2cNjtGdHeNofSkg9Kn7Pn2vt6kr6pump": 1790798428.3097332,
     "6weQ1xmYGVDnCe2R3CdRDX5BvXPDg4G2TJhABa8Vpump": 1790801132.554788,
-    "CN5HvBfWPjjdXcbqzj2mTu7JHz9HGAgkE6RSCocypump": 1790804783.8707166
+    "CN5HvBfWPjjdXcbqzj2mTu7JHz9HGAgkE6RSCocypump": 1790804783.8707166,
+    "3xgJh5hwn6SMZ2XgsxYRLtos3AEKEgPyBepx529Tpump": 1790811922.2233505
   },
   "watch": {
     "12AjaFcA1HAMR6SDctsooijm4ixTasYwvoWiKRptd33p": {
@@ -3308,17 +3390,8 @@
       "until": 1790826451.1480112
     }
   },
-  "saved_at": 1790811859.6144097,
+  "saved_at": 1790811950.0033967,
   "shadow": {
-    "FU36e3gRF3oJUgef7Xn18JPUQRuN548S8PhL65rECaYV": {
-      "symbol": "SARKA",
-      "reason": "SCHON_GELAUFEN",
-      "detail": "+152% in 1 h (Grenze 150)",
-      "ref_price": 5.185830114069256e-05,
-      "since": 1790790309.9160886,
-      "peak_usd": 8.645009914681577e-05,
-      "until": 1790811909.9160886
-    },
     "Ca5RnSFTTCrJ4khNnPAWVvozytYhHUg8PXnzdsnxoP95": {
       "symbol": "zilli",
       "reason": "SCHON_GELAUFEN",
@@ -3772,6 +3845,6 @@
   },
   "st_usage": {
     "date": "2026-09-30",
-    "count": 8
+    "count": 9
   }
 }
