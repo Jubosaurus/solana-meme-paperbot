@@ -1,7 +1,7 @@
 {
   "strategy": "EXPERIMENT_endspurt_ohne_filter",
   "started": "2026-09-30T09:53:19.214700+00:00",
-  "bankroll_sol": 9.769718,
+  "bankroll_sol": 9.568218,
   "positions": {
     "96u17tapbFpuob6QzF3hUwseJ92PZfheachP51Vxpump": {
       "mint": "96u17tapbFpuob6QzF3hUwseJ92PZfheachP51Vxpump",
@@ -17,7 +17,7 @@
       "tokens_left": 589887.96126,
       "decimals": 6,
       "proceeds_sol": 0.0,
-      "peak_usd": 4.120022679220975e-05,
+      "peak_usd": 4.139988665601861e-05,
       "tp1_done": false,
       "thesis_breaks": 0,
       "missing_loops": 0,
@@ -65,6 +65,69 @@
       "liq_low_checks": 0,
       "exit_mode": "endspurt",
       "entry_vsol": 105.02
+    },
+    "DE378YoxzbZA4D8zr2zmFjtZenFEsFgCZai4Ep2tpump": {
+      "mint": "DE378YoxzbZA4D8zr2zmFjtZenFEsFgCZai4Ep2tpump",
+      "symbol": "Keinu",
+      "opened": 1790770458.617776,
+      "invested_sol": 0.2,
+      "fees_sol": 0.0015,
+      "entry_signal_usd": 4.009345518124049e-05,
+      "entry_fill_usd": 3.838260985228126e-05,
+      "entry_slippage_pct": -4.27,
+      "roundtrip_cost_pct": 2.85,
+      "tokens_initial": 623126.231939,
+      "tokens_left": 623126.231939,
+      "decimals": 6,
+      "proceeds_sol": 0.0,
+      "peak_usd": 3.954055587229496e-05,
+      "tp1_done": false,
+      "thesis_breaks": 0,
+      "missing_loops": 0,
+      "entry_liquidity": 12552.682734644974,
+      "entry_view": {
+        "age_h": 1.671024502714475,
+        "mcap": 40093.43546731528,
+        "liquidity": 12552.682734644974,
+        "holders": 336,
+        "holder_growth_1h": 26.31578947368421,
+        "holder_growth_5m": 9.446254071661238,
+        "net_buyers_5m": 46,
+        "organic_buyers_5m": 2,
+        "organic_score": 49.49095461520068,
+        "price_change_1h": 62.63479778853728,
+        "price_change_5m": 33.100124121645905,
+        "buys_5m": 74,
+        "sells_5m": 37,
+        "traders_5m": 70,
+        "traders_1h": 339,
+        "buy_vol_5m": 3396.813466142673,
+        "sell_vol_5m": 1807.7841356885638,
+        "buy_vol_1h": 23152.50705957392,
+        "sell_vol_1h": 20759.971300579764,
+        "organic_buy_vol_1h": 673.7326049149997,
+        "top_holders_pct": 21.07592875082943,
+        "dev_balance_pct": 0.0,
+        "dev_mints": 1,
+        "launchpad": "pump.fun",
+        "graduated": false,
+        "social": false,
+        "quelle": "organic1h+organic5m+traded1h+traded5m+trend1h+trend5m",
+        "hour_utc": 12
+      },
+      "bundle": {
+        "quelle": "experiment",
+        "text": "Endspurt: Kurve bei 104 von 115 vSol (87% Fortschritt), 4036 Trades, organisch medium"
+      },
+      "phase": "normal",
+      "thesis": "Story verbreitet sich: Holder +26%/h, 46 Netto-Kaeufer 5m, 2 organisch; Endspurt: Kurve bei 104 von 115 vSol (87% Fortschritt), 4036 Trades, organisch medium; Dev-Coins 1",
+      "exit_rule": "Haelfte bei 2x; Rest raus, wenn Holder schrumpfen und Netto-Verkaeufer 2x in Folge, Liquiditaet -30%, -40%, nach 1,5x nicht unter Einstand, nach 2x 30 % vom Hoch (ab 10x 25 %)",
+      "mitlaeufer": null,
+      "solana_tracker": null,
+      "graduated": false,
+      "liq_low_checks": 0,
+      "exit_mode": "endspurt",
+      "entry_vsol": 103.89
     }
   },
   "closed": [
@@ -534,7 +597,8 @@
     "218icBZfvE7YGiW8trMjea5MGyWZKrjFtBCQsTmQgvPy": 1790767293.8071477,
     "BVgjiqjYtqWpcF4i2RJotYQffvJZADsvoVaFHNk9pump": 1790768381.4681168,
     "2e7TzGXZfJ72jxviM6kxqWVbH3dndh2TrHzwg3cZpump": 1790768385.8694296,
-    "96u17tapbFpuob6QzF3hUwseJ92PZfheachP51Vxpump": 1790770364.2912364
+    "96u17tapbFpuob6QzF3hUwseJ92PZfheachP51Vxpump": 1790770364.2912364,
+    "DE378YoxzbZA4D8zr2zmFjtZenFEsFgCZai4Ep2tpump": 1790770458.6183481
   },
   "watch": {
     "EbJJKtnawGPhfgthRrwsyDgrCc1smGUUYbK5WNAK5E1N": {
@@ -612,7 +676,7 @@
   },
   "runde": 1,
   "shadow": {},
-  "saved_at": 1790770406.0674064,
+  "saved_at": 1790770486.4128706,
   "dev_day": {
     "date": "2026-09-30",
     "devs": [
@@ -624,7 +688,8 @@
       "9KGv1vhepXtMeAxnvVf9wqEq5RbXaZioeZmPan4aDWcM",
       "6kqXXyECqdWaHSVGkxnuFc9XFds4fRE2wSBqVeKgqR4J",
       "36A6mEN5rYJdVTb6fMqVvG6ez8g2mTYdr1omWcQ1kDKG",
-      "5xXUeTGb91N8bKro5sGeeXGQ6fLUyvZ84xhYexK9dPnz"
+      "5xXUeTGb91N8bKro5sGeeXGQ6fLUyvZ84xhYexK9dPnz",
+      "EvPNFbmTyxzmF46qRwMBspkvckSZ6K235JtQm9GkqRf9"
     ]
   }
 }
