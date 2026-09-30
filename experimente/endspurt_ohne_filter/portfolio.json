@@ -1,8 +1,72 @@
 {
   "strategy": "EXPERIMENT_endspurt_ohne_filter",
   "started": "2026-09-30T09:53:19.214700+00:00",
-  "bankroll_sol": 10.207083,
-  "positions": {},
+  "bankroll_sol": 10.005583,
+  "positions": {
+    "mXrsF4j1M4SoLvUzq9MiPN2xpGE21kDR2bTSdZipump": {
+      "mint": "mXrsF4j1M4SoLvUzq9MiPN2xpGE21kDR2bTSdZipump",
+      "symbol": "BSI",
+      "opened": 1790786112.7633388,
+      "invested_sol": 0.2,
+      "fees_sol": 0.0015,
+      "entry_signal_usd": 3.898894512278024e-05,
+      "entry_fill_usd": 3.879826640821138e-05,
+      "entry_slippage_pct": -0.49,
+      "roundtrip_cost_pct": 2.85,
+      "tokens_initial": 616967.438826,
+      "tokens_left": 616967.438826,
+      "decimals": 6,
+      "proceeds_sol": 0.0,
+      "peak_usd": 3.883180446461482e-05,
+      "tp1_done": false,
+      "thesis_breaks": 0,
+      "missing_loops": 0,
+      "entry_liquidity": 12250.121577320551,
+      "entry_view": {
+        "age_h": 0.032437952491972184,
+        "mcap": 38988.94512278024,
+        "liquidity": 12250.121577320551,
+        "holders": 222,
+        "holder_growth_1h": 33.734939759036145,
+        "holder_growth_5m": 33.734939759036145,
+        "net_buyers_5m": 220,
+        "organic_buyers_5m": 0,
+        "organic_score": 0.0,
+        "price_change_1h": -7.368187446965556,
+        "price_change_5m": -7.368187446965556,
+        "buys_5m": 518,
+        "sells_5m": 383,
+        "traders_5m": 377,
+        "traders_1h": 377,
+        "buy_vol_5m": 53886.37878735335,
+        "sell_vol_5m": 45219.213223114,
+        "buy_vol_1h": 53886.37878735335,
+        "sell_vol_1h": 45219.213223114,
+        "organic_buy_vol_1h": 245.57528143581493,
+        "top_holders_pct": 28.4428696732641,
+        "dev_balance_pct": 2.5,
+        "dev_mints": 45,
+        "launchpad": "pump.fun",
+        "graduated": false,
+        "social": false,
+        "quelle": "traded1h+traded5m",
+        "hour_utc": 16
+      },
+      "bundle": {
+        "quelle": "experiment",
+        "text": "Endspurt: Kurve bei 102 von 115 vSol (85% Fortschritt), 901 Trades, organisch low"
+      },
+      "phase": "heiss",
+      "thesis": "Story verbreitet sich: Holder +34%/h, 220 Netto-Kaeufer 5m, 0 organisch; Endspurt: Kurve bei 102 von 115 vSol (85% Fortschritt), 901 Trades, organisch low; Dev-Coins 45",
+      "exit_rule": "Haelfte bei 2x; Rest raus, wenn Holder schrumpfen und Netto-Verkaeufer 2x in Folge, Liquiditaet -30%, -40%, nach 1,5x nicht unter Einstand, nach 2x 30 % vom Hoch (ab 10x 25 %)",
+      "mitlaeufer": null,
+      "solana_tracker": null,
+      "graduated": false,
+      "liq_low_checks": 0,
+      "exit_mode": "endspurt",
+      "entry_vsol": 102.4
+    }
+  },
   "closed": [
     {
       "symbol": "Gingitsune",
@@ -1339,7 +1403,8 @@
     "2d7fgeNKny7jmaJWXRNnPoGrJL7vwL6MMv45UTXgpump": 1790777626.7229834,
     "8acLTgfVBH5zExB2ez3kE3B7xH2xevsRusii7d8UfdPc": 1790779092.6646101,
     "Eg5noE4CHfxQiMkM73XCAyUTAdgmfRoTXMit62sspaid": 1790782634.296675,
-    "6BLbav5mMbuETvk4dBdm4BE7NL7yZeZdbd2krNmtpump": 1790785541.6209483
+    "6BLbav5mMbuETvk4dBdm4BE7NL7yZeZdbd2krNmtpump": 1790785541.6209483,
+    "mXrsF4j1M4SoLvUzq9MiPN2xpGE21kDR2bTSdZipump": 1790786112.7639568
   },
   "watch": {
     "4BjTvWFzKVRhiJXmHugHv5FdmQQgWwKDRERWRWr3kUxs": {
@@ -1534,7 +1599,7 @@
   },
   "runde": 1,
   "shadow": {},
-  "saved_at": 1790786059.7328432,
+  "saved_at": 1790786141.7748642,
   "dev_day": {
     "date": "2026-09-30",
     "devs": [
@@ -1560,7 +1625,8 @@
       "ALJ4P5QNyHeLEjpKGmA1eUfJHSEGQMjY8HLnDkSgjczb",
       "4BYPei1Q3uGeqAeUNqBjyJt4whkSD7TuEbz1oXJjJcZD",
       "9ndrzRAKZhbkAdUiDShJUJZxWHXAeFvH4vsurERoRaaH",
-      "79i83qVx6LRTrGaynyQnzhkNFfzjfpYbfjufYovGcLFR"
+      "79i83qVx6LRTrGaynyQnzhkNFfzjfpYbfjufYovGcLFR",
+      "G4krkerMkeYw7ffTUgdf7qXEXnuMGHpWUESBQpYqvtwU"
     ]
   }
 }
