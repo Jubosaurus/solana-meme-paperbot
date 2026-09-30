@@ -1,27 +1,17 @@
 {
   "strategy": "EXPERIMENT_zweite_welle",
   "started": "2026-09-29T08:33:20.747566+00:00",
-  "bankroll_sol": 9.996598,
-  "positions": {
-    "FWgYQYbLB2FBVn2DnUtqeT9douyyXATPAYXhBxQ7pump": {
-      "mint": "FWgYQYbLB2FBVn2DnUtqeT9douyyXATPAYXhBxQ7pump",
+  "bankroll_sol": 10.138048,
+  "positions": {},
+  "closed": [
+    {
       "symbol": "dots",
-      "opened": 1790729115.318277,
+      "mint": "FWgYQYbLB2FBVn2DnUtqeT9douyyXATPAYXhBxQ7pump",
       "invested_sol": 0.2,
-      "fees_sol": 0.003,
-      "entry_signal_usd": 5.961085293792913e-05,
       "entry_fill_usd": 6.041351922660071e-05,
       "entry_slippage_pct": 1.35,
       "roundtrip_cost_pct": 2.78,
-      "tokens_initial": 393146.662807,
-      "tokens_left": 196573.3314035,
-      "decimals": 6,
-      "proceeds_sol": 0.198097595,
-      "peak_usd": 0.00012651702067717485,
       "tp1_done": true,
-      "thesis_breaks": 0,
-      "missing_loops": 0,
-      "entry_liquidity": 9179.015191392455,
       "entry_view": {
         "age_h": 2.7333511997593773,
         "mcap": 58319.45358554961,
@@ -58,19 +48,25 @@
       },
       "phase": "normal",
       "thesis": "Story verbreitet sich: Holder +7%/h, 12 Netto-Kaeufer 5m, 1 organisch; Zweite Welle: zurueck ueber dem Einstieg der Hauptstrategie (NOTBREMSE (-48%)); Dev-Coins 1",
-      "exit_rule": "Haelfte bei 2x; Rest raus, wenn Holder schrumpfen und Netto-Verkaeufer 2x in Folge, Liquiditaet -30%, -40%, nach 1,5x nicht unter Einstand, nach 2x 30 % vom Hoch (ab 10x 25 %)",
       "mitlaeufer": null,
       "solana_tracker": null,
-      "graduated": true,
-      "liq_low_checks": 0
+      "graduated_waehrend": false,
+      "proceeds_sol": 0.339547,
+      "pnl_sol": 0.138047,
+      "pnl_pct": 69.02,
+      "peak_multiple": 2.09,
+      "exit_usd": 8.662219043286879e-05,
+      "exit_reason": "STORY_ABGEKUEHLT (30% unter dem Hoch von 2.1x)",
+      "hold_h": 0.28,
+      "closed_at": "2026-09-30T01:02:10.958763+00:00",
+      "runde": 1
     }
-  },
-  "closed": [],
+  ],
   "cooldown": {
     "FWgYQYbLB2FBVn2DnUtqeT9douyyXATPAYXhBxQ7pump": 1790729115.3190753
   },
   "watch": {},
   "runde": 1,
   "shadow": {},
-  "saved_at": 1790730087.6610372
+  "saved_at": 1790730163.2235134
 }
