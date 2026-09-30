@@ -1,0 +1,84 @@
+name: Solana Paper Trading Bot
+
+on:
+  workflow_dispatch:
+    inputs:
+      modus:
+        description: "normal oder probe (Kurztest)"
+        required: true
+        default: probe
+        type: choice
+        options:
+          - normal
+          - probe
+  # Sicherheitsnetz: normalerweise startet jede Schicht am Ende selbst die naechste (letzter Schritt).
+  # Minute 17 statt zur vollen Stunde, weil GitHub dort bei hoher Last Laeufe verzoegert oder verwirft.
+  schedule:
+    - cron: '17 */6 * * *'
+
+concurrency:
+  group: solana-bot-repo
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+  actions: write          # damit eine Schicht die naechste starten kann
+
+jobs:
+  run-bot:
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+
+    steps:
+      # Immer den NEUESTEN Stand von main laden, nicht den vom Ausloesezeitpunkt.
+      # Wartet ein Lauf in der Schlange, waere der sonst Stunden alt.
+      - uses: actions/checkout@v5
+        with:
+          ref: main
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Abhaengigkeiten installieren
+        run: pip install -r requirements.txt
+
+      - name: Bot starten
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          JUPITER_API_KEY: ${{ secrets.JUPITER_API_KEY }}
+          HELIUS_API_KEY: ${{ secrets.HELIUS_API_KEY }}
+          SOLANA_TRACKER_API_KEY: ${{ secrets.SOLANA_TRACKER_API_KEY }}
+          DISCORD_WEBHOOK_EXPERIMENTE: ${{ secrets.DISCORD_WEBHOOK_EXPERIMENTE }}
+          PYTHONUNBUFFERED: "1"
+        run: |
+          if [ "${{ github.event.inputs.modus }}" = "probe" ]; then
+            python bot.py --probe
+          else
+            python bot.py
+          fi
+
+      - name: Sicherung
+        if: always() && github.event.inputs.modus != 'probe'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          if [ -d .git/rebase-merge ] || [ -d .git/rebase-apply ]; then git rebase --abort || true; fi
+          # Zustandsdateien als Ganzes auf den neuesten Stand von main setzen, nichts mischen
+          git fetch -q origin main && git reset -q origin/main
+          for f in portfolio.json journal.csv abgelehnt.csv marktphase.json verlauf.csv verlauf knapp_abgelehnt.csv experimente; do
+            [ -e "$f" ] && git add "$f" || true
+          done
+          if ! git diff --cached --quiet; then
+            git commit -q -m "NARRATIV Sicherung [skip ci]"
+            git push -q origin HEAD:main || echo "::warning::Sicherung fehlgeschlagen"
+          fi
+
+      # Kette: naechste Schicht direkt starten. Nur wenn alles erfolgreich war, damit ein kaputter
+      # Stand nicht endlos neu startet (dann greift der Zeitplan oben). Nicht nach Abbruch von Hand.
+      - name: Naechste Schicht starten
+        if: success() && github.event.inputs.modus != 'probe'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run bot_runner.yml --ref main -f modus=normal || echo "::warning::Naechste Schicht konnte nicht gestartet werden"
