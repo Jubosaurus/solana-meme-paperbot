@@ -1,8 +1,91 @@
 {
   "strategy": "NARRATIV",
   "started": "2026-09-26T02:46:00.825468+00:00",
-  "bankroll_sol": 9.817686,
-  "positions": {},
+  "bankroll_sol": 9.616186,
+  "positions": {
+    "6weQ1xmYGVDnCe2R3CdRDX5BvXPDg4G2TJhABa8Vpump": {
+      "mint": "6weQ1xmYGVDnCe2R3CdRDX5BvXPDg4G2TJhABa8Vpump",
+      "symbol": "DRUG",
+      "opened": 1790801132.5542917,
+      "invested_sol": 0.2,
+      "fees_sol": 0.0015,
+      "entry_signal_usd": 2.7899901420068016e-05,
+      "entry_fill_usd": 2.8346676479121973e-05,
+      "entry_slippage_pct": 1.6,
+      "roundtrip_cost_pct": 3.06,
+      "tokens_initial": 832584.717015,
+      "tokens_left": 832584.717015,
+      "decimals": 6,
+      "proceeds_sol": 0.0,
+      "peak_usd": 4.322204905990733e-05,
+      "tp1_done": false,
+      "thesis_breaks": 0,
+      "missing_loops": 0,
+      "entry_liquidity": 5559.644831214162,
+      "entry_view": {
+        "age_h": 0.8994628077083163,
+        "mcap": 26108.14743586225,
+        "liquidity": 5559.644831214162,
+        "holders": 166,
+        "holder_growth_1h": 5433.333333333334,
+        "holder_growth_5m": 29.6875,
+        "net_buyers_5m": 43,
+        "organic_buyers_5m": 4,
+        "organic_score": 39.294394320312215,
+        "price_change_1h": 560.6816357609612,
+        "price_change_5m": 25.909542941111745,
+        "buys_5m": 117,
+        "sells_5m": 67,
+        "traders_5m": 86,
+        "traders_1h": 577,
+        "buy_vol_5m": 3777.576096958001,
+        "sell_vol_5m": 3130.474846055454,
+        "buy_vol_1h": 65143.327781219945,
+        "sell_vol_1h": 58976.664513800795,
+        "organic_buy_vol_1h": 2165.850851770719,
+        "top_holders_pct": 26.27038443828016,
+        "dev_balance_pct": 3.784800683428993,
+        "dev_mints": 1,
+        "launchpad": "pump.fun",
+        "graduated": true,
+        "social": false,
+        "quelle": "organic1h+organic5m+traded1h+traded5m+trend1h+trend5m",
+        "hour_utc": 20
+      },
+      "bundle": {
+        "quelle": "block0",
+        "slot": 452063769,
+        "block0_wallets": 1,
+        "block0_supply_pct": 10.31,
+        "block0_still_held_pct": 3.78,
+        "block0_exited": 0,
+        "early_tx_slot1_2": 4,
+        "bundle_holding_pct": 3.78,
+        "gebuendelt": false,
+        "rugcheck_insider_pct": 0
+      },
+      "phase": "normal",
+      "thesis": "Story verbreitet sich: Holder +5433%/h, 43 Netto-Kaeufer 5m, 4 organisch; Block 0: 1 Kaeufer, 10.3% gekauft, 3.8% noch gehalten; Dev-Coins 1",
+      "exit_rule": "Haelfte bei 2x; Rest raus, wenn Holder schrumpfen und Netto-Verkaeufer 2x in Folge, Liquiditaet -30%, -40%, nach 1,5x nicht unter Einstand, nach 2x 30 % vom Hoch (ab 10x 25 %)",
+      "mitlaeufer": null,
+      "solana_tracker": {
+        "score": 10,
+        "rugged": false,
+        "snipers_pct": 0,
+        "insiders_pct": 0,
+        "bundlers_pct": 37.2867,
+        "top10_pct": 24.5833,
+        "risiken": [
+          "Top 10 Holders",
+          "High Bundler Count",
+          "High Bundler Holdings",
+          "Dev Holdings"
+        ]
+      },
+      "graduated": true,
+      "liq_low_checks": 0
+    }
+  },
   "closed": [
     {
       "symbol": "SHOGGOTH",
@@ -3113,7 +3196,8 @@
     "GpuvH6LGtLtrLrD87pHLSJpQC6HF8mtKYumZuk1rpump": 1790777498.1454046,
     "8acLTgfVBH5zExB2ez3kE3B7xH2xevsRusii7d8UfdPc": 1790780667.3481452,
     "12AjaFcA1HAMR6SDctsooijm4ixTasYwvoWiKRptd33p": 1790789453.7586935,
-    "3MPnePgPguPF2cNjtGdHeNofSkg9Kn7Pn2vt6kr6pump": 1790798428.3097332
+    "3MPnePgPguPF2cNjtGdHeNofSkg9Kn7Pn2vt6kr6pump": 1790798428.3097332,
+    "6weQ1xmYGVDnCe2R3CdRDX5BvXPDg4G2TJhABa8Vpump": 1790801132.554788
   },
   "watch": {
     "8acLTgfVBH5zExB2ez3kE3B7xH2xevsRusii7d8UfdPc": {
@@ -3144,7 +3228,7 @@
       "until": 1790820668.641045
     }
   },
-  "saved_at": 1790801099.394971,
+  "saved_at": 1790801186.9058542,
   "shadow": {
     "8acLTgfVBH5zExB2ez3kE3B7xH2xevsRusii7d8UfdPc": {
       "symbol": "mINE",
@@ -3500,6 +3584,6 @@
   },
   "st_usage": {
     "date": "2026-09-30",
-    "count": 6
+    "count": 7
   }
 }
