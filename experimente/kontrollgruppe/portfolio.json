@@ -1,27 +1,27 @@
 {
   "strategy": "EXPERIMENT_kontrollgruppe",
   "started": "2026-09-29T08:33:20.747785+00:00",
-  "bankroll_sol": 9.226779,
+  "bankroll_sol": 9.430962,
   "positions": {
     "DE378YoxzbZA4D8zr2zmFjtZenFEsFgCZai4Ep2tpump": {
       "mint": "DE378YoxzbZA4D8zr2zmFjtZenFEsFgCZai4Ep2tpump",
       "symbol": "Keinu",
       "opened": 1790769386.5372703,
       "invested_sol": 0.2,
-      "fees_sol": 0.0015,
+      "fees_sol": 0.003,
       "entry_signal_usd": 2.290021811739878e-05,
       "entry_fill_usd": 2.3428160701195908e-05,
       "entry_slippage_pct": 2.31,
       "roundtrip_cost_pct": 2.95,
       "tokens_initial": 1018252.597267,
-      "tokens_left": 1018252.597267,
+      "tokens_left": 509126.2986335,
       "decimals": 6,
-      "proceeds_sol": 0.0,
-      "peak_usd": 4.124655285494622e-05,
-      "tp1_done": false,
+      "proceeds_sol": 0.204182641,
+      "peak_usd": 4.846908362484638e-05,
+      "tp1_done": true,
       "thesis_breaks": 0,
       "missing_loops": 0,
-      "entry_liquidity": 9385.514793814647,
+      "entry_liquidity": 7960.259546179641,
       "entry_view": {
         "age_h": 1.3729209820429484,
         "mcap": 22900.206857376783,
@@ -61,8 +61,9 @@
       "exit_rule": "Haelfte bei 2x; Rest raus, wenn Holder schrumpfen und Netto-Verkaeufer 2x in Folge, Liquiditaet -30%, -40%, nach 1,5x nicht unter Einstand, nach 2x 30 % vom Hoch (ab 10x 25 %)",
       "mitlaeufer": null,
       "solana_tracker": null,
-      "graduated": false,
-      "liq_low_checks": 0
+      "graduated": true,
+      "liq_low_checks": 0,
+      "graduated_during": true
     }
   },
   "closed": [
@@ -3379,6 +3380,6 @@
   "watch": {},
   "runde": 1,
   "shadow": {},
-  "saved_at": 1790770485.2504876,
+  "saved_at": 1790770568.2918077,
   "next_pick": 1790771175.5155354
 }
