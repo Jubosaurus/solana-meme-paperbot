@@ -1,8 +1,80 @@
 {
   "strategy": "NARRATIV",
   "started": "2026-09-26T02:46:00.825468+00:00",
-  "bankroll_sol": 10.318767,
-  "positions": {},
+  "bankroll_sol": 10.117267,
+  "positions": {
+    "6e8LLHkqCTa4mzGuL1PoUxSfeHmDeceJ3DaJSSUNg937": {
+      "mint": "6e8LLHkqCTa4mzGuL1PoUxSfeHmDeceJ3DaJSSUNg937",
+      "symbol": "ARTHUR",
+      "opened": 1790726628.0043628,
+      "invested_sol": 0.2,
+      "fees_sol": 0.0015,
+      "entry_signal_usd": 0.0008283702619614301,
+      "entry_fill_usd": 0.0007163059085325299,
+      "entry_slippage_pct": -13.53,
+      "roundtrip_cost_pct": 1.88,
+      "tokens_initial": 33270.292171,
+      "tokens_left": 33270.292171,
+      "decimals": 6,
+      "proceeds_sol": 0.0,
+      "peak_usd": 0.0008527597407397549,
+      "tp1_done": false,
+      "thesis_breaks": 0,
+      "missing_loops": 0,
+      "entry_liquidity": 51069.316593468466,
+      "entry_view": {
+        "age_h": 0.6717664513323042,
+        "mcap": 828370.2619614301,
+        "liquidity": 51069.316593468466,
+        "holders": 1670,
+        "holder_growth_1h": 55566.666666666664,
+        "holder_growth_5m": 105.15970515970517,
+        "net_buyers_5m": 619,
+        "organic_buyers_5m": 25,
+        "organic_score": 41.718767402281635,
+        "price_change_1h": 22334.66468917054,
+        "price_change_5m": 111.03447949937915,
+        "buys_5m": 2233,
+        "sells_5m": 1785,
+        "traders_5m": 1140,
+        "traders_1h": 1741,
+        "buy_vol_5m": 233438.40895723162,
+        "sell_vol_5m": 216492.4796435034,
+        "buy_vol_1h": 449381.2729119936,
+        "sell_vol_1h": 396760.2760906472,
+        "organic_buy_vol_1h": 9496.2815382252,
+        "top_holders_pct": 27.084517943943197,
+        "dev_balance_pct": 3.6951264738216,
+        "dev_mints": 1,
+        "launchpad": "stonkfun",
+        "graduated": true,
+        "social": false,
+        "quelle": "organic1h+organic5m+traded1h+traded5m+trend1h+trend5m",
+        "hour_utc": 0
+      },
+      "bundle": {
+        "quelle": "block0",
+        "slot": 451788196,
+        "block0_wallets": 3,
+        "block0_supply_pct": 4.87,
+        "block0_still_held_pct": 3.71,
+        "block0_exited": 2,
+        "early_tx_slot1_2": 0,
+        "bundle_holding_pct": 3.71,
+        "gebuendelt": false,
+        "rugcheck_insider_pct": 0
+      },
+      "phase": "heiss",
+      "thesis": "Story verbreitet sich: Holder +55567%/h, 619 Netto-Kaeufer 5m, 25 organisch; Block 0: 3 Kaeufer, 4.9% gekauft, 3.7% noch gehalten; Dev-Coins 1",
+      "exit_rule": "Haelfte bei 2x; Rest raus, wenn Holder schrumpfen und Netto-Verkaeufer 2x in Folge, Liquiditaet -30%, -40%, nach 1,5x nicht unter Einstand, nach 2x 30 % vom Hoch (ab 10x 25 %)",
+      "mitlaeufer": null,
+      "solana_tracker": {
+        "fehler": "HTTPSConnectionPool(host='data.solanatracker.io', port=443): Read timed out. (re"
+      },
+      "graduated": true,
+      "liq_low_checks": 0
+    }
+  },
   "closed": [
     {
       "symbol": "SHOGGOTH",
@@ -2656,7 +2728,8 @@
     "3qhCS4Qp24BCXaBsMnGDEh7Lw5SURqcSUTpUgGBApump": 1790700386.4718418,
     "GFkfaUEJApu9Jf2AmAN2hgk5SteXRXJ19opJoL5bZwKw": 1790714620.3108885,
     "6M8CWurfztGraRKK7y6Nz7pavLabYC2LwNsUzaEwpump": 1790719261.3341799,
-    "FWgYQYbLB2FBVn2DnUtqeT9douyyXATPAYXhBxQ7pump": 1790722850.1408272
+    "FWgYQYbLB2FBVn2DnUtqeT9douyyXATPAYXhBxQ7pump": 1790722850.1408272,
+    "6e8LLHkqCTa4mzGuL1PoUxSfeHmDeceJ3DaJSSUNg937": 1790726628.0057027
   },
   "watch": {
     "GFkfaUEJApu9Jf2AmAN2hgk5SteXRXJ19opJoL5bZwKw": {
@@ -2687,7 +2760,7 @@
       "until": 1790745427.6357565
     }
   },
-  "saved_at": 1790726575.759202,
+  "saved_at": 1790726703.9423509,
   "shadow": {
     "EUKCWTog5EVazeyiTFFC5n5RcvvVmcznjRUrwHbxDri6": {
       "symbol": "HOLDUP",
@@ -3015,7 +3088,7 @@
     }
   },
   "st_usage": {
-    "date": "2026-09-29",
-    "count": 5
+    "date": "2026-09-30",
+    "count": 1
   }
 }
