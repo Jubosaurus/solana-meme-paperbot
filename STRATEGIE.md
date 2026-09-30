@@ -72,12 +72,14 @@ Dateien: `experimente/<name>/portfolio.json` und `journal.csv`; Kursverläufe in
 Getrennt vom Hauptbot: eigenes Programm `copy_bot.py`, eigener Workflow `copy_runner.yml`, eigene Dateien in `copy/`, eigener Discord-Kanal (Secret `DISCORD_WEBHOOK_COPY`). Stürzt der Copy-Bot ab, läuft der Hauptbot unverändert weiter.
 
 - **Wallets:** `copy_wallets.txt`, eine Zeile pro Wallet im Format `Name: Adresse`. Austauschen ohne Code-Änderung.
-- **Erkennung:** Helius-WebSocket (`logsSubscribe` je Wallet, im Gratis-Tarif enthalten), danach die vollständige Transaktion. Kauf, Verkauf und Überweisung werden an den Salden erkannt, unabhängig von der Börse (Pump.fun, PumpSwap, Raydium, Meteora, Jupiter); Handel gegen USDC wird in SOL umgerechnet.
+- **Erkennung:** Helius-WebSocket (`logsSubscribe` je Wallet, im Gratis-Tarif enthalten), danach die vollständige Transaktion (bis Version 1). Abgefragt wird nur, was nach Handel aussieht; reine Transfers nur, wenn eine Position offen ist. Wallets mit mehr als 30 Meldungen pro Minute werden für die Schicht abgemeldet (Flutschutz). Kauf, Verkauf und Überweisung werden an den Salden erkannt, unabhängig von der Börse (Pump.fun, PumpSwap, Raydium, Meteora, Jupiter); Handel gegen USDC wird in SOL umgerechnet.
 - **Konto:** jede Wallet 10 SOL, neue Runde, wenn leer und keine Position offen.
-- **Kauf:** jeder Kauf des Traders = 0,2 SOL, auch Nachkäufe. Ohne freies Geld wird der Kauf als AUSGELASSEN dokumentiert.
-- **Verkauf:** derselbe Anteil, den der Trader verkauft. Überweist er die Coins, verkaufen wir zum aktuellen Kurs (ÜBERWEISUNG).
+- **Kauf:** jeder Kauf des Traders ab 0,1 SOL = 0,2 SOL bei uns, auch Nachkäufe. Kleinere Käufe (Tests, Staub) werden ignoriert. Weicht unser Kaufkurs mehr als ±15 % vom Kurs des Traders ab, wird der Kauf blockiert. Kaufmeldungen älter als 60 s werden nie nachgekauft. Alles Ausgelassene steht als AUSGELASSEN mit Grund im Journal.
+- **Verkauf:** derselbe Anteil, den der Trader verkauft, aber gesammelt: Teilverkäufe werden gemerkt (VERKAUF_GEMERKT) und erst ausgeführt, wenn mindestens 20 % der Position zusammenkommen. Steigt der Trader komplett aus oder überweist er die Coins (ÜBERWEISUNG), verkaufen wir sofort alles. Verkäufe sind nie blockiert.
 - **Kein Take-Profit, kein Stop-Loss.** Am regulären Schichtende werden Positionen mit höchstens 1 % Restwert (−99 %) bereinigt.
 - **Prüfungen** des Hauptbots laufen bei jedem Kauf mit und werden gespeichert, entscheiden aber nichts (ohne Solana Tracker).
+- **Gebühren:** unsere Gebühr je Transaktion = die tatsächliche Netzwerkgebühr des Traders für diesen Trade (Grundgebühr, Prioritätsgebühr, Jito-Tip). Bot-Gebühren des Traders (z. B. 1 %) rechnen wir uns nicht an.
+- **Vergleich mit dem Trader:** nur aufgezeichnete Trades. Hielt er Coins schon vor unserem Start, zählt bei seinen Verkäufen nur der Anteil aus aufgezeichneten Käufen. Nach einer Überweisung ist kein Vergleich möglich.
 - **Gespeichert je Trade** (`copy/journal.csv`): Signatur, Zeit, Menge, Preis und Gebühren des Traders (Grundgebühr, Prioritätsgebühr, Jito-Tip, sonstige wie Bot-Gebühren), unser Preis, unsere Gebühr, Verzögerung in Sekunden, Preisabstand in %, Ergebnis. In `copy/konten.json` pro Wallet Konto, offene und geschlossene Positionen, jeweils mit dem Ergebnis des Traders auf demselben Coin.
 - **Grenzen der Simulation:** Wir kaufen zum Jupiter-Kurs in dem Moment, in dem wir den Trade sehen. Die Gebühren-Vorteile des Traders lassen sich auf Papier nicht nachbilden; messbar sind Verzögerung und Preisabstand. Beim Kaufbetrag des Traders ist die Miete für ein neues Token-Konto (~0,002 SOL) enthalten.
 
@@ -105,6 +107,7 @@ Getrennt vom Hauptbot: eigenes Programm `copy_bot.py`, eigener Workflow `copy_ru
 | 30.09. | Experimente Endspurt Kurve und Endspurt ohne Filter (je 10 SOL) | Recherche: Kauf kurz vor der Graduation laut Studie über der Gewinnschwelle, wenn menschliche Käufer überwiegen |
 | 30.09. | Korrektur: Das Hoch einer Position startet beim Kaufpreis statt beim Signalkurs | Bei cum (Rug, Kauf 62 % unter Signal) stand das Hoch sonst bei 2,65x und hätte den Gewinnschutz fälschlich scharf geschaltet; 1 von 122 Trades betroffen |
 | 30.09. | Copy-Trading-Bot mit 20 Wallets, je 10 SOL (eigener Workflow, eigene Dateien) | Test, ob einzelne Trader für uns profitabel wären |
+| 30.09. | Copy: Verkäufe gesammelt ab 20 %, reale Gebühren des Traders, Käufe unter 0,1 SOL ignoriert, Preisgrenze ±15 %, Trader-Vergleich nur aufgezeichnet, feinerer Filter, Altersgrenze 60 s | Erste 2 Stunden: 922M verkaufte 156-mal in 2-%-Schritten, Gebühren fraßen den Erlös |
 
 ## Dateien seit 28.09.
 
@@ -113,4 +116,3 @@ Getrennt vom Hauptbot: eigenes Programm `copy_bot.py`, eigener Workflow `copy_ru
 | `verlauf/JJJJ-MM-TT.csv` | Kursverläufe eines Tages: offene Positionen (~12 s), nach dem Verkauf (~36 s), knapp abgelehnt (~2 min) |
 | `knapp_abgelehnt.csv` | Jeder knapp abgelehnte Coin mit Grund, Abstand zur Grenze und allen Merkmalen (seit 29.09. mit Herkunftsliste) |
 | `verlauf.csv` | Alte Datei bis 27.09., wird nicht mehr fortgeschrieben |
-
