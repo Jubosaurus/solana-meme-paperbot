@@ -17,6 +17,7 @@ import os
 import re
 import signal
 import time
+from collections import deque
 from datetime import datetime, timezone
 
 import requests
@@ -39,6 +40,9 @@ PUSH_EVERY = 60
 MIN_SWAP_LAMPORTS = 1_000_000           # unter 0,001 SOL gilt eine Bewegung nicht als Kauf/Verkauf
 BASE_FEE_LAMPORTS = 5000                # Grundgebuehr pro Signatur
 JUP_INTERVAL = 1.6                      # Copy-Bot fragt Jupiter etwas langsamer ab als der Hauptbot
+FLOOD_PER_MIN = 30                      # mehr Meldungen pro Minute -> Wallet fuer diese Schicht abmelden
+CREDITS_PER_100KB = 2                   # Helius: WebSocket-Daten 2 Credits pro 0,1 MB
+TRADE_HINTS = ("buy", "sell", "swap", "route", "transfer")   # Log-Stichworte, die nach Handel aussehen
 DISCORD_WEBHOOK_COPY = (os.environ.get("DISCORD_WEBHOOK_COPY") or "").strip()
 WS_URL = f"wss://mainnet.helius-rpc.com/?api-key={core.HELIUS_API_KEY}"
 USDC_MINT = "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"
@@ -57,10 +61,12 @@ JOURNAL_HEADER = [
     "unser_sol", "unsere_tokens", "unser_preis_sol", "unsere_gebuehr_sol", "preisabstand_pct",
     "pnl_sol", "pnl_pct", "hinweis", "pruefungen"]
 
-STATS = {"notifications": 0, "trades": {}, "skipped": {}, "reconnects": 0, "parse_errors": 0,
+STATS = {"notifications": 0, "bytes": 0, "failed": 0, "no_hint": 0, "fetched": 0, "muted": [],
+         "trades": {}, "skipped": {}, "reconnects": 0, "parse_errors": 0,
          "delays": [], "git_ok": 0, "git_fail": 0, "jup_429": 0, "errors": 0, "last_error": ""}
 _jup_last = [0.0]
 _seen = set()
+_rate = {}                              # Wallet -> Zeitpunkte der letzten Meldungen
 
 
 class Interrupted(Exception):
@@ -262,7 +268,7 @@ def fetch_tx(sig):
     """Die Transaktion ist bei 'confirmed' manchmal noch nicht abrufbar, deshalb bis zu 4 Versuche."""
     for attempt in range(4):
         tx = core.rpc("getTransaction", [sig, {"encoding": "jsonParsed", "commitment": "confirmed",
-                                               "maxSupportedTransactionVersion": 0}])
+                                               "maxSupportedTransactionVersion": 1}])
         if tx:
             return tx
         time.sleep(0.6 * (attempt + 1))
@@ -542,11 +548,23 @@ def connect(wallets):
     return ws, subs, early
 
 
+def notification_value(msg):
+    return ((msg.get("params") or {}).get("result") or {}).get("value") or {}
+
+
 def notification_sig(msg):
-    value = ((msg.get("params") or {}).get("result") or {}).get("value") or {}
+    value = notification_value(msg)
     if value.get("err") is not None:
         return None
     return value.get("signature")
+
+
+def looks_like_trade(value):
+    """Nur Transaktionen abfragen, deren Log nach Kauf, Verkauf, Tausch oder Ueberweisung aussieht."""
+    for line in value.get("logs") or []:
+        if "Instruction:" in line and any(h in line.lower() for h in TRADE_HINTS):
+            return True
+    return False
 
 
 def run(probe=False):
@@ -565,10 +583,10 @@ def run(probe=False):
         while time.time() - started < SHIFT_SECONDS:
             if ws is None:
                 try:
-                    ws, subs, early = connect(wallets)
+                    ws, subs, early = connect([w for w in wallets if w[0] not in STATS["muted"]])
                     print(f"[COPY] verbunden, {len(subs)} von {len(wallets)} Wallets angemeldet")
                     for msg in early:
-                        process_message(msg, subs, data, sol_usd)
+                        process_message(msg, subs, data, sol_usd, ws)
                 except Exception as err:
                     STATS["reconnects"] += 1
                     print(f"[COPY] Verbindung fehlgeschlagen: {str(err)[:120]}")
@@ -576,8 +594,9 @@ def run(probe=False):
                     time.sleep(min(30, 3 * STATS["reconnects"]))
                     continue
             try:
-                msg = json.loads(ws.recv())
-                process_message(msg, subs, data, sol_usd)
+                raw = ws.recv()
+                STATS["bytes"] += len(raw)
+                process_message(json.loads(raw), subs, data, sol_usd, ws)
             except websocket.WebSocketTimeoutException:
                 pass
             except (websocket.WebSocketConnectionClosedException, ConnectionError, OSError) as err:
@@ -613,21 +632,60 @@ def run(probe=False):
         summary(data, time.time() - started, cleaned, normal_end)
 
 
-def process_message(msg, subs, data, sol_usd):
+def process_message(msg, subs, data, sol_usd, ws=None):
     if msg.get("method") != "logsNotification":
         return
     STATS["notifications"] += 1
     sub = (msg.get("params") or {}).get("subscription")
-    sig = notification_sig(msg)
-    if sub not in subs or not sig:
+    if sub not in subs:
         return
     name, _ = subs[sub]
+    now = time.time()
+    window = _rate.setdefault(name, deque())
+    window.append(now)
+    while window and now - window[0] > 60:
+        window.popleft()
+    if len(window) > FLOOD_PER_MIN and name not in STATS["muted"]:
+        mute(ws, subs, sub, name, len(window))
+        return
+    value = notification_value(msg)
+    if value.get("err") is not None:
+        STATS["failed"] += 1
+        return
+    if not looks_like_trade(value):
+        STATS["no_hint"] += 1
+        return
+    sig = value.get("signature")
+    if not sig:
+        return
+    STATS["fetched"] += 1
     try:
         handle_signature(name, data["wallets"][name], sig, sol_usd)
     except Exception as err:                     # ein fehlerhafter Trade darf den Bot nicht stoppen
         STATS["errors"] += 1
         STATS["last_error"] = str(err)[:200]
         print(f"[COPY] Fehler bei {name} {sig[:12]}: {str(err)[:150]}")
+
+
+def mute(ws, subs, sub, name, per_min):
+    """Wallet sendet zu viele Meldungen (meist ein Bot mit vielen fehlschlagenden Transaktionen):
+    fuer den Rest der Schicht abmelden, damit das Helius-Kontingent nicht aufgebraucht wird."""
+    STATS["muted"].append(name)
+    subs.pop(sub, None)
+    try:
+        if ws is not None:
+            ws.send(json.dumps({"jsonrpc": "2.0", "id": 9000 + len(STATS["muted"]),
+                                "method": "logsUnsubscribe", "params": [sub]}))
+    except Exception:
+        pass
+    notify(f"⚠️ {name} abgemeldet (zu viele Meldungen)", [
+        f"{per_min} Meldungen in der letzten Minute (Grenze {FLOOD_PER_MIN}). Die Wallet wird fuer den Rest "
+        f"der Schicht nicht mehr beobachtet, damit das Helius-Kontingent nicht aufgebraucht wird.",
+        "Vermutlich ein Bot mit sehr vielen, meist fehlschlagenden Transaktionen."], 0xF59E0B)
+
+
+def credits_used():
+    return STATS["bytes"] / 100_000 * CREDITS_PER_100KB + STATS["fetched"] * 1
 
 
 def summary(data, dur, cleaned, normal_end):
@@ -640,6 +698,12 @@ def summary(data, dur, cleaned, normal_end):
         lines.append(f"**Verzoegerung nach dem Trader:** Median {d[len(d) // 2]:.1f} s, "
                      f"90 % unter {d[int(len(d) * 0.9)]:.1f} s")
     lines.append(f"**Bereinigt (-99 %):** {cleaned}")
+    per_day = credits_used() / max(dur, 1) * 86400
+    lines.append(f"**Helius:** {STATS['bytes'] / 1e6:.1f} MB empfangen, {STATS['fetched']} Transaktionen abgefragt, "
+                 f"~{credits_used():,.0f} Credits (hochgerechnet ~{per_day * 30:,.0f} im Monat) | "
+                 f"fehlgeschlagen uebersprungen {STATS['failed']}, ohne Handel {STATS['no_hint']}")
+    if STATS["muted"]:
+        lines.append(f"**Abgemeldet wegen Flut:** {', '.join(STATS['muted'])}")
     rows = []
     for name, a in data["wallets"].items():
         value = a["bankroll_sol"] + sum(p["invested_sol"] for p in a["positionen"].values())
@@ -685,23 +749,50 @@ def run_probe(wallets):
     try:
         ws, subs, early = connect(wallets)
         print(f"[COPY PROBE] WebSocket verbunden, {len(subs)} von {len(wallets)} Wallets angemeldet")
-        got, t_end = len(early), time.time() + 90
-        while time.time() < t_end:
+        per = {name: {"alle": 0, "fehlgeschlagen": 0, "handel": 0, "bytes": 0, "trades": []} for name, _ in wallets}
+        t0 = time.time()
+        while time.time() - t0 < 90:
             try:
-                msg = json.loads(ws.recv())
+                raw = ws.recv()
             except websocket.WebSocketTimeoutException:
                 continue
-            if msg.get("method") == "logsNotification":
-                got += 1
-                sub = msg["params"]["subscription"]
-                sig = notification_sig(msg)
-                if sub in subs and sig and got <= 5:
-                    name, addr = subs[sub]
-                    t = parse_trade(fetch_tx(sig), addr, sol_usd)
-                    print(f"  live: {name} -> {t['kind'] + ' ' + t['mint'][:6] if t else 'keine Handelsaktion'}"
-                          + (f", Block vor {time.time() - t['block_time']:.1f} s" if t and t.get('block_time') else ""))
+            msg = json.loads(raw)
+            if msg.get("method") != "logsNotification":
+                continue
+            sub = msg["params"]["subscription"]
+            if sub not in subs:
+                continue
+            name, addr = subs[sub]
+            s = per[name]
+            s["alle"] += 1
+            s["bytes"] += len(raw)
+            value = notification_value(msg)
+            if value.get("err") is not None:
+                s["fehlgeschlagen"] += 1
+            elif looks_like_trade(value):
+                s["handel"] += 1
+                if len(s["trades"]) < 2:
+                    s["trades"].append(value.get("signature"))
         ws.close()
-        print(f"[COPY PROBE] Live-Meldungen in 90 s: {got}")
+        dur = time.time() - t0
+        print(f"[COPY PROBE] Meldungen in {dur:.0f} s pro Wallet (sortiert nach Menge):")
+        print(f"  {'Wallet':<10} {'pro Min':>8} {'fehlgeschl.':>11} {'nach Handel':>11} {'KB':>7}  Stichprobe")
+        tot_bytes = tot_trade = 0
+        for name, s in sorted(per.items(), key=lambda kv: -kv[1]["alle"]):
+            sample = []
+            for sig in s["trades"]:
+                t = parse_trade(fetch_tx(sig), dict(wallets)[name], sol_usd)
+                sample.append(f"{t['kind']} {t['sol']:.2f} SOL" if t else "kein eigener Trade")
+            flag = "  <- ZU VIEL" if s["alle"] / dur * 60 > FLOOD_PER_MIN else ""
+            print(f"  {name:<10} {s['alle'] / dur * 60:8.1f} {s['fehlgeschlagen']:11} {s['handel']:11} "
+                  f"{s['bytes'] / 1000:7.1f}  {', '.join(sample) or '-'}{flag}")
+            tot_bytes += s["bytes"]
+            tot_trade += s["handel"]
+        ok = {n: s for n, s in per.items() if s["alle"] / dur * 60 <= FLOOD_PER_MIN}
+        def month(b, t): return (b / 100_000 * CREDITS_PER_100KB + t) / dur * 86400 * 30
+        print(f"[COPY PROBE] Hochrechnung alle Wallets: ~{month(tot_bytes, tot_trade):,.0f} Credits im Monat")
+        print(f"[COPY PROBE] Ohne die Wallets ueber {FLOOD_PER_MIN}/min: {len(ok)} Wallets, "
+              f"~{month(sum(s['bytes'] for s in ok.values()), sum(s['handel'] for s in ok.values())):,.0f} Credits im Monat")
     except Exception as err:
         print(f"[COPY PROBE] WebSocket FEHLER: {str(err)[:200]}")
     raw = quote_out(core.WSOL_MINT, USDC_MINT, int(0.01 * 1e9))
