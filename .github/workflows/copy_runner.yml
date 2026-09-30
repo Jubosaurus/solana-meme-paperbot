@@ -1,0 +1,75 @@
+name: Copy Trading (Paper)
+
+on:
+  workflow_dispatch:
+    inputs:
+      modus:
+        description: "normal oder probe (Kurztest)"
+        required: true
+        default: probe
+        type: choice
+        options:
+          - normal
+          - probe
+  # Sicherheitsnetz wie beim Hauptbot, versetzt auf Minute 47. Normalerweise startet jede Schicht selbst die naechste.
+  schedule:
+    - cron: '47 */6 * * *'
+
+# Eigene Gruppe: laeuft parallel zum Hauptbot, aber nie zweimal gleichzeitig
+concurrency:
+  group: copy-bot
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+  actions: write
+
+jobs:
+  copy-bot:
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: main
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.11"
+
+      - name: Pakete installieren
+        run: pip install -r requirements.txt
+
+      - name: Copy-Bot starten
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          DISCORD_WEBHOOK_COPY: ${{ secrets.DISCORD_WEBHOOK_COPY }}
+          JUPITER_API_KEY: ${{ secrets.JUPITER_API_KEY }}
+          HELIUS_API_KEY: ${{ secrets.HELIUS_API_KEY }}
+          PYTHONUNBUFFERED: 1
+        run: |
+          if [ "${{ github.event.inputs.modus }}" = "probe" ]; then
+            python copy_bot.py --probe
+          else
+            python copy_bot.py
+          fi
+
+      # Sichert nur den Ordner copy/, die Dateien des Hauptbots bleiben unberuehrt
+      - name: Sicherung
+        if: always() && github.event.inputs.modus != 'probe'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          if [ -d .git/rebase-merge ] || [ -d .git/rebase-apply ]; then git rebase --abort || true; fi
+          git fetch -q origin main && git reset -q origin/main
+          [ -e copy ] && git add copy || true
+          if ! git diff --cached --quiet; then
+            git commit -q -m "COPY Sicherung [skip ci]"
+            git push -q origin HEAD:main || echo "::warning::Sicherung fehlgeschlagen"
+          fi
+
+      - name: Naechste Schicht starten
+        if: success() && github.event.inputs.modus != 'probe'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run copy_runner.yml --ref main -f modus=normal || echo "::warning::Naechste Schicht konnte nicht gestartet werden"
