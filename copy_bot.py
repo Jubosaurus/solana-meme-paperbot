@@ -32,7 +32,10 @@ JOURNAL_FILE = os.path.join(COPY_DIR, "journal.csv")
 
 START_SOL = 10.0
 BUY_SOL = 0.2
-FEE_SOL = core.TX_FEE_SOL
+DEFAULT_FEE_SOL = 0.0001                # nur falls die Gebuehr des Traders unbekannt ist
+MIN_TRADER_BUY_SOL = 0.1                # kleinere Kaeufe des Traders (Tests, Staub) werden ignoriert
+MAX_PRICE_GAP_PCT = 15.0                # Kauf blockiert, wenn unser Kurs mehr als +-15 % vom Trader abweicht
+SELL_BATCH_MIN = 0.20                   # Teilverkaeufe sammeln, bis mindestens 20 % der Position verkauft werden
 CLEANUP_MAX_VALUE_PCT = 1.0             # Schichtende: Positionen mit <= 1 % Restwert (-99 %) bereinigen
 SHIFT_SECONDS = core.SHIFT_DURATION_SECONDS
 PING_EVERY = 30
@@ -42,7 +45,8 @@ BASE_FEE_LAMPORTS = 5000                # Grundgebuehr pro Signatur
 JUP_INTERVAL = 1.6                      # Copy-Bot fragt Jupiter etwas langsamer ab als der Hauptbot
 FLOOD_PER_MIN = 30                      # mehr Meldungen pro Minute -> Wallet fuer diese Schicht abmelden
 CREDITS_PER_100KB = 2                   # Helius: WebSocket-Daten 2 Credits pro 0,1 MB
-TRADE_HINTS = ("buy", "sell", "swap", "route", "transfer")   # Log-Stichworte, die nach Handel aussehen
+SWAP_HINTS = ("buy", "sell", "swap", "route")   # Log-Stichworte fuer Kauf, Verkauf, Tausch
+MAX_TRADE_AGE_S = 60                    # Kaeufe, die aelter sind, werden nie nachgekauft
 DISCORD_WEBHOOK_COPY = (os.environ.get("DISCORD_WEBHOOK_COPY") or "").strip()
 WS_URL = f"wss://mainnet.helius-rpc.com/?api-key={core.HELIUS_API_KEY}"
 USDC_MINT = "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"
@@ -59,7 +63,7 @@ JOURNAL_HEADER = [
     "trader_sol", "trader_tokens", "trader_preis_sol", "trader_anteil",
     "trader_gebuehr_basis_sol", "trader_gebuehr_prio_sol", "trader_jito_tip_sol", "trader_sonstige_sol",
     "unser_sol", "unsere_tokens", "unser_preis_sol", "unsere_gebuehr_sol", "preisabstand_pct",
-    "pnl_sol", "pnl_pct", "hinweis", "pruefungen"]
+    "pnl_sol", "pnl_pct", "hinweis", "pruefungen", "trader_sol_zugeordnet"]
 
 STATS = {"notifications": 0, "bytes": 0, "failed": 0, "no_hint": 0, "fetched": 0, "muted": [],
          "trades": {}, "skipped": {}, "reconnects": 0, "parse_errors": 0,
@@ -326,49 +330,73 @@ def account_line(acct):
             f"(Einsatz {invested:.2f} SOL) | Runde {acct['runde']}")
 
 
+def trade_fee(t):
+    """Unsere Gebuehr = die tatsaechliche Netzwerkgebuehr des Traders fuer diesen Trade
+    (Grundgebuehr + Prioritaetsgebuehr + Jito-Tip). Bot-Gebuehren zaehlen nicht dazu."""
+    fee = t["fee_base"] + t["fee_prio"] + t["jito"]
+    return fee if fee > 0 else DEFAULT_FEE_SOL
+
+
+def skip_buy(name, acct, t, sig, key, text):
+    count("skipped", key)
+    journal({"zeit": now_str(), "trader": name, "wallet": acct["adresse"], "aktion": "AUSGELASSEN",
+             "mint": t["mint"], "runde": acct["runde"], "hinweis": text, **trader_fields(t, sig)})
+
+
 def copy_buy(name, acct, t, sig, now):
-    if acct["bankroll_sol"] < BUY_SOL + FEE_SOL:
+    if t["sol"] < MIN_TRADER_BUY_SOL:
+        skip_buy(name, acct, t, sig, "trader_kauf_unter_0_1", f"Trader-Kauf {t['sol']:.3f} SOL unter 0,1 SOL")
+        return
+    fee = trade_fee(t)
+    if acct["bankroll_sol"] < BUY_SOL + fee:
         if not acct["positionen"]:
             acct["runde"] += 1
             acct["bankroll_sol"] = START_SOL
             notify(f"♻️ {name}: Konto aufgebraucht - Neustart", [f"Runde {acct['runde']} beginnt mit 10 SOL."], 0x8B5CF6)
         else:
-            count("skipped", "kein_geld")
-            journal({"zeit": now_str(), "trader": name, "wallet": acct["adresse"], "aktion": "AUSGELASSEN",
-                     "mint": t["mint"], "runde": acct["runde"], "hinweis": "kein Geld frei", **trader_fields(t, sig)})
+            skip_buy(name, acct, t, sig, "kein_geld", "kein Geld frei")
             return
     raw = quote_out(core.WSOL_MINT, t["mint"], int(BUY_SOL * 1e9))
     our_time = time.time()
     if raw <= 0:
-        count("skipped", "keine_quote")
-        journal({"zeit": now_str(), "trader": name, "wallet": acct["adresse"], "aktion": "AUSGELASSEN",
-                 "mint": t["mint"], "runde": acct["runde"], "hinweis": "keine Jupiter-Quote", **trader_fields(t, sig)})
+        skip_buy(name, acct, t, sig, "keine_quote", "keine Jupiter-Quote")
         return
     tokens = raw / 10 ** t["decimals"]
     our_price = BUY_SOL / tokens
+    gap = (our_price / t["price_sol"] - 1) * 100 if t.get("price_sol") else None
     delay = our_time - t["block_time"] if t.get("block_time") else None
+    if gap is not None and abs(gap) > MAX_PRICE_GAP_PCT:
+        skip_buy(name, acct, t, sig, "preisabstand_ueber_15", f"Preisabstand {gap:+.1f}% (Grenze +-{MAX_PRICE_GAP_PCT:.0f}%)"
+                 + (f", {delay:.1f} s nach dem Trader" if delay is not None else ""))
+        return
     if delay is not None:
         STATS["delays"].append(delay)
     pos = acct["positionen"].setdefault(t["mint"], {
         "mint": t["mint"], "symbol": t["mint"][:6], "decimals": t["decimals"], "tokens_raw": 0,
         "invested_sol": 0.0, "fees_sol": 0.0, "proceeds_sol": 0.0, "opened": our_time, "kaeufe": 0,
         "verkaeufe": 0, "trader_ausgegeben_sol": 0.0, "trader_erhalten_sol": 0.0, "runde": acct["runde"]})
+    if "trader_tokens_aufgezeichnet" not in pos:
+        pos["vergleich_alt"] = pos["kaeufe"] > 0     # vor dem 30.09.-Umbau eroeffnet: Vergleich unvollstaendig
+        pos["trader_tokens_aufgezeichnet"] = 0.0
+    pos.setdefault("behalten", 1.0)
+    pos.setdefault("gemerkt", 0)
     pos["tokens_raw"] += raw
     pos["invested_sol"] += BUY_SOL
-    pos["fees_sol"] += FEE_SOL
+    pos["fees_sol"] += fee
     pos["kaeufe"] += 1
     pos["trader_ausgegeben_sol"] += t["sol"]
-    acct["bankroll_sol"] -= BUY_SOL + FEE_SOL
+    pos["trader_tokens_aufgezeichnet"] += t["tokens"]
+    pos["letzte_gebuehr"] = fee
+    acct["bankroll_sol"] -= BUY_SOL + fee
     count("trades", "KAUF")
     checks, v = run_checks(t["mint"], now)
     if v:
         pos["symbol"] = v["symbol"]
-    gap = (our_price / t["price_sol"] - 1) * 100 if t.get("price_sol") else None
     journal({"zeit": now_str(), "trader": name, "wallet": acct["adresse"], "aktion": "KAUF", "symbol": pos["symbol"],
              "mint": t["mint"], "runde": acct["runde"], "verzoegerung_s": f"{delay:.1f}" if delay is not None else "",
              "unser_sol": f"{BUY_SOL:.4f}", "unsere_tokens": f"{tokens:.6f}", "unser_preis_sol": f"{our_price:.12g}",
-             "unsere_gebuehr_sol": f"{FEE_SOL:.4f}", "preisabstand_pct": f"{gap:+.2f}" if gap is not None else "",
-             "trader_anteil": "", "hinweis": f"Kauf Nr. {pos['kaeufe']}" + (" (USDC)" if t["quote_asset"] == "USDC" else ""),
+             "unsere_gebuehr_sol": f"{fee:.6f}", "preisabstand_pct": f"{gap:+.2f}" if gap is not None else "",
+             "hinweis": f"Kauf Nr. {pos['kaeufe']}" + (" (USDC)" if t["quote_asset"] == "USDC" else ""),
              "pruefungen": json.dumps(checks, ensure_ascii=False), **trader_fields(t, sig)})
     verdict = "alle Pruefungen bestanden" if all(
         checks.get(k) == "bestanden" for k in ("schnellpruefung", "sicherheit", "bundle_dev")) else \
@@ -376,23 +404,23 @@ def copy_buy(name, acct, t, sig, now):
     notify(f"🎯 {name}: Kauf {pos['symbol']}" + (f" (Nachkauf {pos['kaeufe']})" if pos["kaeufe"] > 1 else ""), [
         f"**Trader:** {t['sol']:.3f} SOL zu {t['price_sol']:.3g} SOL/Token | Prio {t['fee_prio']:.5f}, "
         f"Jito {t['jito']:.5f}, sonstige {t['other']:.5f} SOL",
-        f"**Wir:** {BUY_SOL} SOL zu {our_price:.3g} SOL/Token, {delay:.1f} s spaeter" if delay is not None else
-        f"**Wir:** {BUY_SOL} SOL zu {our_price:.3g} SOL/Token",
+        f"**Wir:** {BUY_SOL} SOL zu {our_price:.3g} SOL/Token" + (f", {delay:.1f} s spaeter" if delay is not None else ""),
         f"**Preisabstand:** {gap:+.1f}%" if gap is not None else "", f"**{verdict}** (nur Beobachtung)",
         account_line(acct), f"https://jup.ag/tokens/{t['mint']}"], 0x3B82F6)
 
 
 def close_if_empty(name, acct, pos, reason, now):
     if pos["tokens_raw"] > 0:
-        return
+        return None
     pnl = pos["proceeds_sol"] - pos["invested_sol"] - pos["fees_sol"]
-    trader_pnl = pos["trader_erhalten_sol"] - pos["trader_ausgegeben_sol"]
+    no_compare = pos.get("trader_ueberwiesen", False) or pos.get("vergleich_alt", False)
+    trader_pnl = None if no_compare else pos["trader_erhalten_sol"] - pos["trader_ausgegeben_sol"]
     rec = dict(pos, pnl_sol=round(pnl, 6), pnl_pct=round(pnl / pos["invested_sol"] * 100, 2),
                grund=reason, geschlossen=datetime.now(timezone.utc).isoformat(),
                haltedauer_h=round((now - pos["opened"]) / 3600, 2),
-               trader_pnl_sol=round(trader_pnl, 6),
+               trader_pnl_sol=None if trader_pnl is None else round(trader_pnl, 6),
                trader_pnl_pct=round(trader_pnl / pos["trader_ausgegeben_sol"] * 100, 2)
-               if pos["trader_ausgegeben_sol"] else None)
+               if trader_pnl is not None and pos["trader_ausgegeben_sol"] else None)
     acct["geschlossen"].append(rec)
     del acct["positionen"][pos["mint"]]
     return rec
@@ -403,22 +431,55 @@ def copy_sell(name, acct, t, sig, now, reason="VERKAUF"):
     if not pos:
         count("skipped", "verkauf_ohne_position")
         return
-    fraction = 1.0 if reason == "UEBERWEISUNG" else min(1.0, abs(t["delta_raw"]) / t["pre_raw"]) \
-        if t["pre_raw"] > 0 else 1.0
-    sell_raw = pos["tokens_raw"] if fraction >= 0.999 else int(pos["tokens_raw"] * fraction)
+    if "trader_tokens_aufgezeichnet" not in pos:
+        pos["vergleich_alt"] = True                  # vor dem 30.09.-Umbau eroeffnet: Vergleich unvollstaendig
+        pos["trader_tokens_aufgezeichnet"] = 0.0
+    pos.setdefault("behalten", 1.0)
+    pos.setdefault("gemerkt", 0)
+    fraction = 1.0 if reason == "UEBERWEISUNG" else (
+        min(1.0, abs(t["delta_raw"]) / t["pre_raw"]) if t["pre_raw"] > 0 else 1.0)
+
+    # Vergleich mit dem Trader: nur der Anteil seines Verkaufs, der aus aufgezeichneten Kaeufen stammt
+    attributed = 0.0
+    if reason == "VERKAUF":
+        holdings = t["pre_raw"] / 10 ** t["decimals"] if t["pre_raw"] > 0 else t["tokens"]
+        share = min(1.0, pos["trader_tokens_aufgezeichnet"] / holdings) if holdings > 0 else 1.0
+        attributed = t["sol"] * share
+        pos["trader_erhalten_sol"] += attributed
+        pos["trader_tokens_aufgezeichnet"] = max(0.0, pos["trader_tokens_aufgezeichnet"] - t["tokens"] * share)
+    else:
+        pos["trader_ueberwiesen"] = True
+
+    # Teilverkaeufe sammeln: erst ab 20 % der Position verkaufen, oder sofort beim kompletten Ausstieg
+    pos["behalten"] *= (1 - fraction)
+    pos["gemerkt"] += 1
+    to_sell = 1 - pos["behalten"]
+    full_exit = reason == "UEBERWEISUNG" or fraction >= 0.999 or pos["behalten"] < 0.001
+    if not full_exit and to_sell < SELL_BATCH_MIN:
+        count("skipped", "verkauf_gemerkt")
+        journal({"zeit": now_str(), "trader": name, "wallet": acct["adresse"], "aktion": "VERKAUF_GEMERKT",
+                 "symbol": pos["symbol"], "mint": t["mint"], "runde": pos["runde"], "trader_anteil": f"{fraction:.4f}",
+                 "trader_sol_zugeordnet": f"{attributed:.6f}",
+                 "hinweis": f"gesammelt: {to_sell:.0%} der Position, verkauft wird ab {SELL_BATCH_MIN:.0%}",
+                 **trader_fields(t, sig)})
+        return
+
+    batch = pos["gemerkt"]
+    sell_raw = pos["tokens_raw"] if full_exit else int(pos["tokens_raw"] * to_sell)
     out = quote_out(t["mint"], core.WSOL_MINT, sell_raw) if sell_raw > 0 else 0
     our_time = time.time()
     proceeds = out / 1e9
+    fee = trade_fee(t)
     delay = our_time - t["block_time"] if t.get("block_time") else None
     if delay is not None:
         STATS["delays"].append(delay)
     pos["tokens_raw"] -= sell_raw
     pos["proceeds_sol"] += proceeds
-    pos["fees_sol"] += FEE_SOL
+    pos["fees_sol"] += fee
     pos["verkaeufe"] += 1
-    if reason != "UEBERWEISUNG":
-        pos["trader_erhalten_sol"] += t["sol"]
-    acct["bankroll_sol"] += proceeds - FEE_SOL
+    pos["letzte_gebuehr"] = fee
+    pos["behalten"], pos["gemerkt"] = 1.0, 0
+    acct["bankroll_sol"] += proceeds - fee
     count("trades", reason)
     tokens = sell_raw / 10 ** pos["decimals"]
     our_price = proceeds / tokens if tokens else None
@@ -427,24 +488,27 @@ def copy_sell(name, acct, t, sig, now, reason="VERKAUF"):
     journal({"zeit": now_str(), "trader": name, "wallet": acct["adresse"], "aktion": reason, "symbol": pos["symbol"],
              "mint": t["mint"], "runde": pos["runde"], "verzoegerung_s": f"{delay:.1f}" if delay is not None else "",
              "trader_anteil": f"{fraction:.4f}", "unser_sol": f"{proceeds:.6f}", "unsere_tokens": f"{tokens:.6f}",
-             "unser_preis_sol": f"{our_price:.12g}" if our_price else "", "unsere_gebuehr_sol": f"{FEE_SOL:.4f}",
-             "preisabstand_pct": f"{gap:+.2f}" if gap is not None else "",
+             "unser_preis_sol": f"{our_price:.12g}" if our_price else "", "unsere_gebuehr_sol": f"{fee:.6f}",
+             "preisabstand_pct": f"{gap:+.2f}" if gap is not None else "", "trader_sol_zugeordnet": f"{attributed:.6f}",
              "pnl_sol": f"{rec['pnl_sol']:+.6f}" if rec else "", "pnl_pct": f"{rec['pnl_pct']:+.2f}" if rec else "",
-             "hinweis": "Position geschlossen" if rec else f"Teilverkauf {fraction:.0%}"
+             "hinweis": ("Position geschlossen" if rec else f"Teilverkauf {to_sell:.0%}")
+                        + (f", gesammelt aus {batch} Verkaeufen des Traders" if batch > 1 else "")
                         + ("; keine Quote, Wert 0" if sell_raw > 0 and out <= 0 else ""),
              **trader_fields(t, sig)})
-    lines = [f"**Trader verkauft:** {fraction:.0%} seines Bestands" + (f" zu {t['price_sol']:.3g} SOL/Token"
-             if t.get("price_sol") else " (Ueberweisung, kein Verkauf)"),
+    lines = [f"**Trader:** " + (f"steigt aus" if full_exit and reason == "VERKAUF" else
+                                 "ueberweist seine Coins" if reason == "UEBERWEISUNG" else
+                                 f"hat seit unserem letzten Verkauf {to_sell:.0%} verkauft ({batch} Verkaeufe)"),
              f"**Wir:** {proceeds:.4f} SOL" + (f" zu {our_price:.3g} SOL/Token" if our_price else "")
              + (f", {delay:.1f} s spaeter" if delay is not None else "")]
     if rec:
-        lines.append(f"**Ergebnis:** {rec['pnl_sol']:+.4f} SOL ({rec['pnl_pct']:+.1f}%) | Trader auf diesen Coin: "
-                     + (f"{rec['trader_pnl_sol']:+.3f} SOL ({rec['trader_pnl_pct']:+.0f}%)" if rec["trader_pnl_pct"]
-                        is not None else "?"))
+        tp = (f"{rec['trader_pnl_sol']:+.3f} SOL ({rec['trader_pnl_pct']:+.0f}%)" if rec["trader_pnl_pct"] is not None
+              else "nicht vergleichbar (" + ("ueberwiesen" if pos.get("trader_ueberwiesen") else
+                                              "vor dem Umbau eroeffnet") + ")")
+        lines.append(f"**Ergebnis:** {rec['pnl_sol']:+.4f} SOL ({rec['pnl_pct']:+.1f}%) | Trader, nur aufgezeichnete Trades: {tp}")
     lines.append(account_line(acct))
     good = rec is None or rec["pnl_sol"] > 0
     notify(f"{'🟢' if good else '🔴'} {name}: {'Verkauf' if reason == 'VERKAUF' else 'Ueberweisung'} "
-           f"{pos['symbol']}" + ("" if rec else f" ({fraction:.0%})"), lines, 0x10B981 if good else 0xEF4444)
+           f"{pos['symbol']}" + ("" if rec else f" ({to_sell:.0%})"), lines, 0x10B981 if good else 0xEF4444)
 
 
 def handle_signature(name, acct, sig, sol_usd):
@@ -466,6 +530,9 @@ def handle_signature(name, acct, sig, sol_usd):
         return
     now = time.time()
     if t["kind"] == "KAUF":
+        if t.get("block_time") and now - t["block_time"] > MAX_TRADE_AGE_S:
+            count("skipped", "kauf_zu_alt")     # nie Kaeufe nachholen, die schon laenger zurueckliegen
+            return
         copy_buy(name, acct, t, sig, now)
     else:
         copy_sell(name, acct, t, sig, now, t["kind"])
@@ -492,8 +559,9 @@ def cleanup(data):
             if out > pos["invested_sol"] * CLEANUP_MAX_VALUE_PCT / 100:
                 continue
             pos["proceeds_sol"] += out
-            pos["fees_sol"] += FEE_SOL if out > 0 else 0
-            acct["bankroll_sol"] += out - (FEE_SOL if out > 0 else 0)
+            fee = pos.get("letzte_gebuehr", DEFAULT_FEE_SOL) if out > 0 else 0
+            pos["fees_sol"] += fee
+            acct["bankroll_sol"] += out - fee
             pos["tokens_raw"] = 0
             rec = close_if_empty(name, acct, pos, "BEREINIGT (-99 %)", now)
             journal({"zeit": now_str(), "trader": name, "wallet": acct["adresse"], "aktion": "BEREINIGT",
@@ -559,12 +627,20 @@ def notification_sig(msg):
     return value.get("signature")
 
 
-def looks_like_trade(value):
-    """Nur Transaktionen abfragen, deren Log nach Kauf, Verkauf, Tausch oder Ueberweisung aussieht."""
+def trade_hint(value):
+    """'handel' bei Kauf/Verkauf/Tausch im Log, 'transfer' bei reiner Token-Ueberweisung, sonst None."""
+    kind = None
     for line in value.get("logs") or []:
-        if "Instruction:" in line and any(h in line.lower() for h in TRADE_HINTS):
-            return True
-    return False
+        low = line.lower()
+        if "ray_log" in low or ("instruction:" in low and any(h in low for h in SWAP_HINTS)):
+            return "handel"
+        if "instruction:" in low and "transfer" in low:
+            kind = "transfer"
+    return kind
+
+
+def looks_like_trade(value):
+    return trade_hint(value) == "handel"
 
 
 def run(probe=False):
@@ -574,6 +650,7 @@ def run(probe=False):
     signal.signal(signal.SIGTERM, _on_signal)
     signal.signal(signal.SIGINT, _on_signal)
     core.git_sync_start()
+    core.ensure_csv_columns(JOURNAL_FILE, JOURNAL_HEADER)
     data = load_accounts(wallets)
     save_accounts(data)
     started, sol_usd = time.time(), core.sol_price()
@@ -652,8 +729,10 @@ def process_message(msg, subs, data, sol_usd, ws=None):
     if value.get("err") is not None:
         STATS["failed"] += 1
         return
-    if not looks_like_trade(value):
-        STATS["no_hint"] += 1
+    hint = trade_hint(value)
+    has_positions = bool(data["wallets"][name]["positionen"])
+    if hint is None or (hint == "transfer" and not has_positions):
+        STATS["no_hint"] += 1               # Ueberweisung ist nur relevant, wenn wir etwas halten
         return
     sig = value.get("signature")
     if not sig:
@@ -749,7 +828,8 @@ def run_probe(wallets):
     try:
         ws, subs, early = connect(wallets)
         print(f"[COPY PROBE] WebSocket verbunden, {len(subs)} von {len(wallets)} Wallets angemeldet")
-        per = {name: {"alle": 0, "fehlgeschlagen": 0, "handel": 0, "bytes": 0, "trades": []} for name, _ in wallets}
+        per = {name: {"alle": 0, "fehlgeschlagen": 0, "handel": 0, "transfer": 0, "bytes": 0, "trades": []}
+               for name, _ in wallets}
         t0 = time.time()
         while time.time() - t0 < 90:
             try:
@@ -769,14 +849,18 @@ def run_probe(wallets):
             value = notification_value(msg)
             if value.get("err") is not None:
                 s["fehlgeschlagen"] += 1
-            elif looks_like_trade(value):
-                s["handel"] += 1
-                if len(s["trades"]) < 2:
-                    s["trades"].append(value.get("signature"))
+            else:
+                hint = trade_hint(value)
+                if hint == "handel":
+                    s["handel"] += 1
+                    if len(s["trades"]) < 2:
+                        s["trades"].append(value.get("signature"))
+                elif hint == "transfer":
+                    s["transfer"] += 1
         ws.close()
         dur = time.time() - t0
         print(f"[COPY PROBE] Meldungen in {dur:.0f} s pro Wallet (sortiert nach Menge):")
-        print(f"  {'Wallet':<10} {'pro Min':>8} {'fehlgeschl.':>11} {'nach Handel':>11} {'KB':>7}  Stichprobe")
+        print(f"  {'Wallet':<10} {'pro Min':>8} {'fehlgeschl.':>11} {'Handel':>7} {'Transfer':>8} {'KB':>7}  Stichprobe")
         tot_bytes = tot_trade = 0
         for name, s in sorted(per.items(), key=lambda kv: -kv[1]["alle"]):
             sample = []
@@ -784,7 +868,7 @@ def run_probe(wallets):
                 t = parse_trade(fetch_tx(sig), dict(wallets)[name], sol_usd)
                 sample.append(f"{t['kind']} {t['sol']:.2f} SOL" if t else "kein eigener Trade")
             flag = "  <- ZU VIEL" if s["alle"] / dur * 60 > FLOOD_PER_MIN else ""
-            print(f"  {name:<10} {s['alle'] / dur * 60:8.1f} {s['fehlgeschlagen']:11} {s['handel']:11} "
+            print(f"  {name:<10} {s['alle'] / dur * 60:8.1f} {s['fehlgeschlagen']:11} {s['handel']:7} {s['transfer']:8} "
                   f"{s['bytes'] / 1000:7.1f}  {', '.join(sample) or '-'}{flag}")
             tot_bytes += s["bytes"]
             tot_trade += s["handel"]
