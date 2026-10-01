@@ -58,8 +58,8 @@ Sechs Experimente laufen im selben Bot auf denselben Daten, aber mit eigenen Kon
 | Heiße Coins | alle Prüfungen bestanden sind, nur der Bundle-Check wegen zu vieler Transaktionen nicht möglich war | Bringen die heißesten Coins mehr, als das Bundle-Risiko kostet? |
 | Ohne Limit | die Hauptstrategie kaufen würde, auch wenn ihr Positionslimit voll ist | Kostet das Positionslimit Gewinn? |
 | Kontrollgruppe | etwa alle 30 min ein zufälliger junger Coin, der nur die Sicherheitsprüfungen besteht (Alter 15 min bis 6 h, Liquidität, sicherer Contract, keine Transfergebühr) | Sind die Filter der Strategie besser als Zufall? |
-| Endspurt Kurve | ein Pump.fun-Coin auf der Bonding Curve bei 95–108 vSol steht (etwa 76–92 % bis zur Graduation), höchstens 800 Trades seit Start hat und organischen Handel zeigt (Jupiter-Label mittel/hoch oder ≥ 30 % organischer Kaufanteil); Quote höchstens 3 % über Kurvenpreis. Verkauf komplett bei der Graduation, bei 12 vSol Rückfall, nach 45 min oder bei der Notbremse | Lohnt der Kauf kurz vor der Graduation? (arXiv 2602.14860) |
-| Endspurt ohne Filter | wie Endspurt, aber ohne die Filter zu Trades und organischem Handel | Bringen die Filter der Studie etwas? |
+| Endspurt viele Trades | wie „Endspurt ohne Filter“, aber nur Coins mit mindestens 2.000 Trades seit Start (seit 01.10.; vorher Filter der Studie: unter 800 Trades und organischer Handel, wurde nie erfüllt) | Graduieren Coins mit vielen Trades häufiger? In den ersten 74 Käufen: 52 % gegenüber 24 % |
+| Endspurt ohne Filter | Pump.fun-Coin bei 95–108 vSol (76–92 % bis zur Graduation), Quote höchstens 3 % über Kurvenpreis. Verkauf komplett bei der Graduation, bei 12 vSol Rückfall, nach 45 min oder bei der Notbremse | Lohnt der Kauf kurz vor der Graduation? (arXiv 2602.14860) |
 
 „Ohne Limit“ und „Endspurt ohne Filter“ zeichnen Coins nach dem Verkauf 6 h weiter auf. Bei „Endspurt ohne Filter“ sind das die Kursverläufe nach der Graduation, damit lässt sich auch eine Strategie „Einstieg nach der Migration“ nachrechnen. Damit lassen sich strengere Filter, ein Einstieg erst nach der ersten Korrektur und andere Ausstiege nachrechnen, ohne eigene Experimente.
 
@@ -81,6 +81,9 @@ Getrennt vom Hauptbot: eigenes Programm `copy_bot.py`, eigener Workflow `copy_ru
 - **Gebühren:** unsere Gebühr je Transaktion = die tatsächliche Netzwerkgebühr des Traders für diesen Trade (Grundgebühr, Prioritätsgebühr, Jito-Tip). Bot-Gebühren des Traders (z. B. 1 %) rechnen wir uns nicht an.
 - **Vergleich mit dem Trader:** nur aufgezeichnete Trades. Hielt er Coins schon vor unserem Start, zählt bei seinen Verkäufen nur der Anteil aus aufgezeichneten Käufen. Nach einer Überweisung ist kein Vergleich möglich.
 - **Gespeichert je Trade** (`copy/journal.csv`): Signatur, Zeit, Menge, Preis und Gebühren des Traders (Grundgebühr, Prioritätsgebühr, Jito-Tip, sonstige wie Bot-Gebühren), unser Preis, unsere Gebühr, Verzögerung in Sekunden, Preisabstand in %, Ergebnis. In `copy/konten.json` pro Wallet Konto, offene und geschlossene Positionen, jeweils mit dem Ergebnis des Traders auf demselben Coin.
+- **Schattenpositionen:** Käufe, die an der Preisgrenze scheitern, werden virtuell weiterverfolgt (SCHATTEN_KAUF, SCHATTEN_ENDE im Journal). Ausstieg zum Verkaufskurs des Traders, also leicht optimistisch. Zeigt, ob die Grenze von ±15 % richtig liegt.
+- **Kursverläufe:** etwa jede Minute für alle offenen Positionen und Schattenpositionen in `copy/verlauf/JJJJ-MM-TT.csv`. Damit lassen sich Take-Profit und Stop-Loss pro Trader nachrechnen.
+- **Wallet-Prüfung** in jeder Endmeldung, nach festen Regeln: Bot (Flutschutz oder ≥ 200 Meldungen pro Schicht, ≥ 90 % fehlgeschlagen, kein eigener Trade) → ersetzen; 72 h kein eigener Trade → ersetzen; schlechtes Ergebnis erst ab 30 geschlossenen Positionen bewerten. Der Bot entfernt nichts selbst. Entfernte Wallets werden in `copy_wallets.txt` mit Datum und Grund auskommentiert, ihre Daten bleiben erhalten.
 - **Grenzen der Simulation:** Wir kaufen zum Jupiter-Kurs in dem Moment, in dem wir den Trade sehen. Die Gebühren-Vorteile des Traders lassen sich auf Papier nicht nachbilden; messbar sind Verzögerung und Preisabstand. Beim Kaufbetrag des Traders ist die Miete für ein neues Token-Konto (~0,002 SOL) enthalten.
 
 ## Änderungen
@@ -108,6 +111,8 @@ Getrennt vom Hauptbot: eigenes Programm `copy_bot.py`, eigener Workflow `copy_ru
 | 30.09. | Korrektur: Das Hoch einer Position startet beim Kaufpreis statt beim Signalkurs | Bei cum (Rug, Kauf 62 % unter Signal) stand das Hoch sonst bei 2,65x und hätte den Gewinnschutz fälschlich scharf geschaltet; 1 von 122 Trades betroffen |
 | 30.09. | Copy-Trading-Bot mit 20 Wallets, je 10 SOL (eigener Workflow, eigene Dateien) | Test, ob einzelne Trader für uns profitabel wären |
 | 30.09. | Copy: Verkäufe gesammelt ab 20 %, reale Gebühren des Traders, Käufe unter 0,1 SOL ignoriert, Preisgrenze ±15 %, Trader-Vergleich nur aufgezeichnet, feinerer Filter, Altersgrenze 60 s | Erste 2 Stunden: 922M verkaufte 156-mal in 2-%-Schritten, Gebühren fraßen den Erlös |
+| 01.10. | Endspurt: Filter umgekehrt auf ≥ 2.000 Trades; Filtermerkmale werden gespeichert | Studienfilter nie erfüllt; viele Trades graduierten häufiger |
+| 01.10. | Copy: Schattenpositionen, Kursverläufe, Wallet-Prüfung; 8NQ3, DTVM, 9EWQ ersetzt durch Cooker, Gake, Jijo | 27 % der Käufe an der Preisgrenze blockiert; TP/SL pro Trader auswertbar machen |
 
 ## Dateien seit 28.09.
 
@@ -116,3 +121,4 @@ Getrennt vom Hauptbot: eigenes Programm `copy_bot.py`, eigener Workflow `copy_ru
 | `verlauf/JJJJ-MM-TT.csv` | Kursverläufe eines Tages: offene Positionen (~12 s), nach dem Verkauf (~36 s), knapp abgelehnt (~2 min) |
 | `knapp_abgelehnt.csv` | Jeder knapp abgelehnte Coin mit Grund, Abstand zur Grenze und allen Merkmalen (seit 29.09. mit Herkunftsliste) |
 | `verlauf.csv` | Alte Datei bis 27.09., wird nicht mehr fortgeschrieben |
+
