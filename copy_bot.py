@@ -36,6 +36,12 @@ DEFAULT_FEE_SOL = 0.0001                # nur falls die Gebuehr des Traders unbe
 MIN_TRADER_BUY_SOL = 0.1                # kleinere Kaeufe des Traders (Tests, Staub) werden ignoriert
 MAX_PRICE_GAP_PCT = 15.0                # Kauf blockiert, wenn unser Kurs mehr als +-15 % vom Trader abweicht
 SELL_BATCH_MIN = 0.20                   # Teilverkaeufe sammeln, bis mindestens 20 % der Position verkauft werden
+PATH_EVERY = 60                         # Kursverlauf offener Positionen und Schattenpositionen etwa jede Minute
+COPY_VERLAUF_DIR = os.path.join("copy", "verlauf")
+WALLET_SILENT_H = 72                    # Wallet-Pruefung: so lange ohne eigenen Trade -> ersetzen
+BOT_MIN_MSGS = 200                      # Wallet-Pruefung: ab so vielen Meldungen pro Schicht ...
+BOT_FAILED_SHARE = 0.9                  # ... und so viel Anteil fehlgeschlagen ohne eigenen Trade -> Bot-Verdacht
+REVIEW_AFTER_CLOSED = 30                # Wallet-Pruefung: Ergebnis erst ab 30 geschlossenen Positionen bewerten
 CLEANUP_MAX_VALUE_PCT = 1.0             # Schichtende: Positionen mit <= 1 % Restwert (-99 %) bereinigen
 SHIFT_SECONDS = core.SHIFT_DURATION_SECONDS
 PING_EVERY = 30
@@ -66,7 +72,7 @@ JOURNAL_HEADER = [
     "pnl_sol", "pnl_pct", "hinweis", "pruefungen", "trader_sol_zugeordnet"]
 
 STATS = {"notifications": 0, "bytes": 0, "failed": 0, "no_hint": 0, "fetched": 0, "muted": [],
-         "trades": {}, "skipped": {}, "reconnects": 0, "parse_errors": 0,
+         "trades": {}, "skipped": {}, "reconnects": 0, "parse_errors": 0, "wallet": {}, "pfade": 0,
          "delays": [], "git_ok": 0, "git_fail": 0, "jup_429": 0, "errors": 0, "last_error": ""}
 _jup_last = [0.0]
 _seen = set()
@@ -109,6 +115,15 @@ def load_accounts(wallets):
             "adresse": addr, "bankroll_sol": START_SOL, "runde": 1, "positionen": {}, "geschlossen": [],
             "gestartet": datetime.now(timezone.utc).isoformat()})
         acct["adresse"] = addr                   # falls die Adresse in der Liste geaendert wurde
+        acct.setdefault("schatten", {})
+        acct.setdefault("schatten_geschlossen", [])
+    if os.path.exists(JOURNAL_FILE):             # letzter eigener Trade je Wallet, fuer die Wallet-Pruefung
+        with open(JOURNAL_FILE, encoding="utf-8") as f:
+            for row in csv.DictReader(f):
+                a = data["wallets"].get(row.get("trader"))
+                if a is not None and row.get("trader_zeit"):
+                    ts = datetime.strptime(row["trader_zeit"], "%Y-%m-%d %H:%M:%S").replace(tzinfo=timezone.utc).timestamp()
+                    a["letzter_trade"] = max(a.get("letzter_trade", 0), ts)
     return data
 
 
@@ -367,7 +382,8 @@ def copy_buy(name, acct, t, sig, now):
     delay = our_time - t["block_time"] if t.get("block_time") else None
     if gap is not None and abs(gap) > MAX_PRICE_GAP_PCT:
         skip_buy(name, acct, t, sig, "preisabstand_ueber_15", f"Preisabstand {gap:+.1f}% (Grenze +-{MAX_PRICE_GAP_PCT:.0f}%)"
-                 + (f", {delay:.1f} s nach dem Trader" if delay is not None else ""))
+                 + (f", {delay:.1f} s nach dem Trader" if delay is not None else "") + "; als Schattenposition verfolgt")
+        shadow_buy(name, acct, t, sig, raw, our_price, gap, our_time)
         return
     if delay is not None:
         STATS["delays"].append(delay)
@@ -381,6 +397,7 @@ def copy_buy(name, acct, t, sig, now):
     pos.setdefault("behalten", 1.0)
     pos.setdefault("gemerkt", 0)
     pos["tokens_raw"] += raw
+    pos["tokens_gekauft_raw"] = pos.get("tokens_gekauft_raw", 0) + raw
     pos["invested_sol"] += BUY_SOL
     pos["fees_sol"] += fee
     pos["kaeufe"] += 1
@@ -427,6 +444,8 @@ def close_if_empty(name, acct, pos, reason, now):
 
 
 def copy_sell(name, acct, t, sig, now, reason="VERKAUF"):
+    if t["mint"] in acct.get("schatten", {}):
+        shadow_sell(name, acct, t, sig, now, reason)
     pos = acct["positionen"].get(t["mint"])
     if not pos:
         count("skipped", "verkauf_ohne_position")
@@ -511,6 +530,125 @@ def copy_sell(name, acct, t, sig, now, reason="VERKAUF"):
            f"{pos['symbol']}" + ("" if rec else f" ({to_sell:.0%})"), lines, 0x10B981 if good else 0xEF4444)
 
 
+def shadow_buy(name, acct, t, sig, raw, our_price, gap, now):
+    """Wegen der Preisgrenze blockierter Kauf: virtuell weiterverfolgen, um die Grenze bewerten zu koennen."""
+    sh = acct["schatten"].setdefault(t["mint"], {
+        "mint": t["mint"], "symbol": t["mint"][:6], "decimals": t["decimals"], "tokens": 0.0, "invested_sol": 0.0,
+        "erloes_sol": 0.0, "behalten": 1.0, "opened": now, "kaeufe": 0, "preisabstand_pct": [],
+        "trader_ausgegeben_sol": 0.0, "trader_erhalten_sol": 0.0, "trader_tokens_aufgezeichnet": 0.0, "runde": acct["runde"]})
+    sh["tokens"] += raw / 10 ** t["decimals"]
+    sh["invested_sol"] += BUY_SOL
+    sh["kaeufe"] += 1
+    sh["preisabstand_pct"].append(round(gap, 2))
+    sh["trader_ausgegeben_sol"] += t["sol"]
+    sh["trader_tokens_aufgezeichnet"] += t["tokens"]
+    count("trades", "SCHATTEN_KAUF")
+    journal({"zeit": now_str(), "trader": name, "wallet": acct["adresse"], "aktion": "SCHATTEN_KAUF", "mint": t["mint"],
+             "runde": acct["runde"], "unser_sol": f"{BUY_SOL:.4f}", "unser_preis_sol": f"{our_price:.12g}",
+             "preisabstand_pct": f"{gap:+.2f}", "hinweis": "blockiert wegen Preisgrenze, nur virtuell verfolgt",
+             **trader_fields(t, sig)})
+
+
+def shadow_sell(name, acct, t, sig, now, reason):
+    """Verkauf einer Schattenposition zum Kurs des Traders (Naeherung, leicht optimistisch)."""
+    sh = acct["schatten"][t["mint"]]
+    fraction = 1.0 if reason == "UEBERWEISUNG" else (
+        min(1.0, abs(t["delta_raw"]) / t["pre_raw"]) if t["pre_raw"] > 0 else 1.0)
+    if reason == "VERKAUF":
+        holdings = t["pre_raw"] / 10 ** t["decimals"] if t["pre_raw"] > 0 else t["tokens"]
+        share = min(1.0, sh["trader_tokens_aufgezeichnet"] / holdings) if holdings > 0 else 1.0
+        sh["trader_erhalten_sol"] += t["sol"] * share
+        sh["trader_tokens_aufgezeichnet"] = max(0.0, sh["trader_tokens_aufgezeichnet"] - t["tokens"] * share)
+        price = t.get("price_sol") or 0
+    else:
+        sh["trader_ueberwiesen"] = True
+        price = sh.get("letzter_preis_sol") or 0     # Ueberweisung: letzter bekannter Kurs
+    sold = sh["tokens"] * sh["behalten"] * fraction
+    sh["erloes_sol"] += sold * price
+    sh["behalten"] *= (1 - fraction)
+    if fraction >= 0.999 or sh["behalten"] < 0.001:
+        shadow_close(name, acct, sh, "UEBERWEISUNG" if reason == "UEBERWEISUNG" else "TRADER_AUSSTIEG", now)
+
+
+def shadow_close(name, acct, sh, reason, now):
+    pnl = sh["erloes_sol"] - sh["invested_sol"]
+    trader = None if sh.get("trader_ueberwiesen") or not sh["trader_ausgegeben_sol"] else \
+        (sh["trader_erhalten_sol"] - sh["trader_ausgegeben_sol"]) / sh["trader_ausgegeben_sol"] * 100
+    rec = dict(sh, pnl_sol=round(pnl, 6), pnl_pct=round(pnl / sh["invested_sol"] * 100, 2), grund=reason,
+               geschlossen=datetime.now(timezone.utc).isoformat(), haltedauer_h=round((now - sh["opened"]) / 3600, 2),
+               trader_pnl_pct=None if trader is None else round(trader, 2))
+    acct["schatten_geschlossen"].append(rec)
+    del acct["schatten"][sh["mint"]]
+    count("trades", "SCHATTEN_GESCHLOSSEN")
+    journal({"zeit": now_str(), "trader": name, "wallet": acct["adresse"], "aktion": "SCHATTEN_ENDE", "mint": sh["mint"],
+             "symbol": sh["symbol"], "runde": sh["runde"], "unser_sol": f"{sh['erloes_sol']:.6f}",
+             "pnl_sol": f"{pnl:+.6f}", "pnl_pct": f"{rec['pnl_pct']:+.2f}",
+             "hinweis": f"{reason}; Ausstieg zum Kurs des Traders (Naeherung)"})
+
+
+def log_paths(data, sol_usd, now):
+    """Kursverlauf aller offenen Positionen und Schattenpositionen, eine Datei pro Tag in copy/verlauf/."""
+    items = [(n, "offen", p) for n, a in data["wallets"].items() for p in a["positionen"].values()] + \
+            [(n, "schatten", s) for n, a in data["wallets"].items() for s in a.get("schatten", {}).values()]
+    if not items or not sol_usd:
+        return
+    mints = sorted({it[2]["mint"] for it in items})
+    toks = {}
+    for i in range(0, len(mints), 100):
+        for tok in jup(f"/tokens/v2/search?query={','.join(mints[i:i + 100])}") or []:
+            if tok.get("id"):
+                toks[tok["id"]] = tok
+    os.makedirs(COPY_VERLAUF_DIR, exist_ok=True)
+    path = os.path.join(COPY_VERLAUF_DIR, datetime.now(timezone.utc).strftime("%Y-%m-%d") + ".csv")
+    new = not os.path.exists(path)
+    with open(path, "a", newline="", encoding="utf-8") as f:
+        w = csv.writer(f)
+        if new:
+            w.writerow(["zeit", "trader", "art", "symbol", "mint", "minuten_seit_kauf", "preis_sol", "vielfaches",
+                        "wert_sol", "liquiditaet"])
+        for name, art, p in items:
+            tok = toks.get(p["mint"])
+            if not tok:
+                continue
+            price = core.as_float(tok.get("usdPrice")) / sol_usd
+            if art == "offen":
+                bought = p.get("tokens_gekauft_raw") or p["tokens_raw"]
+                entry = p["invested_sol"] / (bought / 10 ** p["decimals"]) if bought else 0
+                value = p["tokens_raw"] / 10 ** p["decimals"] * price
+                if p["symbol"] == p["mint"][:6] and tok.get("symbol"):
+                    p["symbol"] = tok["symbol"]
+            else:
+                entry = p["invested_sol"] / p["tokens"] if p["tokens"] else 0
+                value = p["tokens"] * p["behalten"] * price
+                p["letzter_preis_sol"] = price
+                if p["symbol"] == p["mint"][:6] and tok.get("symbol"):
+                    p["symbol"] = tok["symbol"]
+            w.writerow([now_str(), name, art, p["symbol"], p["mint"], f"{(now - p['opened']) / 60:.1f}",
+                        f"{price:.12g}", f"{price / entry:.4f}" if entry else "", f"{value:.6f}",
+                        f"{core.as_float(tok.get('liquidity')):.0f}"])
+            STATS["pfade"] += 1
+
+
+def wallet_check(data, active, now):
+    """Welche Wallets erfuellen eine Regel zum Ersetzen? Entscheidung bleibt beim Menschen."""
+    notes = []
+    for name in active:
+        a, s = data["wallets"][name], STATS["wallet"].get(name, {})
+        msgs, failed, trades = s.get("meldungen", 0), s.get("fehlgeschlagen", 0), s.get("trades", 0)
+        if name in STATS["muted"]:
+            notes.append(f"🤖 {name}: Bot (Flutschutz ausgeloest) -> ersetzen")
+        elif msgs >= BOT_MIN_MSGS and failed / msgs >= BOT_FAILED_SHARE and trades == 0:
+            notes.append(f"🤖 {name}: Bot-Verdacht ({msgs} Meldungen, {failed / msgs:.0%} fehlgeschlagen, kein eigener Trade) -> ersetzen")
+        last = a.get("letzter_trade") or datetime.fromisoformat(a["gestartet"]).timestamp()
+        if (now - last) / 3600 >= WALLET_SILENT_H:
+            notes.append(f"💤 {name}: seit {(now - last) / 3600:.0f} h kein eigener Trade -> ersetzen")
+        closed = len(a["geschlossen"])
+        realized = sum(c["pnl_sol"] for c in a["geschlossen"])
+        if closed >= REVIEW_AFTER_CLOSED and realized < 0:
+            notes.append(f"📉 {name}: {closed} Positionen geschlossen, {realized:+.2f} SOL -> pruefen, ob noch lehrreich")
+    return notes
+
+
 def handle_signature(name, acct, sig, sol_usd):
     key = (name, sig)
     if key in _seen:
@@ -529,6 +667,9 @@ def handle_signature(name, acct, sig, sol_usd):
     if not t:
         return
     now = time.time()
+    acct["letzter_trade"] = t.get("block_time") or now
+    w = STATS["wallet"].setdefault(name, {})
+    w["trades"] = w.get("trades", 0) + 1
     if t["kind"] == "KAUF":
         if t.get("block_time") and now - t["block_time"] > MAX_TRADE_AGE_S:
             count("skipped", "kauf_zu_alt")     # nie Kaeufe nachholen, die schon laenger zurueckliegen
@@ -569,6 +710,12 @@ def cleanup(data):
                      "pnl_sol": f"{rec['pnl_sol']:+.6f}", "pnl_pct": f"{rec['pnl_pct']:+.2f}",
                      "hinweis": "Schichtende: Restwert hoechstens 1 %"})
             closed += 1
+    for name, acct in data["wallets"].items():
+        for mint, sh in list(acct.get("schatten", {}).items()):
+            value = sh["tokens"] * sh["behalten"] * (sh.get("letzter_preis_sol") or 0)
+            if sh.get("letzter_preis_sol") is not None and value <= sh["invested_sol"] * CLEANUP_MAX_VALUE_PCT / 100:
+                sh["erloes_sol"] += value
+                shadow_close(name, acct, sh, "BEREINIGT (-99 %)", now)
     return closed
 
 
@@ -603,7 +750,10 @@ def connect(wallets):
                             "params": [{"mentions": [addr]}, {"commitment": "confirmed"}]}))
     subs, early, pending, deadline = {}, [], set(range(1, len(wallets) + 1)), time.time() + 20
     while pending and time.time() < deadline:
-        msg = json.loads(ws.recv())
+        try:
+            msg = json.loads(ws.recv())
+        except websocket.WebSocketTimeoutException:
+            break                               # fehlende Bestaetigungen: mit den bestaetigten weiterarbeiten
         if msg.get("id") in pending:
             pending.discard(msg["id"])
             if "result" in msg:
@@ -612,6 +762,9 @@ def connect(wallets):
                 print(f"[COPY] Anmeldung fuer {wallets[msg['id'] - 1][0]} abgelehnt: {str(msg.get('error'))[:120]}")
         elif msg.get("method") == "logsNotification":
             early.append(msg)
+    if pending:
+        print(f"[COPY] {len(pending)} Anmeldungen ohne Bestaetigung: "
+              f"{', '.join(wallets[i - 1][0] for i in sorted(pending))}")
     ws.settimeout(1.0)
     return ws, subs, early
 
@@ -656,12 +809,16 @@ def run(probe=False):
     started, sol_usd = time.time(), core.sol_price()
     notify("🟢 Copy-Schicht gestartet", [f"{len(wallets)} Wallets, je eigenes Konto mit {START_SOL:.0f} SOL."], 0x10B981)
     ws, subs, last_ping, last_push, last_sol, normal_end = None, {}, time.time(), time.time(), time.time(), False
+    last_path = connected_at = time.time()
+    active = [n for n, _ in wallets]
     try:
         while time.time() - started < SHIFT_SECONDS:
             if ws is None:
                 try:
-                    ws, subs, early = connect([w for w in wallets if w[0] not in STATS["muted"]])
-                    print(f"[COPY] verbunden, {len(subs)} von {len(wallets)} Wallets angemeldet")
+                    wanted = [w for w in wallets if w[0] not in STATS["muted"]]
+                    ws, subs, early = connect(wanted)
+                    connected_at = time.time()
+                    print(f"[COPY] verbunden, {len(subs)} von {len(wanted)} Wallets angemeldet")
                     for msg in early:
                         process_message(msg, subs, data, sol_usd, ws)
                 except Exception as err:
@@ -682,6 +839,15 @@ def run(probe=False):
                 ws = None
                 continue
             now = time.time()
+            if ws is not None and len(subs) < len([w for w in wallets if w[0] not in STATS["muted"]]) \
+                    and now - connected_at > 300:
+                print("[COPY] nicht alle Wallets angemeldet, neuer Versuch")
+                try:
+                    ws.close()
+                except Exception:
+                    pass
+                ws = None                        # naechster Durchlauf verbindet und meldet alle neu an
+                continue
             if now - last_ping > PING_EVERY and ws is not None:
                 try:
                     ws.ping()
@@ -690,6 +856,13 @@ def run(probe=False):
                 last_ping = now
             if now - last_sol > 300:
                 sol_usd, last_sol = core.sol_price() or sol_usd, now
+            if now - last_path > PATH_EVERY:
+                try:
+                    log_paths(data, sol_usd, now)
+                except Exception as err:         # Aufzeichnung darf den Copy-Bot nie stoppen
+                    STATS["errors"] += 1
+                    print(f"[COPY] Kursverlauf: {str(err)[:120]}")
+                last_path = now
             if now - last_push > PUSH_EVERY:
                 save_accounts(data)
                 git_push()
@@ -706,7 +879,7 @@ def run(probe=False):
                 ws.close()
         except Exception:
             pass
-        summary(data, time.time() - started, cleaned, normal_end)
+        summary(data, time.time() - started, cleaned, normal_end, active)
 
 
 def process_message(msg, subs, data, sol_usd, ws=None):
@@ -718,6 +891,10 @@ def process_message(msg, subs, data, sol_usd, ws=None):
         return
     name, _ = subs[sub]
     now = time.time()
+    w = STATS["wallet"].setdefault(name, {})
+    w["meldungen"] = w.get("meldungen", 0) + 1
+    if notification_value(msg).get("err") is not None:
+        w["fehlgeschlagen"] = w.get("fehlgeschlagen", 0) + 1
     window = _rate.setdefault(name, deque())
     window.append(now)
     while window and now - window[0] > 60:
@@ -767,7 +944,7 @@ def credits_used():
     return STATS["bytes"] / 100_000 * CREDITS_PER_100KB + STATS["fetched"] * 1
 
 
-def summary(data, dur, cleaned, normal_end):
+def summary(data, dur, cleaned, normal_end, active=None):
     lines = [f"**Dauer:** {dur / 3600:.2f} h | **Meldungen:** {STATS['notifications']} | "
              f"**Trades:** {STATS['trades'] or 0}"]
     if STATS["skipped"]:
@@ -783,13 +960,22 @@ def summary(data, dur, cleaned, normal_end):
                  f"fehlgeschlagen uebersprungen {STATS['failed']}, ohne Handel {STATS['no_hint']}")
     if STATS["muted"]:
         lines.append(f"**Abgemeldet wegen Flut:** {', '.join(STATS['muted'])}")
+    active = active or list(data["wallets"])
     rows = []
-    for name, a in data["wallets"].items():
+    for name in active:
+        a = data["wallets"][name]
         value = a["bankroll_sol"] + sum(p["invested_sol"] for p in a["positionen"].values())
         realized = sum(c["pnl_sol"] for c in a["geschlossen"])
         rows.append((realized, f"{name}: frei {a['bankroll_sol']:.2f} SOL, {len(a['positionen'])} offen, "
                                f"{len(a['geschlossen'])} geschlossen, realisiert {realized:+.3f} SOL, Runde {a['runde']}"))
     lines.append("**Wallets (realisiert):**\n" + "\n".join(r for _, r in sorted(rows, reverse=True)))
+    shadows = [c for n in active for c in data["wallets"][n].get("schatten_geschlossen", [])]
+    open_sh = sum(len(data["wallets"][n].get("schatten", {})) for n in active)
+    if shadows or open_sh:
+        lines.append(f"**Schattenpositionen (Preisgrenze):** {len(shadows)} abgeschlossen, Summe "
+                     f"{sum(c['pnl_sol'] for c in shadows):+.3f} SOL (Naeherung), {open_sh} offen")
+    checks = wallet_check(data, active, time.time())
+    lines.append("**Wallet-Pruefung:**\n" + ("\n".join(checks) if checks else "alle Wallets unauffaellig"))
     lines.append(f"**Verbindungsabbrueche:** {STATS['reconnects']} | **Auswertungsfehler:** "
                  f"{STATS['parse_errors'] + STATS['errors']} | **Jupiter-Bremse (429):** {STATS['jup_429']} | "
                  f"**GitHub-Sicherung:** {STATS['git_ok']} ok / {STATS['git_fail']} Fehler")
