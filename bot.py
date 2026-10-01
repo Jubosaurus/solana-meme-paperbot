@@ -211,6 +211,8 @@ def experiment(name):
 _jup_last = [0.0]
 _rugcheck_last = [0.0]
 _helius_last = [0.0]
+HELIUS_INTERVAL = 0.15      # Hauptbot hoechstens ~6,5 Anfragen/s; der Copy-Bot setzt fuer sich einen langsameren Wert
+HELIUS_RETRY_WAIT = (0.5, 1.0, 2.0)   # bei 429 (zu viele Anfragen) bis zu drei weitere Versuche
 _block0_cache = {}
 _bundle_cache = {}
 _portfolio_alarm = set()
@@ -258,14 +260,20 @@ def rpc(method, params):
     """Solana-RPC ueber Helius. Der API-Key taucht nie im Log auf."""
     if not HELIUS_RPC:
         return None
-    _throttle(_helius_last, 0.12)
-    try:
-        res = SESSION.post(HELIUS_RPC, json={"jsonrpc": "2.0", "id": 1, "method": method,
-                                             "params": params}, timeout=20)
-    except requests.RequestException as err:
-        STATS["helius_fail"] += 1
-        print(f"[HELIUS] {method}: {_hide_key(err)[:160]}")
-        return None
+    for wait in (0.0,) + HELIUS_RETRY_WAIT:
+        if wait:
+            STATS["helius_429"] = STATS.get("helius_429", 0) + 1
+            time.sleep(wait)
+        _throttle(_helius_last, HELIUS_INTERVAL)
+        try:
+            res = SESSION.post(HELIUS_RPC, json={"jsonrpc": "2.0", "id": 1, "method": method,
+                                                 "params": params}, timeout=20)
+        except requests.RequestException as err:
+            STATS["helius_fail"] += 1
+            print(f"[HELIUS] {method}: {_hide_key(err)[:160]}")
+            return None
+        if res.status_code != 429:
+            break
     if res.status_code != 200:
         STATS["helius_fail"] += 1
         print(f"[HELIUS HTTP {res.status_code}] {method}: {_hide_key(res.text)[:120]}")
@@ -1857,24 +1865,9 @@ def probe_bonding_curve(now):
     filtered = [v for v in window if endspurt_filters_ok(v)]
     print(f"[PROBE] Endspurt: {len(raw)} Coins in 6 Listen, davon {len(curve)} auf der Pump.fun-Kurve, "
           f"{len(window)} im Fenster {ENDSPURT_VSOL_MIN}-{ENDSPURT_VSOL_MAX} vSol, {len(filtered)} davon bestehen die Filter")
-    sample = sorted(curve, key=lambda v: -(curve_vsol(v["price"], sol_usd) or 0))[:4]
-    for v in sample:
-        est = curve_vsol(v["price"], sol_usd)
-        pool = (raw[v["mint"]].get("firstPool") or {}).get("id")
-        res = rpc("getAccountInfo", [pool, {"encoding": "base64"}]) if pool else None
-        val = (res or {}).get("value") or {}
-        line = (f"        {v['symbol']:<12} geschaetzt {est:6.1f} vSol | MC ${v['mcap']:,.0f} | "
-                f"{v['trades_24h']} Trades | organisch '{v['organic_label']}'")
-        try:
-            data = __import__("base64").b64decode(val["data"][0])
-            vtok, vsol, rtok, rsol, supply = struct.unpack_from("<QQQQQ", data, 8)
-            complete = bool(data[48])
-            real_vsol, real_vtok = vsol / 1e9, vtok / 1e6
-            line += (f"\n          Blockchain: {real_vsol:6.1f} vSol, real {rsol / 1e9:5.1f} SOL, complete={complete}, "
-                     f"K={real_vsol * real_vtok:.4g} (Annahme {PUMP_K:.4g}), Eigentuemer {str(val.get('owner'))[:8]}")
-        except Exception as err:
-            line += f"\n          Blockchain: nicht lesbar ({str(err)[:60]}), Pool {str(pool)[:8]}, Eigentuemer {str(val.get('owner'))[:8]}"
-        print(line)
+    for v in sorted(curve, key=lambda v: -(curve_vsol(v["price"], sol_usd) or 0))[:4]:
+        print(f"        {v['symbol']:<12} geschaetzt {curve_vsol(v['price'], sol_usd):6.1f} vSol | MC ${v['mcap']:,.0f} | "
+              f"{v['trades_24h']} Trades | organisch '{v['organic_label']}'")
 
 
 def probe_solana_tracker(young):
