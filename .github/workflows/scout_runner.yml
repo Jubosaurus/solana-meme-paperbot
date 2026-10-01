@@ -1,0 +1,68 @@
+name: Wallet-Scout
+
+on:
+  workflow_dispatch:
+    inputs:
+      modus:
+        description: "normal oder probe (Kurztest)"
+        required: true
+        default: probe
+        type: choice
+        options:
+          - normal
+          - probe
+  # Alle 6 Stunden, versetzt zu den anderen Bots. Faellt ein Lauf aus, ist das unkritisch.
+  schedule:
+    - cron: '29 */6 * * *'
+
+concurrency:
+  group: wallet-scout
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  scout:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: main
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.11"
+
+      - name: Pakete installieren
+        run: pip install -r requirements.txt
+
+      - name: Scout starten
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          DISCORD_WEBHOOK_COPY: ${{ secrets.DISCORD_WEBHOOK_COPY }}
+          DISCORD_WEBHOOK_SCOUT: ${{ secrets.DISCORD_WEBHOOK_SCOUT }}
+          JUPITER_API_KEY: ${{ secrets.JUPITER_API_KEY }}
+          HELIUS_API_KEY: ${{ secrets.HELIUS_API_KEY }}
+          BIRDEYE_API_KEY: ${{ secrets.BIRDEYE_API_KEY }}
+          PYTHONUNBUFFERED: 1
+        run: |
+          if [ "${{ github.event.inputs.modus }}" = "probe" ]; then
+            python scout_bot.py --probe
+          else
+            python scout_bot.py
+          fi
+
+      # Sichert nur den Ordner scout/
+      - name: Sicherung
+        if: always() && github.event.inputs.modus != 'probe'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git fetch -q origin main && git reset -q origin/main
+          [ -e scout ] && git add scout || true
+          if ! git diff --cached --quiet; then
+            git commit -q -m "SCOUT Sicherung [skip ci]"
+            git push -q origin HEAD:main || echo "::warning::Sicherung fehlgeschlagen"
+          fi
