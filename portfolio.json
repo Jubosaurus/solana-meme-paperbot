@@ -1,8 +1,92 @@
 {
   "strategy": "NARRATIV",
   "started": "2026-09-26T02:46:00.825468+00:00",
-  "bankroll_sol": 9.71793,
-  "positions": {},
+  "bankroll_sol": 9.51643,
+  "positions": {
+    "9GW1GMaVeV41yiYYzfgQdnEf8ocGFenX8AsgvhWEARLY": {
+      "mint": "9GW1GMaVeV41yiYYzfgQdnEf8ocGFenX8AsgvhWEARLY",
+      "symbol": "EARLY",
+      "opened": 1790833795.4265397,
+      "invested_sol": 0.2,
+      "fees_sol": 0.0015,
+      "entry_signal_usd": 2.692223213835806e-05,
+      "entry_fill_usd": 2.753769844713853e-05,
+      "entry_slippage_pct": 2.29,
+      "roundtrip_cost_pct": 3.07,
+      "tokens_initial": 866465.290031,
+      "tokens_left": 866465.290031,
+      "decimals": 6,
+      "proceeds_sol": 0.0,
+      "peak_usd": 2.753769844713853e-05,
+      "tp1_done": false,
+      "thesis_breaks": 0,
+      "missing_loops": 0,
+      "entry_liquidity": 5552.25113516002,
+      "entry_view": {
+        "age_h": 1.7880261120531293,
+        "mcap": 25790.56252716738,
+        "liquidity": 5552.25113516002,
+        "holders": 268,
+        "holder_growth_1h": 15.517241379310345,
+        "holder_growth_5m": 0.37453183520599254,
+        "net_buyers_5m": 15,
+        "organic_buyers_5m": 3,
+        "organic_score": 48.3593983073243,
+        "price_change_1h": 161.3669685782138,
+        "price_change_5m": 9.384192140662421,
+        "buys_5m": 34,
+        "sells_5m": 27,
+        "traders_5m": 31,
+        "traders_1h": 126,
+        "buy_vol_5m": 1085.7629816098372,
+        "sell_vol_5m": 864.8429743341763,
+        "buy_vol_1h": 7737.218972260689,
+        "sell_vol_1h": 4871.70355741026,
+        "organic_buy_vol_1h": 288.3867508007729,
+        "top_holders_pct": 22.82053079964883,
+        "dev_balance_pct": 0.9143529722164203,
+        "dev_mints": 1,
+        "launchpad": "pump.fun",
+        "graduated": true,
+        "social": true,
+        "quelle": "organic1h+organic5m+trend1h+trend5m",
+        "trades_24h": 5477,
+        "organic_label": "medium",
+        "buy_organic_vol_5m": 8.327805856869839,
+        "hour_utc": 5
+      },
+      "bundle": {
+        "quelle": "block0",
+        "slot": 452173845,
+        "block0_wallets": 5,
+        "block0_supply_pct": 13.68,
+        "block0_still_held_pct": 0.91,
+        "block0_exited": 4,
+        "early_tx_slot1_2": 3,
+        "bundle_holding_pct": 0.91,
+        "gebuendelt": false,
+        "rugcheck_insider_pct": 0
+      },
+      "phase": "normal",
+      "thesis": "Story verbreitet sich: Holder +16%/h, 15 Netto-Kaeufer 5m, 3 organisch; Block 0: 5 Kaeufer, 13.7% gekauft, 0.9% noch gehalten; Dev-Coins 1",
+      "exit_rule": "Haelfte bei 2x; Rest raus, wenn Holder schrumpfen und Netto-Verkaeufer 2x in Folge, Liquiditaet -30%, -40%, nach 1,5x nicht unter Einstand, nach 2x 30 % vom Hoch (ab 10x 25 %)",
+      "mitlaeufer": null,
+      "solana_tracker": {
+        "score": 7,
+        "rugged": false,
+        "snipers_pct": 1.858,
+        "insiders_pct": 0,
+        "bundlers_pct": 1.2012,
+        "top10_pct": 21.8613,
+        "risiken": [
+          "Top 10 Holders",
+          "High Bundler Count"
+        ]
+      },
+      "graduated": true,
+      "liq_low_checks": 0
+    }
+  },
   "closed": [
     {
       "symbol": "SHOGGOTH",
@@ -3505,7 +3589,8 @@
     "CN5HvBfWPjjdXcbqzj2mTu7JHz9HGAgkE6RSCocypump": 1790804783.8707166,
     "3xgJh5hwn6SMZ2XgsxYRLtos3AEKEgPyBepx529Tpump": 1790811922.2233505,
     "HNp4grRSKstidWjdzRTL8E4N83sh2st72n7QaK2i55B3": 1790812205.1358836,
-    "27x37KmyRQJRVrD3cra6iEdpDcME4vPKziDXkb9xpump": 1790825628.984028
+    "27x37KmyRQJRVrD3cra6iEdpDcME4vPKziDXkb9xpump": 1790825628.984028,
+    "9GW1GMaVeV41yiYYzfgQdnEf8ocGFenX8AsgvhWEARLY": 1790833795.4269953
   },
   "watch": {
     "HNp4grRSKstidWjdzRTL8E4N83sh2st72n7QaK2i55B3": {
@@ -3527,7 +3612,7 @@
       "until": 1790849027.2618718
     }
   },
-  "saved_at": 1790833730.287283,
+  "saved_at": 1790833823.0648599,
   "shadow": {
     "2C7BDdrnJUSGzpkSA6TBUrcjCot7kNpYPjx9nnqPpump": {
       "symbol": "BRYCE",
@@ -3883,6 +3968,6 @@
   },
   "st_usage": {
     "date": "2026-10-01",
-    "count": 1
+    "count": 2
   }
 }
