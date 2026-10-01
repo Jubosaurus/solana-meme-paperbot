@@ -1,7 +1,7 @@
 {
   "strategy": "EXPERIMENT_endspurt_ohne_filter",
   "started": "2026-09-30T09:53:19.214700+00:00",
-  "bankroll_sol": 8.662147,
+  "bankroll_sol": 8.460647,
   "positions": {
     "5xkgWmUh7bEKGKNS2EydXNQ6pZwQDmcn4WqL5xzpump": {
       "mint": "5xkgWmUh7bEKGKNS2EydXNQ6pZwQDmcn4WqL5xzpump",
@@ -68,6 +68,72 @@
       "liq_low_checks": 0,
       "exit_mode": "endspurt",
       "entry_vsol": 95.08
+    },
+    "2SVkGBPF3f7zfp7v7SiSf6PSnN6DEKbCDbSo7QNkpump": {
+      "mint": "2SVkGBPF3f7zfp7v7SiSf6PSnN6DEKbCDbSo7QNkpump",
+      "symbol": "Mosquito",
+      "opened": 1790847483.1542962,
+      "invested_sol": 0.2,
+      "fees_sol": 0.0015,
+      "entry_signal_usd": 3.9628427018391066e-05,
+      "entry_fill_usd": 3.919678652042849e-05,
+      "entry_slippage_pct": -1.09,
+      "roundtrip_cost_pct": 2.85,
+      "tokens_initial": 601654.712417,
+      "tokens_left": 601654.712417,
+      "decimals": 6,
+      "proceeds_sol": 0.0,
+      "peak_usd": 3.933213603171055e-05,
+      "tp1_done": false,
+      "thesis_breaks": 0,
+      "missing_loops": 0,
+      "entry_liquidity": 12135.52689764951,
+      "entry_view": {
+        "age_h": 0.7774416116873423,
+        "mcap": 39628.42701839106,
+        "liquidity": 12135.52689764951,
+        "holders": 288,
+        "holder_growth_1h": 500.0,
+        "holder_growth_5m": 42.57425742574257,
+        "net_buyers_5m": 87,
+        "organic_buyers_5m": 7,
+        "organic_score": 42.64661350074819,
+        "price_change_1h": 606.9362205026835,
+        "price_change_5m": 65.26609057573819,
+        "buys_5m": 150,
+        "sells_5m": 92,
+        "traders_5m": 134,
+        "traders_1h": 592,
+        "buy_vol_5m": 9934.368107910374,
+        "sell_vol_5m": 6137.025378224644,
+        "buy_vol_1h": 49598.493432209456,
+        "sell_vol_1h": 40876.74798297924,
+        "organic_buy_vol_1h": 3432.047465152874,
+        "top_holders_pct": 24.643155209680607,
+        "dev_balance_pct": 1.7376518132293,
+        "dev_mints": 1,
+        "launchpad": "pump.fun",
+        "graduated": false,
+        "social": true,
+        "quelle": "organic1h+organic5m+traded1h+traded5m+trend1h+trend5m",
+        "trades_24h": 2033,
+        "organic_label": "medium",
+        "buy_organic_vol_5m": 158.05678482088547,
+        "hour_utc": 9
+      },
+      "bundle": {
+        "quelle": "experiment",
+        "text": "Endspurt: Kurve bei 104 von 115 vSol (87% Fortschritt), 2033 Trades, organisch medium"
+      },
+      "phase": "ruhig",
+      "thesis": "Story verbreitet sich: Holder +500%/h, 87 Netto-Kaeufer 5m, 7 organisch; Endspurt: Kurve bei 104 von 115 vSol (87% Fortschritt), 2033 Trades, organisch medium; Dev-Coins 1",
+      "exit_rule": "Haelfte bei 2x; Rest raus, wenn Holder schrumpfen und Netto-Verkaeufer 2x in Folge, Liquiditaet -30%, -40%, nach 1,5x nicht unter Einstand, nach 2x 30 % vom Hoch (ab 10x 25 %)",
+      "mitlaeufer": null,
+      "solana_tracker": null,
+      "graduated": false,
+      "liq_low_checks": 0,
+      "exit_mode": "endspurt",
+      "entry_vsol": 104.01
     }
   },
   "closed": [
@@ -4908,7 +4974,8 @@
     "F458Huat36hKjLPc7dmL4uEixBAgX7fUjxWwnUEkpump": 1790843155.287504,
     "DV8WPt5mPkhtH1CC9Qe6NgYMsyw16sMBUTx3YTTogift": 1790845233.200464,
     "2GU6JT1zpigtYAk3vAVwdrvHuzbPkUSxrUkHHGpGpump": 1790845885.7498417,
-    "5xkgWmUh7bEKGKNS2EydXNQ6pZwQDmcn4WqL5xzpump": 1790846900.476347
+    "5xkgWmUh7bEKGKNS2EydXNQ6pZwQDmcn4WqL5xzpump": 1790846900.476347,
+    "2SVkGBPF3f7zfp7v7SiSf6PSnN6DEKbCDbSo7QNkpump": 1790847483.1548202
   },
   "watch": {
     "EEGtwsf5wLWDG4THEu4TdFKTTRpsEoxArWZsetWZpump": {
@@ -5031,7 +5098,7 @@
   },
   "runde": 1,
   "shadow": {},
-  "saved_at": 1790847436.774001,
+  "saved_at": 1790847528.405469,
   "dev_day": {
     "date": "2026-10-01",
     "devs": [
@@ -5067,7 +5134,8 @@
       "DpfZAYhXyjAKCp4LJ19swfJZCsbmDmx7VE3KMwsZCsQj",
       "GMemhV1EBnyUiNT3GJKKULs74SZzEaCTidL7JZHKUbAZ",
       "9Q18hhGJxvy16VAa8Th8Lua4WUSxnW1E1mYmqS16aPFN",
-      "GpTXmkdvrTajqkzX1fBmC4BUjSboF9dHgfnqPqj8WAc4"
+      "GpTXmkdvrTajqkzX1fBmC4BUjSboF9dHgfnqPqj8WAc4",
+      "86TR3YthGo4jAHVJtLDrnAu4k94KBma2A8apSceWpvZG"
     ]
   }
 }
