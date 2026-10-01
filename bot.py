@@ -135,7 +135,7 @@ DISCORD_ATTEMPTS = 3
 # ================================================================ Experimente (seit 30.09., eigene Konten)
 EXP_DIR = "experimente"
 EXPERIMENTS = {"zweite_welle": "Zweite Welle", "heisse_coins": "Heisse Coins", "ohne_limit": "Ohne Limit",
-               "kontrollgruppe": "Kontrollgruppe", "endspurt": "Endspurt Kurve",
+               "kontrollgruppe": "Kontrollgruppe", "endspurt": "Endspurt viele Trades",
                "endspurt_ohne_filter": "Endspurt ohne Filter"}
 
 # Experiment Endspurt (seit 30.09.): Pump.fun-Coins kurz vor der Graduation, raus bei der Graduation.
@@ -146,8 +146,9 @@ ENDSPURT_VSOL_MIN, ENDSPURT_VSOL_MAX = 95, 108     # etwa 76-92 % Fortschritt
 ENDSPURT_STOP_VSOL = 12                 # raus, wenn die Kurve um 12 vSol zurueckfaellt
 ENDSPURT_MAX_MIN = 45                   # raus, wenn nach 45 min nicht graduiert
 ENDSPURT_MAX_POSITIONS = 8
-ENDSPURT_MAX_TRADES = 800               # Filter 1: wenige Trades seit Start (schnelle Akkumulation)
-ENDSPURT_MIN_ORGANIC_SHARE = 0.3        # Filter 2: organischer Anteil am Kaufvolumen
+# Seit 01.10.: Filter umgekehrt. Die Studie (Sept. 2025) bevorzugte wenige Trades (< 800). In unseren ersten
+# 74 Kaeufen graduierten Coins mit vielen Trades deutlich haeufiger (52 % gegenueber 24 %). Test an neuen Daten:
+ENDSPURT_MIN_TRADES = 2000              # Filter: mindestens so viele Trades seit Start
 ENDSPURT_MAX_SLIPPAGE_PCT = 3.0
 KONTROLL_INTERVAL_MIN = 30              # Kontrollgruppe: etwa alle 30 min ein zufaelliger Coin
 EXP_WATCH_AFTER_EXIT = {"ohne_limit", "endspurt_ohne_filter"}
@@ -765,7 +766,7 @@ ENTRY_FEATURES = ("age_h", "mcap", "liquidity", "holders", "holder_growth_1h", "
                   "price_change_5m", "buys_5m", "sells_5m", "traders_5m", "traders_1h",
                   "buy_vol_5m", "sell_vol_5m", "buy_vol_1h", "sell_vol_1h", "organic_buy_vol_1h",
                   "top_holders_pct", "dev_balance_pct", "dev_mints", "launchpad", "graduated",
-                  "social", "quelle")
+                  "social", "quelle", "trades_24h", "organic_label", "buy_organic_vol_5m")
 
 
 NEAR_MISS_HEADER = ["zeit", "symbol", "mint", "grund", "detail", "preis_usd", *ENTRY_FEATURES]
@@ -1443,11 +1444,8 @@ def endspurt_candidate(v, sol_usd):
 
 
 def endspurt_filters_ok(v):
-    """Die zwei Filter der Studie: schnelle Akkumulation mit wenigen Trades, hoher menschlicher Anteil."""
-    few_trades = 0 < v["trades_24h"] < ENDSPURT_MAX_TRADES
-    organic = v["organic_label"].lower() in ("medium", "high") or (
-        v["buy_vol_5m"] > 0 and v["buy_organic_vol_5m"] / v["buy_vol_5m"] >= ENDSPURT_MIN_ORGANIC_SHARE)
-    return few_trades and organic
+    """Filter der Variante 'Endspurt viele Trades' (seit 01.10.): mindestens 2.000 Trades seit Start."""
+    return v["trades_24h"] >= ENDSPURT_MIN_TRADES
 
 
 def endspurt_picks(ep, views, sol_usd, now, with_filters):
