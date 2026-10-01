@@ -38,7 +38,9 @@ WINNER_MIN_MULTIPLE = 3.0           # Gewinner-Coin: Hoch mindestens 3x
 WINNER_LOOKBACK_H = 48
 COINS_PER_RUN = 6
 EARLY_TX = 80                       # so viele fruehe erfolgreiche Transaktionen je Coin auswerten
-MAX_SIG_PAGES = 30                  # bis zu 30.000 Signaturen zurueck bis zum Start des Coins
+MAX_SIG_PAGES = 5                   # bis zu 5.000 Signaturen zurueck; wird der Start nicht erreicht, Coin ueberspringen
+BAD_TAGS = ("bundl", "snip", "bot", "mev", "insider", "dev", "arb")   # Birdeye-Markierungen, die wir nicht kopieren
+BIRDEYE_PER_COIN = 5                # hoechstens so viele Birdeye-Kandidaten je Coin
 STAGE2_PER_RUN = 15
 STAGE2_TX = 60
 RECHECK_DAYS = 7                    # eine Wallet fruehestens nach 7 Tagen erneut pruefen
@@ -106,7 +108,7 @@ def winner_coins(state, now):
 
 def early_buyers(mint, sol_usd):
     """Fruehe Kaeufer eines Coins: aelteste erfolgreiche Transaktionen, ohne den ersten Block (Bundler)."""
-    sigs, before = [], None
+    sigs, before, reached_start = [], None, False
     for _ in range(MAX_SIG_PAGES):
         opts = {"limit": 1000}
         if before:
@@ -114,8 +116,12 @@ def early_buyers(mint, sol_usd):
         page = core.rpc("getSignaturesForAddress", [mint, opts]) or []
         sigs.extend(page)
         if len(page) < 1000:
+            reached_start = True
             break
         before = page[-1].get("signature")
+    if not reached_start:
+        STATS["coins_zu_aktiv"] = STATS.get("coins_zu_aktiv", 0) + 1
+        return []                                   # Start nicht erreicht: das waeren keine fruehen Kaeufer
     ok = [s for s in reversed(sigs) if s.get("err") is None and s.get("signature")]
     if not ok:
         return []
@@ -170,9 +176,14 @@ def birdeye_top_traders(mint, state):
     out = []
     for it in items:
         addr = it.get("owner") or it.get("address") or it.get("wallet")
-        if addr:
-            out.append(addr)
-    return out
+        tags = " ".join(str(t).lower() for t in (it.get("tags") or []))
+        if not addr or any(b in tags for b in BAD_TAGS):
+            STATS["birdeye_markiert"] = STATS.get("birdeye_markiert", 0) + (1 if addr else 0)
+            continue
+        if core.as_float(it.get("realizedPnl")) <= 0:
+            continue                                # nur Trader, die auf diesem Coin Gewinn realisiert haben
+        out.append(addr)
+    return out[:BIRDEYE_PER_COIN]
 
 
 # ================================================================ 3./4. Wallets pruefen
@@ -362,7 +373,10 @@ def run():
     save_state(state)
     lines = [f"**Gewinner-Coins:** {', '.join(f'{s} {m:.1f}x' for _, s, m in coins) or 'keine neuen'}",
              f"**Kandidaten:** {STATS['kandidaten']} neu | **Stufe 1 aussortiert:** {STATS['stufe1_raus'] or 0} | "
-             f"**Stufe 2 bewertet:** {STATS['stufe2']}"]
+             f"**Stufe 2 bewertet:** {STATS['stufe2']}"
+             + (f" | Birdeye-Markierte (Bundler, Sniper, Bots) ausgelassen: {STATS['birdeye_markiert']}"
+                if STATS.get("birdeye_markiert") else "")
+             + (f" | Coins zu aktiv fuer fruehe Kaeufer: {STATS['coins_zu_aktiv']}" if STATS.get("coins_zu_aktiv") else "")]
     top = [r for r in ranked if r["punkte"] > 0][:8]
     if top:
         lines.append("**Rangliste** (Gewinn ohne beste Coins | Treffer | Kauf-Median | Trades/Tag | Haltedauer):")
@@ -402,8 +416,20 @@ def probe():
         items = ((data or {}).get("data") or {}).get("items") or []
         print(f"[SCOUT PROBE] Birdeye Top-Trader: {len(items)} | Fehler: {STATS['birdeye_fehler'] or 'keiner'}")
         if items:
-            print(f"        Felder: {sorted(items[0].keys())}")
-            print(f"        Beispiel: {json.dumps(items[0])[:300]}")
+            tags = sorted({str(t) for it in items for t in (it.get("tags") or [])})
+            print(f"        Markierungen in der Liste: {tags or 'keine'}")
+            for it in items[:10]:
+                print(f"        {it.get('owner', '?')[:8]} Tags {it.get('tags')} | Trades {it.get('trade')} | "
+                      f"realisiert {core.as_float(it.get('realizedPnl')):,.0f} $")
+            sb_items = [it.get("owner") for it in items]
+            kept = [w for w in sb_items if w and not any(b in " ".join(str(t).lower() for t in
+                    (next(i for i in items if i.get("owner") == w).get("tags") or [])) for b in BAD_TAGS)
+                    and core.as_float(next(i for i in items if i.get("owner") == w).get("realizedPnl")) > 0]
+            print(f"        Nach Filter (keine Markierung, Gewinn > 0): {len(kept)} von {len(items)}")
+            if kept:
+                pnl = birdeye_get(f"/wallet/v2/pnl/summary?wallet={kept[0]}", state, 30)
+                print(f"[SCOUT PROBE] Birdeye PnL-Zusammenfassung (30 CUs): "
+                      f"{'verfuegbar: ' + json.dumps(pnl)[:250] if pnl else 'nicht verfuegbar: ' + STATS['birdeye_fehler']}")
     if buyers:
         m, reason = stage1(buyers[0], time.time())
         print(f"[SCOUT PROBE] Stufe 1 fuer {buyers[0][:8]}: { {k: v for k, v in m.items() if k != 'sigs'} } -> {reason or 'weiter'}")
