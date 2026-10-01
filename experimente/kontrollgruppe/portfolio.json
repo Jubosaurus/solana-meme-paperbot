@@ -1,7 +1,7 @@
 {
   "strategy": "EXPERIMENT_kontrollgruppe",
   "started": "2026-09-29T08:33:20.747785+00:00",
-  "bankroll_sol": 7.529829,
+  "bankroll_sol": 7.727436,
   "positions": {
     "4vEX32B4LLr2hL4tzdgz724rSYXGccAGT8MRSUaNpump": {
       "mint": "4vEX32B4LLr2hL4tzdgz724rSYXGccAGT8MRSUaNpump",
@@ -72,20 +72,20 @@
       "symbol": "MASHUP",
       "opened": 1790845036.7445326,
       "invested_sol": 0.2,
-      "fees_sol": 0.0015,
+      "fees_sol": 0.003,
       "entry_signal_usd": 2.973357307074445e-05,
       "entry_fill_usd": 2.8821078915602776e-05,
       "entry_slippage_pct": -3.07,
       "roundtrip_cost_pct": 2.9,
       "tokens_initial": 817645.283755,
-      "tokens_left": 817645.283755,
+      "tokens_left": 408822.6418775,
       "decimals": 6,
-      "proceeds_sol": 0.0,
-      "peak_usd": 4.789933849842477e-05,
-      "tp1_done": false,
+      "proceeds_sol": 0.197606786,
+      "peak_usd": 5.964297891490453e-05,
+      "tp1_done": true,
       "thesis_breaks": 0,
       "missing_loops": 0,
-      "entry_liquidity": 10573.057520632618,
+      "entry_liquidity": 8579.73994963008,
       "entry_view": {
         "age_h": 1.3348625350660748,
         "mcap": 29733.569479974765,
@@ -128,8 +128,9 @@
       "exit_rule": "Haelfte bei 2x; Rest raus, wenn Holder schrumpfen und Netto-Verkaeufer 2x in Folge, Liquiditaet -30%, -40%, nach 1,5x nicht unter Einstand, nach 2x 30 % vom Hoch (ab 10x 25 %)",
       "mitlaeufer": null,
       "solana_tracker": null,
-      "graduated": false,
-      "liq_low_checks": 0
+      "graduated": true,
+      "liq_low_checks": 0,
+      "graduated_during": true
     }
   },
   "closed": [
@@ -5782,6 +5783,6 @@
   "watch": {},
   "runde": 1,
   "shadow": {},
-  "saved_at": 1790846725.3961077,
+  "saved_at": 1790846802.625106,
   "next_pick": 1790846823.5051262
 }
