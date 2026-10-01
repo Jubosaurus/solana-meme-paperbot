@@ -72,10 +72,12 @@ Dateien: `experimente/<name>/portfolio.json` und `journal.csv`; Kursverläufe in
 Getrennt vom Hauptbot: eigenes Programm `copy_bot.py`, eigener Workflow `copy_runner.yml`, eigene Dateien in `copy/`, eigener Discord-Kanal (Secret `DISCORD_WEBHOOK_COPY`). Stürzt der Copy-Bot ab, läuft der Hauptbot unverändert weiter.
 
 - **Wallets:** `copy_wallets.txt`, eine Zeile pro Wallet im Format `Name: Adresse`. Austauschen ohne Code-Änderung.
-- **Erkennung:** Helius-WebSocket (`logsSubscribe` je Wallet, im Gratis-Tarif enthalten), danach die vollständige Transaktion (bis Version 1). Abgefragt wird nur, was nach Handel aussieht; reine Transfers nur, wenn eine Position offen ist. Wallets mit mehr als 30 Meldungen pro Minute werden für die Schicht abgemeldet (Flutschutz). Kauf, Verkauf und Überweisung werden an den Salden erkannt, unabhängig von der Börse (Pump.fun, PumpSwap, Raydium, Meteora, Jupiter); Handel gegen USDC wird in SOL umgerechnet.
+- **Erkennung:** Helius-WebSocket (`logsSubscribe` je Wallet, im Gratis-Tarif enthalten), danach die vollständige Transaktion (bis Version 1). Abgefragt wird nur, was nach Handel aussieht; reine Transfers nur, wenn eine Position offen ist. Wallets mit mehr als 30 Meldungen pro Minute, von denen mindestens 80 % fehlschlagen, werden für die Schicht abgemeldet (Flutschutz); über 300 pro Minute immer. Echte Vieltrader wie 922M bleiben angemeldet. Kauf, Verkauf und Überweisung werden an den Salden erkannt, unabhängig von der Börse (Pump.fun, PumpSwap, Raydium, Meteora, Jupiter); Handel gegen USDC wird in SOL umgerechnet.
 - **Konto:** jede Wallet 10 SOL, neue Runde, wenn leer und keine Position offen.
 - **Kauf:** jeder Kauf des Traders ab 0,1 SOL = 0,2 SOL bei uns, auch Nachkäufe. Kleinere Käufe (Tests, Staub) werden ignoriert. Weicht unser Kaufkurs mehr als ±15 % vom Kurs des Traders ab, wird der Kauf blockiert. Kaufmeldungen älter als 60 s werden nie nachgekauft. Alles Ausgelassene steht als AUSGELASSEN mit Grund im Journal.
 - **Verkauf:** derselbe Anteil, den der Trader verkauft, aber gesammelt: Teilverkäufe werden gemerkt (VERKAUF_GEMERKT) und erst ausgeführt, wenn mindestens 20 % der Position zusammenkommen. Steigt der Trader komplett aus oder überweist er die Coins (ÜBERWEISUNG), verkaufen wir sofort alles. Verkäufe sind nie blockiert.
+- **Nachholen:** Der Bot merkt sich pro Wallet, bis wann er lückenlos zugehört hat (`abgedeckt_bis`). Nach Lücken (Schichtwechsel, Verbindungsabbruch, Flutschutz) holt er die verpassten Transaktionen über Helius nach: Verkäufe laufen normal durch, mit dem echten Kurs des Traders (Trader-Vergleich gültig, unser Verkauf als „nachgeholt“ markiert, nicht in der Verzögerungsstatistik); Käufe werden nicht nachgekauft, nur als VERPASST_KAUF dokumentiert. Jede Position merkt sich die verarbeiteten Signaturen, nichts wird doppelt angewendet.
+- **Bestandsabgleich:** beim Schichtstart und dann stündlich prüft der Bot für jede offene Position den tatsächlichen Bestand des Traders auf der Blockchain. Hält er nichts mehr, verkaufen wir alles; hält er mindestens 20 % weniger als bei seinem letzten gesehenen Trade, verkaufen wir denselben Anteil (ABGLEICH). Findet er eine Differenz, versucht er zuerst nachzuholen; nur wenn das nichts findet, verkauft er ohne Trader-Kurs (ABGLEICH, dann kein Trader-Vergleich).
 - **Kein Take-Profit, kein Stop-Loss.** Am regulären Schichtende werden Positionen mit höchstens 1 % Restwert (−99 %) bereinigt.
 - **Prüfungen** des Hauptbots laufen bei jedem Kauf mit und werden gespeichert, entscheiden aber nichts (ohne Solana Tracker).
 - **Gebühren:** unsere Gebühr je Transaktion = die tatsächliche Netzwerkgebühr des Traders für diesen Trade (Grundgebühr, Prioritätsgebühr, Jito-Tip). Bot-Gebühren des Traders (z. B. 1 %) rechnen wir uns nicht an.
@@ -83,8 +85,20 @@ Getrennt vom Hauptbot: eigenes Programm `copy_bot.py`, eigener Workflow `copy_ru
 - **Gespeichert je Trade** (`copy/journal.csv`): Signatur, Zeit, Menge, Preis und Gebühren des Traders (Grundgebühr, Prioritätsgebühr, Jito-Tip, sonstige wie Bot-Gebühren), unser Preis, unsere Gebühr, Verzögerung in Sekunden, Preisabstand in %, Ergebnis. In `copy/konten.json` pro Wallet Konto, offene und geschlossene Positionen, jeweils mit dem Ergebnis des Traders auf demselben Coin.
 - **Schattenpositionen:** Käufe, die an der Preisgrenze scheitern, werden virtuell weiterverfolgt (SCHATTEN_KAUF, SCHATTEN_ENDE im Journal). Ausstieg zum Verkaufskurs des Traders, also leicht optimistisch. Zeigt, ob die Grenze von ±15 % richtig liegt.
 - **Kursverläufe:** etwa jede Minute für alle offenen Positionen und Schattenpositionen in `copy/verlauf/JJJJ-MM-TT.csv`. Damit lassen sich Take-Profit und Stop-Loss pro Trader nachrechnen.
-- **Wallet-Prüfung** in jeder Endmeldung, nach festen Regeln: Bot (Flutschutz oder ≥ 200 Meldungen pro Schicht, ≥ 90 % fehlgeschlagen, kein eigener Trade) → ersetzen; 72 h kein eigener Trade → ersetzen; schlechtes Ergebnis erst ab 30 geschlossenen Positionen bewerten. Der Bot entfernt nichts selbst. Entfernte Wallets werden in `copy_wallets.txt` mit Datum und Grund auskommentiert, ihre Daten bleiben erhalten.
+- **Wallet-Prüfung** in jeder Endmeldung, nach festen Regeln: Bot (Flutschutz oder ≥ 200 Meldungen pro Schicht, ≥ 90 % fehlgeschlagen, kein eigener Trade) → ersetzen; 72 h kein eigener Trade → ersetzen; schlechtes Ergebnis erst ab 30 geschlossenen Positionen und mehr als 1 SOL Verlust bewerten. Der Bot entfernt nichts selbst. Entfernte Wallets werden in `copy_wallets.txt` mit Datum und Grund auskommentiert, ihre Daten bleiben erhalten.
 - **Grenzen der Simulation:** Wir kaufen zum Jupiter-Kurs in dem Moment, in dem wir den Trade sehen. Die Gebühren-Vorteile des Traders lassen sich auf Papier nicht nachbilden; messbar sind Verzögerung und Preisabstand. Beim Kaufbetrag des Traders ist die Miete für ein neues Token-Konto (~0,002 SOL) enthalten.
+
+## Wallet-Scout (eigener Bot, seit 01.10.)
+
+Findet Kandidaten für das Copy Trading und erstellt eine Rangliste. Kauft nichts und ändert keine Wallet-Liste; die Entscheidung trifft der Mensch. Programm `scout_bot.py`, Workflow `scout_runner.yml` (alle 6 Stunden zu Minute 29), Dateien in `scout/`, Meldungen in `DISCORD_WEBHOOK_SCOUT` (sonst im Copy-Kanal).
+
+1. **Gewinner-Coins** aus unseren eigenen Daten der letzten 48 h: Hoch mindestens 3x (Hauptstrategie, Experimente, Kursverläufe inkl. Copy). Bis zu 6 neue Coins pro Lauf.
+2. **Kandidaten:** frühe Käufer dieser Coins (Helius, ohne den ersten Block mit Dev und Bundlern) und, wenn `BIRDEYE_API_KEY` gesetzt ist, die Top-Trader laut Birdeye (35 CUs je Coin; Zähler stoppt bei 28.000 CUs im Monat, Gratis-Tarif 30.000). Bekannte Wallets (aktiv oder auskommentiert) und in den letzten 7 Tagen geprüfte werden übersprungen.
+3. **Stufe 1** (1 Helius-Credit): letzte 1.000 Transaktionen. Raus bei über 50 % fehlgeschlagen, über 300 Transaktionen pro Stunde, über 24 h inaktiv oder unter 20 Transaktionen.
+4. **Stufe 2** (bis zu 15 Wallets pro Lauf, je ~60 Credits): letzte 60 erfolgreiche Transaktionen mit der Logik des Copy-Bots. Kennzahlen: Trades pro Tag, Kaufgröße, Anteil Käufe ab 0,1 SOL, abgeschlossene Coins (≥ 90 % wieder verkauft), Trefferquote, Gewinn, Gewinn ohne die besten Coins (3 ab 12 Coins, sonst 1), Haltedauer, Anteil Mini-Verkäufe, Bot-Gebühren.
+5. **Punkte:** Gewinn ohne die besten Coins + halbe Trefferquote; −1 bei überwiegend Mini-Verkäufen, −1 bei überwiegend Käufen unter 0,1 SOL. Rangliste der Wallets mit positiven Punkten in Discord, alle Ergebnisse in `scout/kandidaten.csv`.
+
+Grenzen: Vergangene Gewinne garantieren keine künftigen; frühe Käufer können Insider sein. Der eigentliche Test bleibt das Copy Trading.
 
 ## Änderungen
 
@@ -113,6 +127,12 @@ Getrennt vom Hauptbot: eigenes Programm `copy_bot.py`, eigener Workflow `copy_ru
 | 30.09. | Copy: Verkäufe gesammelt ab 20 %, reale Gebühren des Traders, Käufe unter 0,1 SOL ignoriert, Preisgrenze ±15 %, Trader-Vergleich nur aufgezeichnet, feinerer Filter, Altersgrenze 60 s | Erste 2 Stunden: 922M verkaufte 156-mal in 2-%-Schritten, Gebühren fraßen den Erlös |
 | 01.10. | Endspurt: Filter umgekehrt auf ≥ 2.000 Trades; Filtermerkmale werden gespeichert | Studienfilter nie erfüllt; viele Trades graduierten häufiger |
 | 01.10. | Copy: Schattenpositionen, Kursverläufe, Wallet-Prüfung; 8NQ3, DTVM, 9EWQ ersetzt durch Cooker, Gake, Jijo | 27 % der Käufe an der Preisgrenze blockiert; TP/SL pro Trader auswertbar machen |
+| 01.10. | Helius: bei 429 bis zu drei weitere Versuche; Hauptbot ~6,5, Copy-Bot ~3 Anfragen/s; Jijo entfernt (Bot) | Beide Bots trieben sich gegenseitig ins Limit, Bundle-Checks fielen öfter aus |
+| 01.10. | Copy: Flutschutz nur bei ≥ 80 % fehlgeschlagenen Meldungen (oder > 300/min); Wallet-Prüfung „Ergebnis“ erst ab 1 SOL Verlust; BGOK entfernt | 922M (echter Vieltrader) wurde abgemeldet, 14 Positionen ohne Verkaufssignale; Putrick mit −0,03 SOL markiert |
+| 01.10. | Copy: Bestandsabgleich beim Start und stündlich (ABGLEICH) | 922M war abgemeldet, 14 Positionen offen, obwohl er teilweise schon verkauft hatte |
+| 01.10. | Copy: verpasste Transaktionen werden nachgeholt (mit echtem Trader-Kurs); Abgleich nur noch als letztes Netz | Hinweis: der Verkaufskurs ist auch bei verpasstem Signal auf der Blockchain abrufbar |
+| 01.10. | Wallet-Scout (Helius, optional Birdeye), alle 6 Stunden, Rangliste | Systematisch neue Wallets für das Copy Trading finden statt manuell |
+| 01.10. | Copy: leere oder unlesbare WebSocket-Nachrichten führen zu Neuverbindung statt Absturz; Sicherheitsnetz für unerwartete Fehler | Copy-Bot stürzte um 14:34 UTC ab (leere Nachricht nach Verbindungsende durch den Server) und stand danach still |
 
 ## Dateien seit 28.09.
 
