@@ -1,8 +1,94 @@
 {
   "strategy": "NARRATIV",
   "started": "2026-09-26T02:46:00.825468+00:00",
-  "bankroll_sol": 10.341848,
-  "positions": {},
+  "bankroll_sol": 10.140348,
+  "positions": {
+    "2dZCcPWh6rNK4266hi8mEuVsrUwx4GVXwVwT69d2pump": {
+      "mint": "2dZCcPWh6rNK4266hi8mEuVsrUwx4GVXwVwT69d2pump",
+      "symbol": "Agentws",
+      "opened": 1790872321.0036702,
+      "invested_sol": 0.2,
+      "fees_sol": 0.0015,
+      "entry_signal_usd": 2.7801154185311017e-05,
+      "entry_fill_usd": 2.832151097857613e-05,
+      "entry_slippage_pct": 1.87,
+      "roundtrip_cost_pct": 2.91,
+      "tokens_initial": 829828.158526,
+      "tokens_left": 829828.158526,
+      "decimals": 6,
+      "proceeds_sol": 0.0,
+      "peak_usd": 2.832151097857613e-05,
+      "tp1_done": false,
+      "thesis_breaks": 0,
+      "missing_loops": 0,
+      "entry_liquidity": 10256.57704979683,
+      "entry_view": {
+        "age_h": 1.9698698828617731,
+        "mcap": 27801.136225575836,
+        "liquidity": 10256.57704979683,
+        "holders": 181,
+        "holder_growth_1h": 15.286624203821656,
+        "holder_growth_5m": 1.1173184357541899,
+        "net_buyers_5m": 10,
+        "organic_buyers_5m": 3,
+        "organic_score": 47.622640038938066,
+        "price_change_1h": 9.132592251901356,
+        "price_change_5m": 5.93902452527912,
+        "buys_5m": 10,
+        "sells_5m": 12,
+        "traders_5m": 24,
+        "traders_1h": 212,
+        "buy_vol_5m": 1277.600929944758,
+        "sell_vol_5m": 935.8075397406526,
+        "buy_vol_1h": 14655.716633529692,
+        "sell_vol_1h": 14352.697144867281,
+        "organic_buy_vol_1h": 888.8565114970884,
+        "top_holders_pct": 25.283510443857555,
+        "dev_balance_pct": 1.0000006460072363e-13,
+        "dev_mints": 1,
+        "launchpad": "pump.fun",
+        "graduated": false,
+        "social": false,
+        "quelle": "organic1h+organic5m",
+        "trades_24h": 2064,
+        "organic_label": "medium",
+        "buy_organic_vol_5m": 74.14574043134908,
+        "hour_utc": 16
+      },
+      "bundle": {
+        "quelle": "block0",
+        "slot": 452315736,
+        "block0_wallets": 3,
+        "block0_supply_pct": 9.97,
+        "block0_still_held_pct": 0.0,
+        "block0_exited": 3,
+        "early_tx_slot1_2": 0,
+        "bundle_holding_pct": 0.0,
+        "gebuendelt": false,
+        "rugcheck_insider_pct": 0
+      },
+      "phase": "heiss",
+      "thesis": "Story verbreitet sich: Holder +15%/h, 10 Netto-Kaeufer 5m, 3 organisch; Block 0: 3 Kaeufer, 10.0% gekauft, 0.0% noch gehalten; Dev-Coins 1",
+      "exit_rule": "Haelfte bei 2x; Rest raus, wenn Holder schrumpfen und Netto-Verkaeufer 2x in Folge, Liquiditaet -30%, -40%, nach 1,5x nicht unter Einstand, nach 2x 30 % vom Hoch (ab 10x 25 %)",
+      "mitlaeufer": null,
+      "solana_tracker": {
+        "score": 10,
+        "rugged": false,
+        "snipers_pct": 4.53,
+        "insiders_pct": 0,
+        "bundlers_pct": 9.6903,
+        "top10_pct": 25.283500000000004,
+        "risiken": [
+          "Bonding curve not complete",
+          "Top 10 Holders",
+          "High Bundler Count",
+          "Bundler Holdings"
+        ]
+      },
+      "graduated": false,
+      "liq_low_checks": 0
+    }
+  },
   "closed": [
     {
       "symbol": "SHOGGOTH",
@@ -3829,7 +3915,8 @@
     "9GW1GMaVeV41yiYYzfgQdnEf8ocGFenX8AsgvhWEARLY": 1790833795.4269953,
     "82wr8yv9QK44JrjbS2kU8V7TdmdvwkBHLDDtfKdupump": 1790857971.564286,
     "nL4ky1BFjvEs4LcZhk5ZqtcTSpyPxDNGtbGJuLuthaw": 1790862521.8830955,
-    "4ZjwdUJTNt5Mbjw95cG4TtoaVPZE64xdDaQ9zdyJNMnS": 1790869863.1996787
+    "4ZjwdUJTNt5Mbjw95cG4TtoaVPZE64xdDaQ9zdyJNMnS": 1790869863.1996787,
+    "2dZCcPWh6rNK4266hi8mEuVsrUwx4GVXwVwT69d2pump": 1790872321.004298
   },
   "watch": {
     "82wr8yv9QK44JrjbS2kU8V7TdmdvwkBHLDDtfKdupump": {
@@ -3860,7 +3947,7 @@
       "until": 1790892523.4798703
     }
   },
-  "saved_at": 1790872229.3949196,
+  "saved_at": 1790872321.4560215,
   "shadow": {
     "D5m3XvuXPj4znuJBNR1z84xbneFp2BXHsWEVoL9DdeTL": {
       "symbol": "QCAT",
@@ -4153,6 +4240,6 @@
   },
   "st_usage": {
     "date": "2026-10-01",
-    "count": 5
+    "count": 6
   }
 }
