@@ -1,7 +1,7 @@
 {
   "strategy": "EXPERIMENT_endspurt_ohne_filter",
   "started": "2026-09-30T09:53:19.214700+00:00",
-  "bankroll_sol": 8.534836,
+  "bankroll_sol": 8.333336,
   "positions": {
     "6zzzG49KX5nksnqfogs31dwoMYSHaJXkropKbv1QZVga": {
       "mint": "6zzzG49KX5nksnqfogs31dwoMYSHaJXkropKbv1QZVga",
@@ -17,7 +17,7 @@
       "tokens_left": 635816.486697,
       "decimals": 6,
       "proceeds_sol": 0.0,
-      "peak_usd": 3.70948937641641e-05,
+      "peak_usd": 4.0862246010320794e-05,
       "tp1_done": false,
       "thesis_breaks": 0,
       "missing_loops": 0,
@@ -68,6 +68,72 @@
       "liq_low_checks": 0,
       "exit_mode": "endspurt",
       "entry_vsol": 100.52
+    },
+    "EqZwBqyN483N1yJocyfNEVSWTDvp93UnywAEjNgJUKCx": {
+      "mint": "EqZwBqyN483N1yJocyfNEVSWTDvp93UnywAEjNgJUKCx",
+      "symbol": "OpenSI",
+      "opened": 1790852482.3601165,
+      "invested_sol": 0.2,
+      "fees_sol": 0.0015,
+      "entry_signal_usd": 3.921203319944387e-05,
+      "entry_fill_usd": 3.8306325724158646e-05,
+      "entry_slippage_pct": -2.31,
+      "roundtrip_cost_pct": 4.99,
+      "tokens_initial": 615565.085126,
+      "tokens_left": 615565.085126,
+      "decimals": 6,
+      "proceeds_sol": 0.0,
+      "peak_usd": 3.8306325724158646e-05,
+      "tp1_done": false,
+      "thesis_breaks": 0,
+      "missing_loops": 0,
+      "entry_liquidity": 12334.472002116676,
+      "entry_view": {
+        "age_h": 0.12314259694682227,
+        "mcap": 39212.03319944352,
+        "liquidity": 12334.472002116676,
+        "holders": 371,
+        "holder_growth_1h": 991.1764705882354,
+        "holder_growth_5m": 508.1967213114754,
+        "net_buyers_5m": 282,
+        "organic_buyers_5m": 0,
+        "organic_score": 0.0,
+        "price_change_1h": 578.6936360686528,
+        "price_change_5m": 447.07126159481874,
+        "buys_5m": 652,
+        "sells_5m": 467,
+        "traders_5m": 445,
+        "traders_1h": 617,
+        "buy_vol_5m": 24436.196480704202,
+        "sell_vol_5m": 17764.28088524526,
+        "buy_vol_1h": 41558.52954079243,
+        "sell_vol_1h": 32988.784520404886,
+        "organic_buy_vol_1h": 1406.9769882772694,
+        "top_holders_pct": 23.760430280643412,
+        "dev_balance_pct": 0.0,
+        "dev_mints": 4565,
+        "launchpad": "pump.fun",
+        "graduated": false,
+        "social": true,
+        "quelle": "traded1h+traded5m+trend1h+trend5m",
+        "trades_24h": 1774,
+        "organic_label": "low",
+        "buy_organic_vol_5m": 1045.239206083972,
+        "hour_utc": 11
+      },
+      "bundle": {
+        "quelle": "experiment",
+        "text": "Endspurt: Kurve bei 103 von 115 vSol (86% Fortschritt), 1774 Trades, organisch low"
+      },
+      "phase": "ruhig",
+      "thesis": "Story verbreitet sich: Holder +991%/h, 282 Netto-Kaeufer 5m, 0 organisch; Endspurt: Kurve bei 103 von 115 vSol (86% Fortschritt), 1774 Trades, organisch low; Dev-Coins 4565",
+      "exit_rule": "Haelfte bei 2x; Rest raus, wenn Holder schrumpfen und Netto-Verkaeufer 2x in Folge, Liquiditaet -30%, -40%, nach 1,5x nicht unter Einstand, nach 2x 30 % vom Hoch (ab 10x 25 %)",
+      "mitlaeufer": null,
+      "solana_tracker": null,
+      "graduated": false,
+      "liq_low_checks": 0,
+      "exit_mode": "endspurt",
+      "entry_vsol": 103.47
     }
   },
   "closed": [
@@ -5274,7 +5340,8 @@
     "2B2jRuauv1W3f3g1wRgjoZ9eZWfeiCcBfNZZ97Twpump": 1790849054.6826572,
     "4Bh9GNYLWKsX9HHNoJXd13QHJJB21Mj4Nfe73AP6pump": 1790849994.4495575,
     "6pX9txbsqfG73o91BHpJq1JxM1gZyn5XgtbXVfHMpump": 1790851458.1294937,
-    "6zzzG49KX5nksnqfogs31dwoMYSHaJXkropKbv1QZVga": 1790852289.0120609
+    "6zzzG49KX5nksnqfogs31dwoMYSHaJXkropKbv1QZVga": 1790852289.0120609,
+    "EqZwBqyN483N1yJocyfNEVSWTDvp93UnywAEjNgJUKCx": 1790852482.3607244
   },
   "watch": {
     "53pf3BAskUqpGkU8S6LUc5Q1eVbx6sq6m8uJvKfSpump": {
@@ -5415,7 +5482,7 @@
   },
   "runde": 1,
   "shadow": {},
-  "saved_at": 1790852397.303125,
+  "saved_at": 1790852488.3132586,
   "dev_day": {
     "date": "2026-10-01",
     "devs": [
@@ -5457,7 +5524,8 @@
       "GT5au36AvFTxc4yfRHh1dMWkLtsxDRHz2VW5MmvcKjM7",
       "DdXFX8nqSqqCEPgbXDu4VYeD2xj2BiSPrPnsFSLiDVM2",
       "CsbE3DhBfNHzyWa7tNHGT1o9naE2Zv2rVcV4efXaamDx",
-      "WnBVqVTaiJk5hNbcwbHiffRVnMdf1aaxNU5JkSpvGub"
+      "WnBVqVTaiJk5hNbcwbHiffRVnMdf1aaxNU5JkSpvGub",
+      "AufH68UFBGSVVRL9D7u5W6NySCrukL4fWfSRTxDcJC6u"
     ]
   }
 }
