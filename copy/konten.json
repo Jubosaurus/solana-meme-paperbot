@@ -1653,7 +1653,7 @@
   },
   "HEBO": {
    "adresse": "HEBov96RdNZC7vrH9taLXwJ3b7MTHBemSee8nuvwDz3P",
-   "bankroll_sol": 7.918429006,
+   "bankroll_sol": 8.060467345000001,
    "runde": 1,
    "positionen": {
     "FcZcFjfNPJR9rycZS1FwkiEgQTW7ZWRjdSaBdJ6M9ha6": {
@@ -1755,27 +1755,6 @@
      "behalten": 1.0,
      "gemerkt": 0,
      "letzte_gebuehr": 0.0050049989999999996
-    },
-    "6VyyQ73u9i8QvdPKXQfgCrX9YuAZB95Gud89haFUpump": {
-     "mint": "6VyyQ73u9i8QvdPKXQfgCrX9YuAZB95Gud89haFUpump",
-     "symbol": "Jane",
-     "decimals": 6,
-     "tokens_raw": 1744970424606,
-     "invested_sol": 0.2,
-     "fees_sol": 0.001005,
-     "proceeds_sol": 0.0,
-     "opened": 1790860811.1259918,
-     "kaeufe": 1,
-     "verkaeufe": 0,
-     "trader_ausgegeben_sol": 0.50401384,
-     "trader_erhalten_sol": 0.0,
-     "runde": 1,
-     "vergleich_alt": false,
-     "trader_tokens_aufgezeichnet": 4410665.789299,
-     "behalten": 1.0,
-     "gemerkt": 0,
-     "tokens_gekauft_raw": 1744970424606,
-     "letzte_gebuehr": 0.001005
     }
    },
    "geschlossen": [
@@ -2335,30 +2314,38 @@
      "haltedauer_h": 0.01,
      "trader_pnl_sol": -0.029727,
      "trader_pnl_pct": -17.75
-    }
-   ],
-   "gestartet": "2026-09-30T09:59:09.362488+00:00",
-   "schatten": {
-    "6VyyQ73u9i8QvdPKXQfgCrX9YuAZB95Gud89haFUpump": {
+    },
+    {
      "mint": "6VyyQ73u9i8QvdPKXQfgCrX9YuAZB95Gud89haFUpump",
      "symbol": "Jane",
      "decimals": 6,
-     "tokens": 1293288.497049,
+     "tokens_raw": 0,
      "invested_sol": 0.2,
-     "erloes_sol": 0.0,
-     "behalten": 1.0,
-     "opened": 1790860829.2239165,
+     "fees_sol": 0.00201,
+     "proceeds_sol": 0.143043339,
+     "opened": 1790860811.1259918,
      "kaeufe": 1,
-     "preisabstand_pct": [
-      29.98
-     ],
-     "trader_ausgegeben_sol": 0.1675,
-     "trader_erhalten_sol": 0.0,
-     "trader_tokens_aufgezeichnet": 1407871.85357,
+     "verkaeufe": 1,
+     "trader_ausgegeben_sol": 0.50401384,
+     "trader_erhalten_sol": 0.4104681236855668,
      "runde": 1,
-     "letzter_preis_sol": 1.508105382595893e-07
+     "vergleich_alt": false,
+     "trader_tokens_aufgezeichnet": 0.0,
+     "behalten": 1.0,
+     "gemerkt": 0,
+     "tokens_gekauft_raw": 1744970424606,
+     "letzte_gebuehr": 0.001005,
+     "pnl_sol": -0.058967,
+     "pnl_pct": -29.48,
+     "grund": "VERKAUF",
+     "geschlossen": "2026-10-01T13:21:56.989581+00:00",
+     "haltedauer_h": 0.03,
+     "trader_pnl_sol": -0.093546,
+     "trader_pnl_pct": -18.56
     }
-   },
+   ],
+   "gestartet": "2026-09-30T09:59:09.362488+00:00",
+   "schatten": {},
    "schatten_geschlossen": [
     {
      "mint": "AQzXX96tWaXJD6eamyxv3F8raTfjPhr6aF6hA646pump",
@@ -2384,9 +2371,34 @@
      "geschlossen": "2026-10-01T13:20:50.826105+00:00",
      "haltedauer_h": 0.01,
      "trader_pnl_pct": -12.04
+    },
+    {
+     "mint": "6VyyQ73u9i8QvdPKXQfgCrX9YuAZB95Gud89haFUpump",
+     "symbol": "Jane",
+     "decimals": 6,
+     "tokens": 1293288.497049,
+     "invested_sol": 0.2,
+     "erloes_sol": 0.12035681870428,
+     "behalten": 0.0,
+     "opened": 1790860829.2239165,
+     "kaeufe": 1,
+     "preisabstand_pct": [
+      29.98
+     ],
+     "trader_ausgegeben_sol": 0.1675,
+     "trader_erhalten_sol": 0.1310202463144332,
+     "trader_tokens_aufgezeichnet": 0.0,
+     "runde": 1,
+     "letzter_preis_sol": 1.508105382595893e-07,
+     "pnl_sol": -0.079643,
+     "pnl_pct": -39.82,
+     "grund": "TRADER_AUSSTIEG",
+     "geschlossen": "2026-10-01T13:21:56.976801+00:00",
+     "haltedauer_h": 0.02,
+     "trader_pnl_pct": -21.78
     }
    ],
-   "letzter_trade": 1790860849
+   "letzter_trade": 1790860916
   },
   "Troupe": {
    "adresse": "AtqZAYh4aKM3c4ay5L4ZE9WQvCi9hE3k65WbcWidr37D",
@@ -5193,12 +5205,12 @@
      "kaeufe": 18,
      "verkaeufe": 18,
      "trader_ausgegeben_sol": 79.579283298,
-     "trader_erhalten_sol": 57.5096861348223,
+     "trader_erhalten_sol": 57.5829911998223,
      "runde": 1,
      "vergleich_alt": false,
-     "trader_tokens_aufgezeichnet": 4129178.716845893,
-     "behalten": 0.9224794946687443,
-     "gemerkt": 15,
+     "trader_tokens_aufgezeichnet": 4112494.659439893,
+     "behalten": 0.9176023728301419,
+     "gemerkt": 16,
      "tokens_gekauft_raw": 543077504262,
      "letzte_gebuehr": 1.9e-05
     },
@@ -5701,7 +5713,7 @@
      "trader_pnl_pct": 35.8
     }
    ],
-   "letzter_trade": 1790860859
+   "letzter_trade": 1790860929
   },
   "8K1B": {
    "adresse": "8k1BPp8pCxq7RJxxBz3BUxvBjsfjhkHKnhr2WSQABGM9",
@@ -6320,7 +6332,7 @@
      "trader_erhalten_sol": 0.0,
      "trader_tokens_aufgezeichnet": 23659728.115019,
      "runde": 1,
-     "letzter_preis_sol": 1.4492928859501755e-06
+     "letzter_preis_sol": 1.4479958407569483e-06
     }
    },
    "schatten_geschlossen": [],
@@ -6337,5 +6349,5 @@
    "schatten_geschlossen": []
   }
  },
- "saved_at": 1790860891.290764
+ "saved_at": 1790860952.1542826
 }
