@@ -25,6 +25,8 @@ import websocket                        # Paket websocket-client
 
 import bot as core
 
+core.HELIUS_INTERVAL = 0.33   # Copy-Bot hoechstens ~3 Helius-Anfragen/s, damit beide Bots zusammen unter dem Limit bleiben
+
 WALLET_FILE = "copy_wallets.txt"
 COPY_DIR = "copy"
 ACCOUNTS_FILE = os.path.join(COPY_DIR, "konten.json")
@@ -41,7 +43,11 @@ COPY_VERLAUF_DIR = os.path.join("copy", "verlauf")
 WALLET_SILENT_H = 72                    # Wallet-Pruefung: so lange ohne eigenen Trade -> ersetzen
 BOT_MIN_MSGS = 200                      # Wallet-Pruefung: ab so vielen Meldungen pro Schicht ...
 BOT_FAILED_SHARE = 0.9                  # ... und so viel Anteil fehlgeschlagen ohne eigenen Trade -> Bot-Verdacht
-REVIEW_AFTER_CLOSED = 30                # Wallet-Pruefung: Ergebnis erst ab 30 geschlossenen Positionen bewerten
+REVIEW_AFTER_CLOSED = 30                # Wallet-Pruefung: Ergebnis erst ab 30 geschlossenen Positionen bewerten ...
+REVIEW_MIN_LOSS_SOL = 1.0               # ... und nur, wenn mehr als 1 SOL (10 % des Kontos) verloren ist
+RECONCILE_EVERY = 3600                  # Bestandsabgleich offener Positionen: beim Start und dann stuendlich
+BACKFILL_MAX_PAGES = 3                  # Nachholen: hoechstens 3 x 100 Signaturen je Wallet und Luecke
+MAX_SIGS_PER_POS = 60                   # verarbeitete Trader-Signaturen je Position (Schutz vor Doppelverarbeitung)
 CLEANUP_MAX_VALUE_PCT = 1.0             # Schichtende: Positionen mit <= 1 % Restwert (-99 %) bereinigen
 SHIFT_SECONDS = core.SHIFT_DURATION_SECONDS
 PING_EVERY = 30
@@ -49,7 +55,9 @@ PUSH_EVERY = 60
 MIN_SWAP_LAMPORTS = 1_000_000           # unter 0,001 SOL gilt eine Bewegung nicht als Kauf/Verkauf
 BASE_FEE_LAMPORTS = 5000                # Grundgebuehr pro Signatur
 JUP_INTERVAL = 1.6                      # Copy-Bot fragt Jupiter etwas langsamer ab als der Hauptbot
-FLOOD_PER_MIN = 30                      # mehr Meldungen pro Minute -> Wallet fuer diese Schicht abmelden
+FLOOD_PER_MIN = 30                      # ab so vielen Meldungen pro Minute ...
+FLOOD_FAILED_SHARE = 0.8                # ... und so viel Anteil fehlgeschlagen -> Bot, fuer die Schicht abmelden
+FLOOD_HARD_PER_MIN = 300                # ab so vielen Meldungen pro Minute immer abmelden (Schutz des Kontingents)
 CREDITS_PER_100KB = 2                   # Helius: WebSocket-Daten 2 Credits pro 0,1 MB
 SWAP_HINTS = ("buy", "sell", "swap", "route")   # Log-Stichworte fuer Kauf, Verkauf, Tausch
 MAX_TRADE_AGE_S = 60                    # Kaeufe, die aelter sind, werden nie nachgekauft
@@ -71,12 +79,13 @@ JOURNAL_HEADER = [
     "unser_sol", "unsere_tokens", "unser_preis_sol", "unsere_gebuehr_sol", "preisabstand_pct",
     "pnl_sol", "pnl_pct", "hinweis", "pruefungen", "trader_sol_zugeordnet"]
 
-STATS = {"notifications": 0, "bytes": 0, "failed": 0, "no_hint": 0, "fetched": 0, "muted": [],
+STATS = {"notifications": 0, "bytes": 0, "failed": 0, "no_hint": 0, "fetched": 0, "muted": [], "muted_info": {}, "abgleich": 0, "nachgeholt": 0, "verpasst_kauf": 0,
          "trades": {}, "skipped": {}, "reconnects": 0, "parse_errors": 0, "wallet": {}, "pfade": 0,
          "delays": [], "git_ok": 0, "git_fail": 0, "jup_429": 0, "errors": 0, "last_error": ""}
 _jup_last = [0.0]
 _seen = set()
 _rate = {}                              # Wallet -> Zeitpunkte der letzten Meldungen
+_gap = {}                               # Wallet -> Beginn einer Luecke, die noch nachgeholt werden muss
 
 
 class Interrupted(Exception):
@@ -396,6 +405,7 @@ def copy_buy(name, acct, t, sig, now):
         pos["trader_tokens_aufgezeichnet"] = 0.0
     pos.setdefault("behalten", 1.0)
     pos.setdefault("gemerkt", 0)
+    remember_sig(pos, sig)
     pos["tokens_raw"] += raw
     pos["tokens_gekauft_raw"] = pos.get("tokens_gekauft_raw", 0) + raw
     pos["invested_sol"] += BUY_SOL
@@ -403,6 +413,7 @@ def copy_buy(name, acct, t, sig, now):
     pos["kaeufe"] += 1
     pos["trader_ausgegeben_sol"] += t["sol"]
     pos["trader_tokens_aufgezeichnet"] += t["tokens"]
+    pos["trader_bestand_raw"] = t["pre_raw"] + t["delta_raw"]
     pos["letzte_gebuehr"] = fee
     acct["bankroll_sol"] -= BUY_SOL + fee
     count("trades", "KAUF")
@@ -430,7 +441,8 @@ def close_if_empty(name, acct, pos, reason, now):
     if pos["tokens_raw"] > 0:
         return None
     pnl = pos["proceeds_sol"] - pos["invested_sol"] - pos["fees_sol"]
-    no_compare = pos.get("trader_ueberwiesen", False) or pos.get("vergleich_alt", False)
+    no_compare = pos.get("trader_ueberwiesen", False) or pos.get("vergleich_alt", False) \
+        or pos.get("abgleich", False)
     trader_pnl = None if no_compare else pos["trader_erhalten_sol"] - pos["trader_ausgegeben_sol"]
     rec = dict(pos, pnl_sol=round(pnl, 6), pnl_pct=round(pnl / pos["invested_sol"] * 100, 2),
                grund=reason, geschlossen=datetime.now(timezone.utc).isoformat(),
@@ -443,13 +455,24 @@ def close_if_empty(name, acct, pos, reason, now):
     return rec
 
 
-def copy_sell(name, acct, t, sig, now, reason="VERKAUF"):
-    if t["mint"] in acct.get("schatten", {}):
+def remember_sig(pos, sig):
+    sigs = pos.setdefault("sigs", [])
+    sigs.append(sig)
+    del sigs[:-MAX_SIGS_PER_POS]
+
+
+def copy_sell(name, acct, t, sig, now, reason="VERKAUF", nachgeholt=False):
+    sh = acct.get("schatten", {}).get(t["mint"])
+    if sh is not None and sig not in sh.get("sigs", []):
+        remember_sig(sh, sig)
         shadow_sell(name, acct, t, sig, now, reason)
     pos = acct["positionen"].get(t["mint"])
     if not pos:
         count("skipped", "verkauf_ohne_position")
         return
+    if sig in pos.get("sigs", []):
+        return                                   # schon verarbeitet (z. B. live und beim Nachholen gesehen)
+    remember_sig(pos, sig)
     if "trader_tokens_aufgezeichnet" not in pos:
         pos["vergleich_alt"] = True                  # vor dem 30.09.-Umbau eroeffnet: Vergleich unvollstaendig
         pos["trader_tokens_aufgezeichnet"] = 0.0
@@ -469,6 +492,8 @@ def copy_sell(name, acct, t, sig, now, reason="VERKAUF"):
     else:
         pos["trader_ueberwiesen"] = True
 
+    pos["trader_bestand_raw"] = max(0, t["pre_raw"] - abs(t["delta_raw"])) if reason == "VERKAUF" else 0
+
     # Teilverkaeufe sammeln: erst ab 20 % der Position verkaufen, oder sofort beim kompletten Ausstieg
     pos["behalten"] *= (1 - fraction)
     pos["gemerkt"] += 1
@@ -476,6 +501,8 @@ def copy_sell(name, acct, t, sig, now, reason="VERKAUF"):
     full_exit = reason == "UEBERWEISUNG" or fraction >= 0.999 or pos["behalten"] < 0.001
     if not full_exit and to_sell < SELL_BATCH_MIN:
         count("skipped", "verkauf_gemerkt")
+        if nachgeholt:
+            STATS["nachgeholt"] += 1
         journal({"zeit": now_str(), "trader": name, "wallet": acct["adresse"], "aktion": "VERKAUF_GEMERKT",
                  "symbol": pos["symbol"], "mint": t["mint"], "runde": pos["runde"], "trader_anteil": f"{fraction:.4f}",
                  "trader_sol_zugeordnet": f"{attributed:.6f}",
@@ -490,7 +517,7 @@ def copy_sell(name, acct, t, sig, now, reason="VERKAUF"):
     proceeds = out / 1e9
     fee = trade_fee(t)
     delay = our_time - t["block_time"] if t.get("block_time") else None
-    if delay is not None:
+    if delay is not None and not nachgeholt:
         STATS["delays"].append(delay)
     pos["tokens_raw"] -= sell_raw
     pos["proceeds_sol"] += proceeds
@@ -512,13 +539,15 @@ def copy_sell(name, acct, t, sig, now, reason="VERKAUF"):
              "pnl_sol": f"{rec['pnl_sol']:+.6f}" if rec else "", "pnl_pct": f"{rec['pnl_pct']:+.2f}" if rec else "",
              "hinweis": ("Position geschlossen" if rec else f"Teilverkauf {to_sell:.0%}")
                         + (f", gesammelt aus {batch} Verkaeufen des Traders" if batch > 1 else "")
+                        + (f"; nachgeholt, {delay / 60:.0f} min nach dem Trader" if nachgeholt and delay else "")
                         + ("; keine Quote, Wert 0" if sell_raw > 0 and out <= 0 else ""),
              **trader_fields(t, sig)})
     lines = [f"**Trader:** " + (f"steigt aus" if full_exit and reason == "VERKAUF" else
                                  "ueberweist seine Coins" if reason == "UEBERWEISUNG" else
                                  f"hat seit unserem letzten Verkauf {to_sell:.0%} verkauft ({batch} Verkaeufe)"),
              f"**Wir:** {proceeds:.4f} SOL" + (f" zu {our_price:.3g} SOL/Token" if our_price else "")
-             + (f", {delay:.1f} s spaeter" if delay is not None else "")]
+             + (f", {delay:.1f} s spaeter" if delay is not None and not nachgeholt else "")
+             + (f" (nachgeholt, {delay / 60:.0f} min spaeter: Signal war verpasst)" if nachgeholt and delay else "")]
     if rec:
         tp = (f"{rec['trader_pnl_sol']:+.3f} SOL ({rec['trader_pnl_pct']:+.0f}%)" if rec["trader_pnl_pct"] is not None
               else "nicht vergleichbar (" + ("ueberwiesen" if pos.get("trader_ueberwiesen") else
@@ -586,6 +615,109 @@ def shadow_close(name, acct, sh, reason, now):
              "hinweis": f"{reason}; Ausstieg zum Kurs des Traders (Naeherung)"})
 
 
+def backfill(name, acct, since, sol_usd):
+    """Verpasste Transaktionen einer Wallet seit 'since' nachholen, aeltere zuerst.
+    Verkaeufe laufen normal durch (mit echtem Kurs des Traders), Kaeufe werden nur dokumentiert."""
+    sigs, before = [], None
+    for _ in range(BACKFILL_MAX_PAGES):
+        opts = {"limit": 100, "commitment": "confirmed"}   # gleicher Stand wie Live-Meldungen und Bestand
+        if before:
+            opts["before"] = before
+        page = core.rpc("getSignaturesForAddress", [acct["adresse"], opts]) or []
+        reached = False
+        for s in page:
+            if (s.get("blockTime") or 0) < since:
+                reached = True
+                break
+            if s.get("err") is None and s.get("signature"):
+                sigs.append(s["signature"])
+        if reached or len(page) < 100:
+            break
+        before = page[-1].get("signature")
+    for sig in reversed(sigs):
+        handle_signature(name, acct, sig, sol_usd, nachgeholt=True)
+    return len(sigs)
+
+
+def trader_balance_raw(wallet, mint):
+    """Aktueller Bestand des Traders an diesem Coin (alle seine Token-Konten), None wenn unbekannt."""
+    res = core.rpc("getTokenAccountsByOwner", [wallet, {"mint": mint}, {"encoding": "jsonParsed", "commitment": "confirmed"}])
+    if not isinstance(res, dict) or not isinstance(res.get("value"), list):
+        return None                              # unerwartete Antwort: lieber nichts tun als faelschlich verkaufen
+    total = 0
+    for acc in res["value"]:
+        try:
+            total += int(acc["account"]["data"]["parsed"]["info"]["tokenAmount"]["amount"])
+        except (KeyError, TypeError, ValueError):
+            return None
+    return total
+
+
+def reconcile(data, now, sol_usd=None):
+    """Verpasste Verkaeufe nachholen: offene Positionen mit dem tatsaechlichen Bestand des Traders vergleichen.
+    Gilt fuer alle Konten, auch fuer Wallets, die nicht mehr beobachtet werden."""
+    done, backfilled = 0, set()
+    for name, acct in data["wallets"].items():
+        for mint in list(acct["positionen"]):
+            pos = acct["positionen"].get(mint)
+            if pos is None:
+                continue
+            now_raw = trader_balance_raw(acct["adresse"], mint)
+            if now_raw is None:
+                continue
+            last_raw = pos.get("trader_bestand_raw")
+            missed = now_raw == 0 or (last_raw is not None and now_raw < last_raw * (1 - SELL_BATCH_MIN))
+            if missed and name not in backfilled:
+                backfilled.add(name)             # erst versuchen, die Verkaeufe mit echtem Kurs nachzuholen
+                try:
+                    backfill(name, acct, pos["opened"] - 60, sol_usd)
+                except Exception as err:
+                    print(f"[COPY] Nachholen {name}: {str(err)[:100]}")
+                pos = acct["positionen"].get(mint)
+                if pos is None:
+                    continue
+                last_raw = pos.get("trader_bestand_raw")
+            if now_raw == 0:
+                fraction = 1.0
+            elif last_raw is None or now_raw >= last_raw:
+                if last_raw is not None and now_raw > last_raw:
+                    pos["trader_bestand_raw"] = now_raw      # Trader hat zugekauft: nur merken, nicht nachkaufen
+                continue
+            else:
+                fraction = 1 - now_raw / last_raw
+                if fraction < SELL_BATCH_MIN:
+                    continue                                 # kleine Differenz: weiter sammeln
+            sell_raw = pos["tokens_raw"] if fraction >= 0.999 else int(pos["tokens_raw"] * fraction)
+            out = quote_out(mint, core.WSOL_MINT, sell_raw) if sell_raw > 0 else 0
+            proceeds, fee = out / 1e9, (pos.get("letzte_gebuehr", DEFAULT_FEE_SOL) if out > 0 else 0)
+            pos["tokens_raw"] -= sell_raw
+            pos["proceeds_sol"] += proceeds
+            pos["fees_sol"] += fee
+            pos["verkaeufe"] += 1
+            pos["abgleich"] = True
+            pos["trader_bestand_raw"] = now_raw
+            pos["behalten"], pos["gemerkt"] = 1.0, 0
+            acct["bankroll_sol"] += proceeds - fee
+            rec = close_if_empty(name, acct, pos, "ABGLEICH", now)
+            STATS["abgleich"] += 1
+            count("trades", "ABGLEICH")
+            journal({"zeit": now_str(), "trader": name, "wallet": acct["adresse"], "aktion": "ABGLEICH",
+                     "symbol": pos["symbol"], "mint": mint, "runde": pos["runde"], "unser_sol": f"{proceeds:.6f}",
+                     "unsere_gebuehr_sol": f"{fee:.6f}", "trader_anteil": f"{fraction:.4f}",
+                     "pnl_sol": f"{rec['pnl_sol']:+.6f}" if rec else "", "pnl_pct": f"{rec['pnl_pct']:+.2f}" if rec else "",
+                     "hinweis": ("Trader haelt nichts mehr" if now_raw == 0 else
+                                 f"Trader haelt nur noch {now_raw / last_raw:.0%} seines letzten Bestands")
+                                + "; Verkaufssignal verpasst, Verkauf zum aktuellen Kurs"})
+            notify(f"🔄 {name}: Abgleich {pos['symbol']}", [
+                f"Der Trader hat verkauft, ohne dass wir das Signal gesehen haben "
+                f"({'komplett raus' if now_raw == 0 else f'{fraction:.0%} seines Bestands'}).",
+                f"**Wir:** {proceeds:.4f} SOL" + (f" | **Ergebnis:** {rec['pnl_sol']:+.4f} SOL ({rec['pnl_pct']:+.1f}%)"
+                                                   if rec else f" ({fraction:.0%} der Position)"),
+                account_line(acct)], 0x8B5CF6)
+            done += 1
+    return done
+
+
 def log_paths(data, sol_usd, now):
     """Kursverlauf aller offenen Positionen und Schattenpositionen, eine Datei pro Tag in copy/verlauf/."""
     items = [(n, "offen", p) for n, a in data["wallets"].items() for p in a["positionen"].values()] + \
@@ -636,7 +768,8 @@ def wallet_check(data, active, now):
         a, s = data["wallets"][name], STATS["wallet"].get(name, {})
         msgs, failed, trades = s.get("meldungen", 0), s.get("fehlgeschlagen", 0), s.get("trades", 0)
         if name in STATS["muted"]:
-            notes.append(f"🤖 {name}: Bot (Flutschutz ausgeloest) -> ersetzen")
+            per_min, share = STATS["muted_info"].get(name, (0, 1.0))
+            notes.append(f"🤖 {name}: Bot (Flutschutz: {per_min}/min, {share:.0%} fehlgeschlagen) -> ersetzen")
         elif msgs >= BOT_MIN_MSGS and failed / msgs >= BOT_FAILED_SHARE and trades == 0:
             notes.append(f"🤖 {name}: Bot-Verdacht ({msgs} Meldungen, {failed / msgs:.0%} fehlgeschlagen, kein eigener Trade) -> ersetzen")
         last = a.get("letzter_trade") or datetime.fromisoformat(a["gestartet"]).timestamp()
@@ -644,12 +777,12 @@ def wallet_check(data, active, now):
             notes.append(f"💤 {name}: seit {(now - last) / 3600:.0f} h kein eigener Trade -> ersetzen")
         closed = len(a["geschlossen"])
         realized = sum(c["pnl_sol"] for c in a["geschlossen"])
-        if closed >= REVIEW_AFTER_CLOSED and realized < 0:
+        if closed >= REVIEW_AFTER_CLOSED and realized <= -REVIEW_MIN_LOSS_SOL:
             notes.append(f"📉 {name}: {closed} Positionen geschlossen, {realized:+.2f} SOL -> pruefen, ob noch lehrreich")
     return notes
 
 
-def handle_signature(name, acct, sig, sol_usd):
+def handle_signature(name, acct, sig, sol_usd, nachgeholt=False):
     key = (name, sig)
     if key in _seen:
         return
@@ -673,10 +806,17 @@ def handle_signature(name, acct, sig, sol_usd):
     if t["kind"] == "KAUF":
         if t.get("block_time") and now - t["block_time"] > MAX_TRADE_AGE_S:
             count("skipped", "kauf_zu_alt")     # nie Kaeufe nachholen, die schon laenger zurueckliegen
+            if nachgeholt:
+                STATS["verpasst_kauf"] += 1
+                journal({"zeit": now_str(), "trader": name, "wallet": acct["adresse"], "aktion": "VERPASST_KAUF",
+                         "mint": t["mint"], "runde": acct["runde"],
+                         "hinweis": "Kauf des Traders verpasst (Luecke), nur dokumentiert", **trader_fields(t, sig)})
             return
         copy_buy(name, acct, t, sig, now)
     else:
-        copy_sell(name, acct, t, sig, now, t["kind"])
+        if nachgeholt:
+            STATS["nachgeholt"] += 1
+        copy_sell(name, acct, t, sig, now, t["kind"], nachgeholt=nachgeholt)
 
 
 # ================================================================ Bereinigung am Schichtende
@@ -751,9 +891,15 @@ def connect(wallets):
     subs, early, pending, deadline = {}, [], set(range(1, len(wallets) + 1)), time.time() + 20
     while pending and time.time() < deadline:
         try:
-            msg = json.loads(ws.recv())
+            raw = ws.recv()
         except websocket.WebSocketTimeoutException:
             break                               # fehlende Bestaetigungen: mit den bestaetigten weiterarbeiten
+        if not raw:
+            raise websocket.WebSocketConnectionClosedException("Verbindung bei der Anmeldung geschlossen")
+        try:
+            msg = json.loads(raw)
+        except ValueError:
+            continue
         if msg.get("id") in pending:
             pending.discard(msg["id"])
             if "result" in msg:
@@ -810,7 +956,12 @@ def run(probe=False):
     notify("🟢 Copy-Schicht gestartet", [f"{len(wallets)} Wallets, je eigenes Konto mit {START_SOL:.0f} SOL."], 0x10B981)
     ws, subs, last_ping, last_push, last_sol, normal_end = None, {}, time.time(), time.time(), time.time(), False
     last_path = connected_at = time.time()
+    last_reconcile = 0.0                         # erster Abgleich gleich zu Beginn der Schicht
     active = [n for n, _ in wallets]
+    for name in active:                          # Luecke seit der letzten Schicht (oder seit Eroeffnung der Positionen)
+        a = data["wallets"][name]
+        opened = [p["opened"] for p in a["positionen"].values()] + [s["opened"] for s in a.get("schatten", {}).values()]
+        _gap[name] = a.get("abgedeckt_bis") or (min(opened) - 60 if opened else None)
     try:
         while time.time() - started < SHIFT_SECONDS:
             if ws is None:
@@ -821,6 +972,14 @@ def run(probe=False):
                     print(f"[COPY] verbunden, {len(subs)} von {len(wanted)} Wallets angemeldet")
                     for msg in early:
                         process_message(msg, subs, data, sol_usd, ws)
+                    for name, _ in list(subs.values()):   # Luecken nachholen (nur wenn Positionen offen sind)
+                        a = data["wallets"][name]
+                        if _gap.get(name) and (a["positionen"] or a.get("schatten")):
+                            try:
+                                backfill(name, a, _gap[name], sol_usd)
+                            except Exception as err:
+                                print(f"[COPY] Nachholen {name}: {str(err)[:100]}")
+                        _gap[name] = None
                 except Exception as err:
                     STATS["reconnects"] += 1
                     print(f"[COPY] Verbindung fehlgeschlagen: {str(err)[:120]}")
@@ -829,19 +988,35 @@ def run(probe=False):
                     continue
             try:
                 raw = ws.recv()
+                if not raw:                      # leere Nachricht: Server hat die Verbindung geschlossen
+                    raise websocket.WebSocketConnectionClosedException("leere Nachricht vom Server")
                 STATS["bytes"] += len(raw)
-                process_message(json.loads(raw), subs, data, sol_usd, ws)
+                try:
+                    msg = json.loads(raw)
+                except ValueError:
+                    STATS["unlesbar"] = STATS.get("unlesbar", 0) + 1
+                    msg = None
+                if msg is not None:
+                    process_message(msg, subs, data, sol_usd, ws)
             except websocket.WebSocketTimeoutException:
                 pass
             except (websocket.WebSocketConnectionClosedException, ConnectionError, OSError) as err:
                 STATS["reconnects"] += 1
                 print(f"[COPY] Verbindung verloren: {str(err)[:100]}")
+                for name, _ in subs.values():
+                    _gap[name] = _gap.get(name) or time.time()
                 ws = None
                 continue
+            except Exception as err:             # Sicherheitsnetz: nie wegen einer einzelnen Nachricht abstuerzen
+                STATS["errors"] += 1
+                STATS["last_error"] = f"{type(err).__name__}: {str(err)[:150]}"
+                print(f"[COPY] unerwarteter Fehler, laeuft weiter: {STATS['last_error']}")
             now = time.time()
             if ws is not None and len(subs) < len([w for w in wallets if w[0] not in STATS["muted"]]) \
                     and now - connected_at > 300:
                 print("[COPY] nicht alle Wallets angemeldet, neuer Versuch")
+                for name, _ in subs.values():
+                    _gap[name] = _gap.get(name) or time.time()
                 try:
                     ws.close()
                 except Exception:
@@ -856,6 +1031,13 @@ def run(probe=False):
                 last_ping = now
             if now - last_sol > 300:
                 sol_usd, last_sol = core.sol_price() or sol_usd, now
+            if now - last_reconcile > RECONCILE_EVERY:
+                try:
+                    reconcile(data, now, sol_usd)
+                except Exception as err:         # Abgleich darf den Copy-Bot nie stoppen
+                    STATS["errors"] += 1
+                    print(f"[COPY] Abgleich: {str(err)[:120]}")
+                last_reconcile = now
             if now - last_path > PATH_EVERY:
                 try:
                     log_paths(data, sol_usd, now)
@@ -872,6 +1054,10 @@ def run(probe=False):
         print("[COPY] Abbruch-Signal erhalten")
     finally:
         cleaned = cleanup(data) if normal_end else 0
+        end_ts = time.time()
+        for name in active:                      # bis hierher lueckenlos zugehoert (ausser offene Luecken, Abmeldungen)
+            if name not in STATS["muted"]:
+                data["wallets"][name]["abgedeckt_bis"] = _gap.get(name) or end_ts
         save_accounts(data)
         git_push()
         try:
@@ -896,12 +1082,14 @@ def process_message(msg, subs, data, sol_usd, ws=None):
     if notification_value(msg).get("err") is not None:
         w["fehlgeschlagen"] = w.get("fehlgeschlagen", 0) + 1
     window = _rate.setdefault(name, deque())
-    window.append(now)
-    while window and now - window[0] > 60:
+    window.append((now, notification_value(msg).get("err") is not None))
+    while window and now - window[0][0] > 60:
         window.popleft()
     if len(window) > FLOOD_PER_MIN and name not in STATS["muted"]:
-        mute(ws, subs, sub, name, len(window))
-        return
+        failed_share = sum(1 for _, f in window if f) / len(window)
+        if failed_share >= FLOOD_FAILED_SHARE or len(window) > FLOOD_HARD_PER_MIN:
+            mute(ws, subs, sub, name, len(window), failed_share, data)
+            return
     value = notification_value(msg)
     if value.get("err") is not None:
         STATS["failed"] += 1
@@ -923,10 +1111,13 @@ def process_message(msg, subs, data, sol_usd, ws=None):
         print(f"[COPY] Fehler bei {name} {sig[:12]}: {str(err)[:150]}")
 
 
-def mute(ws, subs, sub, name, per_min):
+def mute(ws, subs, sub, name, per_min, failed_share=1.0, data=None):
     """Wallet sendet zu viele Meldungen (meist ein Bot mit vielen fehlschlagenden Transaktionen):
     fuer den Rest der Schicht abmelden, damit das Helius-Kontingent nicht aufgebraucht wird."""
     STATS["muted"].append(name)
+    STATS["muted_info"][name] = (per_min, failed_share)
+    if data is not None:
+        data["wallets"][name]["abgedeckt_bis"] = time.time()   # naechste Schicht holt ab hier nach
     subs.pop(sub, None)
     try:
         if ws is not None:
@@ -935,7 +1126,7 @@ def mute(ws, subs, sub, name, per_min):
     except Exception:
         pass
     notify(f"⚠️ {name} abgemeldet (zu viele Meldungen)", [
-        f"{per_min} Meldungen in der letzten Minute (Grenze {FLOOD_PER_MIN}). Die Wallet wird fuer den Rest "
+        f"{per_min} Meldungen in der letzten Minute, davon {failed_share:.0%} fehlgeschlagen. Die Wallet wird fuer den Rest "
         f"der Schicht nicht mehr beobachtet, damit das Helius-Kontingent nicht aufgebraucht wird.",
         "Vermutlich ein Bot mit sehr vielen, meist fehlschlagenden Transaktionen."], 0xF59E0B)
 
@@ -953,7 +1144,8 @@ def summary(data, dur, cleaned, normal_end, active=None):
         d = sorted(STATS["delays"])
         lines.append(f"**Verzoegerung nach dem Trader:** Median {d[len(d) // 2]:.1f} s, "
                      f"90 % unter {d[int(len(d) * 0.9)]:.1f} s")
-    lines.append(f"**Bereinigt (-99 %):** {cleaned}")
+    lines.append(f"**Bereinigt (-99 %):** {cleaned} | **Nachgeholt:** {STATS['nachgeholt']} Verkaeufe mit Trader-Kurs, "
+                 f"{STATS['verpasst_kauf']} verpasste Kaeufe dokumentiert | **Abgleich ohne Kurs:** {STATS['abgleich']}")
     per_day = credits_used() / max(dur, 1) * 86400
     lines.append(f"**Helius:** {STATS['bytes'] / 1e6:.1f} MB empfangen, {STATS['fetched']} Transaktionen abgefragt, "
                  f"~{credits_used():,.0f} Credits (hochgerechnet ~{per_day * 30:,.0f} im Monat) | "
@@ -976,6 +1168,8 @@ def summary(data, dur, cleaned, normal_end, active=None):
                      f"{sum(c['pnl_sol'] for c in shadows):+.3f} SOL (Naeherung), {open_sh} offen")
     checks = wallet_check(data, active, time.time())
     lines.append("**Wallet-Pruefung:**\n" + ("\n".join(checks) if checks else "alle Wallets unauffaellig"))
+    if STATS.get("unlesbar") or STATS.get("last_error"):
+        lines.append(f"**Unlesbare Nachrichten:** {STATS.get('unlesbar', 0)} | **Letzter Fehler:** {STATS.get('last_error') or '-'}")
     lines.append(f"**Verbindungsabbrueche:** {STATS['reconnects']} | **Auswertungsfehler:** "
                  f"{STATS['parse_errors'] + STATS['errors']} | **Jupiter-Bremse (429):** {STATS['jup_429']} | "
                  f"**GitHub-Sicherung:** {STATS['git_ok']} ok / {STATS['git_fail']} Fehler")
@@ -1022,7 +1216,13 @@ def run_probe(wallets):
                 raw = ws.recv()
             except websocket.WebSocketTimeoutException:
                 continue
-            msg = json.loads(raw)
+            if not raw:
+                print("[COPY PROBE] Verbindung vom Server geschlossen")
+                break
+            try:
+                msg = json.loads(raw)
+            except ValueError:
+                continue
             if msg.get("method") != "logsNotification":
                 continue
             sub = msg["params"]["subscription"]
