@@ -93,7 +93,7 @@ Getrennt vom Hauptbot: eigenes Programm `copy_bot.py`, eigener Workflow `copy_ru
 Findet Kandidaten für das Copy Trading und erstellt eine Rangliste. Kauft nichts und ändert keine Wallet-Liste; die Entscheidung trifft der Mensch. Programm `scout_bot.py`, Workflow `scout_runner.yml` (alle 6 Stunden zu Minute 29), Dateien in `scout/`, Meldungen in `DISCORD_WEBHOOK_SCOUT` (sonst im Copy-Kanal).
 
 1. **Gewinner-Coins** aus unseren eigenen Daten der letzten 48 h: Hoch mindestens 3x (Hauptstrategie, Experimente, Kursverläufe inkl. Copy). Bis zu 6 neue Coins pro Lauf.
-2. **Kandidaten:** frühe Käufer dieser Coins (Helius, ohne den ersten Block mit Dev und Bundlern) und, wenn `BIRDEYE_API_KEY` gesetzt ist, die Top-Trader laut Birdeye (35 CUs je Coin; Zähler stoppt bei 28.000 CUs im Monat, Gratis-Tarif 30.000). Bekannte Wallets (aktiv oder auskommentiert) und in den letzten 7 Tagen geprüfte werden übersprungen.
+2. **Kandidaten:** frühe Käufer dieser Coins (Helius, ohne den ersten Block mit Dev und Bundlern; nur wenn der Start des Coins in 5.000 Signaturen erreichbar ist) und, wenn `BIRDEYE_API_KEY` gesetzt ist, bis zu 5 Top-Trader je Coin laut Birdeye: nur mit realisiertem Gewinn auf dem Coin und ohne Markierung als Bundler, Sniper, Bot, MEV, Insider oder Dev (35 CUs je Coin; Zähler stoppt bei 28.000 CUs im Monat, Gratis-Tarif 30.000). Bekannte Wallets (aktiv oder auskommentiert) und in den letzten 7 Tagen geprüfte werden übersprungen.
 3. **Stufe 1** (1 Helius-Credit): letzte 1.000 Transaktionen. Raus bei über 50 % fehlgeschlagen, über 300 Transaktionen pro Stunde, über 24 h inaktiv oder unter 20 Transaktionen.
 4. **Stufe 2** (bis zu 15 Wallets pro Lauf, je ~60 Credits): letzte 60 erfolgreiche Transaktionen mit der Logik des Copy-Bots. Kennzahlen: Trades pro Tag, Kaufgröße, Anteil Käufe ab 0,1 SOL, abgeschlossene Coins (≥ 90 % wieder verkauft), Trefferquote, Gewinn, Gewinn ohne die besten Coins (3 ab 12 Coins, sonst 1), Haltedauer, Anteil Mini-Verkäufe, Bot-Gebühren.
 5. **Punkte:** Gewinn ohne die besten Coins + halbe Trefferquote; −1 bei überwiegend Mini-Verkäufen, −1 bei überwiegend Käufen unter 0,1 SOL. Rangliste der Wallets mit positiven Punkten in Discord, alle Ergebnisse in `scout/kandidaten.csv`.
@@ -133,6 +133,7 @@ Grenzen: Vergangene Gewinne garantieren keine künftigen; frühe Käufer können
 | 01.10. | Copy: verpasste Transaktionen werden nachgeholt (mit echtem Trader-Kurs); Abgleich nur noch als letztes Netz | Hinweis: der Verkaufskurs ist auch bei verpasstem Signal auf der Blockchain abrufbar |
 | 01.10. | Wallet-Scout (Helius, optional Birdeye), alle 6 Stunden, Rangliste | Systematisch neue Wallets für das Copy Trading finden statt manuell |
 | 01.10. | Copy: leere oder unlesbare WebSocket-Nachrichten führen zu Neuverbindung statt Absturz; Sicherheitsnetz für unerwartete Fehler | Copy-Bot stürzte um 14:34 UTC ab (leere Nachricht nach Verbindungsende durch den Server) und stand danach still |
+| 01.10. | Scout: Birdeye-Kandidaten nur ohne Bundler-/Sniper-/Bot-Markierung und mit Gewinn; frühe Käufer nur bei erreichbarem Coin-Start | Probelauf: Top-Trader nach Volumen waren u. a. Bundler; PARASITE zu aktiv, 30 Seiten ohne frühe Käufer |
 
 ## Dateien seit 28.09.
 
