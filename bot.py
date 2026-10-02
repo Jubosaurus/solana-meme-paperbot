@@ -74,6 +74,7 @@ REQUIRE_SOCIAL_LINK = True              # X, Telegram oder Website vorhanden
 # Tag 7: nicht hinterherjagen
 MAX_MCAP_USD = 3_000_000
 MAX_PRICE_CHANGE_1H = 150.0
+FOMO_MAX_5M_PCT = 30.0                  # Tag 17 (seit 02.10.): kein Kauf nach > 30 % Anstieg in den letzten 5 min
 # Grundsicherung gegen offensichtliche Fallen
 MIN_LIQUIDITY_USD = 5_000
 IMPERSONATION_SYMBOLS = {"SOL", "WSOL", "USDC", "USDT", "BTC", "WBTC", "ETH", "WETH", "JUP"}
@@ -667,6 +668,8 @@ def quick_checks(v):
     copy_of = vamp_copy_of(v)
     if copy_of:
         return "VAMP_KOPIE"                                     # Tag 12
+    if v["price_change_5m"] > FOMO_MAX_5M_PCT:
+        return "FOMO_SPRUNG"                                    # Tag 17: nach einem Sprung kaufen ist FOMO
     return None
 
 
@@ -874,6 +877,8 @@ def near_miss_detail(v, reason, extra=None):
         return f"Block 0: {extra.get('block0_wallets')} Kaeufer, {extra.get('block0_supply_pct')}%"
     if reason == "BUNDLE_CHECK_NICHT_MOEGLICH":
         return "Bundle-Check nicht moeglich"
+    if reason == "FOMO_SPRUNG":                 # Tag 17: alle verfolgen, um die Regel zu pruefen
+        return f"+{v['price_change_5m']:.0f}% in 5 min (Grenze {FOMO_MAX_5M_PCT:.0f})"
     if reason == "KEIN_PLATZ":
         if extra and extra.get("alle_pruefungen"):
             return "alle Pruefungen bestanden, Positionslimit erreicht"
