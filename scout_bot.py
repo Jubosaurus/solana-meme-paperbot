@@ -31,6 +31,7 @@ STATE_FILE = os.path.join(SCOUT_DIR, "status.json")
 CANDIDATES_FILE = os.path.join(SCOUT_DIR, "kandidaten.csv")
 LIST_FILE = os.path.join(SCOUT_DIR, "pruefen.txt")   # Pruefliste: Wallets, die du selbst gefunden hast
 LIST_TX = 150                       # fuer die Pruefliste mehr Transaktionen je Wallet auswerten
+SCORING_VERSION = "2"               # 02.10.: 7 Tage, gehaltene Coins zum Kurs, Reibung nach Haltedauer
 DISCORD_WEBHOOK_SCOUT = (os.environ.get("DISCORD_WEBHOOK_SCOUT") or os.environ.get("DISCORD_WEBHOOK_COPY") or "").strip()
 BIRDEYE_API_KEY = (os.environ.get("BIRDEYE_API_KEY") or "").strip()
 BIRDEYE_BASE = "https://public-api.birdeye.so"
@@ -45,17 +46,23 @@ EARLY_TX = 80                       # so viele fruehe erfolgreiche Transaktionen
 MAX_SIG_PAGES = 5                   # bis zu 5.000 Signaturen zurueck; wird der Start nicht erreicht, Coin ueberspringen
 BAD_TAGS = ("bundl", "snip", "bot", "mev", "insider", "dev", "arb")   # Birdeye-Markierungen, die wir nicht kopieren
 BIRDEYE_PER_COIN = 5                # hoechstens so viele Birdeye-Kandidaten je Coin
-COPY_FRICTION_PCT = 10.0            # gemessene Reibung beim Kopieren je Coin (Einstieg teurer, Ausstieg billiger)
-MIN_CLOSED_COINS = 3                # Rangliste erst ab so vielen abgeschlossenen Coins
+
 STAGE2_PER_RUN = 15
 STAGE2_TX = 60
 RECHECK_DAYS = 7                    # eine Wallet fruehestens nach 7 Tagen erneut pruefen
 
 # Stufe 1: Ausschlussgruende
-MAX_FAILED_SHARE = 0.5
+BOT_FAILED_HARD = 0.8               # ueber 80 % fehlgeschlagen: Bot
+BOT_FAILED_SOFT = 0.5               # ueber 50 % fehlgeschlagen UND ...
+BOT_SOFT_MIN_TX_H = 60              # ... mehr als 60 Transaktionen pro Stunde: Bot
 MAX_TX_PER_HOUR = 300
-MAX_IDLE_H = 24
+MAX_IDLE_H = 24                     # automatische Suche
+LIST_MAX_IDLE_H = 72                # Pruefliste: Trader, die Coins tagelang halten, sind auch mal 2-3 Tage still
 MIN_TX = 20
+WINDOW_DAYS = 7                     # Stufe 2: letzte 7 Tage wie GMGN 7D
+MAX_WINDOW_PAGES = 5
+MIN_COINS = 3
+FRICTION_SHORT, FRICTION_MID, FRICTION_LONG = 10.0, 6.0, 3.0   # Reibung in Prozentpunkten je nach Haltedauer
 
 _birdeye_last = [0.0]
 STATS = {"coins": 0, "kandidaten": 0, "stufe1_raus": {}, "stufe2": 0, "birdeye_cu": 0, "birdeye_fehler": "", "fehler": 0}
@@ -201,29 +208,60 @@ def birdeye_top_traders(mint, state):
 
 # ================================================================ 3./4. Wallets pruefen
 
-def stage1(wallet, now):
+def stage1(wallet, now, max_idle_h=None):
     """Billige Vorpruefung: Fehleranteil, Takt, letzte Aktivitaet. Gibt (Kennzahlen, Grund zum Ausschluss)."""
+    max_idle_h = max_idle_h or MAX_IDLE_H
     sigs = core.rpc("getSignaturesForAddress", [wallet, {"limit": 1000}]) or []
     if len(sigs) < MIN_TX:
-        return {"tx": len(sigs)}, "zu wenig Transaktionen"
+        return {"tx": len(sigs), "_page": sigs}, "zu wenig Transaktionen"
     times = [s["blockTime"] for s in sigs if s.get("blockTime")]
     failed = sum(1 for s in sigs if s.get("err") is not None) / len(sigs)
     span_h = max((max(times) - min(times)) / 3600, 1 / 60) if times else 0
     per_h = len(sigs) / span_h if span_h else 0
     idle_h = (now - max(times)) / 3600 if times else 999
     m = {"tx": len(sigs), "fehlgeschlagen": round(failed, 3), "tx_pro_h": round(per_h, 1), "inaktiv_h": round(idle_h, 1),
-         "sigs": [s["signature"] for s in sigs if s.get("err") is None]}
-    if failed > MAX_FAILED_SHARE:
+         "_page": sigs}
+    # Bot: fast nur Fehlschlaege, oder viele Fehlschlaege bei hohem Takt. Menschen mit Trading-Bot und
+    # Wiederholungen haben oft ueber 50 % Fehlschlaege, aber nur wenige Transaktionen pro Stunde (z. B. Eshi).
+    if failed > BOT_FAILED_HARD or (failed > BOT_FAILED_SOFT and per_h > BOT_SOFT_MIN_TX_H):
         return m, "Bot (viele fehlgeschlagene Transaktionen)"
     if per_h > MAX_TX_PER_HOUR:
         return m, "Bot (zu hoher Takt)"
-    if idle_h > MAX_IDLE_H:
-        return m, "still (laenger als 24 h kein Trade)"
+    if idle_h > max_idle_h:
+        return m, f"still (laenger als {max_idle_h:.0f} h kein Trade)"
     return m, None
 
 
+def window_sigs(wallet, first_page, now, max_n):
+    """Erfolgreiche Signaturen der letzten 7 Tage (neueste zuerst), hoechstens max_n."""
+    since = now - WINDOW_DAYS * 86400
+    out, page, pages = [], first_page, 1
+    while page:
+        for s in page:
+            if (s.get("blockTime") or 0) < since:
+                return out[:max_n]
+            if s.get("err") is None and s.get("signature"):
+                out.append(s["signature"])
+        if len(page) < 1000 or pages >= MAX_WINDOW_PAGES or len(out) >= max_n:
+            break
+        page = core.rpc("getSignaturesForAddress", [wallet, {"limit": 1000, "before": page[-1].get("signature")}]) or []
+        pages += 1
+    return out[:max_n]
+
+
+def current_prices_sol(mints, sol_usd):
+    prices = {}
+    mints = list(mints)
+    for i in range(0, len(mints), 100):
+        for tok in cb.jup(f"/tokens/v2/search?query={','.join(mints[i:i + 100])}") or []:
+            if tok.get("id") and sol_usd:
+                prices[tok["id"]] = core.as_float(tok.get("usdPrice")) / sol_usd
+    return prices
+
+
 def stage2(wallet, sigs, sol_usd):
-    """Gruendliche Auswertung der letzten erfolgreichen Transaktionen mit der Logik des Copy-Bots."""
+    """Auswertung der letzten 7 Tage mit der Logik des Copy-Bots. Wie GMGN: noch gehaltene Coins zum aktuellen
+    Kurs bewertet, Rendite auf den gesamten Einsatz. Coins, die vor dem Zeitraum gekauft wurden, zaehlen nicht."""
     trades = []
     for sig in sigs:
         t = cb.parse_trade(cb.fetch_tx(sig), wallet, sol_usd)
@@ -237,14 +275,27 @@ def stage2(wallet, sigs, sol_usd):
                                        "t0": t["block_time"] or 0, "t1": t["block_time"] or 0})
         p["aus" if t["kind"] == "KAUF" else "ein"] += t["sol"]
         p["gekauft" if t["kind"] == "KAUF" else "verkauft"] += t["tokens"]
-        p["t0"] = min(p["t0"], t["block_time"] or p["t0"])
         p["t1"] = max(p["t1"], t["block_time"] or p["t1"])
-    # abgeschlossen: im Zeitraum gekauft und mindestens 90 % davon wieder verkauft (sonst noch offen)
-    closed = [p for p in per.values() if p["aus"] > 0 and p["gekauft"] > 0 and p["verkauft"] >= 0.9 * p["gekauft"]]
-    pnl = sorted((p["ein"] - p["aus"] for p in closed), reverse=True)
-    drop = 3 if len(pnl) >= 12 else 1 if len(pnl) >= 4 else 0   # Gluckstreffer abziehen, aber nicht alles
-    pct = sorted(((p["ein"] / p["aus"] - 1) * 100 for p in closed), reverse=True)
-    pct_rest = pct[drop:]
+    coins = {m: p for m, p in per.items() if p["aus"] > 0}             # im Zeitraum gekauft
+    held = {m for m, p in coins.items() if p["verkauft"] < 0.9 * p["gekauft"]}
+    prices = current_prices_sol(held, sol_usd) if held else {}
+    gains = []
+    for m, p in coins.items():
+        value = max(0.0, p["gekauft"] - p["verkauft"]) * prices.get(m, 0.0)   # ohne Kurs: Rest zaehlt als 0
+        gains.append((p["ein"] + value - p["aus"], p["aus"]))
+    spent = sum(a for _, a in gains)
+    total_gain = sum(g for g, _ in gains)
+    best = max(gains, default=(0.0, 0.0))
+    rest_spent = spent - best[1]
+    closed = [p for m, p in coins.items() if m not in held]
+    hold_closed = median((p["t1"] - p["t0"]) / 60 for p in closed) if closed else None
+    held_share = len(held) / len(coins) if coins else 0
+    if held_share >= 0.5 or (hold_closed is not None and hold_closed >= 60):
+        friction = FRICTION_LONG
+    elif hold_closed is not None and hold_closed < 10:
+        friction = FRICTION_SHORT
+    else:
+        friction = FRICTION_MID
     micro = [t for t in sells if t["pre_raw"] and abs(t["delta_raw"]) / t["pre_raw"] < 0.05]
     times = [t["block_time"] for t in trades if t["block_time"]]
     span_d = max((max(times) - min(times)) / 86400, 1 / 24) if len(times) > 1 else None
@@ -253,26 +304,25 @@ def stage2(wallet, sigs, sol_usd):
         "trades_pro_tag": round(len(trades) / span_d, 1) if span_d else None,
         "kauf_median_sol": round(median(t["sol"] for t in buys), 3) if buys else None,
         "anteil_kaeufe_ab_0_1": round(sum(t["sol"] >= 0.1 for t in buys) / len(buys), 2) if buys else None,
-        "coins_abgeschlossen": len(closed),
-        "trefferquote": round(sum(x > 0 for x in pnl) / len(pnl), 2) if pnl else None,
-        "gewinn_sol": round(sum(pnl), 3) if pnl else None,
-        "gewinn_ohne_beste_sol": round(sum(pnl[drop:]), 3) if pnl else None, "beste_abgezogen": drop,
-        "rendite_median_pct": round(median(pct), 1) if pct else None,
-        "rendite_ohne_beste_pct": round(sum(pct_rest) / len(pct_rest), 1) if pct_rest else None,
-        "haltedauer_median_min": round(median((p["t1"] - p["t0"]) / 60 for p in closed), 1) if closed else None,
+        "coins": len(coins), "coins_abgeschlossen": len(closed), "coins_gehalten": len(held),
+        "trefferquote": round(sum(g > 0 for g, _ in gains) / len(gains), 2) if gains else None,
+        "gewinn_sol": round(total_gain, 3),
+        "rendite_pct": round(total_gain / spent * 100, 1) if spent else None,
+        "rendite_ohne_besten_pct": round((total_gain - best[0]) / rest_spent * 100, 1) if rest_spent > 0 else None,
+        "haltedauer_median_min": round(hold_closed, 1) if hold_closed is not None else None,
+        "reibung_pp": friction,
         "mini_verkaeufe_anteil": round(len(micro) / len(sells), 2) if sells else None,
         "bot_gebuehr_anteil": round(sum(t["other"] > 0.003 * t["sol"] for t in trades) / len(trades), 2) if trades else None,
     }
 
 
 def score(s2):
-    """Erwartete Rendite je Coin fuer UNS: durchschnittliche Rendite des Traders je Coin ohne seine besten
-    Coins, minus die gemessene Reibung beim Kopieren (~10 Prozentpunkte). Vieltrader mit kleinem Vorsprung
-    (z. B. 922M: +1,7 % je Coin) landen so im Minus. Abzuege fuer ueberwiegend Mini-Verkaeufe und Kaeufe
-    unter 0,1 SOL. Erst ab 3 abgeschlossenen Coins bewertbar."""
-    if not s2 or (s2.get("coins_abgeschlossen") or 0) < MIN_CLOSED_COINS or s2.get("rendite_ohne_beste_pct") is None:
+    """Fuer uns erwartete Rendite: Rendite des Traders auf den Einsatz ohne seinen besten Coin, minus die
+    Reibung beim Kopieren (je nach Haltedauer 3 bis 10 Prozentpunkte). Abzuege fuer ueberwiegend
+    Mini-Verkaeufe und Kaeufe unter 0,1 SOL. Erst ab 3 im Zeitraum gekauften Coins bewertbar."""
+    if not s2 or (s2.get("coins") or 0) < MIN_COINS or s2.get("rendite_ohne_besten_pct") is None:
         return None
-    base = s2["rendite_ohne_beste_pct"] - COPY_FRICTION_PCT
+    base = s2["rendite_ohne_besten_pct"] - s2["reibung_pp"]
     if (s2.get("mini_verkaeufe_anteil") or 0) > 0.5:
         base -= 10
     if (s2.get("anteil_kaeufe_ab_0_1") or 0) < 0.5:
@@ -288,7 +338,10 @@ def write_csv(rows):
               "inaktiv_h", "trades", "kaeufe", "verkaeufe", "trades_pro_tag", "kauf_median_sol", "anteil_kaeufe_ab_0_1",
               "coins_abgeschlossen", "trefferquote", "gewinn_sol", "gewinn_ohne_beste_sol", "beste_abgezogen",
               "rendite_median_pct", "rendite_ohne_beste_pct", "haltedauer_median_min",
-              "mini_verkaeufe_anteil", "bot_gebuehr_anteil"]
+              "mini_verkaeufe_anteil", "bot_gebuehr_anteil", "coins", "coins_gehalten", "rendite_pct",
+              "rendite_ohne_besten_pct", "reibung_pp"]
+    if os.path.exists(CANDIDATES_FILE):
+        core.ensure_csv_columns(CANDIDATES_FILE, header)
     new = not os.path.exists(CANDIDATES_FILE)
     with open(CANDIDATES_FILE, "a", newline="", encoding="utf-8") as f:
         w = csv.writer(f)
@@ -349,32 +402,34 @@ def check_list(state, now, sol_usd):
     entries = load_list()
     if not entries:
         return [], []
-    digest = hashlib.sha256(",".join(sorted(a for _, a in entries)).encode()).hexdigest()[:16]
+    # Version der Bewertung im Hash: nach einer Aenderung der Methode wird dieselbe Liste neu geprueft
+    digest = hashlib.sha256((SCORING_VERSION + ":" + ",".join(sorted(a for _, a in entries))).encode()).hexdigest()[:16]
     if state.get("liste_hash") == digest:
         return [], []
     rows, lines = [], []
     for name, w in entries:
         try:
-            m, reason = stage1(w, now)
+            m, reason = stage1(w, now, LIST_MAX_IDLE_H)
             row = {"zeit": cb.now_str(), "wallet": w, "quelle": "liste", "coin": name,
-                   **{k: v for k, v in m.items() if k != "sigs"}}
+                   **{k: v for k, v in m.items() if not k.startswith("_")}}
             if reason:
                 rows.append(dict(row, ergebnis="raus", grund=reason))
-                lines.append((-999, f"❌ **{name}** `{w}`\n   raus: {reason} ({m.get('tx_pro_h')} Tx/h, "
+                lines.append((-999, f"❌ **{name}** `{w}`\n   raus: {reason} ({min(m.get('tx_pro_h') or 0, 9999)} Tx/h, "
                                     f"{(m.get('fehlgeschlagen') or 0):.0%} fehlgeschlagen, {m.get('inaktiv_h')} h inaktiv)"))
                 continue
-            s2 = stage2(w, m["sigs"][:LIST_TX], sol_usd)
+            s2 = stage2(w, window_sigs(w, m["_page"], now, LIST_TX), sol_usd)
             pts = score(s2)
-            rows.append(dict(row, **s2, ergebnis="bewertet" if pts is not None else "zu wenig abgeschlossene Coins",
+            rows.append(dict(row, **s2, ergebnis="bewertet" if pts is not None else "zu wenig Coins im Zeitraum",
                              punkte=pts if pts is not None else ""))
-            detail = (f"{s2['coins_abgeschlossen']} Coins abgeschlossen, Trader Ø {s2.get('rendite_ohne_beste_pct')} % je Coin "
-                      f"(ohne {s2['beste_abgezogen']} beste), Treffer {(s2.get('trefferquote') or 0):.0%}, "
-                      f"Kauf-Median {s2.get('kauf_median_sol')} SOL, {s2.get('trades_pro_tag')} Trades/Tag, "
-                      f"Haltedauer {s2.get('haltedauer_median_min')} min, Mini-Verkaeufe {(s2.get('mini_verkaeufe_anteil') or 0):.0%}")
+            detail = (f"7 Tage: {s2['coins']} Coins ({s2['coins_gehalten']} noch gehalten), Trader {s2.get('rendite_pct')} % "
+                      f"auf den Einsatz, ohne besten Coin {s2.get('rendite_ohne_besten_pct')} %, Treffer "
+                      f"{(s2.get('trefferquote') or 0):.0%}, Kauf-Median {s2.get('kauf_median_sol')} SOL, "
+                      f"{s2.get('trades_pro_tag')} Trades/Tag, Haltedauer {s2.get('haltedauer_median_min')} min, "
+                      f"Reibung {s2['reibung_pp']:.0f} Punkte")
             if pts is None:
-                lines.append((-500, f"❔ **{name}** `{w}`\n   zu wenig abgeschlossene Coins | {detail}"))
+                lines.append((-500, f"❔ **{name}** `{w}`\n   zu wenig Coins im Zeitraum | {detail}"))
             else:
-                lines.append((pts, f"{'✅' if pts > 0 else '➖'} **{name}** `{w}`\n   fuer uns {pts:+.0f} % je Coin | {detail}"))
+                lines.append((pts, f"{'✅' if pts > 0 else '➖'} **{name}** `{w}`\n   fuer uns {pts:+.0f} % | {detail}"))
         except Exception as err:
             STATS["fehler"] += 1
             lines.append((-998, f"⚠️ **{name}**: Fehler bei der Pruefung ({str(err)[:60]})"))
@@ -428,12 +483,12 @@ def run():
             continue
         state["wallets_geprueft"][w] = now
         row = {"zeit": cb.now_str(), "wallet": w, "quelle": found[w][0], "coin": found[w][1],
-               **{k: v for k, v in m.items() if k != "sigs"}}
+               **{k: v for k, v in m.items() if not k.startswith("_")}}
         if reason:
             STATS["stufe1_raus"][reason.split(" (")[0]] = STATS["stufe1_raus"].get(reason.split(" (")[0], 0) + 1
             rows.append(dict(row, ergebnis="raus", grund=reason))
         else:
-            stage2_list.append((m["tx_pro_h"], w, row, m["sigs"][:STAGE2_TX]))
+            stage2_list.append((m["tx_pro_h"], w, row, window_sigs(w, m["_page"], now, STAGE2_TX)))
     ranked = []
     for _, w, row, sigs in sorted(stage2_list)[:STAGE2_PER_RUN]:  # ruhigere Wallets zuerst (eher menschlich)
         try:
@@ -444,7 +499,7 @@ def run():
             continue
         STATS["stufe2"] += 1
         pts = score(s2)
-        r = dict(row, **s2, ergebnis="bewertet" if pts is not None else "zu wenig abgeschlossene Coins",
+        r = dict(row, **s2, ergebnis="bewertet" if pts is not None else "zu wenig Coins im Zeitraum",
                  punkte=pts if pts is not None else "")
         rows.append(r)
         if pts is not None:
@@ -455,8 +510,9 @@ def run():
     if list_lines:
         good = sum(1 for l in list_lines if l.startswith("✅"))
         notify("📋 Wallet-Scout: deine Pruefliste", [
-            f"**{len(list_lines)} Wallets geprueft, {good} fuer uns im Plus** (Rendite je Coin des Traders ohne "
-            f"seine besten Coins, minus {COPY_FRICTION_PCT:.0f} Prozentpunkte Reibung beim Kopieren)"] + list_lines)
+            f"**{len(list_lines)} Wallets geprueft, {good} fuer uns im Plus** (Rendite des Traders der letzten 7 Tage "
+            f"auf den Einsatz, gehaltene Coins zum aktuellen Kurs, ohne seinen besten Coin, minus 3 bis 10 "
+            f"Prozentpunkte Reibung je nach Haltedauer)"] + list_lines)
     lines = [f"**Gewinner-Coins:** {', '.join(f'{s} {m:.1f}x' for _, s, m in coins) or 'keine neuen'}",
              f"**Kandidaten:** {STATS['kandidaten']} neu | **Stufe 1 aussortiert:** {STATS['stufe1_raus'] or 0} | "
              f"**Stufe 2 bewertet:** {STATS['stufe2']}"
@@ -467,16 +523,16 @@ def run():
     if STATS.get("birdeye_eintraege"):
         lines.append(f"**Birdeye Top-Trader:** {STATS['birdeye_eintraege']} gesehen, {STATS.get('birdeye_markiert', 0)} "
                      f"als Bundler/Sniper/Bot markiert, {STATS.get('birdeye_ohne_gewinn', 0)} ohne Gewinn")
-    unrated = sum(1 for r in rows if r.get("ergebnis") == "zu wenig abgeschlossene Coins")
+    unrated = sum(1 for r in rows if r.get("ergebnis") == "zu wenig Coins im Zeitraum")
     if unrated:
-        lines.append(f"**Zu wenig abgeschlossene Coins fuer eine Bewertung:** {unrated}")
+        lines.append(f"**Zu wenig Coins im Zeitraum fuer eine Bewertung:** {unrated}")
     if top:
-        lines.append("**Rangliste** (fuer uns erwartete Rendite je Coin nach Reibung | Treffer | Coins | "
+        lines.append("**Rangliste** (fuer uns erwartete Rendite nach Reibung | Treffer | Coins | "
                      "Kauf-Median | Trades/Tag | Haltedauer):")
         for i, r in enumerate(top, 1):
             lines.append(f"{i}. `{r['wallet']}` ({r['quelle']}, {r['coin']})\n"
-                         f"   {r['punkte']:+.0f} % je Coin (Trader {r['rendite_ohne_beste_pct']:+.0f} %) | "
-                         f"{(r['trefferquote'] or 0):.0%} | {r['coins_abgeschlossen']} | {r['kauf_median_sol']} SOL | "
+                         f"   {r['punkte']:+.0f} % (Trader {r['rendite_pct']:+.0f} %, ohne besten {r['rendite_ohne_besten_pct']:+.0f} %) | "
+                         f"{(r['trefferquote'] or 0):.0%} | {r['coins']} | {r['kauf_median_sol']} SOL | "
                          f"{r['trades_pro_tag']} | {r['haltedauer_median_min']} min")
         lines.append("Eintragen in copy_wallets.txt als `Name: Adresse`.")
     else:
@@ -527,9 +583,9 @@ def probe():
                       f"{'verfuegbar: ' + json.dumps(pnl)[:250] if pnl else 'nicht verfuegbar: ' + STATS['birdeye_fehler']}")
     if buyers:
         m, reason = stage1(buyers[0], time.time())
-        print(f"[SCOUT PROBE] Stufe 1 fuer {buyers[0][:8]}: { {k: v for k, v in m.items() if k != 'sigs'} } -> {reason or 'weiter'}")
+        print(f"[SCOUT PROBE] Stufe 1 fuer {buyers[0][:8]}: { {k: v for k, v in m.items() if not k.startswith('_')} } -> {reason or 'weiter'}")
         if not reason:
-            print(f"[SCOUT PROBE] Stufe 2: {stage2(buyers[0], m['sigs'][:20], sol_usd)}")
+            print(f"[SCOUT PROBE] Stufe 2: {stage2(buyers[0], window_sigs(buyers[0], m['_page'], time.time(), 20), sol_usd)}")
     entries = load_list()
     print(f"[SCOUT PROBE] Pruefliste {LIST_FILE}: {len(entries)} Wallets" + (f", z. B. {entries[:2]}" if entries else ""))
     save_state(state)                                # nur der CU-Zaehler
