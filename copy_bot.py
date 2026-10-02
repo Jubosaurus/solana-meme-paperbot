@@ -373,13 +373,14 @@ def copy_buy(name, acct, t, sig, now):
         return
     fee = trade_fee(t)
     if acct["bankroll_sol"] < BUY_SOL + fee:
-        if not acct["positionen"]:
-            acct["runde"] += 1
-            acct["bankroll_sol"] = START_SOL
-            notify(f"♻️ {name}: Konto aufgebraucht - Neustart", [f"Runde {acct['runde']} beginnt mit 10 SOL."], 0x8B5CF6)
-        else:
-            skip_buy(name, acct, t, sig, "kein_geld", "kein Geld frei")
-            return
+        # Neue Runde, sobald das Geld fuer keinen Kauf mehr reicht, auch wenn noch Positionen offen sind.
+        # Offene Positionen behalten ihre alte Rundennummer; ihre spaeteren Erloese fliessen ins neue Konto.
+        still_open = len(acct["positionen"])
+        acct["runde"] += 1
+        acct["bankroll_sol"] = START_SOL
+        notify(f"♻️ {name}: Konto aufgebraucht - Neustart", [
+            f"Runde {acct['runde']} beginnt mit 10 SOL."
+            + (f" {still_open} Position(en) aus frueheren Runden laufen weiter." if still_open else "")], 0x8B5CF6)
     raw = quote_out(core.WSOL_MINT, t["mint"], int(BUY_SOL * 1e9))
     our_time = time.time()
     if raw <= 0:
