@@ -1,8 +1,73 @@
 {
   "strategy": "EXPERIMENT_zweite_welle",
   "started": "2026-09-29T08:33:20.747566+00:00",
-  "bankroll_sol": 10.019463,
-  "positions": {},
+  "bankroll_sol": 9.817963,
+  "positions": {
+    "F5JiFeueTwg86L6XEdiRfaAZ2FFsiRGfhzA6poXpLYii": {
+      "mint": "F5JiFeueTwg86L6XEdiRfaAZ2FFsiRGfhzA6poXpLYii",
+      "symbol": "TB",
+      "opened": 1790900291.5578768,
+      "invested_sol": 0.2,
+      "fees_sol": 0.0015,
+      "entry_signal_usd": 2.9055665182763467e-05,
+      "entry_fill_usd": 2.9470172339979484e-05,
+      "entry_slippage_pct": 1.43,
+      "roundtrip_cost_pct": 1.11,
+      "tokens_initial": 804978.04312,
+      "tokens_left": 804978.04312,
+      "decimals": 6,
+      "proceeds_sol": 0.0,
+      "peak_usd": 2.9470172339979484e-05,
+      "tp1_done": false,
+      "thesis_breaks": 0,
+      "missing_loops": 0,
+      "entry_liquidity": 7649.106427751926,
+      "entry_view": {
+        "age_h": 1.141198832988739,
+        "mcap": 27860.684039069652,
+        "liquidity": 7649.106427751926,
+        "holders": 106,
+        "holder_growth_1h": 37.66233766233766,
+        "holder_growth_5m": 3.9215686274509802,
+        "net_buyers_5m": 7,
+        "organic_buyers_5m": 0,
+        "organic_score": 43.30188771298789,
+        "price_change_1h": 82.8460626529705,
+        "price_change_5m": 38.72701667531141,
+        "buys_5m": 7,
+        "sells_5m": 1,
+        "traders_5m": 8,
+        "traders_1h": 381,
+        "buy_vol_5m": 1252.7865118573852,
+        "sell_vol_5m": 49.08438521189665,
+        "buy_vol_1h": 44991.04445218436,
+        "sell_vol_1h": 40733.77631792613,
+        "organic_buy_vol_1h": 1316.641987162094,
+        "top_holders_pct": 27.818302301908144,
+        "dev_balance_pct": 0.0,
+        "dev_mints": 1,
+        "launchpad": "met-dbc",
+        "graduated": true,
+        "social": true,
+        "quelle": "zweite_welle",
+        "trades_24h": 1800,
+        "organic_label": "medium",
+        "buy_organic_vol_5m": 0.0,
+        "hour_utc": 0
+      },
+      "bundle": {
+        "quelle": "experiment",
+        "text": "Zweite Welle: zurueck ueber dem Einstieg der Hauptstrategie (NOTBREMSE (-43%))"
+      },
+      "phase": "normal",
+      "thesis": "Story verbreitet sich: Holder +38%/h, 7 Netto-Kaeufer 5m, 0 organisch; Zweite Welle: zurueck ueber dem Einstieg der Hauptstrategie (NOTBREMSE (-43%)); Dev-Coins 1",
+      "exit_rule": "Haelfte bei 2x; Rest raus, wenn Holder schrumpfen und Netto-Verkaeufer 2x in Folge, Liquiditaet -30%, -40%, nach 1,5x nicht unter Einstand, nach 2x 30 % vom Hoch (ab 10x 25 %)",
+      "mitlaeufer": null,
+      "solana_tracker": null,
+      "graduated": true,
+      "liq_low_checks": 0
+    }
+  },
   "closed": [
     {
       "symbol": "dots",
@@ -359,10 +424,11 @@
     "CN5HvBfWPjjdXcbqzj2mTu7JHz9HGAgkE6RSCocypump": 1790804991.6730537,
     "27x37KmyRQJRVrD3cra6iEdpDcME4vPKziDXkb9xpump": 1790829147.6671934,
     "9qUTeFNXFh35YmdtayeniRUr8o31rXYzMK3Jv5Zypump": 1790891062.1253471,
-    "7iBPPti2mh34sRUhtLqRacqbA78GLNNohtMbzHEiccGe": 1790896359.5104578
+    "7iBPPti2mh34sRUhtLqRacqbA78GLNNohtMbzHEiccGe": 1790896359.5104578,
+    "F5JiFeueTwg86L6XEdiRfaAZ2FFsiRGfhzA6poXpLYii": 1790900291.5583913
   },
   "watch": {},
   "runde": 1,
   "shadow": {},
-  "saved_at": 1790900259.941368
+  "saved_at": 1790900334.5651376
 }
