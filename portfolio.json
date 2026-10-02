@@ -1,7 +1,7 @@
 {
   "strategy": "NARRATIV",
   "started": "2026-09-26T02:46:00.825468+00:00",
-  "bankroll_sol": 9.766188,
+  "bankroll_sol": 9.564688,
   "positions": {
     "UgrANGx3JKUyVWiYAbDj6UmhW6xDSmNhyP41apfpump": {
       "mint": "UgrANGx3JKUyVWiYAbDj6UmhW6xDSmNhyP41apfpump",
@@ -73,6 +73,90 @@
       "mitlaeufer": null,
       "solana_tracker": {
         "fehler": "HTTPSConnectionPool(host='data.solanatracker.io', port=443): Read timed out. (re"
+      },
+      "graduated": true,
+      "liq_low_checks": 0
+    },
+    "c17N1z7KdUGeUSYyAzxXPYvBT97B29Jm55xfc4N3YaW": {
+      "mint": "c17N1z7KdUGeUSYyAzxXPYvBT97B29Jm55xfc4N3YaW",
+      "symbol": "JENNYNARRA",
+      "opened": 1790934752.302726,
+      "invested_sol": 0.2,
+      "fees_sol": 0.0015,
+      "entry_signal_usd": 3.155373715026533e-05,
+      "entry_fill_usd": 3.208052842702045e-05,
+      "entry_slippage_pct": 1.67,
+      "roundtrip_cost_pct": 3.03,
+      "tokens_initial": 759342.816158,
+      "tokens_left": 759342.816158,
+      "decimals": 6,
+      "proceeds_sol": 0.0,
+      "peak_usd": 3.208052842702045e-05,
+      "tp1_done": false,
+      "thesis_breaks": 0,
+      "missing_loops": 0,
+      "entry_liquidity": 6126.841690035417,
+      "entry_view": {
+        "age_h": 2.6148449605703354,
+        "mcap": 30428.49553547628,
+        "liquidity": 6126.841690035417,
+        "holders": 217,
+        "holder_growth_1h": 27.647058823529413,
+        "holder_growth_5m": 1.8779342723004695,
+        "net_buyers_5m": 16,
+        "organic_buyers_5m": 3,
+        "organic_score": 48.29007790326265,
+        "price_change_1h": -5.107189804492167,
+        "price_change_5m": 11.355811688327016,
+        "buys_5m": 30,
+        "sells_5m": 29,
+        "traders_5m": 29,
+        "traders_1h": 519,
+        "buy_vol_5m": 1226.3815187306313,
+        "sell_vol_5m": 1149.7518081167882,
+        "buy_vol_1h": 68391.48444140088,
+        "sell_vol_1h": 69396.83858056302,
+        "organic_buy_vol_1h": 3113.088820194649,
+        "top_holders_pct": 31.484639727533388,
+        "dev_balance_pct": 0.04731989780618906,
+        "dev_mints": 3,
+        "launchpad": "pump.fun",
+        "graduated": true,
+        "social": false,
+        "quelle": "organic1h+organic5m+traded1h",
+        "trades_24h": 4151,
+        "organic_label": "medium",
+        "buy_organic_vol_5m": 262.631703117853,
+        "hour_utc": 9
+      },
+      "bundle": {
+        "quelle": "block0",
+        "slot": 452539782,
+        "block0_wallets": 1,
+        "block0_supply_pct": 10.0,
+        "block0_still_held_pct": 0.05,
+        "block0_exited": 1,
+        "early_tx_slot1_2": 8,
+        "bundle_holding_pct": 0.05,
+        "gebuendelt": false,
+        "rugcheck_insider_pct": 0
+      },
+      "phase": "heiss",
+      "thesis": "Story verbreitet sich: Holder +28%/h, 16 Netto-Kaeufer 5m, 3 organisch; Block 0: 1 Kaeufer, 10.0% gekauft, 0.1% noch gehalten; Dev-Coins 3",
+      "exit_rule": "Haelfte bei 2x; Rest raus, wenn Holder schrumpfen und Netto-Verkaeufer 2x in Folge, Liquiditaet -30%, -40%, nach 1,5x nicht unter Einstand, nach 2x 30 % vom Hoch (ab 10x 25 %)",
+      "mitlaeufer": null,
+      "solana_tracker": {
+        "score": 8,
+        "rugged": false,
+        "snipers_pct": 0,
+        "insiders_pct": 0,
+        "bundlers_pct": 3.6685,
+        "top10_pct": 30.361900000000002,
+        "risiken": [
+          "No social media",
+          "Top 10 Holders",
+          "High Bundler Count"
+        ]
       },
       "graduated": true,
       "liq_low_checks": 0
@@ -5290,7 +5374,8 @@
     "DWW2fZ5cBYXJ5qnSf2n2W7GdN5jSuxZ2g6eMj964pump": 1790927347.7627218,
     "13L7Q2svvmy65PCiJE4EF5iv6KYgZKrMsGExsv69Fpke": 1790928892.7368236,
     "CKJ7aBAkXfrHZqmWJmWtyFRginmjQGU4SPpQ8L4apump": 1790930189.2361753,
-    "UgrANGx3JKUyVWiYAbDj6UmhW6xDSmNhyP41apfpump": 1790930594.2362301
+    "UgrANGx3JKUyVWiYAbDj6UmhW6xDSmNhyP41apfpump": 1790930594.2362301,
+    "c17N1z7KdUGeUSYyAzxXPYvBT97B29Jm55xfc4N3YaW": 1790934752.3033633
   },
   "watch": {
     "DWW2fZ5cBYXJ5qnSf2n2W7GdN5jSuxZ2g6eMj964pump": {
@@ -5321,17 +5406,8 @@
       "until": 1790952123.4388628
     }
   },
-  "saved_at": 1790934657.616957,
+  "saved_at": 1790934752.7868168,
   "shadow": {
-    "7XoR4H5FGMtbbYGG5jypAnwsQStpJ8muAQVnotA27ecz": {
-      "symbol": "WWWCAT",
-      "reason": "DEV_VERDAECHTIG",
-      "detail": "Dev 71 Coins (Grenze 50)",
-      "ref_price": 1.782344184156632e-05,
-      "since": 1790913097.748562,
-      "peak_usd": 5.5291054166497916e-05,
-      "until": 1790934697.748562
-    },
     "6tpfCENhKozjtambBEecWoV1V6trzqNgi1AQHkTqpump": {
       "symbol": "KEN",
       "reason": "SCHON_GELAUFEN",
@@ -5862,10 +5938,19 @@
       "since": 1790934422.4261613,
       "peak_usd": 2.8905428987893692e-05,
       "until": 1790956022.4261613
+    },
+    "GAwhcphCqCv5bKHmCiN4VDdNWfbXJL4npmkc8L3Q9S9H": {
+      "symbol": "www",
+      "reason": "STORY_ZU_ALT",
+      "detail": "6.5 h alt (Grenze 6)",
+      "ref_price": 0.0064910165362694104,
+      "since": 1790934733.441858,
+      "peak_usd": 0.0064910165362694104,
+      "until": 1790956333.441858
     }
   },
   "st_usage": {
     "date": "2026-10-02",
-    "count": 38
+    "count": 39
   }
 }
