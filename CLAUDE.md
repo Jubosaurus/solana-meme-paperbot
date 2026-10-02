@@ -1,0 +1,99 @@
+# CLAUDE.md – Übergabe für Claude Code
+
+Paper-Trading-Projekt für Solana-Memecoins. **Es wird kein echtes Geld gehandelt.** Der Betreiber programmiert kaum; er entscheidet über Strategie und Regeln, Claude setzt um, testet und erklärt. Alles Fachliche zur Strategie steht in `STRATEGIE.md` (Regeln, Experimente, Änderungsprotokoll) – vor jeder Änderung lesen.
+
+## Kommunikation mit dem Betreiber
+
+- Deutsch, einfache Sprache, kein Fachjargon ohne Erklärung. Er liest oft am Handy.
+- Zahlen zeigen statt behaupten; Unsicherheit ehrlich benennen; eigene Fehler offen zugeben.
+- Strategie- und Regeländerungen nur nach seiner Zustimmung. Technische Korrekturen (Fehler, Absturzsicherheit) darf Claude vorschlagen und nach Rückfrage umsetzen.
+- Discord-Meldungen, Kommentare, Commit-Nachrichten und Doku auf Deutsch (Code-Kommentare ohne Umlaute wie bisher).
+
+## Aufbau
+
+Drei unabhängige Bots, jeweils eigener GitHub-Actions-Workflow, Schichten von knapp 6 h, Stand wird laufend ins Repository gepusht.
+
+| Bot | Datei | Workflow | Daten |
+|---|---|---|---|
+| Hauptstrategie NARRATIV + 6 Experimente | `bot.py` | `bot_runner.yml` (Kettenstart, Sicherheitsnetz Minute 17) | `portfolio.json`, `journal.csv`, `abgelehnt.csv`, `knapp_abgelehnt.csv`, `marktphase.json`, `verlauf/`, `experimente/<name>/` |
+| Copy Trading | `copy_bot.py` (nutzt `bot.py` als `core`) | `copy_runner.yml` (Kettenstart, Minute 47) | `copy/konten.json`, `copy/journal.csv`, `copy/verlauf/`; Wallets in `copy_wallets.txt` |
+| Wallet-Scout | `scout_bot.py` (nutzt `copy_bot.py`) | `scout_runner.yml` (alle 6 h, Minute 29) | `scout/status.json`, `scout/kandidaten.csv`; Prüfliste `scout/pruefen.txt` |
+
+Experimente (eigene 10-SOL-Konten): zweite_welle, heisse_coins, ohne_limit, kontrollgruppe, endspurt („Endspurt viele Trades“), endspurt_ohne_filter. Details in `STRATEGIE.md`.
+
+Jeder Bot hat `--probe` (Kurztest ohne Handel, Ausgabe für die Kontrolle).
+
+## Goldene Regeln
+
+1. **Vor jeder Änderung `git pull`.** Die Bots pushen etwa jede Minute Daten nach `main` (Commits mit `[skip ci]`).
+2. **Nur Code und Doku committen, nie Daten** (`portfolio.json`, `journal.csv`, `verlauf/`, `experimente/`, `copy/`, `scout/status.json`, `scout/kandidaten.csv`). Ausnahme: `copy_wallets.txt` und `scout/pruefen.txt`, wenn der Betreiber Wallets ändern will.
+3. **Laufende Daten dürfen nie kaputtgehen:** neue Felder mit `setdefault`/`.get`, neue CSV-Spalten nur hinten anhängen (`core.ensure_csv_columns`), alte Positionen/Konten müssen mit neuem Code weiterlaufen.
+4. **Absturzsicherheit:** Ein einzelner Coin, eine Nachricht oder eine API-Antwort darf nie einen Bot stoppen (Fehler abfangen, zählen, in der Endmeldung zeigen). Ein abgestürzter Bot startet wegen des Kettenstarts erst beim Sicherheitsnetz-Lauf neu.
+5. **Testen vor dem Push** (siehe Tests). Bei jeder Änderung an Verkaufsregeln: Gegenprobe, dass die Hauptstrategie auf den aufgezeichneten Verläufen unverändert verkauft.
+6. **Jede Änderung ins Änderungsprotokoll von `STRATEGIE.md`** (Datum, Änderung, Grund). Regeln aus den Videos stehen in der Regeltabelle als „Tag N“.
+7. **Keine Schlüssel im Code oder Log.** Alle Keys sind GitHub-Secrets: `JUPITER_API_KEY`, `HELIUS_API_KEY`, `SOLANA_TRACKER_API_KEY`, `BIRDEYE_API_KEY`, `DISCORD_WEBHOOK_URL`, `DISCORD_WEBHOOK_EXPERIMENTE`, `DISCORD_WEBHOOK_COPY`, `DISCORD_WEBHOOK_SCOUT`.
+8. **Zeiten in UTC.** Der Betreiber lebt in Deutschland (UTC+2); in Antworten beide nennen, wenn es um Uhrzeiten geht.
+
+## Budgets und Grenzen
+
+- **Helius** (Gratis-Tarif, 1 Mio. Credits/Monat): Stand 02.10. rund 520.000/Monat hochgerechnet, davon ~70 % durch Copy-Wallet 922M. Tempo: Hauptbot `HELIUS_INTERVAL = 0.15`, Copy 0.33, Scout 0.5; bei 429 bis zu drei Wiederholungen. WebSockets kosten 2 Credits je 0,1 MB, `transactionSubscribe` ist nicht im Gratis-Tarif (nur `logsSubscribe`).
+- **Jupiter**: ein Key für alle Bots; Hauptbot ~1 Anfrage/s, Copy-Bot 1,6 s Takt mit Wiederholung bei 429.
+- **Birdeye** (Gratis: 30.000 CUs/Monat, 1 Anfrage/s): Top-Trader kosten tatsächlich **25 CUs** (Code rechnet noch vorsichtig mit 35), Zähler stoppt bei 28.000.
+- **Solana Tracker**: höchstens 70 Abfragen/Tag, nur Hauptstrategie, nur Beobachtung.
+- **GitHub Actions**: öffentliches Repository, Minuten kostenlos. Geplante Läufe werden oft verzögert oder verworfen – deshalb Kettenstart.
+
+## Feste Entscheidungen des Betreibers (nicht ohne Rückfrage ändern)
+
+**Hauptstrategie:** Regeln in `STRATEGIE.md`. Zuletzt Tag 17 (02.10.): kein Kauf nach > 30 % Anstieg in 5 min (`FOMO_SPRUNG`), wird als knapp abgelehnt weiterverfolgt.
+
+**Experimente:** Urteil frühestens nach 200 Trades, immer gegen die Kontrollgruppe aus demselben Zeitraum, und nur wenn das Ergebnis auch ohne die 3 besten Trades hält.
+
+**Copy Trading:**
+- Jede Wallet eigenes Konto mit 10 SOL; neue Runde, sobald das Geld für keinen Kauf reicht (auch mit offenen Positionen; diese behalten ihre Rundennummer).
+- Jeder Kauf des Traders ab 0,1 SOL = 0,2 SOL bei uns, auch Nachkäufe. Käufe älter als 60 s nie nachkaufen.
+- Kauf blockiert bei mehr als ±15 % Preisabstand zum Trader (Schattenposition wird verfolgt). Verkäufe nie blockiert.
+- Teilverkäufe gesammelt, ausgeführt ab 20 % oder beim kompletten Ausstieg. Kein Take-Profit, kein Stop-Loss. Schichtende: Positionen mit ≤ 1 % Restwert bereinigen.
+- Gebühr = tatsächliche Netzwerkgebühr des Traders (ohne seine Bot-Gebühr).
+- Verpasste Trades werden nachgeholt (mit echtem Trader-Kurs); stündlicher Bestandsabgleich als letztes Netz.
+- Wallet-Regeln (Bot entscheidet nichts selbst, meldet nur): Bot (Flutschutz: > 30 Meldungen/min und ≥ 80 % fehlgeschlagen, oder > 300/min) → ersetzen; 72 h ohne Trade → ersetzen; nach 30 Positionen und > 1 SOL Verlust → prüfen. Verlierende Trader dürfen für Erkenntnisse bleiben – Entscheidung des Betreibers. Entfernte Wallets in `copy_wallets.txt` mit Datum und Grund auskommentieren, Daten bleiben erhalten.
+
+**Scout:** liefert nur Ranglisten, ändert keine Listen. Bei Änderungen an der Bewertung `SCORING_VERSION` erhöhen (dann wird die Prüfliste neu bewertet).
+
+## Lehren aus Fehlern (nicht wiederholen)
+
+- Hochladen per GitHub-Weboberfläche hat Dateien abgeschnitten (`scout_bot.py`) oder in den falschen Ordner gelegt (`pruefen.txt`). Nach jedem Push prüfen, ob alles vollständig angekommen ist.
+- WebSocket: leere Nachricht = Server hat Verbindung geschlossen → neu verbinden, nicht abstürzen.
+- Helius `getTransaction` braucht `maxSupportedTransactionVersion: 1`.
+- Pump.fun-Coins nutzen Token-2022. Jupiters `firstPool` ist bei Kurven-Coins **nicht** das Bonding-Curve-Konto. Die vSol-Schätzung aus dem Preis (`curve_vsol`) ist durch echte Graduationen bestätigt.
+- Flutschutz nur nach Menge hat den echten Vieltrader 922M abgemeldet → jetzt Menge **und** Fehleranteil.
+- Hoch einer Position startet beim Kaufpreis, nicht beim Signalkurs (Rug „cum“).
+- Konto-Anzeige „Einsatz“ wurde als Guthaben missverstanden → Kontowert = frei + aktueller Wert.
+- Scout hat Trader, die Tage halten, falsch bewertet (nur schnelle Fehlkäufe im Fenster sichtbar) → 7-Tage-Fenster, gehaltene Coins zum Kurs, Reibung nach Haltedauer.
+- Ranglisten (Kolscan, GMGN) schauen zurück und erkennen keine Bots: Kandidaten immer über die Prüfliste prüfen.
+
+## Tests
+
+Bisher wurden Tests nur im Chat mit nachgebauten Daten ausgeführt und sind nicht im Repository. **Erste Aufgabe:** Ordner `tests/` mit pytest aufbauen:
+- Hilfen: `tok()` (Jupiter-Token mit allen Feldern, die `token_view` liest) und Transaktions-Bausteine im Format `jsonParsed` (Kauf, Teilverkauf, Überweisung, USDC, temporäres WSOL, Airdrop, fehlgeschlagen) für `parse_trade`.
+- Netzwerk immer ersetzen (`core.jup_get`, `core.rpc`, `core.SESSION`, `websocket.create_connection`), nie echte APIs in Tests.
+- Wichtige Fälle: Schnellprüfungen inkl. FOMO, Verkaufsregeln, Endspurt-Regeln, Copy-Kauf/-Verkauf/Sammeln/Runde/Schatten/Nachholen/Abgleich/Flutschutz/leere Nachricht, Scout-Stufen und Bewertung, komplette Schicht mit Fake-WebSocket und Git-Push nur der eigenen Dateien.
+- Regressionsprobe: aufgezeichnete Verläufe (`verlauf.csv` im Hauptordner vom 27.09., `verlauf/2026-09-28.csv`, `verlauf/2026-09-29.csv`; Phasen `offen` und `nach_verkauf`) durch `manage_positions` laufen lassen; Ergebnis der Hauptstrategie darf sich durch fremde Änderungen nicht verschieben (Stand 02.10.: +0,068 SOL auf 28 Verläufen, ohne Gebühren).
+
+## Offene Punkte (Stand 02.10.2026)
+
+1. Testsammlung aufbauen (siehe oben).
+2. Copy-Endmeldung je Trader auf Kontowert und Plus/Minus der Runde umstellen und danach sortieren (Konto-Zeile in Einzelmeldungen ist schon umgestellt).
+3. „Endspurt ohne Filter“ erreicht 200 Trades: auswerten, vermutlich beide Endspurt-Experimente beenden (Graduationsquote ~40 %, Hypothese „viele Trades“ nicht bestätigt).
+4. Tag 17 beobachten: Wie liefen die als `FOMO_SPRUNG` abgelehnten Coins (knapp_abgelehnt)?
+5. Scout: `BIRDEYE_CU["top_traders"]` auf 25 senken, sobald die Kosten der PnL-Zusammenfassung bekannt sind; prüfen, ob `/wallet/v2/pnl/summary` im Gratis-Tarif verfügbar ist.
+6. Neue Copy-Wallets (GMGN, eingetragen 02.10.: 3zsr, C7bF, 2FPk, haru, 43Nu, koko, Eshi, 54cb, 42wu, 77n6; dazu Pikalosi, Dior) nach einigen Tagen auswerten: Überstehen Trader mit langen Haltezeiten die Reibung besser?
+7. Helius-Verbrauch beobachten; 922M ist teuer und für uns nicht kopierbar (Betreiber hat entschieden, ihn vorerst zu behalten).
+
+## Tägliche Auswertung (wenn der Betreiber „Auswertung“ sagt)
+
+1. Betrieb: Lücken in `verlauf/` und `copy/journal.csv`, Scout-Läufe, Fehler in den Endmeldungen bzw. Actions-Logs.
+2. Hauptstrategie und Experimente seit der letzten Auswertung und seit Start; Vergleich mit der Kontrollgruppe.
+3. Copy: pro Trader Kontowert, wir gegen Trader (nur aufgezeichnete Trades), Verzögerung, Preisabstand, Schattenpositionen, Wallet-Prüfung.
+4. Scout: Kandidaten und Rangliste.
+5. Helius-Verbrauch erfragen (Dashboard) und mit dem letzten Stand vergleichen.
+6. Kurz zusammenfassen, Änderungen vorschlagen, auf Zustimmung warten.

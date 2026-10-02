@@ -349,10 +349,19 @@ def notify(title, lines, color):
 
 
 def account_line(acct):
-    invested = sum(p["invested_sol"] for p in acct["positionen"].values())
-    return (f"**Konto:** frei {acct['bankroll_sol']:.3f} SOL | {len(acct['positionen'])} offen "
-            f"(Einsatz {invested:.2f} SOL) | Runde {acct['runde']}")
-
+    """Konto-Zeile: frei + aktueller Wert der offenen Positionen = Kontowert. Der Kurs stammt aus dem
+    minuetlichen Kursverlauf; Positionen ohne Kurs (gerade gekauft) zaehlen mit dem noch nicht
+    zurueckgeflossenen Einsatz."""
+    value = 0.0
+    for p in acct["positionen"].values():
+        price = p.get("letzter_preis_sol")
+        if price is not None:
+            value += p["tokens_raw"] / 10 ** p["decimals"] * price
+        else:
+            value += max(0.0, p["invested_sol"] - p["proceeds_sol"])
+    n = len(acct["positionen"])
+    return (f"**Konto:** frei {acct['bankroll_sol']:.3f} SOL | {n} offen, Wert jetzt ~{value:.2f} SOL | "
+            f"**Kontowert ~{acct['bankroll_sol'] + value:.2f} SOL** | Runde {acct['runde']}")
 
 def trade_fee(t):
     """Unsere Gebuehr = die tatsaechliche Netzwerkgebuehr des Traders fuer diesen Trade
@@ -745,6 +754,7 @@ def log_paths(data, sol_usd, now):
                 continue
             price = core.as_float(tok.get("usdPrice")) / sol_usd
             if art == "offen":
+                p["letzter_preis_sol"] = price           # fuer den Kontowert in den Meldungen
                 bought = p.get("tokens_gekauft_raw") or p["tokens_raw"]
                 entry = p["invested_sol"] / (bought / 10 ** p["decimals"]) if bought else 0
                 value = p["tokens_raw"] / 10 ** p["decimals"] * price

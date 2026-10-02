@@ -144,6 +144,7 @@ Grenzen: Vergangene Gewinne garantieren keine künftigen; frühe Käufer können
 | 02.10. | Scout: Prüflisten-Modus (`scout/pruefen.txt`) | Selbst gefundene Wallets aus unserer Sicht als Nachahmer bewerten, bevor sie ins Copy Trading kommen |
 | 02.10. | Scout: Bewertung über 7 Tage inkl. gehaltener Coins, Reibung nach Haltedauer, Bot-Regel mit Takt, 72 h für die Prüfliste | GMGN-Trader halten Tage; der Scout sah nur ihre schnellen Fehlkäufe (Haltedauer 1–2 min statt Tage) |
 | 02.10. | Copy: fomo, Cendol, 8K1B, FKUJ, AFYP, GYYR, ENKM, 9LXM entfernt; Pikalosi, Dior und 10 GMGN-Wallets neu (22 aktiv) | Stille oder klar verlierende Wallets; neue Kandidaten mit langen Haltezeiten live testen |
+| 02.10. | Copy: Konto-Zeile zeigt aktuellen Wert der offenen Positionen und Kontowert statt Einsatz | „Einsatz“ enthielt bereits zurückgeflossene Teilverkäufe; frei + Einsatz wirkte wie 19 SOL bei tatsächlich ~9,8 SOL |
 
 ## Dateien seit 28.09.
 
