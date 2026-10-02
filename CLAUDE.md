@@ -73,16 +73,25 @@ Jeder Bot hat `--probe` (Kurztest ohne Handel, Ausgabe für die Kontrolle).
 
 ## Tests
 
-Bisher wurden Tests nur im Chat mit nachgebauten Daten ausgeführt und sind nicht im Repository. **Erste Aufgabe:** Ordner `tests/` mit pytest aufbauen:
-- Hilfen: `tok()` (Jupiter-Token mit allen Feldern, die `token_view` liest) und Transaktions-Bausteine im Format `jsonParsed` (Kauf, Teilverkauf, Überweisung, USDC, temporäres WSOL, Airdrop, fehlgeschlagen) für `parse_trade`.
-- Netzwerk immer ersetzen (`core.jup_get`, `core.rpc`, `core.SESSION`, `websocket.create_connection`), nie echte APIs in Tests.
-- Wichtige Fälle: Schnellprüfungen inkl. FOMO, Verkaufsregeln, Endspurt-Regeln, Copy-Kauf/-Verkauf/Sammeln/Runde/Schatten/Nachholen/Abgleich/Flutschutz/leere Nachricht, Scout-Stufen und Bewertung, komplette Schicht mit Fake-WebSocket und Git-Push nur der eigenen Dateien.
-- Regressionsprobe: aufgezeichnete Verläufe (`verlauf.csv` im Hauptordner vom 27.09., `verlauf/2026-09-28.csv`, `verlauf/2026-09-29.csv`; Phasen `offen` und `nach_verkauf`) durch `manage_positions` laufen lassen; Ergebnis der Hauptstrategie darf sich durch fremde Änderungen nicht verschieben (Stand 02.10.: +0,068 SOL auf 28 Verläufen, ohne Gebühren).
+**Starten** (im Hauptordner, vor jedem Push):
+
+```
+pip install -r requirements.txt pytest
+python -m pytest
+```
+
+Einzelne Datei: `python -m pytest tests/test_copy_trading.py`, ausführlich mit `-v`. Dauer etwa 15 s, alle Tests müssen grün sein.
+
+Testsammlung in `tests/` (seit 02.10., pytest):
+- `helpers.py`: `tok()` (Jupiter-Token mit allen Feldern, die `token_view` liest; Standard besteht alle Schnellprüfungen), Transaktions-Bausteine im Format `jsonParsed` (`buy_tx`, `sell_tx`, `transfer_tx`, `swap_tx` mit USDC, temporärem und dauerhaftem WSOL, Jito-Tip, Bot-Gebühr, Airdrop, fehlgeschlagen) und `Market` (Fake-Jupiter: Kurse und Quotes).
+- `conftest.py`: Jeder Test läuft in einem leeren Ordner. Netzwerk ist gesperrt (`core.SESSION`, `core.jup_get`, `core.rpc`, `cb.jup`, `websocket.create_connection`; ein Zugriff lässt den Test scheitern), Git und Discord werden nur aufgezeichnet, `time.sleep` wartet nicht. Fixture `clock` für künstliche Zeit.
+- Inhalte: Schnellprüfungen inkl. FOMO, Bundle-Check, Verkaufsregeln, Endspurt und Experimente (`test_bot_*`); `parse_trade` (`test_copy_parse`); Copy-Kauf/-Verkauf/Sammeln/Runde/Schatten/Nachholen/Abgleich/Flutschutz/Bereinigung (`test_copy_trading`); Scout-Stufen, Bewertung, Prüfliste (`test_scout`); komplette Schichten aller drei Bots mit Fake-WebSocket (inkl. leerer Nachricht) und Git-Push nur der eigenen Dateien (`test_schicht`).
+- Regressionsprobe (`test_regression.py`): aufgezeichnete Verläufe (`verlauf.csv` vom 27.09., `verlauf/2026-09-28.csv`, `verlauf/2026-09-29.csv`; Phasen `offen` und `nach_verkauf`) laufen durch `manage_positions`. Festgeschrieben am 02.10.: 33 Verläufe, zusammen −0,021 SOL ohne Gebühren, Ergebnis und Verkaufsgrund je Coin. Die frühere Angabe „+0,068 SOL auf 28 Verläufen“ ließ sich mit diesen Dateien nicht nachbauen (Methode der Chat-Rechnung unbekannt). Ändert sich die Hauptstrategie gewollt, Werte in `EXPECTED` nach Zustimmung des Betreibers neu festschreiben.
 
 ## Offene Punkte (Stand 02.10.2026)
 
-1. Testsammlung aufbauen (siehe oben).
-2. Copy-Endmeldung je Trader auf Kontowert und Plus/Minus der Runde umstellen und danach sortieren (Konto-Zeile in Einzelmeldungen ist schon umgestellt).
+1. Testsammlung: erledigt 02.10. (siehe Tests).
+2. Copy-Endmeldung je Trader auf Kontowert und Plus/Minus der Runde: erledigt 02.10. (sortiert nach Kontowert; Wert offener Positionen aus `open_value`, wie die Konto-Zeile).
 3. „Endspurt ohne Filter“ erreicht 200 Trades: auswerten, vermutlich beide Endspurt-Experimente beenden (Graduationsquote ~40 %, Hypothese „viele Trades“ nicht bestätigt).
 4. Tag 17 beobachten: Wie liefen die als `FOMO_SPRUNG` abgelehnten Coins (knapp_abgelehnt)?
 5. Scout: `BIRDEYE_CU["top_traders"]` auf 25 senken, sobald die Kosten der PnL-Zusammenfassung bekannt sind; prüfen, ob `/wallet/v2/pnl/summary` im Gratis-Tarif verfügbar ist.

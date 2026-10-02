@@ -348,10 +348,9 @@ def notify(title, lines, color):
         core.CTX.update(saved)
 
 
-def account_line(acct):
-    """Konto-Zeile: frei + aktueller Wert der offenen Positionen = Kontowert. Der Kurs stammt aus dem
-    minuetlichen Kursverlauf; Positionen ohne Kurs (gerade gekauft) zaehlen mit dem noch nicht
-    zurueckgeflossenen Einsatz."""
+def open_value(acct):
+    """Aktueller Wert der offenen Positionen. Der Kurs stammt aus dem minuetlichen Kursverlauf;
+    Positionen ohne Kurs (gerade gekauft) zaehlen mit dem noch nicht zurueckgeflossenen Einsatz."""
     value = 0.0
     for p in acct["positionen"].values():
         price = p.get("letzter_preis_sol")
@@ -359,6 +358,12 @@ def account_line(acct):
             value += p["tokens_raw"] / 10 ** p["decimals"] * price
         else:
             value += max(0.0, p["invested_sol"] - p["proceeds_sol"])
+    return value
+
+
+def account_line(acct):
+    """Konto-Zeile: frei + aktueller Wert der offenen Positionen = Kontowert."""
+    value = open_value(acct)
     n = len(acct["positionen"])
     return (f"**Konto:** frei {acct['bankroll_sol']:.3f} SOL | {n} offen, Wert jetzt ~{value:.2f} SOL | "
             f"**Kontowert ~{acct['bankroll_sol'] + value:.2f} SOL** | Runde {acct['runde']}")
@@ -1167,11 +1172,12 @@ def summary(data, dur, cleaned, normal_end, active=None):
     rows = []
     for name in active:
         a = data["wallets"][name]
-        value = a["bankroll_sol"] + sum(p["invested_sol"] for p in a["positionen"].values())
-        realized = sum(c["pnl_sol"] for c in a["geschlossen"])
-        rows.append((realized, f"{name}: frei {a['bankroll_sol']:.2f} SOL, {len(a['positionen'])} offen, "
-                               f"{len(a['geschlossen'])} geschlossen, realisiert {realized:+.3f} SOL, Runde {a['runde']}"))
-    lines.append("**Wallets (realisiert):**\n" + "\n".join(r for _, r in sorted(rows, reverse=True)))
+        total = a["bankroll_sol"] + open_value(a)        # Kontowert wie in den Einzelmeldungen
+        diff = total - START_SOL                         # jede Runde startet mit START_SOL
+        rows.append((total, f"{name}: **~{total:.2f} SOL** ({diff:+.2f} in Runde {a['runde']}) | "
+                            f"{len(a['positionen'])} offen, {len(a['geschlossen'])} geschlossen"))
+    rows.sort(key=lambda r: r[0], reverse=True)
+    lines.append("**Wallets (Kontowert = frei + offene Positionen zum Kurs):**\n" + "\n".join(r for _, r in rows))
     shadows = [c for n in active for c in data["wallets"][n].get("schatten_geschlossen", [])]
     open_sh = sum(len(data["wallets"][n].get("schatten", {})) for n in active)
     if shadows or open_sh:
