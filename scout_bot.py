@@ -11,8 +11,10 @@ Ablauf (alle 6 Stunden):
 import argparse
 import csv
 import glob
+import hashlib
 import json
 import os
+import re
 import time
 from datetime import datetime, timezone
 from statistics import median
@@ -27,6 +29,8 @@ core.HELIUS_INTERVAL = 0.5          # Scout hoechstens ~2 Helius-Anfragen/s, lae
 SCOUT_DIR = "scout"
 STATE_FILE = os.path.join(SCOUT_DIR, "status.json")
 CANDIDATES_FILE = os.path.join(SCOUT_DIR, "kandidaten.csv")
+LIST_FILE = os.path.join(SCOUT_DIR, "pruefen.txt")   # Pruefliste: Wallets, die du selbst gefunden hast
+LIST_TX = 150                       # fuer die Pruefliste mehr Transaktionen je Wallet auswerten
 DISCORD_WEBHOOK_SCOUT = (os.environ.get("DISCORD_WEBHOOK_SCOUT") or os.environ.get("DISCORD_WEBHOOK_COPY") or "").strip()
 BIRDEYE_API_KEY = (os.environ.get("BIRDEYE_API_KEY") or "").strip()
 BIRDEYE_BASE = "https://public-api.birdeye.so"
@@ -41,6 +45,8 @@ EARLY_TX = 80                       # so viele fruehe erfolgreiche Transaktionen
 MAX_SIG_PAGES = 5                   # bis zu 5.000 Signaturen zurueck; wird der Start nicht erreicht, Coin ueberspringen
 BAD_TAGS = ("bundl", "snip", "bot", "mev", "insider", "dev", "arb")   # Birdeye-Markierungen, die wir nicht kopieren
 BIRDEYE_PER_COIN = 5                # hoechstens so viele Birdeye-Kandidaten je Coin
+COPY_FRICTION_PCT = 10.0            # gemessene Reibung beim Kopieren je Coin (Einstieg teurer, Ausstieg billiger)
+MIN_CLOSED_COINS = 3                # Rangliste erst ab so vielen abgeschlossenen Coins
 STAGE2_PER_RUN = 15
 STAGE2_TX = 60
 RECHECK_DAYS = 7                    # eine Wallet fruehestens nach 7 Tagen erneut pruefen
@@ -176,12 +182,19 @@ def birdeye_top_traders(mint, state):
     out = []
     for it in items:
         addr = it.get("owner") or it.get("address") or it.get("wallet")
-        tags = " ".join(str(t).lower() for t in (it.get("tags") or []))
-        if not addr or any(b in tags for b in BAD_TAGS):
-            STATS["birdeye_markiert"] = STATS.get("birdeye_markiert", 0) + (1 if addr else 0)
+        if not addr:
             continue
-        if core.as_float(it.get("realizedPnl")) <= 0:
-            continue                                # nur Trader, die auf diesem Coin Gewinn realisiert haben
+        STATS["birdeye_eintraege"] = STATS.get("birdeye_eintraege", 0) + 1
+        tags = " ".join(str(t).lower() for t in (it.get("tags") or []))
+        if any(b in tags for b in BAD_TAGS):
+            STATS["birdeye_markiert"] = STATS.get("birdeye_markiert", 0) + 1
+            continue
+        total = it.get("totalPnl")
+        total = core.as_float(total) if total is not None else \
+            core.as_float(it.get("realizedPnl")) + core.as_float(it.get("unrealizedPnl"))
+        if total <= 0:                              # Gesamtgewinn inkl. noch gehaltener Coins
+            STATS["birdeye_ohne_gewinn"] = STATS.get("birdeye_ohne_gewinn", 0) + 1
+            continue
         out.append(addr)
     return out[:BIRDEYE_PER_COIN]
 
@@ -199,7 +212,7 @@ def stage1(wallet, now):
     per_h = len(sigs) / span_h if span_h else 0
     idle_h = (now - max(times)) / 3600 if times else 999
     m = {"tx": len(sigs), "fehlgeschlagen": round(failed, 3), "tx_pro_h": round(per_h, 1), "inaktiv_h": round(idle_h, 1),
-         "sigs": [s["signature"] for s in sigs if s.get("err") is None][:STAGE2_TX]}
+         "sigs": [s["signature"] for s in sigs if s.get("err") is None]}
     if failed > MAX_FAILED_SHARE:
         return m, "Bot (viele fehlgeschlagene Transaktionen)"
     if per_h > MAX_TX_PER_HOUR:
@@ -230,6 +243,8 @@ def stage2(wallet, sigs, sol_usd):
     closed = [p for p in per.values() if p["aus"] > 0 and p["gekauft"] > 0 and p["verkauft"] >= 0.9 * p["gekauft"]]
     pnl = sorted((p["ein"] - p["aus"] for p in closed), reverse=True)
     drop = 3 if len(pnl) >= 12 else 1 if len(pnl) >= 4 else 0   # Gluckstreffer abziehen, aber nicht alles
+    pct = sorted(((p["ein"] / p["aus"] - 1) * 100 for p in closed), reverse=True)
+    pct_rest = pct[drop:]
     micro = [t for t in sells if t["pre_raw"] and abs(t["delta_raw"]) / t["pre_raw"] < 0.05]
     times = [t["block_time"] for t in trades if t["block_time"]]
     span_d = max((max(times) - min(times)) / 86400, 1 / 24) if len(times) > 1 else None
@@ -242,6 +257,8 @@ def stage2(wallet, sigs, sol_usd):
         "trefferquote": round(sum(x > 0 for x in pnl) / len(pnl), 2) if pnl else None,
         "gewinn_sol": round(sum(pnl), 3) if pnl else None,
         "gewinn_ohne_beste_sol": round(sum(pnl[drop:]), 3) if pnl else None, "beste_abgezogen": drop,
+        "rendite_median_pct": round(median(pct), 1) if pct else None,
+        "rendite_ohne_beste_pct": round(sum(pct_rest) / len(pct_rest), 1) if pct_rest else None,
         "haltedauer_median_min": round(median((p["t1"] - p["t0"]) / 60 for p in closed), 1) if closed else None,
         "mini_verkaeufe_anteil": round(len(micro) / len(sells), 2) if sells else None,
         "bot_gebuehr_anteil": round(sum(t["other"] > 0.003 * t["sol"] for t in trades) / len(trades), 2) if trades else None,
@@ -249,17 +266,18 @@ def stage2(wallet, sigs, sol_usd):
 
 
 def score(s2):
-    """Rangfolge: Gewinn ohne die besten Coins (3 ab 12 Coins, sonst 1), dazu Trefferquote.
-    Abzuege fuer ueberwiegend Mini-Verkaeufe und ueberwiegend Kaeufe unter 0,1 SOL (fuer uns schwer kopierbar)."""
-    if not s2 or not s2.get("coins_abgeschlossen"):
-        return -999
-    base = s2.get("gewinn_ohne_beste_sol") or 0
-    base += (s2.get("trefferquote") or 0) * 0.5
+    """Erwartete Rendite je Coin fuer UNS: durchschnittliche Rendite des Traders je Coin ohne seine besten
+    Coins, minus die gemessene Reibung beim Kopieren (~10 Prozentpunkte). Vieltrader mit kleinem Vorsprung
+    (z. B. 922M: +1,7 % je Coin) landen so im Minus. Abzuege fuer ueberwiegend Mini-Verkaeufe und Kaeufe
+    unter 0,1 SOL. Erst ab 3 abgeschlossenen Coins bewertbar."""
+    if not s2 or (s2.get("coins_abgeschlossen") or 0) < MIN_CLOSED_COINS or s2.get("rendite_ohne_beste_pct") is None:
+        return None
+    base = s2["rendite_ohne_beste_pct"] - COPY_FRICTION_PCT
     if (s2.get("mini_verkaeufe_anteil") or 0) > 0.5:
-        base -= 1
+        base -= 10
     if (s2.get("anteil_kaeufe_ab_0_1") or 0) < 0.5:
-        base -= 1
-    return round(base, 3)
+        base -= 10
+    return round(base, 1)
 
 
 # ================================================================ Ausgabe
@@ -268,7 +286,8 @@ def write_csv(rows):
     os.makedirs(SCOUT_DIR, exist_ok=True)
     header = ["zeit", "wallet", "quelle", "coin", "ergebnis", "grund", "punkte", "tx", "fehlgeschlagen", "tx_pro_h",
               "inaktiv_h", "trades", "kaeufe", "verkaeufe", "trades_pro_tag", "kauf_median_sol", "anteil_kaeufe_ab_0_1",
-              "coins_abgeschlossen", "trefferquote", "gewinn_sol", "gewinn_ohne_beste_sol", "beste_abgezogen", "haltedauer_median_min",
+              "coins_abgeschlossen", "trefferquote", "gewinn_sol", "gewinn_ohne_beste_sol", "beste_abgezogen",
+              "rendite_median_pct", "rendite_ohne_beste_pct", "haltedauer_median_min",
               "mini_verkaeufe_anteil", "bot_gebuehr_anteil"]
     new = not os.path.exists(CANDIDATES_FILE)
     with open(CANDIDATES_FILE, "a", newline="", encoding="utf-8") as f:
@@ -305,6 +324,65 @@ def git_push():
             return
 
 
+# ================================================================ Pruefliste
+
+def load_list():
+    """Liest scout/pruefen.txt. Erlaubt 'Name: Adresse', nur 'Adresse' oder eine eingefuegte Python-Liste."""
+    if not os.path.exists(LIST_FILE):
+        return []
+    entries, seen = [], set()
+    for line in open(LIST_FILE, encoding="utf-8"):
+        line = line.strip()
+        if not line or line.startswith("#"):
+            continue
+        for addr in re.findall(r"[1-9A-HJ-NP-Za-km-z]{32,44}", line):
+            if addr in seen:
+                continue
+            seen.add(addr)
+            name = line.split(":", 1)[0].strip() if ":" in line and addr not in line.split(":", 1)[0] else addr[:6]
+            entries.append((name, addr))
+    return entries
+
+
+def check_list(state, now, sol_usd):
+    """Bewertet jede Wallet der Pruefliste einmal (erneut nur, wenn sich die Liste aendert)."""
+    entries = load_list()
+    if not entries:
+        return [], []
+    digest = hashlib.sha256(",".join(sorted(a for _, a in entries)).encode()).hexdigest()[:16]
+    if state.get("liste_hash") == digest:
+        return [], []
+    rows, lines = [], []
+    for name, w in entries:
+        try:
+            m, reason = stage1(w, now)
+            row = {"zeit": cb.now_str(), "wallet": w, "quelle": "liste", "coin": name,
+                   **{k: v for k, v in m.items() if k != "sigs"}}
+            if reason:
+                rows.append(dict(row, ergebnis="raus", grund=reason))
+                lines.append((-999, f"❌ **{name}** `{w}`\n   raus: {reason} ({m.get('tx_pro_h')} Tx/h, "
+                                    f"{(m.get('fehlgeschlagen') or 0):.0%} fehlgeschlagen, {m.get('inaktiv_h')} h inaktiv)"))
+                continue
+            s2 = stage2(w, m["sigs"][:LIST_TX], sol_usd)
+            pts = score(s2)
+            rows.append(dict(row, **s2, ergebnis="bewertet" if pts is not None else "zu wenig abgeschlossene Coins",
+                             punkte=pts if pts is not None else ""))
+            detail = (f"{s2['coins_abgeschlossen']} Coins abgeschlossen, Trader Ø {s2.get('rendite_ohne_beste_pct')} % je Coin "
+                      f"(ohne {s2['beste_abgezogen']} beste), Treffer {(s2.get('trefferquote') or 0):.0%}, "
+                      f"Kauf-Median {s2.get('kauf_median_sol')} SOL, {s2.get('trades_pro_tag')} Trades/Tag, "
+                      f"Haltedauer {s2.get('haltedauer_median_min')} min, Mini-Verkaeufe {(s2.get('mini_verkaeufe_anteil') or 0):.0%}")
+            if pts is None:
+                lines.append((-500, f"❔ **{name}** `{w}`\n   zu wenig abgeschlossene Coins | {detail}"))
+            else:
+                lines.append((pts, f"{'✅' if pts > 0 else '➖'} **{name}** `{w}`\n   fuer uns {pts:+.0f} % je Coin | {detail}"))
+        except Exception as err:
+            STATS["fehler"] += 1
+            lines.append((-998, f"⚠️ **{name}**: Fehler bei der Pruefung ({str(err)[:60]})"))
+        state["wallets_geprueft"][w] = now
+    state["liste_hash"] = digest
+    return rows, [l for _, l in sorted(lines, key=lambda x: -x[0])]
+
+
 # ================================================================ Lauf
 
 def known_wallets():
@@ -322,6 +400,7 @@ def run():
     core.git_sync_start()
     state = load_state()
     sol_usd = core.sol_price()
+    list_rows, list_lines = check_list(state, now, sol_usd)
     coins = winner_coins(state, now)
     STATS["coins"] = len(coins)
     known = known_wallets()
@@ -354,7 +433,7 @@ def run():
             STATS["stufe1_raus"][reason.split(" (")[0]] = STATS["stufe1_raus"].get(reason.split(" (")[0], 0) + 1
             rows.append(dict(row, ergebnis="raus", grund=reason))
         else:
-            stage2_list.append((m["tx_pro_h"], w, row, m["sigs"]))
+            stage2_list.append((m["tx_pro_h"], w, row, m["sigs"][:STAGE2_TX]))
     ranked = []
     for _, w, row, sigs in sorted(stage2_list)[:STAGE2_PER_RUN]:  # ruhigere Wallets zuerst (eher menschlich)
         try:
@@ -365,12 +444,19 @@ def run():
             continue
         STATS["stufe2"] += 1
         pts = score(s2)
-        r = dict(row, **s2, ergebnis="bewertet", punkte=pts)
+        r = dict(row, **s2, ergebnis="bewertet" if pts is not None else "zu wenig abgeschlossene Coins",
+                 punkte=pts if pts is not None else "")
         rows.append(r)
-        ranked.append(r)
+        if pts is not None:
+            ranked.append(r)
     ranked.sort(key=lambda r: -r["punkte"])
-    write_csv(rows)
+    write_csv(list_rows + rows)
     save_state(state)
+    if list_lines:
+        good = sum(1 for l in list_lines if l.startswith("✅"))
+        notify("📋 Wallet-Scout: deine Pruefliste", [
+            f"**{len(list_lines)} Wallets geprueft, {good} fuer uns im Plus** (Rendite je Coin des Traders ohne "
+            f"seine besten Coins, minus {COPY_FRICTION_PCT:.0f} Prozentpunkte Reibung beim Kopieren)"] + list_lines)
     lines = [f"**Gewinner-Coins:** {', '.join(f'{s} {m:.1f}x' for _, s, m in coins) or 'keine neuen'}",
              f"**Kandidaten:** {STATS['kandidaten']} neu | **Stufe 1 aussortiert:** {STATS['stufe1_raus'] or 0} | "
              f"**Stufe 2 bewertet:** {STATS['stufe2']}"
@@ -378,16 +464,23 @@ def run():
                 if STATS.get("birdeye_markiert") else "")
              + (f" | Coins zu aktiv fuer fruehe Kaeufer: {STATS['coins_zu_aktiv']}" if STATS.get("coins_zu_aktiv") else "")]
     top = [r for r in ranked if r["punkte"] > 0][:8]
+    if STATS.get("birdeye_eintraege"):
+        lines.append(f"**Birdeye Top-Trader:** {STATS['birdeye_eintraege']} gesehen, {STATS.get('birdeye_markiert', 0)} "
+                     f"als Bundler/Sniper/Bot markiert, {STATS.get('birdeye_ohne_gewinn', 0)} ohne Gewinn")
+    unrated = sum(1 for r in rows if r.get("ergebnis") == "zu wenig abgeschlossene Coins")
+    if unrated:
+        lines.append(f"**Zu wenig abgeschlossene Coins fuer eine Bewertung:** {unrated}")
     if top:
-        lines.append("**Rangliste** (Gewinn ohne beste Coins | Treffer | Kauf-Median | Trades/Tag | Haltedauer):")
+        lines.append("**Rangliste** (fuer uns erwartete Rendite je Coin nach Reibung | Treffer | Coins | "
+                     "Kauf-Median | Trades/Tag | Haltedauer):")
         for i, r in enumerate(top, 1):
             lines.append(f"{i}. `{r['wallet']}` ({r['quelle']}, {r['coin']})\n"
-                         f"   {r['gewinn_ohne_beste_sol']:+} SOL (ohne {r['beste_abgezogen']} beste) | "
-                         f"{(r['trefferquote'] or 0):.0%} | {r['kauf_median_sol']} SOL | {r['trades_pro_tag']} | "
-                         f"{r['haltedauer_median_min']} min | Punkte {r['punkte']}")
+                         f"   {r['punkte']:+.0f} % je Coin (Trader {r['rendite_ohne_beste_pct']:+.0f} %) | "
+                         f"{(r['trefferquote'] or 0):.0%} | {r['coins_abgeschlossen']} | {r['kauf_median_sol']} SOL | "
+                         f"{r['trades_pro_tag']} | {r['haltedauer_median_min']} min")
         lines.append("Eintragen in copy_wallets.txt als `Name: Adresse`.")
     else:
-        lines.append("Keine Wallet mit positivem Ergebnis in diesem Lauf.")
+        lines.append("Keine Wallet, die nach Abzug der Reibung fuer uns im Plus waere.")
     lines.append(f"**Birdeye:** {STATS['birdeye_cu']} CUs in diesem Lauf, {state['birdeye']['cu']} im Monat"
                  + (f" | {STATS['birdeye_fehler']}" if STATS["birdeye_fehler"] else "") if BIRDEYE_API_KEY
                  else "**Birdeye:** kein Key, nur Helius")
@@ -418,14 +511,16 @@ def probe():
         if items:
             tags = sorted({str(t) for it in items for t in (it.get("tags") or [])})
             print(f"        Markierungen in der Liste: {tags or 'keine'}")
+            def total(it):
+                v = it.get("totalPnl")
+                return core.as_float(v) if v is not None else \
+                    core.as_float(it.get("realizedPnl")) + core.as_float(it.get("unrealizedPnl"))
             for it in items[:10]:
                 print(f"        {it.get('owner', '?')[:8]} Tags {it.get('tags')} | Trades {it.get('trade')} | "
-                      f"realisiert {core.as_float(it.get('realizedPnl')):,.0f} $")
-            sb_items = [it.get("owner") for it in items]
-            kept = [w for w in sb_items if w and not any(b in " ".join(str(t).lower() for t in
-                    (next(i for i in items if i.get("owner") == w).get("tags") or [])) for b in BAD_TAGS)
-                    and core.as_float(next(i for i in items if i.get("owner") == w).get("realizedPnl")) > 0]
-            print(f"        Nach Filter (keine Markierung, Gewinn > 0): {len(kept)} von {len(items)}")
+                      f"realisiert {core.as_float(it.get('realizedPnl')):,.0f} $ | gesamt {total(it):,.0f} $")
+            kept = [it.get("owner") for it in items if it.get("owner") and total(it) > 0 and not any(
+                b in " ".join(str(t).lower() for t in (it.get("tags") or [])) for b in BAD_TAGS)]
+            print(f"        Nach Filter (keine Markierung, Gesamtgewinn > 0): {len(kept)} von {len(items)}")
             if kept:
                 pnl = birdeye_get(f"/wallet/v2/pnl/summary?wallet={kept[0]}", state, 30)
                 print(f"[SCOUT PROBE] Birdeye PnL-Zusammenfassung (30 CUs): "
@@ -435,6 +530,8 @@ def probe():
         print(f"[SCOUT PROBE] Stufe 1 fuer {buyers[0][:8]}: { {k: v for k, v in m.items() if k != 'sigs'} } -> {reason or 'weiter'}")
         if not reason:
             print(f"[SCOUT PROBE] Stufe 2: {stage2(buyers[0], m['sigs'][:20], sol_usd)}")
+    entries = load_list()
+    print(f"[SCOUT PROBE] Pruefliste {LIST_FILE}: {len(entries)} Wallets" + (f", z. B. {entries[:2]}" if entries else ""))
     save_state(state)                                # nur der CU-Zaehler
     print("[SCOUT PROBE] fertig. Diese Ausgabe bitte an Claude schicken.")
 
