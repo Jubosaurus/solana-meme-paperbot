@@ -19,6 +19,8 @@ Papier gehandelt.
 | 9 | Ruhiger Markt: weniger handeln | Marktphase begrenzt die Positionen: heiß 3, normal 2, ruhig 1 |
 | 12 | Vamping: den echten Coin finden | Bei gleichem Namen oder Symbol nur der Coin mit den meisten Holdern |
 | 13 | Marktsignale prüfen | Marktphase aus Anzahl frischer Coins über 1 Mio. USD und deren Volumen, verglichen mit dem eigenen Verlauf |
+| 16 | Würde ich heute zu diesem Preis neu kaufen? | Sinngemäß über die Thesen-Regel und die Höchstdauer umgesetzt; strengere Fassung an den Verläufen geprüft und verworfen (hätte die großen Gewinner zu früh verkauft) |
+| 17 | Nicht aus FOMO kaufen, wenn der Preis schon gelaufen ist | Seit 02.10.: kein Kauf nach mehr als 30 % Anstieg in den letzten 5 Minuten (FOMO_SPRUNG). Alle so abgelehnten Coins werden als knapp abgelehnt weiterverfolgt. Grundlage: in Hauptstrategie und Kontrollgruppe deutlich schlechtere Ergebnisse nach solchen Sprüngen |
 
 **Mitläufer-Verdacht (nur Beobachtung, seit Tag 15):** Teilt ein gekaufter Coin einen Namensteil mit einem mindestens zehnmal größeren Trending-Coin ab 5 Mio. USD (z. B. „K/ACC" und „e/acc"), wird das beim Kauf vermerkt. Das beeinflusst den Kauf nicht, sondern dient der späteren Auswertung.
 
@@ -73,7 +75,7 @@ Getrennt vom Hauptbot: eigenes Programm `copy_bot.py`, eigener Workflow `copy_ru
 
 - **Wallets:** `copy_wallets.txt`, eine Zeile pro Wallet im Format `Name: Adresse`. Austauschen ohne Code-Änderung.
 - **Erkennung:** Helius-WebSocket (`logsSubscribe` je Wallet, im Gratis-Tarif enthalten), danach die vollständige Transaktion (bis Version 1). Abgefragt wird nur, was nach Handel aussieht; reine Transfers nur, wenn eine Position offen ist. Wallets mit mehr als 30 Meldungen pro Minute, von denen mindestens 80 % fehlschlagen, werden für die Schicht abgemeldet (Flutschutz); über 300 pro Minute immer. Echte Vieltrader wie 922M bleiben angemeldet. Kauf, Verkauf und Überweisung werden an den Salden erkannt, unabhängig von der Börse (Pump.fun, PumpSwap, Raydium, Meteora, Jupiter); Handel gegen USDC wird in SOL umgerechnet.
-- **Konto:** jede Wallet 10 SOL, neue Runde, wenn leer und keine Position offen.
+- **Konto:** jede Wallet 10 SOL. Neue Runde mit 10 SOL, sobald das Geld für keinen Kauf mehr reicht, auch wenn noch Positionen offen sind (seit 02.10.; diese behalten ihre alte Rundennummer, ihre Erlöse fließen ins neue Konto).
 - **Kauf:** jeder Kauf des Traders ab 0,1 SOL = 0,2 SOL bei uns, auch Nachkäufe. Kleinere Käufe (Tests, Staub) werden ignoriert. Weicht unser Kaufkurs mehr als ±15 % vom Kurs des Traders ab, wird der Kauf blockiert. Kaufmeldungen älter als 60 s werden nie nachgekauft. Alles Ausgelassene steht als AUSGELASSEN mit Grund im Journal.
 - **Verkauf:** derselbe Anteil, den der Trader verkauft, aber gesammelt: Teilverkäufe werden gemerkt (VERKAUF_GEMERKT) und erst ausgeführt, wenn mindestens 20 % der Position zusammenkommen. Steigt der Trader komplett aus oder überweist er die Coins (ÜBERWEISUNG), verkaufen wir sofort alles. Verkäufe sind nie blockiert.
 - **Nachholen:** Der Bot merkt sich pro Wallet, bis wann er lückenlos zugehört hat (`abgedeckt_bis`). Nach Lücken (Schichtwechsel, Verbindungsabbruch, Flutschutz) holt er die verpassten Transaktionen über Helius nach: Verkäufe laufen normal durch, mit dem echten Kurs des Traders (Trader-Vergleich gültig, unser Verkauf als „nachgeholt“ markiert, nicht in der Verzögerungsstatistik); Käufe werden nicht nachgekauft, nur als VERPASST_KAUF dokumentiert. Jede Position merkt sich die verarbeiteten Signaturen, nichts wird doppelt angewendet.
@@ -96,7 +98,9 @@ Findet Kandidaten für das Copy Trading und erstellt eine Rangliste. Kauft nicht
 2. **Kandidaten:** frühe Käufer dieser Coins (Helius, ohne den ersten Block mit Dev und Bundlern; nur wenn der Start des Coins in 5.000 Signaturen erreichbar ist) und, wenn `BIRDEYE_API_KEY` gesetzt ist, bis zu 5 Top-Trader je Coin laut Birdeye: nur mit realisiertem Gewinn auf dem Coin und ohne Markierung als Bundler, Sniper, Bot, MEV, Insider oder Dev (35 CUs je Coin; Zähler stoppt bei 28.000 CUs im Monat, Gratis-Tarif 30.000). Bekannte Wallets (aktiv oder auskommentiert) und in den letzten 7 Tagen geprüfte werden übersprungen.
 3. **Stufe 1** (1 Helius-Credit): letzte 1.000 Transaktionen. Raus bei über 50 % fehlgeschlagen, über 300 Transaktionen pro Stunde, über 24 h inaktiv oder unter 20 Transaktionen.
 4. **Stufe 2** (bis zu 15 Wallets pro Lauf, je ~60 Credits): letzte 60 erfolgreiche Transaktionen mit der Logik des Copy-Bots. Kennzahlen: Trades pro Tag, Kaufgröße, Anteil Käufe ab 0,1 SOL, abgeschlossene Coins (≥ 90 % wieder verkauft), Trefferquote, Gewinn, Gewinn ohne die besten Coins (3 ab 12 Coins, sonst 1), Haltedauer, Anteil Mini-Verkäufe, Bot-Gebühren.
-5. **Punkte:** Gewinn ohne die besten Coins + halbe Trefferquote; −1 bei überwiegend Mini-Verkäufen, −1 bei überwiegend Käufen unter 0,1 SOL. Rangliste der Wallets mit positiven Punkten in Discord, alle Ergebnisse in `scout/kandidaten.csv`.
+5. **Punkte = für uns erwartete Rendite je Coin** (seit 02.10.): durchschnittliche Rendite des Traders je abgeschlossenem Coin ohne seine besten Coins, minus 10 Prozentpunkte gemessene Reibung beim Kopieren; −10 bei überwiegend Mini-Verkäufen, −10 bei überwiegend Käufen unter 0,1 SOL. Erst ab 3 abgeschlossenen Coins. Vieltrader mit kleinem Vorsprung (wie 922M, +1,7 % je Coin) fallen so heraus. Birdeye-Kandidaten zählen mit Gesamtgewinn inkl. noch gehaltener Coins. Rangliste in Discord, alle Ergebnisse in `scout/kandidaten.csv`.
+
+**Prüfliste** (seit 02.10.): Wallets, die du selbst findest (z. B. aus GMGN oder Kolscan), kommen in `scout/pruefen.txt` (`Name: Adresse`, nur die Adresse oder eine eingefügte Python-Liste). Der nächste Scout-Lauf bewertet jede davon mit denselben Stufen, aber mit 150 statt 60 Transaktionen, und meldet das Ergebnis aller Wallets, auch der durchgefallenen mit Grund, in einer eigenen Discord-Meldung. Dieselbe Liste wird nur einmal geprüft; nach einer Änderung erneut.
 
 Grenzen: Vergangene Gewinne garantieren keine künftigen; frühe Käufer können Insider sein. Der eigentliche Test bleibt das Copy Trading.
 
@@ -134,6 +138,10 @@ Grenzen: Vergangene Gewinne garantieren keine künftigen; frühe Käufer können
 | 01.10. | Wallet-Scout (Helius, optional Birdeye), alle 6 Stunden, Rangliste | Systematisch neue Wallets für das Copy Trading finden statt manuell |
 | 01.10. | Copy: leere oder unlesbare WebSocket-Nachrichten führen zu Neuverbindung statt Absturz; Sicherheitsnetz für unerwartete Fehler | Copy-Bot stürzte um 14:34 UTC ab (leere Nachricht nach Verbindungsende durch den Server) und stand danach still |
 | 01.10. | Scout: Birdeye-Kandidaten nur ohne Bundler-/Sniper-/Bot-Markierung und mit Gewinn; frühe Käufer nur bei erreichbarem Coin-Start | Probelauf: Top-Trader nach Volumen waren u. a. Bundler; PARASITE zu aktiv, 30 Seiten ohne frühe Käufer |
+| 02.10. | Tag 17: kein Kauf nach > 30 % Anstieg in 5 min (FOMO_SPRUNG) | Video Tag 17; Hauptstrategie seit 28.09.: diese Käufe −0,56 SOL bei 12 Trades, Kontrollgruppe −0,93 SOL bei 15 |
+| 02.10. | Copy: neue Runde auch bei offenen Positionen | 922M blieb mit 0,19 SOL und 1 offenen Position stehen, 291 Käufe ausgelassen |
+| 02.10. | Scout: Bewertung nach Rendite je Coin minus 10 Prozentpunkte Reibung; Birdeye mit Gesamtgewinn; Filtergründe in der Meldung | Zwei Läufe ohne Kandidaten; Vieltrader wie 922M sind für uns nicht kopierbar (er +1,7 %, wir −11,3 % je Coin) |
+| 02.10. | Scout: Prüflisten-Modus (`scout/pruefen.txt`) | Selbst gefundene Wallets aus unserer Sicht als Nachahmer bewerten, bevor sie ins Copy Trading kommen |
 
 ## Dateien seit 28.09.
 
@@ -142,4 +150,3 @@ Grenzen: Vergangene Gewinne garantieren keine künftigen; frühe Käufer können
 | `verlauf/JJJJ-MM-TT.csv` | Kursverläufe eines Tages: offene Positionen (~12 s), nach dem Verkauf (~36 s), knapp abgelehnt (~2 min) |
 | `knapp_abgelehnt.csv` | Jeder knapp abgelehnte Coin mit Grund, Abstand zur Grenze und allen Merkmalen (seit 29.09. mit Herkunftsliste) |
 | `verlauf.csv` | Alte Datei bis 27.09., wird nicht mehr fortgeschrieben |
-
