@@ -1,8 +1,91 @@
 {
   "strategy": "NARRATIV",
   "started": "2026-09-26T02:46:00.825468+00:00",
-  "bankroll_sol": 9.763978,
-  "positions": {},
+  "bankroll_sol": 9.562478,
+  "positions": {
+    "42UmhgRdQfuG5uFCjyvCpssNf5urVsT5UJqkgwaYgr1W": {
+      "mint": "42UmhgRdQfuG5uFCjyvCpssNf5urVsT5UJqkgwaYgr1W",
+      "symbol": "PULL",
+      "opened": 1790955076.32683,
+      "invested_sol": 0.2,
+      "fees_sol": 0.0015,
+      "entry_signal_usd": 2.4984541704874466e-05,
+      "entry_fill_usd": 2.8054449762951633e-05,
+      "entry_slippage_pct": 12.29,
+      "roundtrip_cost_pct": 4.55,
+      "tokens_initial": 855044.694168,
+      "tokens_left": 855044.694168,
+      "decimals": 6,
+      "proceeds_sol": 0.0,
+      "peak_usd": 2.8054449762951633e-05,
+      "tp1_done": false,
+      "thesis_breaks": 0,
+      "missing_loops": 0,
+      "entry_liquidity": 7177.613616031893,
+      "entry_view": {
+        "age_h": 0.6492884335252974,
+        "mcap": 24984.541704873867,
+        "liquidity": 7177.613616031893,
+        "holders": 170,
+        "holder_growth_1h": 794.7368421052632,
+        "holder_growth_5m": 4.938271604938271,
+        "net_buyers_5m": 21,
+        "organic_buyers_5m": 7,
+        "organic_score": 48.605860574161554,
+        "price_change_1h": 395.8338084730605,
+        "price_change_5m": 9.611487555123725,
+        "buys_5m": 24,
+        "sells_5m": 9,
+        "traders_5m": 29,
+        "traders_1h": 572,
+        "buy_vol_5m": 1139.0475455567266,
+        "sell_vol_5m": 475.6023989663557,
+        "buy_vol_1h": 77288.67604013965,
+        "sell_vol_1h": 69650.19094510716,
+        "organic_buy_vol_1h": 4566.950539953082,
+        "top_holders_pct": 18.63238021173125,
+        "dev_balance_pct": 0.3832282030922092,
+        "dev_mints": 1,
+        "launchpad": "ember",
+        "graduated": true,
+        "social": false,
+        "quelle": "organic5m+traded1h+trend1h+trend5m",
+        "trades_24h": 2011,
+        "organic_label": "medium",
+        "buy_organic_vol_5m": 16.24792081894817,
+        "hour_utc": 15
+      },
+      "bundle": {
+        "quelle": "block0",
+        "slot": 452642521,
+        "block0_wallets": 0,
+        "block0_supply_pct": 0.0,
+        "block0_still_held_pct": 0.0,
+        "block0_exited": 0,
+        "early_tx_slot1_2": 1,
+        "bundle_holding_pct": 0.0,
+        "gebuendelt": false,
+        "rugcheck_insider_pct": 0
+      },
+      "phase": "normal",
+      "thesis": "Story verbreitet sich: Holder +795%/h, 21 Netto-Kaeufer 5m, 7 organisch; Block 0: 0 Kaeufer, 0.0% gekauft, 0.0% noch gehalten; Dev-Coins 1",
+      "exit_rule": "Haelfte bei 2x; Rest raus, wenn Holder schrumpfen und Netto-Verkaeufer 2x in Folge, Liquiditaet -30%, -40%, nach 1,5x nicht unter Einstand, nach 2x 30 % vom Hoch (ab 10x 25 %)",
+      "mitlaeufer": null,
+      "solana_tracker": {
+        "score": 4,
+        "rugged": false,
+        "snipers_pct": 0,
+        "insiders_pct": 0,
+        "bundlers_pct": 2.9312,
+        "top10_pct": 18.964699999999997,
+        "risiken": [
+          "Top 10 Holders"
+        ]
+      },
+      "graduated": true,
+      "liq_low_checks": 0
+    }
+  },
   "closed": [
     {
       "symbol": "SHOGGOTH",
@@ -5843,7 +5926,8 @@
     "5R7EZqAQxm3AzxSVgCMcBLxPdkQbsX5MEJBybGvCQocf": 1790941247.303789,
     "c1GdvPjCwf3H592T73ZkzguGqkT92dV8pgb3B38cMxf": 1790948015.1287153,
     "8TM1q4NibVSqcscvuWCqvFod83vMqk5HJcm9qFZZUCgU": 1790950784.0179482,
-    "DnGT6h4jLxhWitwsTWDWF52cUrdChgTzShzMFn3F537o": 1790954158.5775166
+    "DnGT6h4jLxhWitwsTWDWF52cUrdChgTzShzMFn3F537o": 1790954158.5775166,
+    "42UmhgRdQfuG5uFCjyvCpssNf5urVsT5UJqkgwaYgr1W": 1790955076.3272953
   },
   "watch": {
     "UgrANGx3JKUyVWiYAbDj6UmhW6xDSmNhyP41apfpump": {
@@ -5919,7 +6003,7 @@
       "until": 1790976026.921017
     }
   },
-  "saved_at": 1790955046.1390135,
+  "saved_at": 1790955126.1487331,
   "shadow": {
     "CNohWHNTurS7PpB55czspwUJfpk9yy92uf1wXdweEGg9": {
       "symbol": "CATGPT",
@@ -6410,6 +6494,6 @@
   },
   "st_usage": {
     "date": "2026-10-02",
-    "count": 45
+    "count": 46
   }
 }
