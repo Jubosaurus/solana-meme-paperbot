@@ -108,9 +108,19 @@ def test_stufe2_gehaltener_coin_ohne_kurs_zaehlt_null(chain, monkeypatch):
       "mini_verkaeufe_anteil": 0.8}, 0),
     ({"coins": 5, "rendite_ohne_besten_pct": 20, "reibung_pp": 6, "anteil_kaeufe_ab_0_1": 0.2}, 4),
     ({"coins": 5, "rendite_ohne_besten_pct": None, "reibung_pp": 6}, None),
+    ({"coins": 10, "rendite_ohne_besten_pct": 472632.6, "reibung_pp": 3, "kauf_median_sol": 0.002}, None),  # 04.10.
+    ({"coins": 5, "rendite_ohne_besten_pct": 20, "reibung_pp": 3, "anteil_kaeufe_ab_0_1": 1.0,
+      "kauf_median_sol": 0.05}, 17),                                            # genau an der Grenze: bewertet
 ])
 def test_bewertung(s2, punkte):
     assert scout.score(s2) == punkte
+
+
+def test_grund_fuer_keine_bewertung():
+    assert scout.not_rated_reason({"coins": 10, "rendite_ohne_besten_pct": 9e5, "kauf_median_sol": 0.002})         == "Kleinstkaeufe (Median unter 0.05 SOL)"
+    assert scout.not_rated_reason({"coins": 2, "rendite_ohne_besten_pct": 5, "kauf_median_sol": 0.5})         == "zu wenig Coins im Zeitraum"
+    assert scout.not_rated_reason({"coins": 5, "rendite_ohne_besten_pct": 5, "kauf_median_sol": 0.5}) is None
+    assert scout.SCORING_VERSION == "3"                                         # Pruefliste wird neu bewertet
 
 
 def test_reibung_nach_haltedauer(chain, monkeypatch):

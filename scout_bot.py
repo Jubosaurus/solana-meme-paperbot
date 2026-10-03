@@ -31,7 +31,8 @@ STATE_FILE = os.path.join(SCOUT_DIR, "status.json")
 CANDIDATES_FILE = os.path.join(SCOUT_DIR, "kandidaten.csv")
 LIST_FILE = os.path.join(SCOUT_DIR, "pruefen.txt")   # Pruefliste: Wallets, die du selbst gefunden hast
 LIST_TX = 150                       # fuer die Pruefliste mehr Transaktionen je Wallet auswerten
-SCORING_VERSION = "2"               # 02.10.: 7 Tage, gehaltene Coins zum Kurs, Reibung nach Haltedauer
+SCORING_VERSION = "3"               # 02.10.: 7 Tage, gehaltene Coins zum Kurs, Reibung nach Haltedauer
+#                                     04.10.: Kleinstkaeufe (Median unter 0,05 SOL) werden nicht bewertet
 DISCORD_WEBHOOK_SCOUT = (os.environ.get("DISCORD_WEBHOOK_SCOUT") or os.environ.get("DISCORD_WEBHOOK_COPY") or "").strip()
 BIRDEYE_API_KEY = (os.environ.get("BIRDEYE_API_KEY") or "").strip()
 BIRDEYE_BASE = "https://public-api.birdeye.so"
@@ -62,6 +63,7 @@ MIN_TX = 20
 WINDOW_DAYS = 7                     # Stufe 2: letzte 7 Tage wie GMGN 7D
 MAX_WINDOW_PAGES = 5
 MIN_COINS = 3
+MIN_KAUF_SOL = 0.05                 # darunter blaeht die Rendite in % auf (z. B. 0,002 SOL -> 472.633 %), nicht kopierbar
 FRICTION_SHORT, FRICTION_MID, FRICTION_LONG = 10.0, 6.0, 3.0   # Reibung in Prozentpunkten je nach Haltedauer
 
 _birdeye_last = [0.0]
@@ -316,11 +318,20 @@ def stage2(wallet, sigs, sol_usd):
     }
 
 
+def not_rated_reason(s2):
+    """Warum eine Wallet nicht bewertet wird (None = bewertbar)."""
+    if s2 and s2.get("kauf_median_sol") is not None and s2["kauf_median_sol"] < MIN_KAUF_SOL:
+        return f"Kleinstkaeufe (Median unter {MIN_KAUF_SOL:.2f} SOL)"
+    if not s2 or (s2.get("coins") or 0) < MIN_COINS or s2.get("rendite_ohne_besten_pct") is None:
+        return "zu wenig Coins im Zeitraum"
+    return None
+
+
 def score(s2):
     """Fuer uns erwartete Rendite: Rendite des Traders auf den Einsatz ohne seinen besten Coin, minus die
     Reibung beim Kopieren (je nach Haltedauer 3 bis 10 Prozentpunkte). Abzuege fuer ueberwiegend
     Mini-Verkaeufe und Kaeufe unter 0,1 SOL. Erst ab 3 im Zeitraum gekauften Coins bewertbar."""
-    if not s2 or (s2.get("coins") or 0) < MIN_COINS or s2.get("rendite_ohne_besten_pct") is None:
+    if not_rated_reason(s2):
         return None
     base = s2["rendite_ohne_besten_pct"] - s2["reibung_pp"]
     if (s2.get("mini_verkaeufe_anteil") or 0) > 0.5:
@@ -419,7 +430,7 @@ def check_list(state, now, sol_usd):
                 continue
             s2 = stage2(w, window_sigs(w, m["_page"], now, LIST_TX), sol_usd)
             pts = score(s2)
-            rows.append(dict(row, **s2, ergebnis="bewertet" if pts is not None else "zu wenig Coins im Zeitraum",
+            rows.append(dict(row, **s2, ergebnis="bewertet" if pts is not None else not_rated_reason(s2),
                              punkte=pts if pts is not None else ""))
             detail = (f"7 Tage: {s2['coins']} Coins ({s2['coins_gehalten']} noch gehalten), Trader {s2.get('rendite_pct')} % "
                       f"auf den Einsatz, ohne besten Coin {s2.get('rendite_ohne_besten_pct')} %, Treffer "
@@ -427,7 +438,7 @@ def check_list(state, now, sol_usd):
                       f"{s2.get('trades_pro_tag')} Trades/Tag, Haltedauer {s2.get('haltedauer_median_min')} min, "
                       f"Reibung {s2['reibung_pp']:.0f} Punkte")
             if pts is None:
-                lines.append((-500, f"❔ **{name}** `{w}`\n   zu wenig Coins im Zeitraum | {detail}"))
+                lines.append((-500, f"❔ **{name}** `{w}`\n   {not_rated_reason(s2)} | {detail}"))
             else:
                 lines.append((pts, f"{'✅' if pts > 0 else '➖'} **{name}** `{w}`\n   fuer uns {pts:+.0f} % | {detail}"))
         except Exception as err:
@@ -499,7 +510,7 @@ def run():
             continue
         STATS["stufe2"] += 1
         pts = score(s2)
-        r = dict(row, **s2, ergebnis="bewertet" if pts is not None else "zu wenig Coins im Zeitraum",
+        r = dict(row, **s2, ergebnis="bewertet" if pts is not None else not_rated_reason(s2),
                  punkte=pts if pts is not None else "")
         rows.append(r)
         if pts is not None:
@@ -526,6 +537,9 @@ def run():
     unrated = sum(1 for r in rows if r.get("ergebnis") == "zu wenig Coins im Zeitraum")
     if unrated:
         lines.append(f"**Zu wenig Coins im Zeitraum fuer eine Bewertung:** {unrated}")
+    tiny = sum(1 for r in rows if str(r.get("ergebnis", "")).startswith("Kleinstkaeufe"))
+    if tiny:
+        lines.append(f"**Kleinstkaeufe, nicht bewertet:** {tiny}")
     if top:
         lines.append("**Rangliste** (fuer uns erwartete Rendite nach Reibung | Treffer | Coins | "
                      "Kauf-Median | Trades/Tag | Haltedauer):")

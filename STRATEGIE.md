@@ -160,6 +160,7 @@ Grenzen: Vergangene Gewinne garantieren keine künftigen; frühe Käufer können
 | 03.10. | Copy: 922M entfernt (in `copy_wallets.txt` auskommentiert, Daten bleiben) | Nicht kopierbar: −37 SOL über 5 Runden (Konto viermal aufgebraucht), ~70 % des Helius-Verbrauchs; Ersatz über die anstehende Überprüfung |
 | 04.10. | Experimente: „Endspurt ohne Filter“ und „Ohne Limit“ beendet (keine neuen Käufe, offene Positionen laufen aus, Daten bleiben); neues Experiment „Notbremse 25“ (10 SOL, kauft genau mit der Hauptstrategie, Notbremse −25 % statt −40 %). Hauptstrategie unverändert (Regressionsprobe gleich) | Überprüfung 03.10.: Endspurt ohne Filter nach 266 Trades besser als Zufall, aber in beiden Hälften im Minus; Ohne Limit misst seine Idee nicht (60/60 identisch); Notbremse −25 % bestand die Hälften-Probe auf den Hauptstrategie-Verläufen (Kontrollgruppe dagegen) – auf Papier riskant erlaubt (Leitlinie 04.10.) |
 | 04.10. | Copy: Zrool, Putrick, Cooker entfernt (Daten bleiben, offene Positionen über den stündlichen Abgleich) | Wallet-Regel ≥ 30 Positionen und > 1 SOL Verlust (Überprüfung 03.10.) |
+| 04.10. | Scout-Bewertung 3: Wallets mit Median-Kauf unter 0,05 SOL werden nicht bewertet („Kleinstkäufe“ statt nur −10 Punkte); Prüfliste wird dadurch neu bewertet. Kriterium 20–700 Transaktionen vorerst nicht geprüft (nicht messbar) | Überprüfung 03.10.: Kleinstkäufer standen mit 84.602 und 455 Punkten oben, Rendite in % durch 0,002-SOL-Käufe aufgebläht |
 
 ## Dateien seit 28.09.
 

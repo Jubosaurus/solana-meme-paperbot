@@ -27,6 +27,8 @@ Tabelle: Wallet | Urteil (✅ für uns im Plus / ➖ nach Reibung im Minus / ❔
 
 Einordnen, was der Scout kann und was nicht:
 - Er schaut auf 7 Tage und höchstens 150 Transaktionen. Bei wenigen Coins ist das Urteil unsicher.
+- Seit 04.10. (Bewertung 3): Wallets mit Median-Kauf unter 0,05 SOL werden nicht bewertet („Kleinstkäufe“). Sonst blähen Kleinstbeträge die Rendite in % auf (Beispiel: 0,002 SOL → 472.633 %).
+- Das Kriterium „20–700 Transaktionen“ wird vorerst **nicht geprüft**: Stufe 1 liest höchstens 1.000 Signaturen, `tx = 1000` heißt also nur „mindestens 1.000“.
 - Gehaltene Coins zählen zum aktuellen Kurs; ein einzelner großer Gewinner wird zur Kontrolle abgezogen.
 - Echte Copy-Daten sind aussagekräftiger als jede Schätzung. Plausible Kandidaten (kein Bot, aktiv, Kaufgröße ab 0,1 SOL) können auch bei ➖ oder ❔ live getestet werden, wenn der Betreiber das möchte.
 
