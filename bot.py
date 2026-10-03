@@ -162,11 +162,25 @@ DISCORD_ATTEMPTS = 3
 EXP_DIR = "experimente"
 EXPERIMENTS = {"zweite_welle": "Zweite Welle", "heisse_coins": "Heisse Coins", "ohne_limit": "Ohne Limit",
                "kontrollgruppe": "Kontrollgruppe", "endspurt": "Endspurt viele Trades",
-               "endspurt_ohne_filter": "Endspurt ohne Filter", "notbremse_25": "Notbremse 25"}
+               "endspurt_ohne_filter": "Endspurt ohne Filter", "notbremse_25": "Notbremse 25",
+               "offene_tuer": "Offene Tuer", "serien_devs": "Serien-Devs"}
 # Beendete Experimente (Datum): keine neuen Kaeufe, offene Positionen laufen regulaer zu Ende, Daten bleiben.
 EXP_BEENDET = {"endspurt_ohne_filter": "04.10.", "ohne_limit": "04.10."}
 NOTBREMSE_25_PCT = -25.0                # Experiment Notbremse 25 (seit 04.10.): kauft genau wie die
 #                                         Hauptstrategie, nur die Notbremse greift schon bei -25 % statt -40 %
+# Experiment Offene Tuer (seit 04.10.): dieselben Story-Filter wie die Hauptstrategie, aber KEINE Sicherheits-
+# pruefungen (Dev, Contract, Nachahmer, Vamp, Transfergebuehr, Bundle/Block 0, Links). Kauft bewusst auch Rugs,
+# damit ihre Muster aufgezeichnet werden (Flugschreiber, 6 h Nachlauf). Frage: Was sparen/kosten unsere Pruefungen?
+OFFENE_TUER_MAX_POSITIONS = 4
+SICHERHEITS_GRUENDE = {"DEV_VERDAECHTIG", "NACHAHMER_SYMBOL", "UNSICHERER_CONTRACT", "VAMP_KOPIE"}
+# Experiment Serien-Devs (seit 04.10.): Coins von Devs, deren frueherer Coin mindestens 300.000 $ Marktwert erreicht
+# hat (eigene Liste aus den Jupiter-Daten, auch wenn der Coin spaeter gerugt wurde). Nur Alter, Liquiditaet und Kurs
+# geprueft. Zusaetzlicher Ausstieg: Dev haelt weniger als die Haelfte seines Bestands beim Kauf (Dev verkauft).
+SERIEN_MIN_PEAK_MCAP = 300_000
+SERIEN_MAX_POSITIONS = 4
+SERIEN_DEV_EXIT_ANTEIL = 0.5
+SERIEN_DEVS_FILE = os.path.join("experimente", "serien_devs", "devs.json")
+SERIEN_DEVS_MAX = 3000                  # hoechstens so viele Devs merken (aelteste zuerst raus)
 
 # Experiment Endspurt (seit 30.09.): Pump.fun-Coins kurz vor der Graduation, raus bei der Graduation.
 # Grundlage: arXiv 2602.14860 (655.770 Pump.fun-Coins, Sept. 2025). Preis auf der Kurve = vSol^2 / K.
@@ -181,7 +195,7 @@ ENDSPURT_MAX_POSITIONS = 8
 ENDSPURT_MIN_TRADES = 2000              # Filter: mindestens so viele Trades seit Start
 ENDSPURT_MAX_SLIPPAGE_PCT = 3.0
 KONTROLL_INTERVAL_MIN = 30              # Kontrollgruppe: etwa alle 30 min ein zufaelliger Coin
-EXP_WATCH_AFTER_EXIT = {"ohne_limit", "endspurt_ohne_filter", "notbremse_25"}
+EXP_WATCH_AFTER_EXIT = {"ohne_limit", "endspurt_ohne_filter", "notbremse_25", "offene_tuer", "serien_devs"}
 EXP_LOG_OPEN_EVERY_LOOPS = 3            # Experimente: offene Positionen alle ~36 s aufzeichnen   # nach dem Verkauf 6 h weiter aufzeichnen (fuer Nachrechnungen)
 DISCORD_WEBHOOK_EXPERIMENTE = (os.environ.get("DISCORD_WEBHOOK_EXPERIMENTE") or "").strip()
 
@@ -676,8 +690,16 @@ def vamp_copy_of(v):
 
 # ================================================================ Einstiegspruefung
 
-def quick_checks(v):
-    """Guenstige Pruefungen ohne weitere Abfragen. Rueckgabe: Ablehnungsgrund oder None."""
+def quick_checks(v, ohne_sicherheit=False):
+    """Guenstige Pruefungen ohne weitere Abfragen. Rueckgabe: Ablehnungsgrund oder None.
+    ohne_sicherheit=True (nur Experiment Offene Tuer): Gruende aus SICHERHEITS_GRUENDE werden uebersprungen."""
+    if ohne_sicherheit:
+        for _ in range(len(SICHERHEITS_GRUENDE) + 1):
+            grund = quick_checks(v)
+            if grund not in SICHERHEITS_GRUENDE:
+                return grund
+            v = {**v, **_ENTSCHAERFT[grund]}         # Sicherheitsgrund ausblenden, Rest weiter pruefen
+        return None
     if v["age_h"] is None:
         return "KEIN_ALTER"
     if v["age_h"] < MIN_AGE_MIN / 60:
@@ -708,6 +730,14 @@ def quick_checks(v):
     if v["price_change_5m"] > FOMO_MAX_5M_PCT:
         return "FOMO_SPRUNG"                                    # Tag 17: nach einem Sprung kaufen ist FOMO
     return None
+
+
+_ENTSCHAERFT = {   # Felder so setzen, dass der jeweilige Sicherheitsgrund nicht mehr greift (nur fuer ohne_sicherheit)
+    "DEV_VERDAECHTIG": {"dev_mints": 0, "dev_balance_pct": 0.0},
+    "NACHAHMER_SYMBOL": {"symbol": "~offene_tuer~"},
+    "UNSICHERER_CONTRACT": {"mint_disabled": True, "freeze_disabled": True, "is_sus": False},
+    "VAMP_KOPIE": {"name": "", "symbol": "~offene_tuer~"},
+}
 
 
 def bundle_dev_check(mint):
@@ -1448,6 +1478,9 @@ def manage_positions(p, sol_usd, now):
         reason = None
         if change_pct <= pos.get("stop_pct", EMERGENCY_STOP_PCT):    # Experiment Notbremse 25: eigene Grenze
             reason = f"NOTBREMSE ({change_pct:+.0f}%)"
+        elif pos.get("dev_exit") and pos.get("dev_pct_kauf", 0) > 0.5 \
+                and v["dev_balance_pct"] < pos["dev_pct_kauf"] * SERIEN_DEV_EXIT_ANTEIL:   # Experiment Serien-Devs
+            reason = f"DEV_VERKAUFT ({pos['dev_pct_kauf']:.1f}% -> {v['dev_balance_pct']:.1f}%)"
         elif pos["liq_low_checks"] >= LIQ_CONFIRM_CHECKS:
             reason = "LIQUIDITAET_ABGEZOGEN"
         elif pos["thesis_breaks"] >= THESIS_BREAK_CHECKS:
@@ -1531,6 +1564,27 @@ def scan(p, sol_usd, now, exps=None):
             EXP_STATS["kontrollgruppe"]["last_error"] = str(err)
             print(f"[EXPERIMENT kontrollgruppe] {err}")
 
+    exps_alle = exps or {}
+    e5 = exps_alle.get("offene_tuer") if "offene_tuer" not in EXP_BEENDET else None
+    e6 = exps_alle.get("serien_devs") if "serien_devs" not in EXP_BEENDET else None
+    if e6 is not None:
+        try:
+            serien_devs_merken(views, now)
+        except Exception as err:
+            print(f"[EXPERIMENT serien_devs] Liste: {err}")
+    for v in views:
+        if e5 is not None and len(e5["positions"]) < OFFENE_TUER_MAX_POSITIONS and exp_can_buy(e5, v, now) \
+                and quick_checks(v, ohne_sicherheit=True) is None:
+            exp_buy("offene_tuer", e5, v, {"quelle": "experiment", "text":
+                    "Offene Tuer: ohne Sicherheits-, Bundle- und Dev-Pruefung"}, sol_usd)
+        if e6 is not None and len(e6["positions"]) < SERIEN_MAX_POSITIONS and exp_can_buy(e6, v, now):
+            vorgaenger = serien_dev_vorgaenger(v)
+            if vorgaenger:
+                exp_buy("serien_devs", e6, v, {"quelle": "experiment", "text":
+                        f"Serien-Dev: frueherer Coin {vorgaenger['symbol']} bis {vorgaenger['peak']:,.0f} $"},
+                        sol_usd, extra_pos={"dev_exit": True, "dev_pct_kauf": v["dev_balance_pct"],
+                                            "serien_vorgaenger": vorgaenger})
+
     passed = []
     for v in views:
         if v["mint"] in p["positions"] or now - p["cooldown"].get(v["mint"], 0) < 24 * 3600:
@@ -1607,6 +1661,56 @@ def exp_can_buy(ep, v, now, limit=None):
             and now - ep["cooldown"].get(v["mint"], 0) >= 24 * 3600
             and ep["bankroll_sol"] >= POSITION_SOL + TX_FEE_SOL
             and (limit is None or len(ep["positions"]) < limit))
+
+
+def _serien_devs_laden():
+    try:
+        with open(SERIEN_DEVS_FILE, encoding="utf-8") as f:
+            return json.load(f)
+    except (OSError, ValueError):
+        return {}
+
+
+_serien_devs = {"daten": None}
+
+
+def serien_devs_merken(views, now):
+    """Devs merken, deren Coin mindestens SERIEN_MIN_PEAK_MCAP Marktwert erreicht (hoechster gesehener Wert)."""
+    devs = _serien_devs["daten"]
+    if devs is None:
+        devs = _serien_devs["daten"] = _serien_devs_laden()
+    geaendert = False
+    for v in views:
+        dev = v.get("dev")
+        if not dev or v["mcap"] < SERIEN_MIN_PEAK_MCAP:
+            continue
+        coins = devs.setdefault(dev, {})
+        alt = coins.get(v["mint"])
+        if not alt or v["mcap"] > alt["peak"]:
+            coins[v["mint"]] = {"symbol": v["symbol"], "peak": round(v["mcap"]),
+                                "zuerst": alt["zuerst"] if alt else int(now)}
+            geaendert = True
+    if geaendert:
+        if len(devs) > SERIEN_DEVS_MAX:
+            aelteste = sorted(devs, key=lambda d: min(c["zuerst"] for c in devs[d].values()))
+            for d in aelteste[:len(devs) - SERIEN_DEVS_MAX]:
+                del devs[d]
+        os.makedirs(os.path.dirname(SERIEN_DEVS_FILE), exist_ok=True)
+        tmp = SERIEN_DEVS_FILE + ".tmp"
+        with open(tmp, "w", encoding="utf-8") as f:
+            json.dump(devs, f)
+        os.replace(tmp, SERIEN_DEVS_FILE)
+
+
+def serien_dev_vorgaenger(v):
+    """Frueherer starker Coin desselben Devs (nicht dieser Coin), sonst None. Nur junge, handelbare Coins."""
+    devs = _serien_devs["daten"] or {}
+    coins = devs.get(v.get("dev") or "", {})
+    andere = [dict(c, mint=m) for m, c in coins.items() if m != v["mint"]]
+    if not andere or v["age_h"] is None or not (MIN_AGE_MIN / 60 <= v["age_h"] <= MAX_AGE_H) \
+            or v["price"] <= 0 or v["liquidity"] < MIN_LIQUIDITY_USD:
+        return None
+    return max(andere, key=lambda c: c["peak"])
 
 
 def exp_buy(name, ep, v, bundle, sol_usd, extra_pos=None):

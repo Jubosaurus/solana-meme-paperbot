@@ -66,6 +66,7 @@ def sandbox(tmp_path, monkeypatch):
     monkeypatch.setattr(core, "SESSION", BlockedSession(net))
     monkeypatch.setattr(core, "jup_get", lambda path: None)
     monkeypatch.setattr(core, "dex_get", lambda path: None)
+    monkeypatch.setattr(core, "_serien_devs", {"daten": None})
     monkeypatch.setattr(core, "rpc", lambda method, params: None)
     monkeypatch.setattr(cb, "jup", lambda path: None)
 

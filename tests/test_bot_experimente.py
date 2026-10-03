@@ -301,3 +301,63 @@ def test_notbremse_25_kauft_nicht_ohne_kauf_der_hauptstrategie(scan_env, monkeyp
     exps = {"notbremse_25": load("notbremse_25")}
     core.scan(p, SOL, time.time(), exps)
     assert exps["notbremse_25"]["positions"] == {}
+
+
+# ================================================================ Offene Tuer und Serien-Devs (04.10.)
+
+def test_quick_checks_ohne_sicherheit_nur_fuer_offene_tuer():
+    from helpers import view
+    unsicher = view(freeze_disabled=False, dev_mints=500)
+    assert core.quick_checks(unsicher) == "DEV_VERDAECHTIG"                 # Standard unveraendert
+    assert core.quick_checks(unsicher, ohne_sicherheit=True) is None
+    stockt = view(freeze_disabled=False, holder_growth_1h=1.0)
+    assert core.quick_checks(stockt, ohne_sicherheit=True) == "VERBREITUNG_STOCKT"   # Story-Filter bleibt
+    assert core.quick_checks(view(price_change_5m=60), ohne_sicherheit=True) == "FOMO_SPRUNG"
+
+
+def test_offene_tuer_kauft_unsicheren_coin_den_die_hauptstrategie_ablehnt(scan_env, monkeypatch):
+    bundle_ok(monkeypatch, "BUNDLE_VERDAECHTIG")                           # Hauptstrategie: Bundle-Check schlaegt an
+    scan_env(MINT, freeze_disabled=False)                                  # und unsicherer Contract
+    p = core.load_portfolio()
+    exps = {"offene_tuer": load("offene_tuer")}
+    core.scan(p, SOL, time.time(), exps)
+    assert p["positions"] == {} and set(exps["offene_tuer"]["positions"]) == {MINT}
+
+
+def test_offene_tuer_hoechstens_4_positionen(scan_env, monkeypatch):
+    bundle_ok(monkeypatch)
+    for i in range(6):
+        scan_env(addr(f"M{i}"))
+    p = core.load_portfolio()
+    exps = {"offene_tuer": load("offene_tuer")}
+    core.scan(p, SOL, time.time(), exps)
+    assert len(exps["offene_tuer"]["positions"]) == core.OFFENE_TUER_MAX_POSITIONS
+
+
+def test_serien_devs_kauft_neuen_coin_eines_erfolgreichen_devs_und_steigt_aus_wenn_dev_verkauft(
+        scan_env, monkeypatch, market):
+    bundle_ok(monkeypatch)
+    dev = addr("SerienDev")
+    scan_env(MINT, dev=dev, mcap=2_000_000, age_h=20)                     # frueherer Coin: lief stark (zu alt zum Kauf)
+    p = core.load_portfolio()
+    exps = {"serien_devs": load("serien_devs")}
+    core.scan(p, SOL, time.time(), exps)
+    assert exps["serien_devs"]["positions"] == {}
+    assert os.path.exists(core.SERIEN_DEVS_FILE)
+    scan_env(MINT2, dev=dev, mcap=40_000, dev_balance_pct=8.0)            # neuer Coin desselben Devs
+    core.scan(p, SOL, time.time(), exps)
+    pos = exps["serien_devs"]["positions"][MINT2]
+    assert pos["dev_exit"] and pos["dev_pct_kauf"] == 8.0 and pos["serien_vorgaenger"]["peak"] == 2_000_000
+    market.tokens[MINT2]["audit"]["devBalancePercentage"] = 3.0            # Dev verkauft mehr als die Haelfte
+    core.manage_experiments(p, exps, SOL, time.time())
+    assert exps["serien_devs"]["closed"][-1]["exit_reason"].startswith("DEV_VERKAUFT")
+    assert "dev_exit" not in (p["positions"].get(MINT2) or {})            # Hauptstrategie unberuehrt
+
+
+def test_serien_devs_kein_kauf_ohne_bekannten_dev(scan_env, monkeypatch):
+    bundle_ok(monkeypatch)
+    scan_env(MINT, dev=addr("Unbekannt"), mcap=40_000)
+    p = core.load_portfolio()
+    exps = {"serien_devs": load("serien_devs")}
+    core.scan(p, SOL, time.time(), exps)
+    assert exps["serien_devs"]["positions"] == {}
