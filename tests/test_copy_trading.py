@@ -117,7 +117,7 @@ def test_preisabstand_ueber_15_prozent_wird_schattenposition(env):
     sh = env.acct["schatten"][MINT]
     assert sh["invested_sol"] == 0.2 and sh["preisabstand_pct"][0] == pytest.approx(20, abs=0.1)
     assert [r["aktion"] for r in journal_rows()] == ["AUSGELASSEN", "SCHATTEN_KAUF"]
-    # Trader steigt aus: Schatten schliesst zum Kurs des Traders
+    # Trader steigt aus: Schatten schliesst zum Kurs des Traders (seit 03.10. mit Journalzeile)
     sell(env, "s1", tokens=1_000_000, pre=1_000_000, sol=0.75)
     assert env.acct["schatten"] == {}
     rec = env.acct["schatten_geschlossen"][0]
@@ -206,10 +206,11 @@ def test_nachholen_verkauf_mit_trader_kurs_und_verpasster_kauf(env):
     assert "nachgeholt" in rows[-1]["hinweis"]
     assert cb.STATS["nachgeholt"] == 1 and cb.STATS["verpasst_kauf"] == 1
     assert len(cb.STATS["delays"]) == 1                                    # nur der Live-Kauf zaehlt
-    # Erneutes Nachholen derselben Luecke aendert nichts
+    # Neue Schicht (Gedaechtnis leer, Journal neu gelesen) holt dieselbe Luecke nach: nichts Neues
     cb._seen.clear()
+    cb.load_accounts([("Alpha", WALLET)])
     cb.backfill("Alpha", env.acct, old - 1, 100.0)
-    assert len(journal_rows()) == 3 + 1                                    # nur VERPASST_KAUF erneut dokumentiert
+    assert len(journal_rows()) == 3                     # vor dem 03.10.: VERPASST_KAUF wurde erneut dokumentiert
 
 
 def test_abgleich_trader_haelt_nichts_mehr(env):
@@ -485,3 +486,64 @@ def test_endmeldung_zeigt_wartende_verkaeufe(env, sandbox):
     cb.summary(env.data, 3600, 0, True)
     text = sandbox["discord"][-1][1]
     assert "1 Position(en) warten noch auf den Verkauf" in text
+
+
+# ================================================================ Nachholen ueber Schichtgrenzen (Pruefbericht 03.10.)
+# 16 Verkaeufe wurden doppelt ausgefuehrt und 220 Kaeufe faelschlich als VERPASST_KAUF dokumentiert: Der Abgleich
+# einer neuen Schicht holte bis zur Eroeffnung der Position nach, gemerkt waren nur 60 Signaturen je Position.
+
+def neue_schicht(env):
+    """Schichtwechsel: Konten speichern, Gedaechtnis leeren, Konten und Journal neu laden."""
+    cb.save_accounts(env.data)
+    cb._seen.clear()
+    cb._done.clear()
+    env.data = cb.load_accounts([("Alpha", WALLET)])
+    env.acct = env.data["wallets"]["Alpha"]
+
+
+def test_neue_schicht_verkauf_nicht_doppelt_trotz_60er_grenze(env):
+    now = int(time.time())
+    env.chain.add("b1", buy_tx(sig="b1", block_time=now))
+    env.chain.add("s1", sell_tx(sig="s1", tokens=300_000, pre=1_000_000, block_time=now + 1))
+    cb.handle_signature("Alpha", env.acct, "b1", 100.0)
+    cb.handle_signature("Alpha", env.acct, "s1", 100.0)
+    tokens = env.acct["positionen"][MINT]["tokens_raw"]
+    rows = len(journal_rows())
+    neue_schicht(env)
+    env.acct["positionen"][MINT]["sigs"] = []           # wie bei 922M: alte Signaturen aus der 60er-Liste gefallen
+    cb.backfill("Alpha", env.acct, now - 60, 100.0)
+    pos = env.acct["positionen"][MINT]
+    assert pos["tokens_raw"] == tokens and pos["kaeufe"] == 1 and pos["verkaeufe"] == 1
+    assert len(journal_rows()) == rows                  # weder VERKAUF noch VERPASST_KAUF erneut
+    assert cb.STATS["skipped"]["schon_verarbeitet"] == 2
+
+
+def test_neue_schicht_holt_wirklich_verpasste_verkaeufe_weiter_nach(env):
+    now = int(time.time())
+    env.chain.add("b1", buy_tx(sig="b1", block_time=now))
+    cb.handle_signature("Alpha", env.acct, "b1", 100.0)
+    neue_schicht(env)
+    env.chain.add("s1", sell_tx(sig="s1", tokens=1_000_000, pre=1_000_000, block_time=now + 1))
+    cb.backfill("Alpha", env.acct, now - 60, 100.0)
+    assert env.acct["positionen"] == {} and journal_rows()[-1]["aktion"] == "VERKAUF"
+
+
+def test_schattenverkauf_mit_journalzeile_und_nicht_doppelt(env):
+    env.market.price[MINT] = PRICE_USD * 1.2
+    buy(env)
+    sell(env, "s1", tokens=300_000, pre=1_000_000, sol=0.2)
+    rows = journal_rows()
+    assert rows[-1]["aktion"] == "SCHATTEN_VERKAUF" and rows[-1]["trader_signatur"] == "s1"
+    behalten = env.acct["schatten"][MINT]["behalten"]
+    neue_schicht(env)
+    env.acct["schatten"][MINT]["sigs"] = []
+    env.chain.add("s1", sell_tx(sig="s1", tokens=300_000, pre=1_000_000, sol=0.2))
+    cb.handle_signature("Alpha", env.acct, "s1", 100.0)
+    assert env.acct["schatten"][MINT]["behalten"] == behalten and len(journal_rows()) == len(rows)
+
+
+def test_kaputte_trader_zeit_im_journal_verhindert_start_nicht(env):
+    buy(env)
+    cb.journal({"zeit": "x", "trader": "Alpha", "aktion": "KAUF", "trader_zeit": "kaputt", "trader_signatur": "z"})
+    data = cb.load_accounts([("Alpha", WALLET)])
+    assert "Alpha" in data["wallets"] and ("Alpha", "z") in cb._done

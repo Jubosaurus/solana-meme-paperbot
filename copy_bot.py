@@ -88,6 +88,9 @@ _jup_error = [None]                      # Fehlercode der letzten Jupiter-Abfrag
 # Nur diese Antworten bedeuten "Coin ist wirklich nicht (mehr) handelbar"; alles andere gilt als Ausfall.
 NO_ROUTE_CODES = {"TOKEN_NOT_TRADABLE", "COULD_NOT_FIND_ANY_ROUTE", "NO_ROUTES_FOUND"}
 _seen = set()
+# (Trader, Signatur) aller Trades, die schon im Journal stehen (auch aus frueheren Schichten). Ersetzt beim
+# Nachholen die Grenze von 60 Signaturen je Position: kein Verkauf doppelt, kein falscher VERPASST_KAUF.
+_done = set()
 _rate = {}                              # Wallet -> Zeitpunkte der letzten Meldungen
 _gap = {}                               # Wallet -> Beginn einer Luecke, die noch nachgeholt werden muss
 
@@ -133,9 +136,15 @@ def load_accounts(wallets):
     if os.path.exists(JOURNAL_FILE):             # letzter eigener Trade je Wallet, fuer die Wallet-Pruefung
         with open(JOURNAL_FILE, encoding="utf-8") as f:
             for row in csv.DictReader(f):
+                if row.get("trader") and row.get("trader_signatur"):
+                    _done.add((row["trader"], row["trader_signatur"]))
                 a = data["wallets"].get(row.get("trader"))
                 if a is not None and row.get("trader_zeit"):
-                    ts = datetime.strptime(row["trader_zeit"], "%Y-%m-%d %H:%M:%S").replace(tzinfo=timezone.utc).timestamp()
+                    try:
+                        ts = datetime.strptime(row["trader_zeit"], "%Y-%m-%d %H:%M:%S").replace(
+                            tzinfo=timezone.utc).timestamp()
+                    except ValueError:
+                        continue                 # kaputte Zeile darf den Start nie verhindern
                     a["letzter_trade"] = max(a.get("letzter_trade", 0), ts)
     return data
 
@@ -495,12 +504,18 @@ def remember_sig(pos, sig):
 
 def copy_sell(name, acct, t, sig, now, reason="VERKAUF", nachgeholt=False):
     sh = acct.get("schatten", {}).get(t["mint"])
-    if sh is not None and sig not in sh.get("sigs", []):
+    shadow_new = sh is not None and sig not in sh.get("sigs", [])
+    if shadow_new:
         remember_sig(sh, sig)
         shadow_sell(name, acct, t, sig, now, reason)
     pos = acct["positionen"].get(t["mint"])
     if not pos:
         count("skipped", "verkauf_ohne_position")
+        if shadow_new:
+            # nur Schattenposition: Zeile mit Signatur, damit spaetere Schichten den Verkauf nicht doppelt zaehlen
+            journal({"zeit": now_str(), "trader": name, "wallet": acct["adresse"], "aktion": "SCHATTEN_VERKAUF",
+                     "symbol": sh.get("symbol", ""), "mint": t["mint"], "runde": acct["runde"],
+                     "hinweis": f"Schattenposition: {reason}", **trader_fields(t, sig)})
         return
     if sig in pos.get("sigs", []):
         return                                   # schon verarbeitet (z. B. live und beim Nachholen gesehen)
@@ -878,7 +893,10 @@ def wallet_check(data, active, now):
 
 def handle_signature(name, acct, sig, sol_usd, nachgeholt=False):
     key = (name, sig)
-    if key in _seen:
+    if key in _seen or key in _done:
+        if key in _done and key not in _seen:
+            count("skipped", "schon_verarbeitet")    # Nachholen: in einer frueheren Schicht erledigt
+        _seen.add(key)
         return
     _seen.add(key)
     tx = fetch_tx(sig)

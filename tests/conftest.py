@@ -90,7 +90,7 @@ def sandbox(tmp_path, monkeypatch):
     core.CTX.update(_CTX)
     for cache in (core._tok_cache, core._bundle_cache, core._block0_cache, core._shield_cache, core._reject_seen,
                   core._symbol_leaders, core._narrative_leaders, core._social_cache, core._portfolio_alarm,
-                  cb._seen, cb._rate, cb._gap):
+                  cb._seen, cb._done, cb._rate, cb._gap):
         cache.clear()
     monkeypatch.setattr(core, "_sol_price", [0.0])
     monkeypatch.setattr(cb, "STATS", copy.deepcopy(_CB_STATS))

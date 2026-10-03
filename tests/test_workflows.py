@@ -1,0 +1,25 @@
+"""Workflows: nie zwei Schichten desselben Bots gleichzeitig (Pruefbericht 03.10.).
+cancel-in-progress muss false bleiben: Der Kettenstart startet die naechste Schicht, waehrend die alte
+noch laeuft; sie wartet dann, statt die alte abzubrechen."""
+import pathlib
+import re
+
+import pytest
+
+WF = pathlib.Path(__file__).resolve().parent.parent / ".github" / "workflows"
+
+
+@pytest.mark.parametrize("datei, gruppe", [("bot_runner.yml", "solana-bot-repo"),
+                                           ("copy_runner.yml", "copy-bot"),
+                                           ("scout_runner.yml", "wallet-scout")])
+def test_eine_schicht_gleichzeitig(datei, gruppe):
+    text = (WF / datei).read_text(encoding="utf-8")
+    m = re.search(r"^concurrency:\n\s+group:\s*(\S+)\n\s+cancel-in-progress:\s*(\S+)", text, re.M)
+    assert m, f"{datei}: concurrency fehlt auf oberster Ebene"
+    assert m.group(1) == gruppe and m.group(2) == "false"
+
+
+def test_gruppen_verschieden():
+    gruppen = [re.search(r"^concurrency:\n\s+group:\s*(\S+)", (WF / d).read_text(encoding="utf-8"), re.M).group(1)
+               for d in ("bot_runner.yml", "copy_runner.yml", "scout_runner.yml")]
+    assert len(set(gruppen)) == 3                       # Bots blockieren sich nicht gegenseitig

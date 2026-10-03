@@ -15,6 +15,12 @@ Ziel: in wenigen Minuten ein ehrliches Bild, was seit der letzten Auswertung pas
 
 Für alle Berechnungen kurze Python-Skripte verwenden, keine großen Dateien komplett lesen.
 
+**Korrekturen herausrechnen (seit 03.10.):** Bevor `copy/journal.csv` ausgewertet wird, die Zeilen aus `auswertungen/korrekturen.csv` entfernen (gleiche `trader`, `trader_signatur`, `aktion` und `zeit`). Bei Zeilen ohne Signatur zählen nur `trader`, `aktion` und `zeit`. Was die einzelnen Arten bedeuten und wie sie zu behandeln sind, steht in `auswertungen/korrekturen.md`, unter anderem:
+- Positionen mit `doppelter_verkauf` nicht in den Vergleich „wir gegen Trader“ nehmen.
+- Den Kontowert aus `konten.json` bei 922M, HEBO und 4DOV mit dem Hinweis „enthält doppelte Verkäufe“ zeigen.
+
+In der Auswertung kurz nennen, wie viele Zeilen herausgerechnet wurden. Kommen neue Fehlbuchungen dazu, dort nachtragen (alte Daten nie umschreiben).
+
 ## 2. Betrieb
 
 - Lücken über 10 Minuten in `verlauf/` (Hauptbot) und über 45 Minuten in `copy/journal.csv` (Copy-Bot) im Zeitraum.
@@ -32,7 +38,7 @@ Tabelle für den Zeitraum **und** seit Start: Konto | Trades | Gewinner | Summe 
 
 - Pro aktiver Wallet: Kontowert (frei + aktueller Wert der offenen Positionen, Kurse aus `copy/verlauf/`), Runde, geschlossene Positionen im Zeitraum, wir gegen Trader (Median je Position, nur gültige Trader-Vergleiche).
 - Wartende Verkäufe (seit 03.10.): Positionen mit `verkauf_offen: true` in `copy/konten.json` (Jupiter-Ausfall beim Verkauf, Verkauf vorgemerkt) je Wallet auflisten (Coin, seit wann: erste `VERKAUF_GEMERKT`-Zeile mit „Ausfall“ im Hinweis in `copy/journal.csv` für Wallet und Coin). Kontowert dieser Wallets zusätzlich **vorsichtig** zeigen: diese Positionen mit Wert 0 gerechnet. Beide Werte nennen („Kontowert X SOL, vorsichtig Y SOL“). Wartet eine Position länger als 24 h, als Auffälligkeit melden.
-- Verzögerung und Preisabstand beim Kauf (Median), Anteil blockierter Käufe, Ergebnis der Schattenpositionen.
+- Verzögerung und Preisabstand beim Kauf (Median), Anteil blockierter Käufe, Ergebnis der Schattenpositionen. Seit 03.10. gibt es die Aktion `SCHATTEN_VERKAUF` (Teilverkauf einer Schattenposition, kein Geldfluss). Sie nicht als eigenen Verkauf zählen.
 - Wallet-Regeln anwenden (Bot, 72 h still, nach 30 Positionen und mehr als 1 SOL Verlust prüfen) und Kandidaten zum Ersetzen nennen. Nichts selbst entfernen.
 
 ## 5. Scout
