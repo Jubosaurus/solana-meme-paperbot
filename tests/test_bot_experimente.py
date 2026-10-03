@@ -205,6 +205,8 @@ def test_scan_kauft_guten_coin_und_nicht_den_fomo_coin(scan_env, monkeypatch):
 
 
 def test_ohne_limit_kauft_wenn_hauptstrategie_voll_ist(scan_env, monkeypatch):
+    """Mechanik (seit 04.10. beendet, siehe test_beendete_experimente_kaufen_nicht_mehr)."""
+    monkeypatch.setattr(core, "EXP_BEENDET", {})
     bundle_ok(monkeypatch)
     scan_env(MINT)
     p = core.load_portfolio()
@@ -244,3 +246,58 @@ def test_unlesbares_portfolio_wird_nie_ueberschrieben(sandbox):
         core.load_portfolio()
     assert open(core.PORTFOLIO_FILE).read() == "{kaputt"
     assert "unlesbar" in sandbox["discord"][0][0]
+
+
+# ================================================================ Beendete Experimente und Notbremse 25 (04.10.)
+
+def test_beendete_experimente_kaufen_nicht_mehr(scan_env, monkeypatch):
+    assert set(core.EXP_BEENDET) == {"endspurt_ohne_filter", "ohne_limit"}
+    bundle_ok(monkeypatch)
+    scan_env(MINT)
+    gerufen = []
+    monkeypatch.setattr(core, "endspurt_picks", lambda ep, views, sol, now, filt: gerufen.append(filt))
+    p = core.load_portfolio()
+    p["positions"] = {"a": {}, "b": {}}                                   # Hauptstrategie voll
+    exps = {n: load(n) for n in ("ohne_limit", "endspurt", "endspurt_ohne_filter")}
+    core.scan(p, SOL, time.time(), exps)
+    assert exps["ohne_limit"]["positions"] == {}
+    assert gerufen == [True]                                              # nur "Endspurt viele Trades"
+
+
+def test_beendetes_experiment_laesst_offene_positionen_auslaufen(endspurt_pos, market):
+    ep = endspurt_pos
+    ep["bankroll_sol"] = 0.05                                             # fast leer: keine neue Runde mehr
+    market.price[MINT] = price_for_vsol(120, SOL)
+    t = market.tokens[MINT]
+    t["graduatedPool"] = "pool"
+    core.manage_experiments(core.load_portfolio(), {"endspurt_ohne_filter": ep}, SOL, time.time())
+    assert ep["positions"] == {} and ep["closed"][-1]["exit_reason"].startswith("GRADUIERT")
+    assert ep.get("runde", 1) == 1                                        # check_reset nicht mehr aufgerufen
+    assert "beendet" in " ".join(core.experiment_lines())
+
+
+def test_notbremse_25_kauft_wie_hauptstrategie_und_bremst_frueher(scan_env, monkeypatch, market):
+    bundle_ok(monkeypatch)
+    scan_env(MINT)
+    p = core.load_portfolio()
+    exps = {"notbremse_25": load("notbremse_25")}
+    core.scan(p, SOL, time.time(), exps)
+    ep = exps["notbremse_25"]
+    assert set(p["positions"]) == {MINT} and set(ep["positions"]) == {MINT}
+    assert ep["positions"][MINT]["stop_pct"] == -25.0 and "stop_pct" not in p["positions"][MINT]
+    assert "-25%" in ep["positions"][MINT]["exit_rule"] and "-40%" in p["positions"][MINT]["exit_rule"]
+    market.price[MINT] *= 0.70                                            # -30 %
+    core.manage_positions(p, SOL, time.time())
+    core.manage_experiments(p, exps, SOL, time.time())
+    assert MINT in p["positions"]                                         # Hauptstrategie: -40 % noch nicht erreicht
+    assert ep["positions"] == {} and ep["closed"][-1]["exit_reason"].startswith("NOTBREMSE")
+
+
+def test_notbremse_25_kauft_nicht_ohne_kauf_der_hauptstrategie(scan_env, monkeypatch):
+    bundle_ok(monkeypatch)
+    scan_env(MINT)
+    p = core.load_portfolio()
+    p["positions"] = {"a": {}, "b": {}}                                   # Hauptstrategie voll -> kein Kauf
+    exps = {"notbremse_25": load("notbremse_25")}
+    core.scan(p, SOL, time.time(), exps)
+    assert exps["notbremse_25"]["positions"] == {}

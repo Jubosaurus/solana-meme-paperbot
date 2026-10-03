@@ -52,20 +52,23 @@ Alle Schwellen stehen oben in `bot.py` und lassen sich dort ändern.
 
 ## Experimente (seit 29.09.)
 
-Sechs Experimente laufen im selben Bot auf denselben Daten, aber mit eigenen Konten (je 10 SOL, gleicher Einsatz; Ausstiegsregeln wie die Hauptstrategie, außer bei den beiden Endspurt-Experimenten). Ist ein Konto aufgebraucht, startet es mit 10 SOL neu; die Rundennummer bleibt bei jedem Trade gespeichert. Die Hauptstrategie wird dadurch nicht verändert.
+Die Experimente laufen im selben Bot auf denselben Daten (seit 04.10.: fünf aktiv, zwei beendet), aber mit eigenen Konten (je 10 SOL, gleicher Einsatz; Ausstiegsregeln wie die Hauptstrategie, außer bei den beiden Endspurt-Experimenten). Ist ein Konto aufgebraucht, startet es mit 10 SOL neu; die Rundennummer bleibt bei jedem Trade gespeichert. Die Hauptstrategie wird dadurch nicht verändert.
 
 | Experiment | Kauft, wenn … | Frage dahinter |
 |---|---|---|
 | Zweite Welle | ein Coin, den die Hauptstrategie per Notbremse verkauft hat, innerhalb von 6 h wieder über ihren Einstiegskurs steigt | Lohnt sich der Wiedereinstieg in Coins wie WARP (nach der Notbremse bis 15,7x)? |
 | Heiße Coins | alle Prüfungen bestanden sind, nur der Bundle-Check wegen zu vieler Transaktionen nicht möglich war | Bringen die heißesten Coins mehr, als das Bundle-Risiko kostet? |
-| Ohne Limit | die Hauptstrategie kaufen würde, auch wenn ihr Positionslimit voll ist | Kostet das Positionslimit Gewinn? |
+| Ohne Limit (**beendet 04.10.**) | die Hauptstrategie kaufen würde, auch wenn ihr Positionslimit voll ist | Kostet das Positionslimit Gewinn? – Nicht messbar: 60 von 60 Käufen identisch mit der Hauptstrategie, das Limit griff nie |
 | Kontrollgruppe | etwa alle 30 min ein zufälliger junger Coin, der nur die Sicherheitsprüfungen besteht (Alter 15 min bis 6 h, Liquidität, sicherer Contract, keine Transfergebühr) | Sind die Filter der Strategie besser als Zufall? |
 | Endspurt viele Trades | wie „Endspurt ohne Filter“, aber nur Coins mit mindestens 2.000 Trades seit Start (seit 01.10.; vorher Filter der Studie: unter 800 Trades und organischer Handel, wurde nie erfüllt) | Graduieren Coins mit vielen Trades häufiger? In den ersten 74 Käufen: 52 % gegenüber 24 % |
-| Endspurt ohne Filter | Pump.fun-Coin bei 95–108 vSol (76–92 % bis zur Graduation), Quote höchstens 3 % über Kurvenpreis. Verkauf komplett bei der Graduation, bei 12 vSol Rückfall, nach 45 min oder bei der Notbremse | Lohnt der Kauf kurz vor der Graduation? (arXiv 2602.14860) |
+| Endspurt ohne Filter (**beendet 04.10.**: 266 Trades, besser als Zufall, aber im Minus) | Pump.fun-Coin bei 95–108 vSol (76–92 % bis zur Graduation), Quote höchstens 3 % über Kurvenpreis. Verkauf komplett bei der Graduation, bei 12 vSol Rückfall, nach 45 min oder bei der Notbremse | Lohnt der Kauf kurz vor der Graduation? (arXiv 2602.14860) |
+| Notbremse 25 (seit 04.10.) | genau dann, wenn die Hauptstrategie kauft (gleicher Coin, gleicher Moment); alle Ausstiege gleich, nur die Notbremse greift schon bei −25 % statt −40 %. Zeichnet nach dem Verkauf 6 h weiter auf | Spart eine frühere Notbremse mehr Verluste, als sie spätere Gewinner kostet? (Überprüfung 03.10., Hypothese H1: Hauptstrategie-Verläufe dafür, Kontrollgruppe dagegen) |
 
 „Ohne Limit“ und „Endspurt ohne Filter“ zeichnen Coins nach dem Verkauf 6 h weiter auf. Bei „Endspurt ohne Filter“ sind das die Kursverläufe nach der Graduation, damit lässt sich auch eine Strategie „Einstieg nach der Migration“ nachrechnen. Damit lassen sich strengere Filter, ein Einstieg erst nach der ersten Korrektur und andere Ausstiege nachrechnen, ohne eigene Experimente.
 
 Dateien: `experimente/<name>/portfolio.json` und `journal.csv`; Kursverläufe in `verlauf/` mit dem Präfix `exp_<name>_`. Meldungen gehen in den Discord-Kanal des Secrets `DISCORD_WEBHOOK_EXPERIMENTE`.
+
+**Beendete Experimente** kaufen nichts mehr. Ihre offenen Positionen laufen regulär zu Ende, die Daten bleiben (Liste `EXP_BEENDET` in `bot.py`).
 
 **Testregeln für alle Experimente** (seit 30.09.): Entscheidung frühestens nach 200 Trades. Vergleich mit der Kontrollgruppe aus demselben Zeitraum. Ein Experiment gilt nur als besser, wenn es das auch ohne seine 3 besten Trades bleibt.
 
@@ -155,6 +158,7 @@ Grenzen: Vergangene Gewinne garantieren keine künftigen; frühe Käufer können
 | 03.10. | Dashboard `dashboard/` (Streamlit, nur lokal, nur lesen, alle 5 min `git pull`, Start mit `dashboard/start.bat`): Übersicht mit Bot-Zustand und Testurteil je Konto, Strategie & Experimente, Copy Trading, Scout, Betrieb. Gemeinsame Rechnung in `dashboard/rechnung.py` (auch für die Tagesauswertung), Kontowert wie in Discord (per Test abgesichert), Korrekturen herausgerechnet, wartende Positionen zusätzlich mit Wert 0. Bot-Code unverändert | Wunsch des Betreibers: in 10 Sekunden sehen, was gut läuft, was schlecht läuft und ob etwas kaputt ist |
 | 03.10. | Dashboard v2: Copy-Hauptzahl jetzt Ergebnis seit Start über alle Runden und Wallets (auch entfernte), laufende Runde nur als Zusatz, dazu „ohne besten Trader“; Testurteil trennt „besser/schlechter als Zufall“ und „im Plus/Minus“; Ausreißer-Hinweis, wenn ein Trader/Konto mehr als die Hälfte des Gesamtergebnisses ausmacht; auf dem Handy Kontokarten statt breiter Tabelle; neues dunkles Design (CSS und Diagramm-Thema gebündelt in `dashboard/stil.py`). Bot-Code unverändert | Wunsch des Betreibers: Die alte Copy-Zahl (+7,9 SOL, nur laufende Runden) verschwieg frühere Runden; seit Start sind es rund −36 SOL. HEBO (+24,5 SOL) beruht fast ganz auf einem Coin (PIGEON, +32 SOL), keine Fehlbuchung |
 | 03.10. | Copy: 922M entfernt (in `copy_wallets.txt` auskommentiert, Daten bleiben) | Nicht kopierbar: −37 SOL über 5 Runden (Konto viermal aufgebraucht), ~70 % des Helius-Verbrauchs; Ersatz über die anstehende Überprüfung |
+| 04.10. | Experimente: „Endspurt ohne Filter“ und „Ohne Limit“ beendet (keine neuen Käufe, offene Positionen laufen aus, Daten bleiben); neues Experiment „Notbremse 25“ (10 SOL, kauft genau mit der Hauptstrategie, Notbremse −25 % statt −40 %). Hauptstrategie unverändert (Regressionsprobe gleich) | Überprüfung 03.10.: Endspurt ohne Filter nach 266 Trades besser als Zufall, aber in beiden Hälften im Minus; Ohne Limit misst seine Idee nicht (60/60 identisch); Notbremse −25 % bestand die Hälften-Probe auf den Hauptstrategie-Verläufen (Kontrollgruppe dagegen) – auf Papier riskant erlaubt (Leitlinie 04.10.) |
 
 ## Dateien seit 28.09.
 

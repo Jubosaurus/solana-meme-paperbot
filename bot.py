@@ -143,7 +143,11 @@ DISCORD_ATTEMPTS = 3
 EXP_DIR = "experimente"
 EXPERIMENTS = {"zweite_welle": "Zweite Welle", "heisse_coins": "Heisse Coins", "ohne_limit": "Ohne Limit",
                "kontrollgruppe": "Kontrollgruppe", "endspurt": "Endspurt viele Trades",
-               "endspurt_ohne_filter": "Endspurt ohne Filter"}
+               "endspurt_ohne_filter": "Endspurt ohne Filter", "notbremse_25": "Notbremse 25"}
+# Beendete Experimente (Datum): keine neuen Kaeufe, offene Positionen laufen regulaer zu Ende, Daten bleiben.
+EXP_BEENDET = {"endspurt_ohne_filter": "04.10.", "ohne_limit": "04.10."}
+NOTBREMSE_25_PCT = -25.0                # Experiment Notbremse 25 (seit 04.10.): kauft genau wie die
+#                                         Hauptstrategie, nur die Notbremse greift schon bei -25 % statt -40 %
 
 # Experiment Endspurt (seit 30.09.): Pump.fun-Coins kurz vor der Graduation, raus bei der Graduation.
 # Grundlage: arXiv 2602.14860 (655.770 Pump.fun-Coins, Sept. 2025). Preis auf der Kurve = vSol^2 / K.
@@ -158,7 +162,7 @@ ENDSPURT_MAX_POSITIONS = 8
 ENDSPURT_MIN_TRADES = 2000              # Filter: mindestens so viele Trades seit Start
 ENDSPURT_MAX_SLIPPAGE_PCT = 3.0
 KONTROLL_INTERVAL_MIN = 30              # Kontrollgruppe: etwa alle 30 min ein zufaelliger Coin
-EXP_WATCH_AFTER_EXIT = {"ohne_limit", "endspurt_ohne_filter"}
+EXP_WATCH_AFTER_EXIT = {"ohne_limit", "endspurt_ohne_filter", "notbremse_25"}
 EXP_LOG_OPEN_EVERY_LOOPS = 3            # Experimente: offene Positionen alle ~36 s aufzeichnen   # nach dem Verkauf 6 h weiter aufzeichnen (fuer Nachrechnungen)
 DISCORD_WEBHOOK_EXPERIMENTE = (os.environ.get("DISCORD_WEBHOOK_EXPERIMENTE") or "").strip()
 
@@ -1097,9 +1101,10 @@ def open_position(p, v, bundle, sol_usd, max_slippage_pct=None, extra_pos=None):
     thesis = (f"Story verbreitet sich: Holder +{v['holder_growth_1h']:.0f}%/h, "
               f"{v['net_buyers_5m']} Netto-Kaeufer 5m, {v['organic_buyers_5m']} organisch; "
               f"{bundle_txt}; Dev-Coins {v['dev_mints']}")
+    stop_pct = (extra_pos or {}).get("stop_pct", EMERGENCY_STOP_PCT)
     exit_rule = (f"Haelfte bei {TP1_MULTIPLE:.0f}x; Rest raus, wenn Holder schrumpfen und "
                  f"Netto-Verkaeufer {THESIS_BREAK_CHECKS}x in Folge, Liquiditaet -{LIQ_DROP_EXIT_PCT:.0f}%, "
-                 f"{EMERGENCY_STOP_PCT:.0f}%, nach 1,5x nicht unter Einstand, "
+                 f"{stop_pct:.0f}%, nach 1,5x nicht unter Einstand, "
                  f"nach 2x 30 % vom Hoch (ab 10x 25 %)")
 
     p["bankroll_sol"] = round(p["bankroll_sol"] - POSITION_SOL - TX_FEE_SOL, 6)
@@ -1293,7 +1298,7 @@ def manage_positions(p, sol_usd, now):
             pos["thesis_breaks"] = 0 if thesis_ok else pos["thesis_breaks"] + 1
 
         reason = None
-        if change_pct <= EMERGENCY_STOP_PCT:
+        if change_pct <= pos.get("stop_pct", EMERGENCY_STOP_PCT):    # Experiment Notbremse 25: eigene Grenze
             reason = f"NOTBREMSE ({change_pct:+.0f}%)"
         elif pos["liq_low_checks"] >= LIQ_CONFIRM_CHECKS:
             reason = "LIQUIDITAET_ABGEZOGEN"
@@ -1361,7 +1366,7 @@ def scan(p, sol_usd, now, exps=None):
     update_symbol_leaders(views, now)
     update_narrative_leaders(views, now)
     for name, with_filters in (("endspurt", True), ("endspurt_ohne_filter", False)):
-        if exps and name in exps:
+        if exps and name in exps and name not in EXP_BEENDET:
             try:
                 with experiment(name):
                     endspurt_picks(exps[name], views, sol_usd, now, with_filters)
@@ -1392,7 +1397,9 @@ def scan(p, sol_usd, now, exps=None):
     # Staerkste Verbreitung zuerst
     passed.sort(key=lambda x: x["holder_growth_1h"], reverse=True)
     exps = exps or {}
-    e2, e3 = exps.get("heisse_coins"), exps.get("ohne_limit")
+    e2 = exps.get("heisse_coins") if "heisse_coins" not in EXP_BEENDET else None
+    e3 = exps.get("ohne_limit") if "ohne_limit" not in EXP_BEENDET else None
+    e4 = exps.get("notbremse_25") if "notbremse_25" not in EXP_BEENDET else None
     for v in passed:
         main_slot = slots > 0
         e2_ok = e2 is not None and exp_can_buy(e2, v, now, MAX_POSITIONS.get(phase, 2))
@@ -1427,6 +1434,8 @@ def scan(p, sol_usd, now, exps=None):
         v["solana_tracker"] = solana_tracker_risk(p, v["mint"])   # nur Beobachtung
         if open_position(p, v, bundle, sol_usd):
             slots -= 1
+            if e4 is not None and exp_can_buy(e4, v, now):            # Experiment Notbremse 25: gleicher Kauf
+                exp_buy("notbremse_25", e4, v, bundle, sol_usd, extra_pos={"stop_pct": NOTBREMSE_25_PCT})
 
 
 # ================================================================ Experimente
@@ -1452,10 +1461,10 @@ def exp_can_buy(ep, v, now, limit=None):
             and (limit is None or len(ep["positions"]) < limit))
 
 
-def exp_buy(name, ep, v, bundle, sol_usd):
+def exp_buy(name, ep, v, bundle, sol_usd, extra_pos=None):
     try:
         with experiment(name):
-            open_position(ep, dict(v), dict(bundle), sol_usd)
+            open_position(ep, dict(v), dict(bundle), sol_usd, extra_pos=extra_pos)
     except Exception as err:
         EXP_STATS[name]["exp_errors"] += 1
         EXP_STATS[name]["last_error"] = str(err)
@@ -1586,7 +1595,8 @@ def manage_experiments(p, exps, sol_usd, now):
                 manage_positions(ep, sol_usd, now)
                 if name == "zweite_welle" and STATS["loops"] % WATCH_LOG_EVERY_LOOPS == 0:
                     second_wave_entries(p, ep, sol_usd, now)
-                check_reset(ep)
+                if name not in EXP_BEENDET:              # beendet: keine neue Runde mehr
+                    check_reset(ep)
                 save_portfolio(ep)
         except Exception as err:
             EXP_STATS[name]["exp_errors"] += 1
@@ -1603,6 +1613,8 @@ def experiment_lines():
                 ep = load_portfolio()
             value = ep["bankroll_sol"] + sum(x["invested_sol"] for x in ep["positions"].values())
             ex = s["exits"]
+            if name in EXP_BEENDET:
+                title += f" (beendet {EXP_BEENDET[name]}, laeuft aus)"
             lines.append(f"**{title}:** {value:.2f} SOL (Runde {ep.get('runde', 1)}) | Schicht: "
                          f"{len(s['entries'])} Kaeufe, {len(ex)} geschlossen, "
                          f"{sum(e['pnl_sol'] for e in ex):+.3f} SOL, offen {len(ep['positions'])}"

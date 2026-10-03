@@ -197,7 +197,9 @@ def konto_strategie(key, label, p, kurse, sol_usd=None):
     closed = p.get("closed") or []
     frei = as_float(p.get("bankroll_sol"), START_SOL)
     kontowert = frei + markt
-    return {"key": key, "label": label, "frei": frei, "markt": markt, "kontowert": kontowert,
+    beendet = getattr(core, "EXP_BEENDET", {}).get(key)
+    return {"key": key, "label": label + (f" (beendet {beendet})" if beendet else ""), "beendet": beendet,
+            "frei": frei, "markt": markt, "kontowert": kontowert,
             "ergebnis": kontowert - START_SOL, "runde": p.get("runde"), "gestartet": p.get("started"),
             "gespeichert": p.get("saved_at"), "offen": offen, "closed": closed, **trade_kennzahlen(closed)}
 
