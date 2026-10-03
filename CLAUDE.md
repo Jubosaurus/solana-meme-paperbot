@@ -60,7 +60,7 @@ Jeder Bot hat `--probe` (Kurztest ohne Handel, Ausgabe für die Kontrolle).
 
 ## Budgets und Grenzen
 
-- **Helius** (Gratis-Tarif, 1 Mio. Credits/Monat): Stand 02.10. rund 520.000/Monat hochgerechnet, davon ~70 % durch Copy-Wallet 922M. Tempo: Hauptbot `HELIUS_INTERVAL = 0.15`, Copy 0.33, Scout 0.5; bei 429 bis zu drei Wiederholungen. WebSockets kosten 2 Credits je 0,1 MB, `transactionSubscribe` ist nicht im Gratis-Tarif (nur `logsSubscribe`).
+- **Helius** (Gratis-Tarif, 1 Mio. Credits/Monat): Stand 02.10. rund 520.000/Monat hochgerechnet, davon ~70 % durch Copy-Wallet 922M (am 03.10. entfernt, Verbrauch sollte deutlich sinken). Tempo: Hauptbot `HELIUS_INTERVAL = 0.15`, Copy 0.33, Scout 0.5; bei 429 bis zu drei Wiederholungen. WebSockets kosten 2 Credits je 0,1 MB, `transactionSubscribe` ist nicht im Gratis-Tarif (nur `logsSubscribe`).
 - **Jupiter**: ein Key für alle Bots; Hauptbot ~1 Anfrage/s, Copy-Bot 1,6 s Takt mit Wiederholung bei 429.
 - **Birdeye** (Gratis: 30.000 CUs/Monat, 1 Anfrage/s): Top-Trader kosten tatsächlich **25 CUs** (Code rechnet noch vorsichtig mit 35), Zähler stoppt bei 28.000.
 - **Solana Tracker**: höchstens 70 Abfragen/Tag, nur Hauptstrategie, nur Beobachtung.
@@ -123,7 +123,7 @@ Testsammlung in `tests/` (seit 02.10., pytest):
 4. Tag 17 beobachten: Wie liefen die als `FOMO_SPRUNG` abgelehnten Coins (knapp_abgelehnt)?
 5. Scout: `BIRDEYE_CU["top_traders"]` auf 25 senken, sobald die Kosten der PnL-Zusammenfassung bekannt sind; prüfen, ob `/wallet/v2/pnl/summary` im Gratis-Tarif verfügbar ist.
 6. Neue Copy-Wallets (GMGN, eingetragen 02.10.: 3zsr, C7bF, 2FPk, haru, 43Nu, koko, Eshi, 54cb, 42wu, 77n6; dazu Pikalosi, Dior) nach einigen Tagen auswerten: Überstehen Trader mit langen Haltezeiten die Reibung besser?
-7. Helius-Verbrauch beobachten; 922M ist teuer und für uns nicht kopierbar (Betreiber hat entschieden, ihn vorerst zu behalten).
+7. Helius-Verbrauch beobachten; 922M am 03.10. entfernt (nicht kopierbar, −37 SOL über 5 Runden, ~70 % des Helius-Verbrauchs). Ersatz über die anstehende Überprüfung.
 
 ## Tägliche Auswertung (Kurzfassung, Details im Skill `tagesauswertung`)
 
