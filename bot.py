@@ -465,6 +465,9 @@ _tok_cache = {}                          # mint -> (zeit, token); Hauptstrategie
 TOK_CACHE_SECONDS = 6
 
 
+_jup_unanswered = set()                  # Mints der letzten jup_tokens-Abfrage ohne gueltige Jupiter-Antwort
+
+
 def jup_tokens(mints):
     """Bis zu 100 Token in einer Abfrage. Rueckgabe {mint: token}. Frische Werte kommen aus dem Cache."""
     now = time.time()
@@ -475,9 +478,14 @@ def jup_tokens(mints):
             result[m] = hit[1]
         else:
             missing.append(m)
+    _jup_unanswered.clear()
     for i in range(0, len(missing), 100):
-        data = jup_get(f"/tokens/v2/search?query={','.join(missing[i:i + 100])}")
-        for tok in data if isinstance(data, list) else []:
+        chunk = missing[i:i + 100]
+        data = jup_get(f"/tokens/v2/search?query={','.join(chunk)}")
+        if not isinstance(data, list):
+            _jup_unanswered.update(chunk)       # Ausfall: diese Coins sind nicht verschwunden, nur unbekannt
+            continue
+        for tok in data:
             if tok.get("id"):
                 result[tok["id"]] = tok
                 _tok_cache[tok["id"]] = (now, tok)
@@ -1153,6 +1161,8 @@ def manage_positions(p, sol_usd, now):
     for mint, pos in list(p["positions"].items()):
         tok = data.get(mint)
         if not tok:
+            if mint in _jup_unanswered:
+                continue                        # Jupiter hat nicht geantwortet: kein Hinweis auf einen toten Coin
             pos["missing_loops"] += 1
             if pos["missing_loops"] >= DEAD_TOKEN_LOOPS:
                 close_position(p, pos, 0.0, "TOKEN_NICHT_MEHR_HANDELBAR", sol_usd)

@@ -367,3 +367,121 @@ def test_konten_alte_daten_laufen_weiter(env):
     data = cb.load_accounts([("Alpha", WALLET)])
     a = data["wallets"]["Alpha"]
     assert a["bankroll_sol"] == 7.0 and a["schatten"] == {} and a["schatten_geschlossen"] == []
+
+
+# ================================================================ Jupiter-Ausfall (Pruefbericht 03.10.)
+# Ein Ausfall darf nie als "wertlos" gebucht werden: Position bleibt offen, Verkauf wird spaeter nachgeholt.
+
+REAL_QUOTE_OUT = cb.quote_out
+REAL_JUP = cb.jup
+
+
+class FakeResponse:
+    def __init__(self, status, body):
+        self.status_code, self._body = status, body
+
+    def json(self):
+        if self._body is None:
+            raise ValueError("kein JSON")
+        return self._body
+
+
+@pytest.mark.parametrize("status, body, expected", [
+    (200, {"outAmount": "12345"}, 12345),
+    (400, {"error": "not tradable", "errorCode": "TOKEN_NOT_TRADABLE"}, 0),
+    (400, {"error": "no route", "errorCode": "COULD_NOT_FIND_ANY_ROUTE"}, 0),
+    (500, None, None),
+    (400, {"error": "Bad request"}, None),
+    (429, None, None),
+])
+def test_quote_unterscheidet_keine_route_und_ausfall(monkeypatch, status, body, expected):
+    class Session:
+        def get(self, *a, **kw):
+            return FakeResponse(status, body)
+    monkeypatch.setattr(core, "SESSION", Session())
+    monkeypatch.setattr(cb, "jup", REAL_JUP)
+    assert REAL_QUOTE_OUT(MINT, core.WSOL_MINT, 1000) == expected
+
+
+def test_quote_ohne_antwort_ist_ausfall(monkeypatch):
+    monkeypatch.setattr(cb, "jup", lambda path: None)
+    assert REAL_QUOTE_OUT(MINT, core.WSOL_MINT, 1000) is None
+    assert cb.STATS["quote_ausfall"] == 1
+
+
+def test_kauf_bei_ausfall_ausgelassen(env):
+    env.market.ausfall.add(MINT)
+    bank = env.acct["bankroll_sol"]
+    buy(env)
+    assert env.acct["positionen"] == {} and env.acct["bankroll_sol"] == bank
+
+
+def test_verkauf_bei_ausfall_vorgemerkt_und_beim_abgleich_nachgeholt(env):
+    buy(env)
+    pos = env.acct["positionen"][MINT]
+    tokens, bank = pos["tokens_raw"], env.acct["bankroll_sol"]
+    env.market.ausfall.add(MINT)
+    sell(env, "s1", tokens=1_000_000, pre=1_000_000, sol=0.5)
+    assert env.acct["positionen"][MINT] is pos                     # nicht mit Wert 0 geschlossen
+    assert pos["tokens_raw"] == tokens and env.acct["bankroll_sol"] == bank
+    assert pos["verkauf_offen"] is True and cb.STATS["verkauf_verschoben"] == 1
+    row = journal_rows()[-1]
+    assert row["aktion"] == "VERKAUF_GEMERKT" and "Ausfall" in row["hinweis"]
+    sell(env, "s1", tokens=1_000_000, pre=1_000_000, sol=0.5)      # gleiche Signatur: nicht doppelt
+    assert cb.STATS["verkauf_verschoben"] == 1
+
+    env.chain.balance = 0
+    cb.reconcile(env.data, time.time(), 100.0)                     # Jupiter noch weg: bleibt offen
+    assert MINT in env.acct["positionen"]
+
+    env.market.ausfall.clear()
+    cb.reconcile(env.data, time.time(), 100.0)
+    assert env.acct["positionen"] == {}
+    rec = env.acct["geschlossen"][0]
+    assert rec["grund"] == "VERKAUF" and rec["proceeds_sol"] == pytest.approx(0.2, rel=1e-4)   # 0,2 SOL zum unveraenderten Kurs
+    assert rec["trader_pnl_sol"] == pytest.approx(0.0, abs=1e-9)   # Trader-Vergleich bleibt erhalten
+    assert "nach Jupiter-Ausfall nachgeholt" in journal_rows()[-1]["hinweis"]
+
+
+def test_vorgemerkter_teilverkauf_beim_naechsten_signal(env):
+    buy(env)
+    pos = env.acct["positionen"][MINT]
+    start = pos["tokens_raw"]
+    env.market.ausfall.add(MINT)
+    sell(env, "s1", tokens=300_000, pre=1_000_000)                 # 30 %: wuerde verkauft, Jupiter weg
+    assert pos["tokens_raw"] == start and pos["verkauf_offen"]
+    env.market.ausfall.clear()
+    sell(env, "s2", tokens=70_000, pre=700_000)                    # weitere 10 % des Rests
+    assert pos["tokens_raw"] == pytest.approx(start * 0.7 * 0.9, rel=1e-6)
+    assert "verkauf_offen" not in pos
+
+
+def test_abgleich_bei_ausfall_verkauft_nichts(env):
+    buy(env)
+    env.chain.balance = 0
+    env.market.ausfall.add(MINT)
+    assert cb.reconcile(env.data, time.time(), 100.0) == 0
+    assert MINT in env.acct["positionen"] and env.acct["positionen"][MINT]["tokens_raw"] > 0
+
+
+def test_bereinigung_bei_ausfall_laesst_position_offen(env):
+    buy(env)
+    env.market.ausfall.add(MINT)                                   # Kurssuche (cb.jup) liefert im Test nichts
+    assert cb.cleanup(env.data) == 0
+    assert MINT in env.acct["positionen"] and env.acct["geschlossen"] == []
+
+
+def test_bereinigung_ohne_route_schliesst_weiter(env):
+    buy(env)
+    env.market.price[MINT] = 0                                     # Fake: Quote 0 = Jupiter sagt "keine Route"
+    assert cb.cleanup(env.data) == 1
+    assert env.acct["geschlossen"][0]["grund"] == "BEREINIGT (-99 %)"
+
+
+def test_endmeldung_zeigt_wartende_verkaeufe(env, sandbox):
+    buy(env)
+    env.market.ausfall.add(MINT)
+    sell(env, "s1", tokens=1_000_000, pre=1_000_000, sol=0.5)
+    cb.summary(env.data, 3600, 0, True)
+    text = sandbox["discord"][-1][1]
+    assert "1 Position(en) warten noch auf den Verkauf" in text

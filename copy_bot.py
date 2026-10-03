@@ -81,8 +81,12 @@ JOURNAL_HEADER = [
 
 STATS = {"notifications": 0, "bytes": 0, "failed": 0, "no_hint": 0, "fetched": 0, "muted": [], "muted_info": {}, "abgleich": 0, "nachgeholt": 0, "verpasst_kauf": 0,
          "trades": {}, "skipped": {}, "reconnects": 0, "parse_errors": 0, "wallet": {}, "pfade": 0,
-         "delays": [], "git_ok": 0, "git_fail": 0, "jup_429": 0, "errors": 0, "last_error": ""}
+         "delays": [], "git_ok": 0, "git_fail": 0, "jup_429": 0, "errors": 0, "last_error": "",
+         "quote_ausfall": 0, "verkauf_verschoben": 0}
 _jup_last = [0.0]
+_jup_error = [None]                      # Fehlercode der letzten Jupiter-Abfrage (None = keiner bekannt)
+# Nur diese Antworten bedeuten "Coin ist wirklich nicht (mehr) handelbar"; alles andere gilt als Ausfall.
+NO_ROUTE_CODES = {"TOKEN_NOT_TRADABLE", "COULD_NOT_FIND_ANY_ROUTE", "NO_ROUTES_FOUND"}
 _seen = set()
 _rate = {}                              # Wallet -> Zeitpunkte der letzten Meldungen
 _gap = {}                               # Wallet -> Beginn einer Luecke, die noch nachgeholt werden muss
@@ -175,6 +179,11 @@ def jup(path):
             time.sleep(2 * (attempt + 1))
             continue
         if res.status_code != 200:
+            try:
+                body = res.json()
+            except ValueError:
+                body = None
+            _jup_error[0] = (body.get("errorCode") if isinstance(body, dict) else None) or f"HTTP {res.status_code}"
             return None
         try:
             return res.json()
@@ -184,12 +193,20 @@ def jup(path):
 
 
 def quote_out(input_mint, output_mint, raw_amount):
+    """Menge laut Jupiter-Quote. 0 = Jupiter sagt eindeutig "nicht handelbar / keine Route".
+    None = keine verwertbare Antwort (Ausfall, 429, Timeout): nie als wertlos buchen, spaeter erneut versuchen."""
+    _jup_error[0] = None
     data = jup(f"/swap/v1/quote?inputMint={input_mint}&outputMint={output_mint}"
                f"&amount={int(raw_amount)}&slippageBps=500")
-    try:
-        return int((data or {}).get("outAmount") or 0)
-    except (TypeError, ValueError):
+    if isinstance(data, dict) and data.get("outAmount") is not None:
+        try:
+            return int(data["outAmount"])
+        except (TypeError, ValueError):
+            pass
+    elif _jup_error[0] in NO_ROUTE_CODES:
         return 0
+    STATS["quote_ausfall"] += 1
+    return None
 
 
 # ================================================================ Transaktion des Traders auswerten
@@ -397,7 +414,7 @@ def copy_buy(name, acct, t, sig, now):
             + (f" {still_open} Position(en) aus frueheren Runden laufen weiter." if still_open else "")], 0x8B5CF6)
     raw = quote_out(core.WSOL_MINT, t["mint"], int(BUY_SOL * 1e9))
     our_time = time.time()
-    if raw <= 0:
+    if not raw:
         skip_buy(name, acct, t, sig, "keine_quote", "keine Jupiter-Quote")
         return
     tokens = raw / 10 ** t["decimals"]
@@ -528,6 +545,21 @@ def copy_sell(name, acct, t, sig, now, reason="VERKAUF", nachgeholt=False):
     batch = pos["gemerkt"]
     sell_raw = pos["tokens_raw"] if full_exit else int(pos["tokens_raw"] * to_sell)
     out = quote_out(t["mint"], core.WSOL_MINT, sell_raw) if sell_raw > 0 else 0
+    if out is None:
+        # Jupiter-Ausfall: nicht als wertlos buchen. Der Anteil bleibt vorgemerkt und wird beim naechsten
+        # Verkauf des Traders oder beim stuendlichen Abgleich erneut versucht.
+        pos["verkauf_offen"] = True
+        STATS["verkauf_verschoben"] += 1
+        if nachgeholt:
+            STATS["nachgeholt"] += 1
+        journal({"zeit": now_str(), "trader": name, "wallet": acct["adresse"], "aktion": "VERKAUF_GEMERKT",
+                 "symbol": pos["symbol"], "mint": t["mint"], "runde": pos["runde"], "trader_anteil": f"{fraction:.4f}",
+                 "trader_sol_zugeordnet": f"{attributed:.6f}",
+                 "hinweis": f"keine Jupiter-Quote (Ausfall): {to_sell:.0%} der Position vorgemerkt, "
+                            "Verkauf wird erneut versucht",
+                 **trader_fields(t, sig)})
+        return
+    pos.pop("verkauf_offen", None)
     our_time = time.time()
     proceeds = out / 1e9
     fee = trade_fee(t)
@@ -654,6 +686,45 @@ def backfill(name, acct, since, sol_usd):
     return len(sigs)
 
 
+def retry_sell(name, acct, pos, now):
+    """Nach einem Jupiter-Ausfall vorgemerkten Verkauf erneut versuchen. True, wenn verkauft wurde."""
+    behalten = pos.get("behalten", 1.0)
+    sell_raw = pos["tokens_raw"] if behalten < 0.001 else int(pos["tokens_raw"] * (1 - behalten))
+    if sell_raw <= 0:
+        pos.pop("verkauf_offen", None)
+        return False
+    out = quote_out(pos["mint"], core.WSOL_MINT, sell_raw)
+    if out is None:
+        return False                                         # weiter vorgemerkt
+    proceeds = out / 1e9
+    fee = pos.get("letzte_gebuehr", DEFAULT_FEE_SOL) if out > 0 else 0
+    pos["tokens_raw"] -= sell_raw
+    pos["proceeds_sol"] += proceeds
+    pos["fees_sol"] += fee
+    pos["verkaeufe"] += 1
+    pos["behalten"], pos["gemerkt"] = 1.0, 0
+    pos.pop("verkauf_offen", None)
+    acct["bankroll_sol"] += proceeds - fee
+    count("trades", "VERKAUF")
+    tokens = sell_raw / 10 ** pos["decimals"]
+    rec = close_if_empty(name, acct, pos, "VERKAUF", now)
+    journal({"zeit": now_str(), "trader": name, "wallet": acct["adresse"], "aktion": "VERKAUF",
+             "symbol": pos["symbol"], "mint": pos["mint"], "runde": pos["runde"], "unser_sol": f"{proceeds:.6f}",
+             "unsere_tokens": f"{tokens:.6f}",
+             "unser_preis_sol": f"{proceeds / tokens:.12g}" if tokens and proceeds else "",
+             "unsere_gebuehr_sol": f"{fee:.6f}",
+             "pnl_sol": f"{rec['pnl_sol']:+.6f}" if rec else "", "pnl_pct": f"{rec['pnl_pct']:+.2f}" if rec else "",
+             "hinweis": ("Position geschlossen" if rec else "Teilverkauf")
+                        + "; nach Jupiter-Ausfall nachgeholt, Verkauf zum aktuellen Kurs"
+                        + ("; keine Route, Wert 0" if out <= 0 else "")})
+    notify(f"🔁 {name}: Verkauf nachgeholt {pos['symbol']}", [
+        "Jupiter war beim Verkaufssignal nicht erreichbar, Verkauf jetzt zum aktuellen Kurs.",
+        f"**Wir:** {proceeds:.4f} SOL" + (f" | **Ergebnis:** {rec['pnl_sol']:+.4f} SOL ({rec['pnl_pct']:+.1f}%)"
+                                           if rec else ""),
+        account_line(acct)], 0x8B5CF6)
+    return True
+
+
 def trader_balance_raw(wallet, mint):
     """Aktueller Bestand des Traders an diesem Coin (alle seine Token-Konten), None wenn unbekannt."""
     res = core.rpc("getTokenAccountsByOwner", [wallet, {"mint": mint}, {"encoding": "jsonParsed", "commitment": "confirmed"}])
@@ -677,6 +748,11 @@ def reconcile(data, now, sol_usd=None):
             pos = acct["positionen"].get(mint)
             if pos is None:
                 continue
+            if pos.get("verkauf_offen"):
+                retry_sell(name, acct, pos, now)          # nach Jupiter-Ausfall vorgemerkten Verkauf nachholen
+                pos = acct["positionen"].get(mint)
+                if pos is None:
+                    continue
             now_raw = trader_balance_raw(acct["adresse"], mint)
             if now_raw is None:
                 continue
@@ -704,6 +780,8 @@ def reconcile(data, now, sol_usd=None):
                     continue                                 # kleine Differenz: weiter sammeln
             sell_raw = pos["tokens_raw"] if fraction >= 0.999 else int(pos["tokens_raw"] * fraction)
             out = quote_out(mint, core.WSOL_MINT, sell_raw) if sell_raw > 0 else 0
+            if out is None:
+                continue                                     # Jupiter-Ausfall: beim naechsten Abgleich erneut
             proceeds, fee = out / 1e9, (pos.get("letzte_gebuehr", DEFAULT_FEE_SOL) if out > 0 else 0)
             pos["tokens_raw"] -= sell_raw
             pos["proceeds_sol"] += proceeds
@@ -852,7 +930,10 @@ def cleanup(data):
             est = pos["tokens_raw"] / 10 ** pos["decimals"] * prices.get(mint, 0) / sol_usd if sol_usd else 0
             if est > pos["invested_sol"] * 0.1:              # grob vorsortieren, genau prueft die Quote
                 continue
-            out = quote_out(mint, core.WSOL_MINT, pos["tokens_raw"]) / 1e9
+            raw_out = quote_out(mint, core.WSOL_MINT, pos["tokens_raw"])
+            if raw_out is None:
+                continue                                     # Jupiter-Ausfall: Position bleibt offen
+            out = raw_out / 1e9
             if out > pos["invested_sol"] * CLEANUP_MAX_VALUE_PCT / 100:
                 continue
             pos["proceeds_sol"] += out
@@ -1162,6 +1243,11 @@ def summary(data, dur, cleaned, normal_end, active=None):
                      f"90 % unter {d[int(len(d) * 0.9)]:.1f} s")
     lines.append(f"**Bereinigt (-99 %):** {cleaned} | **Nachgeholt:** {STATS['nachgeholt']} Verkaeufe mit Trader-Kurs, "
                  f"{STATS['verpasst_kauf']} verpasste Kaeufe dokumentiert | **Abgleich ohne Kurs:** {STATS['abgleich']}")
+    pending = sum(1 for a in data["wallets"].values() for p in a["positionen"].values() if p.get("verkauf_offen"))
+    if STATS["quote_ausfall"] or pending:
+        lines.append(f"**Jupiter-Ausfall:** {STATS['quote_ausfall']} Quotes ohne Antwort, "
+                     f"{STATS['verkauf_verschoben']} Verkaeufe vorgemerkt statt mit Wert 0 gebucht, "
+                     f"{pending} Position(en) warten noch auf den Verkauf")
     per_day = credits_used() / max(dur, 1) * 86400
     lines.append(f"**Helius:** {STATS['bytes'] / 1e6:.1f} MB empfangen, {STATS['fetched']} Transaktionen abgefragt, "
                  f"~{credits_used():,.0f} Credits (hochgerechnet ~{per_day * 30:,.0f} im Monat) | "

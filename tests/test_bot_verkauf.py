@@ -183,3 +183,41 @@ def test_journal_hat_ergebnis_mit_pnl(pos, market):
     rows = list(csv.DictReader(open(core.JOURNAL_FILE, encoding="utf-8")))
     assert [r["aktion"] for r in rows] == ["KAUF", "VERKAUF", "ERGEBNIS"]
     assert float(rows[-1]["pnl_sol"]) < 0
+
+
+# Pruefbericht 03.10.: ein Jupiter-Ausfall darf nie als "Coin nicht mehr handelbar" gelten
+REAL_JUP_TOKENS = core.jup_tokens
+
+
+def test_jupiter_ausfall_schliesst_keine_position(pos, market, monkeypatch):
+    monkeypatch.setattr(core, "jup_tokens", REAL_JUP_TOKENS)
+    monkeypatch.setattr(core, "jup_get", lambda path: None)          # Jupiter antwortet gar nicht
+    for _ in range(40):
+        core.STATS["loops"] += 1
+        core.manage_positions(pos, market.sol_usd, time.time())
+    assert MINT in pos["positions"] and not pos["closed"]
+    assert pos["positions"][MINT]["missing_loops"] == 0
+
+
+def test_echte_antwort_ohne_coin_schliesst_weiter_nach_30(pos, market, monkeypatch):
+    monkeypatch.setattr(core, "jup_tokens", REAL_JUP_TOKENS)
+    monkeypatch.setattr(core, "jup_get", lambda path: [])            # Jupiter antwortet, Coin fehlt
+    for _ in range(29):
+        core.STATS["loops"] += 1
+        core.manage_positions(pos, market.sol_usd, time.time())
+    assert MINT in pos["positions"]
+    core.STATS["loops"] += 1
+    core.manage_positions(pos, market.sol_usd, time.time())
+    assert closed_reason(pos) == "TOKEN_NICHT_MEHR_HANDELBAR"
+
+
+def test_ausfall_zaehlt_verschwunden_nicht_weiter(pos, market, monkeypatch):
+    """29 echte Antworten ohne Coin, dann Ausfall: Zaehler bleibt stehen, Position bleibt offen."""
+    monkeypatch.setattr(core, "jup_tokens", REAL_JUP_TOKENS)
+    monkeypatch.setattr(core, "jup_get", lambda path: [])
+    for _ in range(29):
+        core.manage_positions(pos, market.sol_usd, time.time())
+    monkeypatch.setattr(core, "jup_get", lambda path: None)
+    for _ in range(10):
+        core.manage_positions(pos, market.sol_usd, time.time())
+    assert MINT in pos["positions"] and pos["positions"][MINT]["missing_loops"] == 29

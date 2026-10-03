@@ -193,6 +193,7 @@ class Market:
         self.tokens = {}          # mint -> Jupiter-Token (tok())
         self.decimals = {}
         self.buy_slippage = {}    # mint -> Faktor (> 1 = weniger Token beim Kauf)
+        self.ausfall = set()      # Mints, fuer die Jupiter nicht antwortet (Quote = None)
         self.calls = []
 
     def set(self, mint, price=None, **kw):
@@ -206,6 +207,8 @@ class Market:
 
     def quote(self, input_mint, output_mint, raw):
         self.calls.append(("quote", input_mint, output_mint, raw))
+        if input_mint in self.ausfall or output_mint in self.ausfall:
+            return None
         if input_mint == core.WSOL_MINT:
             m = output_mint
             p = self.price.get(m, 0)
