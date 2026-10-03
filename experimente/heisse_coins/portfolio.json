@@ -1,27 +1,27 @@
 {
   "strategy": "EXPERIMENT_heisse_coins",
   "started": "2026-09-29T08:33:20.747668+00:00",
-  "bankroll_sol": 7.231599,
+  "bankroll_sol": 7.45079,
   "positions": {
     "ETbqN5nKYWSjin1BDqbLYQJNdmcEghAKnjQCiCPSpump": {
       "mint": "ETbqN5nKYWSjin1BDqbLYQJNdmcEghAKnjQCiCPSpump",
       "symbol": "CLTR",
       "opened": 1791016607.6286342,
       "invested_sol": 0.2,
-      "fees_sol": 0.0015,
+      "fees_sol": 0.003,
       "entry_signal_usd": 3.2773050045999564e-05,
       "entry_fill_usd": 3.325223672601936e-05,
       "entry_slippage_pct": 1.46,
       "roundtrip_cost_pct": 2.88,
       "tokens_initial": 716151.352455,
-      "tokens_left": 716151.352455,
+      "tokens_left": 358075.6762275,
       "decimals": 6,
-      "proceeds_sol": 0.0,
-      "peak_usd": 4.7556207668472394e-05,
-      "tp1_done": false,
+      "proceeds_sol": 0.21919147,
+      "peak_usd": 8.275141991190548e-05,
+      "tp1_done": true,
       "thesis_breaks": 0,
       "missing_loops": 0,
-      "entry_liquidity": 12107.693670161218,
+      "entry_liquidity": 7717.119166107615,
       "entry_view": {
         "age_h": 0.5351960691478518,
         "mcap": 32773.04639514822,
@@ -64,8 +64,9 @@
       "exit_rule": "Haelfte bei 2x; Rest raus, wenn Holder schrumpfen und Netto-Verkaeufer 2x in Folge, Liquiditaet -30%, -40%, nach 1,5x nicht unter Einstand, nach 2x 30 % vom Hoch (ab 10x 25 %)",
       "mitlaeufer": null,
       "solana_tracker": null,
-      "graduated": false,
-      "liq_low_checks": 0
+      "graduated": true,
+      "liq_low_checks": 0,
+      "graduated_during": true
     },
     "xJgARu2wh8m3sHm13qNe7Eyx1PNqtqq4dQD2Me9pump": {
       "mint": "xJgARu2wh8m3sHm13qNe7Eyx1PNqtqq4dQD2Me9pump",
@@ -4202,5 +4203,5 @@
   "watch": {},
   "runde": 1,
   "shadow": {},
-  "saved_at": 1791029281.0094678
+  "saved_at": 1791029361.8884826
 }
