@@ -245,3 +245,33 @@ def test_dashboard_pakete_fest_und_getrennt_von_den_bots():
     gleich = {z.split("==")[0]: z for z in zeilen}
     for z in bots.split():                                             # gemeinsame Pakete: gleiche Version
         assert gleich.get(z.split("==")[0], z) == z
+
+
+def test_urteil_trennt_zufall_und_plus_minus():
+    kg = {"key": "kontrollgruppe", "gestartet": "2026-10-01T00:00:00+00:00", "closed": [closed(-0.03) for _ in range(10)]}
+    v = r.vergleich_mit_kontrolle(konto("a", [-0.01] * 200), kg)
+    assert v["ampel"] == "besser" and not v["im_plus"]
+    assert r.urteil_kurz(v) == "besser als Zufall, aber im Minus"
+    v = r.vergleich_mit_kontrolle(konto("a", [0.01] * 200), kg)
+    assert r.urteil_kurz(v) == "besser als Zufall, im Plus"
+    v = r.vergleich_mit_kontrolle(konto("a", [-0.05] * 20), kg)
+    assert r.urteil_kurz(v) == "zu früh · Tendenz schlechter als Zufall · im Minus"
+    assert r.urteil_kurz({"ampel": "basis"}) == "Vergleichsbasis (Zufall)"
+
+
+def test_ausreisser_mehr_als_haelfte_des_gesamtergebnisses():
+    assert r.ausreisser([("A", 24.5), ("B", -10.0), ("C", -5.0)]) == [("A", 24.5, pytest.approx(24.5 / 9.5))]
+    assert r.ausreisser([("A", 1.0), ("B", 1.0), ("C", 1.0)]) == []          # keiner ueber der Haelfte
+    assert [n for n, _, _ in r.ausreisser([("A", -37.0), ("B", 24.5), ("C", -10.0)])] == ["A"]
+    assert r.ausreisser([("A", 1.0), ("B", -1.0)]) == []                   # Gesamt null
+
+
+def test_copy_ergebnis_seit_start_ueber_alle_runden():
+    acct = {"bankroll_sol": 10.0, "runde": 2, "positionen": {
+                "o": {"mint": "o", "tokens_raw": 1_000_000, "decimals": 6, "letzter_preis_sol": 0.1, "runde": 1,
+                      "invested_sol": 0.2, "proceeds_sol": 0.05, "fees_sol": 0.002, "verkauf_offen": True}},
+            "geschlossen": [{"mint": "a", "runde": 1, "pnl_sol": -9.5}, {"mint": "b", "runde": 2, "pnl_sol": 0.3}]}
+    k = r.copy_konto("X", acct, True, [], set())
+    assert k["ergebnis_seit_start"] == pytest.approx(-9.5 + 0.3 + (0.05 + 0.1 - 0.2 - 0.002))   # beide Runden
+    assert k["ergebnis_runde"] == pytest.approx(0.1)                       # nur laufende Runde: 10 + 0,1 - 10
+    assert k["ergebnis_seit_start_vorsichtig"] == pytest.approx(-9.5 + 0.3 + (0.05 - 0.2 - 0.002))

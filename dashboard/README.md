@@ -30,13 +30,20 @@ Die ganze Rechnung steht in `rechnung.py` (ohne Streamlit). Die Tagesauswertung 
 - **Kontowert Hauptstrategie und Experimente** = frei + Marktwert der offenen Positionen. Der Marktwert wird gerechnet wie `bot.portfolio_embed`: Token × letzter Kurs aus `verlauf/` ÷ SOL-Kurs, minus Verkaufsgebühr. Ein Test vergleicht das direkt mit der Discord-Übersicht.
   - Unterschied: Das Dashboard fragt selbst keine Kurse ab. Es nimmt den SOL-Kurs vom Kaufzeitpunkt, Discord den aktuellen. Hat sich SOL seitdem bewegt, weicht der Wert offener Positionen um genau diese Bewegung ab (z. B. SOL seit dem Kauf +2 % → Dashboard zeigt den Wert ~2 % höher als Discord). Geschlossene Trades sind davon nicht betroffen.
 - **Kontowert Copy** = frei + `copy_bot.open_value` (dieselbe Funktion wie die Konto-Zeile in Discord). „Vorsichtig“ zählt Positionen, die nach einem Jupiter-Ausfall auf den Verkauf warten, mit 0.
+- **Copy-Hauptzahl = Ergebnis seit Start**, über alle Runden und alle Wallets, auch entfernte. Gerechnet je Position: Erlöse + Wert jetzt − Einsatz − Gebühren. Die laufende Runde (Kontowert − 10 SOL) steht nur als Zusatz da: Beim Rundenwechsel wird das Konto neu aufgefüllt, „Kontowert − 10“ würde frühere Runden verschweigen. Auf der Übersicht steht zusätzlich das Ergebnis „ohne besten Trader“.
+- **Ausreißer-Hinweis:** Macht ein einzelner Trader oder ein einzelnes Konto mehr als die Hälfte des Gesamtergebnisses aus (gleiches Vorzeichen), erscheint ein Hinweis.
 - **Korrekturen** aus `auswertungen/korrekturen.csv` werden aus dem Copy-Journal herausgerechnet. Positionen mit doppelten Verkäufen zählen nicht im Vergleich „wir gegen Trader“.
 - **Testurteil** (Ampel):
   - Verglichen wird mit der Kontrollgruppe im selben Zeitraum, gezählt werden Trades, die nach dem späteren der beiden Starts geschlossen wurden.
   - Ein Urteil gibt es erst ab 200 Trades. Davor steht „zu früh“ mit der Tendenz.
   - „Besser“ nur, wenn SOL je Trade mit **und** ohne die 3 besten Trades über der Kontrollgruppe liegt.
+  - Getrennt davon steht „im Plus/Minus“ (Summe derselben Trades), z. B. „besser als Zufall, aber im Minus“. Die Kontrollgruppe kauft zufällig.
 
 ## Technik
 
 - Streamlit mit festen Versionen in `requirements.txt` (getrennt von den Bots). Eigene Umgebung in `dashboard/.venv` (nicht im Repository).
-- Erscheinungsbild in `.streamlit/config.toml`: ruhig und hell. Blau = Plus, Rot = Minus, immer mit ▲/▼ und Vorzeichen.
+- Aussehen: Dunkles Design mit sanftem Violett/Blau-Verlauf. Alle eigenen CSS-Regeln, Farben und das Diagramm-Thema stehen gebündelt in **`stil.py`**, das Grundthema in `.streamlit/config.toml`.
+  - Karten, Mini-Kurven, Ringe und das Aktivitätsprotokoll sind eigenes HTML mit eigenen Klassen (`pb-…`). Nur wenige Regeln greifen auf Streamlit-Elemente zu (in `stil.py` markiert).
+  - Nach einem Streamlit-Update nur dort nachsehen.
+  - Grün/Rot nur als Akzent, Plus/Minus immer zusätzlich mit ▲/▼ und Vorzeichen.
+  - Coin-Namen kommen von der Blockchain und werden immer maskiert eingefügt.

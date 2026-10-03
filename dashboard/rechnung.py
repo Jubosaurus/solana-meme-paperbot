@@ -222,7 +222,8 @@ def vergleich_mit_kontrolle(konto, kontrolle):
     eigene = [c for c in konto["closed"] if beginn is None or (zeitpunkt(c.get("closed_at")) or beginn) >= beginn]
     kg = [c for c in kontrolle["closed"] if beginn is None or (zeitpunkt(c.get("closed_at")) or beginn) >= beginn]
     a, b = trade_kennzahlen(eigene), trade_kennzahlen(kg)
-    res = {"beginn": beginn, "eigen": a, "kontrolle": b}
+    # "im Plus" bezieht sich auf dieselben Trades wie das Urteil (Vergleichszeitraum), nicht auf den Kontowert
+    res = {"beginn": beginn, "eigen": a, "kontrolle": b, "im_plus": a["summe"] > 0}
     if not a["trades"] or not b["trades"]:
         return {**res, "ampel": "keine_daten", "text": "noch keine Trades zum Vergleichen"}
     besser = a["pro_trade"] > b["pro_trade"]
@@ -237,6 +238,34 @@ def vergleich_mit_kontrolle(konto, kontrolle):
         return {**res, "ampel": "schlechter", "text": "schlechter als die Kontrollgruppe"}
     return {**res, "ampel": "gemischt", "text": "nur mit den 3 besten Trades besser – hält nicht"
             if besser else "ohne die 3 besten besser, mit ihnen schlechter"}
+
+
+def urteil_kurz(v):
+    """Kurzes Urteil: besser/schlechter als Zufall (Kontrollgruppe) UND im Plus/Minus getrennt,
+    z. B. 'besser als Zufall, aber im Minus'. Plus/Minus = Summe der verglichenen Trades."""
+    a = v.get("ampel")
+    if a == "basis":
+        return "Vergleichsbasis (Zufall)"
+    if a == "keine_daten":
+        return "noch keine Trades"
+    plus = v.get("im_plus")
+    if a == "zu_frueh":
+        return f"zu früh · Tendenz {v['tendenz']} als Zufall · {'im Plus' if plus else 'im Minus'}"
+    if a == "besser":
+        return "besser als Zufall, im Plus" if plus else "besser als Zufall, aber im Minus"
+    if a == "schlechter":
+        return "schlechter als Zufall, aber im Plus" if plus else "schlechter als Zufall, im Minus"
+    return "hält nicht (nur dank der 3 besten), " + ("im Plus" if plus else "im Minus")
+
+
+def ausreisser(beitraege, anteil=0.5):
+    """Einzelne Konten/Trader, die mehr als die Haelfte des Gesamtergebnisses ausmachen (gleiches Vorzeichen).
+    beitraege: [(name, ergebnis)]. Rueckgabe: [(name, ergebnis, anteil am Gesamtergebnis)]."""
+    gesamt = sum(x for _, x in beitraege)
+    if abs(gesamt) < 1e-9:
+        return []
+    return [(n, x, x / gesamt) for n, x in beitraege
+            if x * gesamt > 0 and abs(x) > anteil * abs(gesamt)]
 
 
 def kontoverlauf(konto):
@@ -298,7 +327,17 @@ def copy_konto(name, acct, aktiv, journal_rows, korrigiert):
                if r.get("trader") == name and r.get("aktion") == "KAUF" and r.get("preisabstand_pct")]
     abstand = [a for a in abstand if a is not None]
     schatten = acct.get("schatten_geschlossen") or []
+    # Ergebnis seit Start ueber alle Runden: je Position Erloese + Wert jetzt - Einsatz - Gebuehren.
+    # (Kontowert - 10 SOL gilt nur fuer die laufende Runde; beim Rundenwechsel wird das Konto neu aufgefuellt.)
+    offen_pnl = offen_pnl_vorsichtig = 0.0
+    for p in (acct.get("positionen") or {}).values():
+        w = cb.open_value({"positionen": {p.get("mint", ""): p}})
+        basis = as_float(p.get("proceeds_sol")) - as_float(p.get("invested_sol")) - as_float(p.get("fees_sol"))
+        offen_pnl += basis + w
+        offen_pnl_vorsichtig += basis + (0.0 if p.get("verkauf_offen") else w)
+    pnl_zu = sum(as_float(g.get("pnl_sol")) for g in geschlossen)
     return {
+        "ergebnis_seit_start": pnl_zu + offen_pnl, "ergebnis_seit_start_vorsichtig": pnl_zu + offen_pnl_vorsichtig,
         "name": name, "aktiv": aktiv, "adresse": acct.get("adresse", ""), "runde": runde,
         "frei": frei, "wert_offen": wert, "kontowert": frei + wert, "vorsichtig": frei + wert - wert_wartend,
         "wartend": len(wartend), "ergebnis_runde": frei + wert - START_SOL,

@@ -29,21 +29,24 @@ for bot, zeiten in commits.items():
 scout_status = "kaputt" if scout_lauf is None else "ok" if jetzt - scout_lauf <= 7 * 3600 else \
     "achtung" if jetzt - scout_lauf <= 13 * 3600 else "kaputt"
 
-spalten = st.columns(3)
-for spalte, z in zip(spalten, zeilen):
-    with spalte.container(border=True):
-        st.markdown(f"**{z['bot']}**")
-        ansicht.status_badge(z["status"])
-        st.markdown(f"Letzte Daten {ansicht.vor(z['letzte'])}  \n{rechnung.zeit_text(z['letzte'])}")
-        dauer = sum((b or jetzt) - a for a, b in z["luecken"])
-        n = len(z["luecken"])
-        st.caption(f"{n} {'Lücke' if n == 1 else 'Lücken'} über {GRENZE_MIN} min in 48 h"
-                   + (f", zusammen {rechnung.dauer_text(dauer)}" if n else ""))
-with spalten[2].container(border=True):
-    st.markdown("**Scout**")
-    ansicht.status_badge(scout_status)
-    st.markdown(f"Letzter Lauf {ansicht.vor(scout_lauf)}  \n{rechnung.zeit_text(scout_lauf)}")
-    st.caption("Läuft alle 6 Stunden.")
+def status_chip(status):
+    klasse, zeichen, wort = ansicht.STATUS[status]
+    return ansicht.chip(f"{zeichen} {wort}", klasse)
+
+
+karten = []
+for z in zeilen:
+    dauer = sum((b or jetzt) - a for a, b in z["luecken"])
+    n = len(z["luecken"])
+    karten.append(ansicht.karte(
+        z["bot"], f"Daten {ansicht.vor(z['letzte'])}",
+        f"{ansicht.e(rechnung.zeit_text(z['letzte']))}<br>{n} {'Lücke' if n == 1 else 'Lücken'} über {GRENZE_MIN} min "
+        f"in 48 h" + (f", zusammen {rechnung.dauer_text(dauer)}" if n else ""),
+        oben_rechts=status_chip(z["status"]), klein=True))
+karten.append(ansicht.karte("Scout", f"Lauf {ansicht.vor(scout_lauf)}",
+                            f"{ansicht.e(rechnung.zeit_text(scout_lauf))}<br>läuft alle 6 Stunden",
+                            oben_rechts=status_chip(scout_status), klein=True))
+ansicht.raster(karten)
 
 # ---------------------------------------------------------------- Luecken
 st.subheader("Lücken in den letzten 48 Stunden", anchor=False)

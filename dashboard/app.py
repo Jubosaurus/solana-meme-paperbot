@@ -9,8 +9,10 @@ import streamlit as st
 
 import daten
 import rechnung
+import stil
 
 st.set_page_config(page_title="Paperbot", page_icon=":material/monitoring:", layout="wide")
+stil.anwenden()
 
 
 @st.fragment(run_every="5m")

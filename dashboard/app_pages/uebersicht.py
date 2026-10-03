@@ -3,20 +3,21 @@ import time
 import pandas as pd
 import streamlit as st
 
-import ansicht
+import ansicht as a
 import daten
 import rechnung
+import stil
 
 jetzt = time.time()
 head = daten.stand()
 konten = daten.strategie_konten(head)
-copy, copy_gespeichert, _ = daten.copy_konten(head)
+copy, _, _ = daten.copy_konten(head)
 commits, _, _ = daten.betrieb(head)
 _, scout_lauf = daten.scout(head)
 
 st.title("Übersicht", anchor=False)
 
-# ---------------------------------------------------------------- Laeuft alles?
+# ---------------------------------------------------------------- 1. Laeuft alles?
 letzte = {bot: (t[-1] if t else None) for bot, t in commits.items()}
 status = {bot: rechnung.bot_status(ts, jetzt) for bot, ts in letzte.items()}
 scout_status = "kaputt" if scout_lauf is None else "ok" if jetzt - scout_lauf <= 7 * 3600 else \
@@ -24,77 +25,82 @@ scout_status = "kaputt" if scout_lauf is None else "ok" if jetzt - scout_lauf <=
 kaputt = [b for b, s in status.items() if s == "kaputt"] + (["Scout"] if scout_status == "kaputt" else [])
 if kaputt:
     st.error(f"**{', '.join(kaputt)}: keine neuen Daten.** Details unter Betrieb.", icon=":material/error:")
-with st.container(horizontal=True, gap="small"):
-    for bot, s in status.items():
-        ansicht.status_badge(s, f"· {bot} · Daten {ansicht.vor(letzte[bot])}")
-    ansicht.status_badge(scout_status, f"· Scout · letzter Lauf {ansicht.vor(scout_lauf)}")
+a.status_leiste([(s, f"{b} · Daten {a.vor(letzte[b])}") for b, s in status.items()]
+                + [(scout_status, f"Scout · {a.vor(scout_lauf)}")])
 
-# ---------------------------------------------------------------- Grosse Zahlen
+# ---------------------------------------------------------------- 2. Grosse Zahlen
 haupt = next(k for k in konten if k["key"] == "hauptstrategie")
 kontrolle = next(k for k in konten if k["key"] == rechnung.KONTROLLE)
+copy_gesamt = sum(c["ergebnis_seit_start"] for c in copy)
+bester = max(copy, key=lambda c: c["ergebnis_seit_start"]) if copy else None
+ohne_besten = copy_gesamt - (bester["ergebnis_seit_start"] if bester else 0.0)
 aktiv = [c for c in copy if c["aktiv"]]
-copy_summe = sum(c["ergebnis_runde"] for c in aktiv)
-im_plus = sum(1 for c in aktiv if c["ergebnis_runde"] > 0)
+runde_summe = sum(c["ergebnis_runde"] for c in aktiv)
 
-with st.container(horizontal=True):
-    ansicht.sol_metric("Hauptstrategie", haupt["kontowert"], haupt["ergebnis"],
-                       hilfe="Kontowert = frei + offene Positionen zum letzten Kurs (SOL-Kurs vom Kauf). "
-                             "Plus/Minus gegenüber 10 SOL.")
-    ansicht.sol_metric("Kontrollgruppe", kontrolle["kontowert"], kontrolle["ergebnis"],
-                       hilfe="Zufällige Käufe ohne Filter – der Maßstab für alle Experimente.")
-    ansicht.sol_metric(f"Copy: {len(aktiv)} Trader zusammen", len(aktiv) * rechnung.START_SOL + copy_summe,
-                       copy_summe, hilfe=f"Summe der Kontowerte der laufenden Runden. Start: {len(aktiv)} × 10 SOL "
-                                         f"= {len(aktiv) * 10} SOL.")
-    st.metric("Copy-Trader im Plus", f"{im_plus} von {len(aktiv)}", border=True,
-              help="Kontowert der laufenden Runde über 10 SOL.")
 
-# ---------------------------------------------------------------- Gut / schlecht
+def verlauf_werte(k):
+    return [p["kontostand"] for p in k["verlauf"]][-60:]
+
+
+a.raster([
+    a.karte("Hauptstrategie · Kontowert", rechnung.sol_text(haupt["kontowert"], 2, False),
+            a.pm_html(haupt["ergebnis"]) + " seit Start", fuss=a.sparkline(verlauf_werte(haupt)), leuchten=True),
+    a.karte("Kontrollgruppe (Zufall) · Kontowert", rechnung.sol_text(kontrolle["kontowert"], 2, False),
+            a.pm_html(kontrolle["ergebnis"]) + " seit Start", fuss=a.sparkline(verlauf_werte(kontrolle))),
+    a.karte("Copy seit Start", rechnung.sol_text(copy_gesamt, 2),
+            f"alle Runden, {len(copy)} Wallets inkl. entfernte<br>laufende Runden: {a.pm_html(runde_summe, 2)}",
+            oben_rechts=a.chip(f"{sum(1 for c in aktiv if c['ergebnis_runde'] > 0)}/{len(aktiv)} im Plus")),
+    a.karte("Copy ohne besten Trader", rechnung.sol_text(ohne_besten, 2),
+            f"ohne {a.e(bester['name'])} ({a.pm_html(bester['ergebnis_seit_start'], 2)})" if bester else ""),
+], gross=True)
+
+# ---------------------------------------------------------------- 3. Ausreisser
+for name, wert, anteil in rechnung.ausreisser([(c["name"], c["ergebnis_seit_start"]) for c in copy]):
+    a.hinweis(a.ausreisser_text(name, wert, anteil, copy_gesamt, "im Copy Trading"))
+strategie_gesamt = sum(k["ergebnis"] for k in konten)
+for name, wert, anteil in rechnung.ausreisser([(k["label"], k["ergebnis"]) for k in konten]):
+    a.hinweis(a.ausreisser_text(name, wert, anteil, strategie_gesamt, "bei den Strategien"))
+
+# ---------------------------------------------------------------- 4. Gut / schlecht
 alle = [(k["label"], k["ergebnis"], "Strategie") for k in konten] + \
-       [(f"Copy {c['name']}", c["ergebnis_runde"], "Copy") for c in aktiv]
+       [(f"Copy {c['name']}", c["ergebnis_seit_start"], "Copy, seit Start") for c in copy if c["aktiv"]]
 alle.sort(key=lambda x: -x[1])
 gut, schlecht = st.columns(2)
-with gut.container(border=True):
-    st.markdown("**:material/trending_up: Läuft gut**")
-    for name, erg, _ in [a for a in alle if a[1] > 0][:4] or [("Noch nichts im Plus", None, "")]:
-        st.markdown(f"{name} · {ansicht.plusminus(erg)}" if erg is not None else name)
-with schlecht.container(border=True):
-    st.markdown("**:material/trending_down: Läuft schlecht**")
-    for name, erg, _ in [a for a in reversed(alle) if a[1] < 0][:4] or [("Nichts im Minus", None, "")]:
-        st.markdown(f"{name} · {ansicht.plusminus(erg)}" if erg is not None else name)
+with gut:
+    st.markdown("**Läuft gut**")
+    a.protokoll([{"name": n, "detail": art, "wert": w} for n, w, art in alle if w > 0][:4] or
+                [{"name": "noch nichts im Plus", "detail": "", "wert": None}], scroll=False)
+with schlecht:
+    st.markdown("**Läuft schlecht**")
+    a.protokoll([{"name": n, "detail": art, "wert": w} for n, w, art in reversed(alle) if w < 0][:4] or
+                [{"name": "nichts im Minus", "detail": "", "wert": None}], scroll=False)
 
-# ---------------------------------------------------------------- Konten und Testregeln
+# ---------------------------------------------------------------- 5. Konten mit Testurteil
 st.subheader("Hauptstrategie und Experimente", anchor=False)
-st.caption("Testregel: Urteil frühestens nach 200 Trades, gegen die Kontrollgruppe aus demselben Zeitraum, "
-           "und nur, wenn es auch ohne die 3 besten Trades hält.")
-tabelle = pd.DataFrame([{
-    "Konto": k["label"],
-    "Plus/Minus": ansicht.plusminus(k["ergebnis"]),
-    "Testurteil": ansicht.ampel_text(k["vergleich"]),
-    "Kontowert": k["kontowert"],
-    "Trades": k["trades"],
-    "SOL je Trade": k["pro_trade"],
-    "ohne 3 beste": k["ohne_beste_pro_trade"],
-    "bis 200 Trades": k["fortschritt"],
-    "offen": len(k["offen"]),
-} for k in konten])
-st.dataframe(tabelle, hide_index=True, alt="Alle Konten mit Testurteil", column_config={
-    "Kontowert": st.column_config.NumberColumn(format="%.2f SOL"),
-    "SOL je Trade": st.column_config.NumberColumn(format="%+.4f", help="Summe der Ergebnisse / Trades"),
-    "ohne 3 beste": st.column_config.NumberColumn(format="%+.4f", help="SOL je Trade ohne die 3 besten Trades"),
-    "bis 200 Trades": st.column_config.ProgressColumn(min_value=0, max_value=1, format="percent"),
-    "Plus/Minus": st.column_config.TextColumn(help="Kontowert minus 10 SOL Start (▲ Plus, ▼ Minus)"),
-})
+st.caption("Urteil: verglichen mit der Kontrollgruppe (kauft zufällig) aus demselben Zeitraum, frühestens nach "
+           "200 Trades und nur, wenn es auch ohne die 3 besten Trades hält. „Im Plus/Minus“ getrennt davon.")
+a.raster([a.karte(k["label"], rechnung.sol_text(k["kontowert"], 2, False),
+                  a.pm_html(k["ergebnis"]), a.ring(k["fortschritt"], f"{k['fortschritt']:.0%}", f"{k['trades']}/200"),
+                  fuss=a.urteil_chip(k["vergleich"]) + a.sparkline([p["kontostand"] for p in k["verlauf"]][-60:]),
+                  klein=True)
+          for k in konten])
+
+with st.expander("Alle Kennzahlen als Tabelle", icon=":material/table_chart:"):
+    st.dataframe(pd.DataFrame([{
+        "Konto": k["label"], "Plus/Minus": a.plusminus(k["ergebnis"]), "Urteil": a.urteil_text(k["vergleich"]),
+        "Kontowert": k["kontowert"], "Trades": k["trades"], "SOL je Trade": k["pro_trade"],
+        "ohne 3 beste": k["ohne_beste_pro_trade"], "offen": len(k["offen"]),
+    } for k in konten]), hide_index=True, alt="Alle Konten mit Kennzahlen", column_config={
+        "Kontowert": st.column_config.NumberColumn(format="%.2f SOL"),
+        "SOL je Trade": st.column_config.NumberColumn(format="%+.4f"),
+        "ohne 3 beste": st.column_config.NumberColumn(format="%+.4f"),
+    })
 
 with st.container(border=True):
     st.markdown("**SOL je Trade** · graue Linie = Kontrollgruppe")
     df = pd.DataFrame([{"Konto": k["label"], "pro_trade": k["pro_trade"] or 0.0} for k in konten if k["trades"]])
     if len(df):
-        st.altair_chart(ansicht.balken(df, "pro_trade", "Konto", "SOL je Trade", stellen=4,
-                                       referenz=kontrolle["pro_trade"], referenz_text="Kontrollgruppe"),
-                        alt="SOL je Trade je Konto, Kontrollgruppe als Linie")
+        stil.zeigen(a.balken(df, "pro_trade", "Konto", "SOL je Trade", stellen=4, referenz=kontrolle["pro_trade"],
+                             referenz_text="Kontrollgruppe"), "SOL je Trade je Konto, Kontrollgruppe als Linie")
     else:
         st.caption("Noch keine geschlossenen Trades.")
-    st.caption("Einzelne Konten, Kontoverlauf, offene Positionen und letzte Trades: Seite "
-               "„Strategie & Experimente“.")
-
-st.page_link("app_pages/copy_trading.py", label="Copy Trading im Detail", icon=":material/arrow_forward:")
