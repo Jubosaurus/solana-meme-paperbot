@@ -1,8 +1,81 @@
 {
   "strategy": "EXPERIMENT_ohne_limit",
   "started": "2026-09-29T08:33:20.747730+00:00",
-  "bankroll_sol": 8.359376,
-  "positions": {},
+  "bankroll_sol": 8.157876,
+  "positions": {
+    "2AVjqmGbMqg7rSyHVv2deVdggsBgBtu1Bi69BUvE5WRv": {
+      "mint": "2AVjqmGbMqg7rSyHVv2deVdggsBgBtu1Bi69BUvE5WRv",
+      "symbol": "SPEC",
+      "opened": 1791054014.2435303,
+      "invested_sol": 0.2,
+      "fees_sol": 0.0015,
+      "entry_signal_usd": 0.00025442059067661466,
+      "entry_fill_usd": 0.0003025218868992835,
+      "entry_slippage_pct": 18.91,
+      "roundtrip_cost_pct": 6.48,
+      "tokens_initial": 79290.702452,
+      "tokens_left": 79290.702452,
+      "decimals": 6,
+      "proceeds_sol": 0.0,
+      "peak_usd": 0.0003025218868992835,
+      "tp1_done": false,
+      "thesis_breaks": 0,
+      "missing_loops": 0,
+      "entry_liquidity": 28230.817582303836,
+      "entry_view": {
+        "age_h": 0.5919972905185488,
+        "mcap": 254420.59067661467,
+        "liquidity": 28230.817582303836,
+        "holders": 399,
+        "holder_growth_1h": 333.69565217391306,
+        "holder_growth_5m": 41.48936170212766,
+        "net_buyers_5m": 144,
+        "organic_buyers_5m": 10,
+        "organic_score": 43.72457350450887,
+        "price_change_1h": 1996.3270553975728,
+        "price_change_5m": 27.576308877175,
+        "buys_5m": 294,
+        "sells_5m": 232,
+        "traders_5m": 249,
+        "traders_1h": 726,
+        "buy_vol_5m": 27102.535070511203,
+        "sell_vol_5m": 23847.003737222192,
+        "buy_vol_1h": 160611.99021791108,
+        "sell_vol_1h": 131891.33849419406,
+        "organic_buy_vol_1h": 13838.623186790826,
+        "top_holders_pct": 19.7416647230161,
+        "dev_balance_pct": 9.999999999999999e-14,
+        "dev_mints": 1,
+        "launchpad": "met-dbc",
+        "graduated": true,
+        "social": false,
+        "quelle": "organic1h+traded1h",
+        "trades_24h": 2606,
+        "organic_label": "medium",
+        "buy_organic_vol_5m": 2352.2381575749064,
+        "hour_utc": 19
+      },
+      "bundle": {
+        "quelle": "block0",
+        "slot": 453013319,
+        "block0_wallets": 4,
+        "block0_supply_pct": 13.94,
+        "block0_still_held_pct": 3.9,
+        "block0_exited": 1,
+        "early_tx_slot1_2": 8,
+        "bundle_holding_pct": 3.9,
+        "gebuendelt": false,
+        "rugcheck_insider_pct": 8.33
+      },
+      "phase": "normal",
+      "thesis": "Story verbreitet sich: Holder +334%/h, 144 Netto-Kaeufer 5m, 10 organisch; Block 0: 4 Kaeufer, 13.9% gekauft, 3.9% noch gehalten; Dev-Coins 1",
+      "exit_rule": "Haelfte bei 2x; Rest raus, wenn Holder schrumpfen und Netto-Verkaeufer 2x in Folge, Liquiditaet -30%, -40%, nach 1,5x nicht unter Einstand, nach 2x 30 % vom Hoch (ab 10x 25 %)",
+      "mitlaeufer": null,
+      "solana_tracker": null,
+      "graduated": true,
+      "liq_low_checks": 0
+    }
+  },
   "closed": [
     {
       "symbol": "swordinu",
@@ -4031,7 +4104,8 @@
     "c2fJFn3satRgWcpdYcTP7smQHLKQeL9eGL6zMyVpump": 1791030742.6996584,
     "CwBWEd3WMaS22uBdecbJt2L2WyWbnnjmxYXksvuBpump": 1791036054.980736,
     "AY7Xbo4VKm7BF5FzbnbTpG3jZMdQueVXpBBryoe3ory": 1791046630.0653474,
-    "HK5h6JvgFb6S1g5gsFbtzqsJNyDQQa2CSa2S2cZghAKC": 1791051317.9215524
+    "HK5h6JvgFb6S1g5gsFbtzqsJNyDQQa2CSa2S2cZghAKC": 1791051317.9215524,
+    "2AVjqmGbMqg7rSyHVv2deVdggsBgBtu1Bi69BUvE5WRv": 1791054014.244031
   },
   "watch": {
     "c2fJFn3satRgWcpdYcTP7smQHLKQeL9eGL6zMyVpump": {
@@ -4073,5 +4147,5 @@
   },
   "runde": 1,
   "shadow": {},
-  "saved_at": 1791053954.1930575
+  "saved_at": 1791054043.092359
 }
