@@ -1572,18 +1572,23 @@ def scan(p, sol_usd, now, exps=None):
             serien_devs_merken(views, now)
         except Exception as err:
             print(f"[EXPERIMENT serien_devs] Liste: {err}")
-    for v in views:
-        if e5 is not None and len(e5["positions"]) < OFFENE_TUER_MAX_POSITIONS and exp_can_buy(e5, v, now) \
-                and quick_checks(v, ohne_sicherheit=True) is None:
-            exp_buy("offene_tuer", e5, v, {"quelle": "experiment", "text":
-                    "Offene Tuer: ohne Sicherheits-, Bundle- und Dev-Pruefung"}, sol_usd)
-        if e6 is not None and len(e6["positions"]) < SERIEN_MAX_POSITIONS and exp_can_buy(e6, v, now):
-            vorgaenger = serien_dev_vorgaenger(v)
-            if vorgaenger:
-                exp_buy("serien_devs", e6, v, {"quelle": "experiment", "text":
-                        f"Serien-Dev: frueherer Coin {vorgaenger['symbol']} bis {vorgaenger['peak']:,.0f} $"},
-                        sol_usd, extra_pos={"dev_exit": True, "dev_pct_kauf": v["dev_balance_pct"],
-                                            "serien_vorgaenger": vorgaenger})
+    for v in views if (e5 is not None or e6 is not None) else []:
+        try:                                     # Experimente duerfen die Hauptstrategie nie aufhalten
+            if e5 is not None and len(e5["positions"]) < OFFENE_TUER_MAX_POSITIONS and exp_can_buy(e5, v, now) \
+                    and quick_checks(v, ohne_sicherheit=True) is None:
+                exp_buy("offene_tuer", e5, v, {"quelle": "experiment", "text":
+                        "Offene Tuer: ohne Sicherheits-, Bundle- und Dev-Pruefung"}, sol_usd)
+            if e6 is not None and len(e6["positions"]) < SERIEN_MAX_POSITIONS and exp_can_buy(e6, v, now):
+                vorgaenger = serien_dev_vorgaenger(v)
+                if vorgaenger:
+                    exp_buy("serien_devs", e6, v, {"quelle": "experiment", "text":
+                            f"Serien-Dev: frueherer Coin {vorgaenger['symbol']} bis {vorgaenger['peak']:,.0f} $"},
+                            sol_usd, extra_pos={"dev_exit": True, "dev_pct_kauf": v["dev_balance_pct"],
+                                                "serien_vorgaenger": vorgaenger})
+        except Interrupted:
+            raise
+        except Exception as err:
+            print(f"[EXPERIMENT offene_tuer/serien_devs] {v.get('symbol')}: {str(err)[:100]}")
 
     passed = []
     for v in views:
@@ -1666,7 +1671,8 @@ def exp_can_buy(ep, v, now, limit=None):
 def _serien_devs_laden():
     try:
         with open(SERIEN_DEVS_FILE, encoding="utf-8") as f:
-            return json.load(f)
+            daten = json.load(f)
+        return daten if isinstance(daten, dict) else {}
     except (OSError, ValueError):
         return {}
 
