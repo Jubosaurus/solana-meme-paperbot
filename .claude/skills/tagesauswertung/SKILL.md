@@ -31,6 +31,7 @@ Tabelle für den Zeitraum **und** seit Start: Konto | Trades | Gewinner | Summe 
 ## 4. Copy Trading
 
 - Pro aktiver Wallet: Kontowert (frei + aktueller Wert der offenen Positionen, Kurse aus `copy/verlauf/`), Runde, geschlossene Positionen im Zeitraum, wir gegen Trader (Median je Position, nur gültige Trader-Vergleiche).
+- Wartende Verkäufe (seit 03.10.): Positionen mit `verkauf_offen: true` in `copy/konten.json` (Jupiter-Ausfall beim Verkauf, Verkauf vorgemerkt) je Wallet auflisten (Coin, seit wann: erste `VERKAUF_GEMERKT`-Zeile mit „Ausfall“ im Hinweis in `copy/journal.csv` für Wallet und Coin). Kontowert dieser Wallets zusätzlich **vorsichtig** zeigen: diese Positionen mit Wert 0 gerechnet. Beide Werte nennen („Kontowert X SOL, vorsichtig Y SOL“). Wartet eine Position länger als 24 h, als Auffälligkeit melden.
 - Verzögerung und Preisabstand beim Kauf (Median), Anteil blockierter Käufe, Ergebnis der Schattenpositionen.
 - Wallet-Regeln anwenden (Bot, 72 h still, nach 30 Positionen und mehr als 1 SOL Verlust prüfen) und Kandidaten zum Ersetzen nennen. Nichts selbst entfernen.
 
