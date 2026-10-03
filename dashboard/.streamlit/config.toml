@@ -1,0 +1,32 @@
+# Ruhiges, helles Design. Farben aus der geprueften dataviz-Palette:
+# Blau = Plus, Rot = Minus (immer zusammen mit Vorzeichen, nie Farbe allein).
+[theme]
+base = "light"
+primaryColor = "#256abf"
+backgroundColor = "#fcfcfb"
+secondaryBackgroundColor = "#f3f2ef"
+textColor = "#0b0b0b"
+borderColor = "#e2e1dc"
+font = "sans-serif"
+baseRadius = "6px"
+showSidebarBorder = false
+chartCategoricalColors = ["#2a78d6", "#eb6834", "#1baf7a", "#eda100", "#e87ba4", "#008300", "#4a3aa7", "#e34948"]
+blueColor = "#2a78d6"
+redColor = "#d03b3b"
+greenColor = "#0ca30c"
+orangeColor = "#ec835a"
+yellowColor = "#fab219"
+grayColor = "#52514e"
+
+[server]
+headless = false
+port = 8501
+address = "localhost"            # nur auf diesem Rechner erreichbar, nicht im Netzwerk
+runOnSave = false
+fileWatcherType = "none"
+
+[browser]
+gatherUsageStats = false
+
+[client]
+toolbarMode = "minimal"

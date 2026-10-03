@@ -15,6 +15,20 @@ Ziel: in wenigen Minuten ein ehrliches Bild, was seit der letzten Auswertung pas
 
 Für alle Berechnungen kurze Python-Skripte verwenden, keine großen Dateien komplett lesen.
 
+**Gemeinsame Rechnung (seit 03.10.):** Kennzahlen mit `dashboard/rechnung.py` berechnen, nicht neu schreiben. Dann zeigen Auswertung, Dashboard und Discord dieselben Zahlen.
+
+```python
+import sys; sys.path.insert(0, "dashboard"); import rechnung as r
+konten = r.alle_strategie_konten()                 # Hauptstrategie + Experimente: kontowert, trades, pro_trade, ohne_beste_pro_trade, offen, closed
+kg = next(k for k in konten if k["key"] == r.KONTROLLE)
+urteil = {k["label"]: r.vergleich_mit_kontrolle(k, kg) for k in konten}   # Testregel: 200 Trades, gleicher Zeitraum, ohne 3 beste
+copy, gespeichert, journal = r.copy_konten()       # je Trader kontowert, vorsichtig, wartend, wir/trader_median_pct, verzoegerung; journal ohne Korrekturen
+zeiten = r.commit_zeiten(); r.luecken(zeiten["Copy-Bot"], 20)   # Betrieb: Lücken über 20 min
+r.messung()                                        # Quote 2 s später, 0,95-Notlösung
+```
+
+Fehlt eine Kennzahl, sie in `rechnung.py` ergänzen (mit Test), nicht nur im Auswertungsskript.
+
 **Korrekturen herausrechnen (seit 03.10.):** Bevor `copy/journal.csv` ausgewertet wird, die Zeilen aus `auswertungen/korrekturen.csv` entfernen (gleiche `trader`, `trader_signatur`, `aktion` und `zeit`). Bei Zeilen ohne Signatur zählen nur `trader`, `aktion` und `zeit`. Was die einzelnen Arten bedeuten und wie sie zu behandeln sind, steht in `auswertungen/korrekturen.md`, unter anderem:
 - Positionen mit `doppelter_verkauf` nicht in den Vergleich „wir gegen Trader“ nehmen.
 - Den Kontowert aus `konten.json` bei 922M, HEBO und 4DOV mit dem Hinweis „enthält doppelte Verkäufe“ zeigen.

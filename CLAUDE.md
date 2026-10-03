@@ -19,6 +19,8 @@ Drei unabhängige Bots, jeweils eigener GitHub-Actions-Workflow, Schichten von k
 | Copy Trading | `copy_bot.py` (nutzt `bot.py` als `core`) | `copy_runner.yml` (Kettenstart, Minute 47) | `copy/konten.json`, `copy/journal.csv`, `copy/messung.csv`, `copy/verlauf/`; Wallets in `copy_wallets.txt` |
 | Wallet-Scout | `scout_bot.py` (nutzt `copy_bot.py`) | `scout_runner.yml` (alle 6 h, Minute 29) | `scout/status.json`, `scout/kandidaten.csv`; Prüfliste `scout/pruefen.txt` |
 
+**Dashboard** (seit 03.10.) in `dashboard/`: Streamlit, nur lokal, nur lesen (alle 5 min `git pull`). Start per Doppelklick auf `dashboard/start.bat`. Eigene `dashboard/requirements.txt` und Umgebung `dashboard/.venv`. Die gemeinsame Rechnung (Kontowert wie Discord, Korrekturen, vorsichtiger Wert, Testurteil gegen die Kontrollgruppe) steht in `dashboard/rechnung.py`. Die Tagesauswertung nutzt sie auch. Wird die Rechnung der Bots geändert, `rechnung.py` und `tests/test_dashboard_rechnung.py` mitziehen.
+
 Experimente (eigene 10-SOL-Konten): zweite_welle, heisse_coins, ohne_limit, kontrollgruppe, endspurt („Endspurt viele Trades“), endspurt_ohne_filter. Details in `STRATEGIE.md`.
 
 Jeder Bot hat `--probe` (Kurztest ohne Handel, Ausgabe für die Kontrolle).
@@ -38,6 +40,7 @@ Jeder Bot hat `--probe` (Kurztest ohne Handel, Ausgabe für die Kontrolle).
     **Nur auf Ansage („Task Observer an“), kein automatischer Start.** Verbrauch nach einer Woche (ab 10.10.) mit `session-report` prüfen.
     Workspace ist der Projekt-Hauptordner (`skill-observations/` dort). **Niemals Schlüssel, Secrets oder Webhook-URLs in Notizen** – das Repository ist öffentlich.
   - `python-testing` – aus github.com/affaan-m/ECC, MIT. pytest-Nachschlagewerk, unverändert.
+  - `developing-with-streamlit` – offizielle Streamlit-Skills aus dem Paket `streamlit==1.65.0`, Apache-2.0, unverändert kopiert (03.10.; Verknüpfungen gehen unter Windows nicht). Für Arbeiten am Dashboard.
   - `helius` – aus github.com/helius-labs/core-ai, MIT. Helius-Wissen (WebSockets, Transaktionsverlauf, Wallet-API, Gebühren); Anmelde-/Zahlungsteil entfernt.
     Wir nutzen den Gratis-Tarif (nur `logsSubscribe`, kein `transactionSubscribe`): Vorschläge immer gegen „Budgets und Grenzen“ prüfen, Werbehinweise (z. B. Orb) ignorieren.
 - **Plugins** (Stand 03.10.): context-mode (ersetzt claude-mem; claude-mem ist noch installiert, aber deaktiviert), claude-md-management, pyright-lsp, security-guidance, session-report, skill-creator, claude-code-setup.
