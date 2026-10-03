@@ -162,6 +162,7 @@ Grenzen: Vergangene Gewinne garantieren keine künftigen; frühe Käufer können
 | 04.10. | Copy: Zrool, Putrick, Cooker entfernt (Daten bleiben, offene Positionen über den stündlichen Abgleich) | Wallet-Regel ≥ 30 Positionen und > 1 SOL Verlust (Überprüfung 03.10.) |
 | 04.10. | Scout-Bewertung 3: Wallets mit Median-Kauf unter 0,05 SOL werden nicht bewertet („Kleinstkäufe“ statt nur −10 Punkte); Prüfliste wird dadurch neu bewertet. Kriterium 20–700 Transaktionen vorerst nicht geprüft (nicht messbar) | Überprüfung 03.10.: Kleinstkäufer standen mit 84.602 und 455 Punkten oben, Rendite in % durch 0,002-SOL-Käufe aufgebläht |
 | 04.10. | Scout: Prüf-Modus für einzelne Transaktionen (`scout/pruefen_tx.txt` → `scout/tx_pruefung.csv` + Discord): je Transaktion, ob der Copy-Bot sie als Kauf/Verkauf erkennt und ob der Live-Filter sie geholt hätte; läuft im Scout (eigene Workflow-Gruppe, stört die Copy-Kette nicht) | Überprüfung 03.10.: 8 Transaktionen von 2FPk/54cb waren über den öffentlichen RPC nicht prüfbar |
+| 04.10. | DexScreener-Beobachtung (nur Aufzeichnung, keine Regel): je gekauftem und knapp abgelehntem Coin bezahltes Profil, Werbung, Community-Übernahme, Boosts und Zahlungszeitpunkte relativ zum Ereignis → `dexscreener.csv`. Offizielle API ohne Schlüssel, Abfrage in der 12-s-Pause (kein Kauf wartet), je Coin und Art höchstens alle 6 h | Überprüfung 03.10., Teil F: Tag 5 („früh rein, solange es sich verbreitet“) besser messen; Auswertung ab ≥ 100 Käufen |
 
 ## Dateien seit 28.09.
 

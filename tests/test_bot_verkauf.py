@@ -298,3 +298,46 @@ def test_alte_journale_bekommen_neue_spalten_hinten(market):
     core.ensure_csv_columns(core.JOURNAL_FILE, core.JOURNAL_HEADER)
     rows = list(csv.reader(open(core.JOURNAL_FILE, encoding="utf-8")))
     assert rows[0] == core.JOURNAL_HEADER and rows[0][:11] == old and len(rows[1]) == len(core.JOURNAL_HEADER)
+
+
+# ================================================================ DexScreener-Beobachtung (04.10., nur Aufzeichnung)
+
+def dex_rows():
+    return list(csv.DictReader(open(core.DEX_FILE, encoding="utf-8")))
+
+
+def test_dexscreener_beim_kauf_in_der_pause(market, monkeypatch, clock):
+    antworten = []
+
+    def dex_get(path):
+        antworten.append(path)
+        return {"orders": [{"type": "tokenProfile", "status": "approved",
+                            "paymentTimestamp": (clock.now - 600) * 1000},
+                           {"type": "tokenAd", "status": "approved", "paymentTimestamp": (clock.now - 60) * 1000}],
+                "boosts": [{"amount": 10, "paymentTimestamp": (clock.now - 120) * 1000}]}
+    monkeypatch.setattr(core, "dex_get", dex_get)
+    market.set(MINT, price=START)
+    p = core.load_portfolio()
+    v = core.token_view(market.tokens[MINT], time.time())
+    t0 = clock.now
+    core.open_position(p, v, {"quelle": "block0", "block0_wallets": 0, "block0_supply_pct": 0.0,
+                              "block0_still_held_pct": 0.0}, market.sol_usd)
+    assert clock.now == t0 and antworten == []                 # Kauf wartet nicht auf DexScreener
+    core.sleep_with_rechecks(12)
+    assert antworten == [f"/orders/v1/solana/{MINT}"]
+    r = dex_rows()[0]
+    assert r["art"] == "kauf" and r["konto"] == "hauptstrategie" and r["profil"] == "1" and r["werbung"] == "1"
+    assert r["boosts"] == "1" and r["erste_zahlung_min_vor_ereignis"] == "10.0"
+    assert r["letzte_zahlung_min_vor_ereignis"] == "1.0"
+    assert clock.now == pytest.approx(t0 + 12)                 # Pause wird nicht laenger
+
+
+def test_dexscreener_ohne_antwort_und_nur_einmal_je_coin(market, monkeypatch, clock):
+    market.set(MINT, price=START)
+    v = core.token_view(market.tokens[MINT], time.time())
+    core.dex_vormerken("knapp_abgelehnt", v, "FOMO_SPRUNG")
+    core.dex_vormerken("knapp_abgelehnt", v, "FOMO_SPRUNG")    # derselbe Coin: nur einmal in 6 h
+    assert len(core._dex_queue) == 1
+    core.sleep_with_rechecks(12)                               # dex_get liefert im Test None
+    r = dex_rows()[0]
+    assert r["fehler"] == "keine Antwort" and r["grund"] == "FOMO_SPRUNG" and core.STATS["dex_fehler"] == 1

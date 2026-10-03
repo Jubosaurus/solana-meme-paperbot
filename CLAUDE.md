@@ -15,7 +15,7 @@ Drei unabhängige Bots, jeweils eigener GitHub-Actions-Workflow, Schichten von k
 
 | Bot | Datei | Workflow | Daten |
 |---|---|---|---|
-| Hauptstrategie NARRATIV + 6 Experimente | `bot.py` | `bot_runner.yml` (Kettenstart, Sicherheitsnetz Minute 17) | `portfolio.json`, `journal.csv`, `messung.csv`, `abgelehnt.csv`, `knapp_abgelehnt.csv`, `marktphase.json`, `verlauf/`, `experimente/<name>/` |
+| Hauptstrategie NARRATIV + 6 Experimente | `bot.py` | `bot_runner.yml` (Kettenstart, Sicherheitsnetz Minute 17) | `portfolio.json`, `journal.csv`, `messung.csv`, `dexscreener.csv`, `abgelehnt.csv`, `knapp_abgelehnt.csv`, `marktphase.json`, `verlauf/`, `experimente/<name>/` |
 | Copy Trading | `copy_bot.py` (nutzt `bot.py` als `core`) | `copy_runner.yml` (Kettenstart, Minute 47) | `copy/konten.json`, `copy/journal.csv`, `copy/messung.csv`, `copy/verlauf/`; Wallets in `copy_wallets.txt` |
 | Wallet-Scout | `scout_bot.py` (nutzt `copy_bot.py`) | `scout_runner.yml` (alle 6 h, Minute 29) | `scout/status.json`, `scout/kandidaten.csv`, `scout/tx_pruefung.csv`; Prüfliste `scout/pruefen.txt`, Transaktions-Prüfung `scout/pruefen_tx.txt` |
 
@@ -50,7 +50,7 @@ Jeder Bot hat `--probe` (Kurztest ohne Handel, Ausgabe für die Kontrolle).
 ## Goldene Regeln
 
 1. **Vor jeder Änderung `git pull`.** Die Bots pushen etwa jede Minute Daten nach `main` (Commits mit `[skip ci]`).
-2. **Nur Code und Doku committen, nie Daten** (`portfolio.json`, `journal.csv`, `messung.csv`, `verlauf/`, `experimente/`, `copy/`, `scout/status.json`, `scout/kandidaten.csv`, `scout/tx_pruefung.csv`). Ausnahme: `copy_wallets.txt`, `scout/pruefen.txt` und `scout/pruefen_tx.txt`, wenn der Betreiber Wallets ändern oder Transaktionen prüfen lassen will. Doku wie `auswertungen/`, `tests/` und `.claude/` darf eingespielt werden.
+2. **Nur Code und Doku committen, nie Daten** (`portfolio.json`, `journal.csv`, `messung.csv`, `dexscreener.csv`, `verlauf/`, `experimente/`, `copy/`, `scout/status.json`, `scout/kandidaten.csv`, `scout/tx_pruefung.csv`). Ausnahme: `copy_wallets.txt`, `scout/pruefen.txt` und `scout/pruefen_tx.txt`, wenn der Betreiber Wallets ändern oder Transaktionen prüfen lassen will. Doku wie `auswertungen/`, `tests/` und `.claude/` darf eingespielt werden.
 3. **Laufende Daten dürfen nie kaputtgehen:** neue Felder mit `setdefault`/`.get`, neue CSV-Spalten nur hinten anhängen (`core.ensure_csv_columns`), alte Positionen/Konten müssen mit neuem Code weiterlaufen.
 4. **Absturzsicherheit:** Ein einzelner Coin, eine Nachricht oder eine API-Antwort darf nie einen Bot stoppen (Fehler abfangen, zählen, in der Endmeldung zeigen). Ein abgestürzter Bot startet wegen des Kettenstarts erst beim Sicherheitsnetz-Lauf neu.
 5. **Testen vor dem Push** (siehe Tests). Bei jeder Änderung an Verkaufsregeln: Gegenprobe, dass die Hauptstrategie auf den aufgezeichneten Verläufen unverändert verkauft.

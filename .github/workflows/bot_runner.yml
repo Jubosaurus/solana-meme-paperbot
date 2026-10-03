@@ -67,7 +67,7 @@ jobs:
           if [ -d .git/rebase-merge ] || [ -d .git/rebase-apply ]; then git rebase --abort || true; fi
           # Zustandsdateien als Ganzes auf den neuesten Stand von main setzen, nichts mischen
           git fetch -q origin main && git reset -q origin/main
-          for f in portfolio.json journal.csv abgelehnt.csv marktphase.json verlauf.csv verlauf knapp_abgelehnt.csv experimente messung.csv; do
+          for f in portfolio.json journal.csv abgelehnt.csv marktphase.json verlauf.csv verlauf knapp_abgelehnt.csv experimente messung.csv dexscreener.csv; do
             [ -e "$f" ] && git add "$f" || true
           done
           if ! git diff --cached --quiet; then

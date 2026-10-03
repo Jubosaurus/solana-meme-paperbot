@@ -54,6 +54,10 @@ Tabelle für den Zeitraum **und** seit Start: Konto | Trades | Gewinner | Summe 
 
 Daraus grob schätzen, wie viel Verzögerung die Ergebnisse real kosten würde (Abweichung × 0,2 SOL × Anzahl Trades). Das ist eine Schätzung: Sandwich-Angriffe und gescheiterte Transaktionen sind darin nicht enthalten.
 
+**DexScreener-Beobachtung (seit 04.10., nur Aufzeichnung):** `dexscreener.csv` je gekauftem bzw. knapp abgelehntem Coin: bezahltes Profil, Werbung, Community-Übernahme, Boosts, Zahlungszeitpunkte in Minuten vor dem Ereignis.
+- Bis 100 Käufe aufgezeichnet sind, nur die Anzahl nennen.
+- Danach prüfen, ob Gewinner und Verlierer sich unterscheiden (z. B. Werbung vor gegen nach unserem Kauf). Methode wie bei Strategie-Ideen: erste Hälfte finden, zweite bestätigen, ohne 3 beste.
+
 ## 4. Copy Trading
 
 - Pro aktiver Wallet: Kontowert (frei + aktueller Wert der offenen Positionen, Kurse aus `copy/verlauf/`), Runde, geschlossene Positionen im Zeitraum, wir gegen Trader (Median je Position, nur gültige Trader-Vergleiche).

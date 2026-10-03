@@ -65,6 +65,7 @@ def sandbox(tmp_path, monkeypatch):
     net = []
     monkeypatch.setattr(core, "SESSION", BlockedSession(net))
     monkeypatch.setattr(core, "jup_get", lambda path: None)
+    monkeypatch.setattr(core, "dex_get", lambda path: None)
     monkeypatch.setattr(core, "rpc", lambda method, params: None)
     monkeypatch.setattr(cb, "jup", lambda path: None)
 
@@ -88,7 +89,7 @@ def sandbox(tmp_path, monkeypatch):
     monkeypatch.setattr(core, "EXP_STATS", {n: core.fresh_stats() for n in core.EXPERIMENTS})
     core.CTX.clear()
     core.CTX.update(_CTX)
-    for cache in (core._rechecks, core._tok_cache, core._bundle_cache, core._block0_cache, core._shield_cache, core._reject_seen,
+    for cache in (core._rechecks, core._dex_queue, core._dex_seen, core._tok_cache, core._bundle_cache, core._block0_cache, core._shield_cache, core._reject_seen,
                   core._symbol_leaders, core._narrative_leaders, core._social_cache, core._portfolio_alarm,
                   cb._seen, cb._done, cb._rate, cb._gap, cb._rechecks):
         cache.clear()

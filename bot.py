@@ -65,6 +65,15 @@ TX_FEE_SOL = 0.0015                     # Netzwerk + Priority pro Transaktion
 QUOTE_RECHECK_SECONDS = 2.0             # Messung seit 03.10. (nur Aufzeichnung): Quote 2 s spaeter erneut,
 QUOTE_RECHECK_MAX_S = 10.0              # ausgefuehrt in der Pause zwischen zwei Durchlaeufen, nie waehrend des Handels
 MESSUNG_FILE = "messung.csv"
+# DexScreener-Beobachtung (seit 04.10., nur Aufzeichnung, keine Regel): bezahltes Profil, Werbung, Community-
+# Uebernahme und Boosts je gekauftem bzw. knapp abgelehntem Coin, mit Zahlungszeitpunkten relativ zum Ereignis.
+# Offizielle API ohne Schluessel (60 Abfragen/min); abgefragt in der Pause zwischen zwei Durchlaeufen.
+DEX_BASE = "https://api.dexscreener.com"
+DEX_FILE = "dexscreener.csv"
+DEX_HEADER = ["zeit", "konto", "art", "symbol", "mint", "grund", "coin_alter_min", "profil", "werbung", "cto",
+              "boosts", "erste_zahlung_min_vor_ereignis", "letzte_zahlung_min_vor_ereignis", "zahlungen", "fehler"]
+DEX_INTERVAL = 1.1
+DEX_REPEAT_H = 6                        # denselben Coin je Art hoechstens alle 6 h aufzeichnen
 MESSUNG_HEADER = ["zeit", "konto", "aktion", "symbol", "mint", "quote_sofort", "quote_spaeter", "sekunden",
                   "abweichung_pct"]
 
@@ -188,7 +197,7 @@ def fresh_stats():
             "rugcheck_ok": 0, "rugcheck_fail": 0, "helius_ok": 0, "helius_fail": 0,
             "git_ok": 0, "git_fail": 0, "discord_fail": 0, "block0_too_many": 0, "graduations": 0,
             "st_ok": 0, "st_fail": 0, "st_skipped": 0, "young_by_list": {}, "resets": 0,
-            "exp_errors": 0, "quote_2s": [], "notloesung": 0, "messung_verworfen": 0}
+            "exp_errors": 0, "quote_2s": [], "notloesung": 0, "messung_verworfen": 0, "dex": 0, "dex_fehler": 0}
 
 
 STATS = fresh_stats()
@@ -827,19 +836,83 @@ def run_recheck():
                     f"{drift:+.2f}"])
 
 
+_dex_queue = deque(maxlen=300)           # (Zeitpunkt, Konto, Art, Symbol, Mint, Grund, Coin-Alter in min)
+_dex_seen = {}                           # (Mint, Art) -> Zeitpunkt der letzten Aufzeichnung
+_dex_last = [0.0]
+
+
+def dex_vormerken(art, v, grund=""):
+    """DexScreener-Abfrage vormerken (nur Beobachtung). art: 'kauf' oder 'knapp_abgelehnt'."""
+    key, now = (v.get("mint"), art), time.time()
+    if not v.get("mint") or now - _dex_seen.get(key, 0) < DEX_REPEAT_H * 3600:
+        return
+    _dex_seen[key] = now
+    alter = v.get("age_h")
+    _dex_queue.append((now, CTX["name"] or "hauptstrategie", art, v.get("symbol", ""), v["mint"], grund,
+                       round(alter * 60) if alter is not None else ""))
+
+
+def dex_get(path):
+    """GET auf die offizielle DexScreener-API (ohne Schluessel). None bei jedem Fehler."""
+    _throttle(_dex_last, DEX_INTERVAL)
+    try:
+        res = SESSION.get(DEX_BASE + path, timeout=8)
+        return res.json() if res.status_code == 200 else None
+    except (requests.RequestException, ValueError):
+        return None
+
+
+def run_dex():
+    """Eine vorgemerkte DexScreener-Abfrage ausfuehren und in dexscreener.csv schreiben."""
+    zeit, konto, art, symbol, mint, grund, alter = _dex_queue.popleft()
+    data = dex_get(f"/orders/v1/solana/{mint}")
+    zeile = {"zeit": datetime.fromtimestamp(zeit, timezone.utc).strftime("%Y-%m-%d %H:%M:%S"), "konto": konto,
+             "art": art, "symbol": symbol, "mint": mint, "grund": grund, "coin_alter_min": alter}
+    if not isinstance(data, dict):
+        STATS["dex_fehler"] += 1
+        zeile["fehler"] = "keine Antwort"
+    else:
+        orders = [o for o in data.get("orders") or [] if isinstance(o, dict)]
+        boosts = [b for b in data.get("boosts") or [] if isinstance(b, dict)]
+        typen = [str(o.get("type", "")) for o in orders]
+        zahlungen = sorted(as_float(x.get("paymentTimestamp")) / 1000 for x in orders + boosts
+                           if as_float(x.get("paymentTimestamp")) > 0)
+        zeile.update({
+            "profil": int("tokenProfile" in typen),
+            "werbung": sum(1 for t in typen if "Ad" in t or "ad" in t.lower().split("_")),
+            "cto": int("communityTakeover" in typen), "boosts": len(boosts),
+            "erste_zahlung_min_vor_ereignis": round((zeit - zahlungen[0]) / 60, 1) if zahlungen else "",
+            "letzte_zahlung_min_vor_ereignis": round((zeit - zahlungen[-1]) / 60, 1) if zahlungen else "",
+            "zahlungen": " ".join(f"{t}@{int(as_float(o.get('paymentTimestamp')) / 1000)}"
+                                  for t, o in zip(typen, orders)),
+        })
+        STATS["dex"] += 1
+    new = not os.path.exists(DEX_FILE)
+    with open(DEX_FILE, "a", newline="", encoding="utf-8") as f:
+        w = csv.writer(f)
+        if new:
+            w.writerow(DEX_HEADER)
+        w.writerow([zeile.get(k, "") for k in DEX_HEADER])
+
+
 def sleep_with_rechecks(seconds):
-    """Pause zwischen zwei Durchlaeufen; faellige Messungen laufen darin, die Pause wird nicht laenger."""
+    """Pause zwischen zwei Durchlaeufen; faellige Messungen und DexScreener-Abfragen laufen darin,
+    die Pause wird nicht laenger (hoechstens um die Dauer einer Abfrage)."""
     end = time.time() + seconds
-    while _rechecks and time.time() < end:
-        wait = _rechecks[0][0] - time.time()
-        if wait > 0:
-            time.sleep(max(0.0, min(wait, end - time.time())))   # nie negativ (ValueError)
-            continue
+    while (_rechecks or _dex_queue) and time.time() < end:
+        wait = _rechecks[0][0] - time.time() if _rechecks else None
         try:
-            run_recheck()
+            if wait is not None and wait <= 0:
+                run_recheck()
+            elif _dex_queue and end - time.time() > DEX_INTERVAL + 1:
+                run_dex()
+            elif wait is not None:
+                time.sleep(max(0.0, min(wait, end - time.time())))   # nie negativ (ValueError)
+            else:
+                break
         except Interrupted:
             raise
-        except Exception as err:                         # Messung darf den Bot nie stoppen
+        except Exception as err:                         # Messung/Beobachtung darf den Bot nie stoppen
             STATS["messung_verworfen"] += 1
             print(f"[MESSUNG] {str(err)[:100]}")
     rest = end - time.time()
@@ -982,6 +1055,7 @@ def track_near_miss(p, v, reason, now, extra=None):
             w.writerow(NEAR_MISS_HEADER)
         w.writerow([datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S"), v["symbol"], mint,
                     reason, detail, f"{v['price']:.12g}", *[v.get(k) for k in ENTRY_FEATURES]])
+    dex_vormerken("knapp_abgelehnt", v, reason)
 
 
 REJECT_HEADER = ["zeit", "symbol", "mint", "grund", "alter_h", "mcap", "liq", "holder",
@@ -1125,6 +1199,7 @@ def open_position(p, v, bundle, sol_usd, max_slippage_pct=None, extra_pos=None):
     p["cooldown"][v["mint"]] = time.time()
     journal("KAUF", pos, fill_usd, POSITION_SOL)
     schedule_recheck("KAUF", v["symbol"], WSOL_MINT, v["mint"], lamports, raw_out, quoted_at)
+    dex_vormerken("kauf", v)
     STATS["entries"].append({"symbol": v["symbol"], "roundtrip": roundtrip,
                              "mitlaeufer": bool(v.get("mitlaeufer"))})
     ml = v.get("mitlaeufer")
@@ -1723,7 +1798,7 @@ def git_push():
     wird zeilenweise gemischt (das zerstoert JSON). Andere Dateien auf main, etwa eine
     zwischendurch hochgeladene bot.py, bleiben unangetastet."""
     files = [f for f in (PORTFOLIO_FILE, JOURNAL_FILE, REJECT_FILE, PHASE_FILE, VERLAUF_DIR,
-                         NEAR_MISS_FILE, "verlauf.csv", EXP_DIR, MESSUNG_FILE) if os.path.exists(f)]
+                         NEAR_MISS_FILE, "verlauf.csv", EXP_DIR, MESSUNG_FILE, DEX_FILE) if os.path.exists(f)]
     if not files:
         return
     _git("config", "user.name", "github-actions[bot]")
@@ -1784,6 +1859,9 @@ def shift_summary(p, start_value, started, reason):
             f"Quote 2 s spaeter im Median {med:+.2f}% schlechter ({len(drifts)} Trades)" if drifts else
             "keine Quote-Messung") + f", {STATS['messung_verworfen']} verworfen"
             + f" | 0,95-Notloesung beim Verkauf: {notl}x")
+    if STATS["dex"] or STATS["dex_fehler"]:
+        lines.append(f"**DexScreener (Beobachtung):** {STATS['dex']} Coins aufgezeichnet"
+                     + (f", {STATS['dex_fehler']} ohne Antwort" if STATS["dex_fehler"] else ""))
     ml = sum(1 for e in STATS["entries"] if e.get("mitlaeufer"))
     if ml:
         lines.append(f"**Kaeufe mit Mitlaeufer-Verdacht:** {ml} von {len(STATS['entries'])}")
