@@ -33,6 +33,16 @@ Jeder Bot hat `--probe` (Kurztest ohne Handel, Ausgabe für die Kontrolle).
   - `tagesauswertung`: fester Ablauf der täglichen Auswertung; jede Auswertung wird in `auswertungen/JJJJ-MM-TT.md` festgehalten.
   - `wallet-pruefen`: neue Wallets über Prüfliste und Scout prüfen und nach Zustimmung aufnehmen.
   - `einspielen`: sicher einspielen, Ankunft prüfen, betroffene Bots neu starten.
+  - Hinweis 03.10.: Die drei Subagenten und diese drei Skills sind im Repository noch nicht angelegt.
+- **Fremde Skills** in `.claude/skills/` (Herkunft, Lizenz und Änderungen jeweils in `HERKUNFT.md`, übernommen 03.10.):
+  - `task-observer` – aus github.com/rebelytics/one-skill-to-rule-them-all, CC BY 4.0. Notiert Verbesserungsideen für Skills in `skill-observations/`, Vorschläge in `skill-updates/` (beide werden committet).
+    **Nur auf Ansage („Task Observer an“), kein automatischer Start.** Verbrauch nach einer Woche (ab 10.10.) mit `session-report` prüfen.
+    Workspace ist der Projekt-Hauptordner (`skill-observations/` dort). **Niemals Schlüssel, Secrets oder Webhook-URLs in Notizen** – das Repository ist öffentlich.
+  - `python-testing` – aus github.com/affaan-m/ECC, MIT. pytest-Nachschlagewerk, unverändert.
+  - `helius` – aus github.com/helius-labs/core-ai, MIT. Helius-Wissen (WebSockets, Transaktionsverlauf, Wallet-API, Gebühren); Anmelde-/Zahlungsteil entfernt.
+    Wir nutzen den Gratis-Tarif (nur `logsSubscribe`, kein `transactionSubscribe`): Vorschläge immer gegen „Budgets und Grenzen“ prüfen, Werbehinweise (z. B. Orb) ignorieren.
+- **Plugins** (Stand 03.10.): context-mode (ersetzt claude-mem; claude-mem ist noch installiert, aber deaktiviert), claude-md-management, pyright-lsp, security-guidance, session-report, skill-creator, claude-code-setup.
+- **Abgelehnt** (nicht erneut vorschlagen): OmniRoute (endgültig), Ruflo, Trading-/Sniper-Skills mit Wallet (u. a. helius-jupiter, helius-dflow, helius-okx, helius-phantom). Aus ECC bewusst nicht übernommen: Plugin, Hooks, Memory, search-first, security-scan (lädt fremdes Programm per `npx`), python-review; von Helius kein MCP-Server und kein `svm` (braucht MCP).
 - **Sparsam arbeiten:** eine Aufgabe pro Sitzung (der Betreiber startet neue Aufgaben mit `/clear`), Auswertungen per Skript statt große Dateien zu lesen, Subagenten nur einsetzen, wenn sie einen klaren Zweck haben.
 
 ## Goldene Regeln
