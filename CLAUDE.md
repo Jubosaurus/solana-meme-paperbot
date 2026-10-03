@@ -91,6 +91,9 @@ Jeder Bot hat `--probe` (Kurztest ohne Handel, Ausgabe für die Kontrolle).
 - Konto-Anzeige „Einsatz“ wurde als Guthaben missverstanden → Kontowert = frei + aktueller Wert.
 - Scout hat Trader, die Tage halten, falsch bewertet (nur schnelle Fehlkäufe im Fenster sichtbar) → 7-Tage-Fenster, gehaltene Coins zum Kurs, Reibung nach Haltedauer.
 - Ranglisten (Kolscan, GMGN) schauen zurück und erkennen keine Bots: Kandidaten immer über die Prüfliste prüfen.
+- Schicht nicht von Hand abbrechen, solange Fehler C (Abbruch ohne Speichern im Copy-Bot) offen ist: Am 02.10. ging dadurch die Zrool-Position verloren, und eine 922M-Position wurde doppelt geschlossen.
+- `--probe` nur starten, wenn keine Schicht läuft: Der Kurztest verdrängt die wartende nächste Schicht und startet selbst keine. Die Kette reißt dann bis zum Sicherheitsnetz ab (bis zu 6 h).
+- Der Copy-Bot liest beim Start das ganze `copy/journal.csv` als Gedächtnis gegen doppeltes Nachholen (Signaturen, seit 03.10.). Beim Verkleinern des Repositorys das Journal nicht kürzen oder auslagern, ohne diesen Schutz anzupassen.
 
 ## Tests
 
