@@ -33,7 +33,6 @@ Jeder Bot hat `--probe` (Kurztest ohne Handel, Ausgabe für die Kontrolle).
   - `tagesauswertung`: fester Ablauf der täglichen Auswertung; jede Auswertung wird in `auswertungen/JJJJ-MM-TT.md` festgehalten.
   - `wallet-pruefen`: neue Wallets über Prüfliste und Scout prüfen und nach Zustimmung aufnehmen.
   - `einspielen`: sicher einspielen, Ankunft prüfen, betroffene Bots neu starten.
-  - Hinweis 03.10.: Die drei Subagenten und diese drei Skills sind im Repository noch nicht angelegt.
 - **Fremde Skills** in `.claude/skills/` (Herkunft, Lizenz und Änderungen jeweils in `HERKUNFT.md`, übernommen 03.10.):
   - `task-observer` – aus github.com/rebelytics/one-skill-to-rule-them-all, CC BY 4.0. Notiert Verbesserungsideen für Skills in `skill-observations/`, Vorschläge in `skill-updates/` (beide werden committet).
     **Nur auf Ansage („Task Observer an“), kein automatischer Start.** Verbrauch nach einer Woche (ab 10.10.) mit `session-report` prüfen.
@@ -48,7 +47,7 @@ Jeder Bot hat `--probe` (Kurztest ohne Handel, Ausgabe für die Kontrolle).
 ## Goldene Regeln
 
 1. **Vor jeder Änderung `git pull`.** Die Bots pushen etwa jede Minute Daten nach `main` (Commits mit `[skip ci]`).
-2. **Nur Code und Doku committen, nie Daten** (`portfolio.json`, `journal.csv`, `verlauf/`, `experimente/`, `copy/`, `scout/status.json`, `scout/kandidaten.csv`). Ausnahme: `copy_wallets.txt` und `scout/pruefen.txt`, wenn der Betreiber Wallets ändern will.
+2. **Nur Code und Doku committen, nie Daten** (`portfolio.json`, `journal.csv`, `verlauf/`, `experimente/`, `copy/`, `scout/status.json`, `scout/kandidaten.csv`). Ausnahme: `copy_wallets.txt` und `scout/pruefen.txt`, wenn der Betreiber Wallets ändern will. Doku wie `auswertungen/`, `tests/` und `.claude/` darf eingespielt werden.
 3. **Laufende Daten dürfen nie kaputtgehen:** neue Felder mit `setdefault`/`.get`, neue CSV-Spalten nur hinten anhängen (`core.ensure_csv_columns`), alte Positionen/Konten müssen mit neuem Code weiterlaufen.
 4. **Absturzsicherheit:** Ein einzelner Coin, eine Nachricht oder eine API-Antwort darf nie einen Bot stoppen (Fehler abfangen, zählen, in der Endmeldung zeigen). Ein abgestürzter Bot startet wegen des Kettenstarts erst beim Sicherheitsnetz-Lauf neu.
 5. **Testen vor dem Push** (siehe Tests). Bei jeder Änderung an Verkaufsregeln: Gegenprobe, dass die Hauptstrategie auf den aufgezeichneten Verläufen unverändert verkauft.
@@ -120,7 +119,7 @@ Testsammlung in `tests/` (seit 02.10., pytest):
 6. Neue Copy-Wallets (GMGN, eingetragen 02.10.: 3zsr, C7bF, 2FPk, haru, 43Nu, koko, Eshi, 54cb, 42wu, 77n6; dazu Pikalosi, Dior) nach einigen Tagen auswerten: Überstehen Trader mit langen Haltezeiten die Reibung besser?
 7. Helius-Verbrauch beobachten; 922M ist teuer und für uns nicht kopierbar (Betreiber hat entschieden, ihn vorerst zu behalten).
 
-## Tägliche Auswertung (wenn der Betreiber „Auswertung“ sagt)
+## Tägliche Auswertung (Kurzfassung, Details im Skill `tagesauswertung`)
 
 1. Betrieb: Lücken in `verlauf/` und `copy/journal.csv`, Scout-Läufe, Fehler in den Endmeldungen bzw. Actions-Logs.
 2. Hauptstrategie und Experimente seit der letzten Auswertung und seit Start; Vergleich mit der Kontrollgruppe.

@@ -55,7 +55,7 @@ Identify what the user is building, then read the relevant reference files befor
 | Solana internals | SIMDs, Solana docs, Helius blog (MCP: `getSIMD`, `searchSolanaDocs`, `fetchHeliusBlog`) |
 
 ### Transaction Sending & Swaps
-**Read**: `references/sender.md`, `references/priority-fees.md`
+**Read**: `references/priority-fees.md` (`references/sender.md` removed in this project: paper trading only, no real transactions)
 **APIs**: Sender endpoint, Priority Fee API (`getPriorityFeeEstimate`), Enhanced Transactions API
 **MCP tools** (if available): `getPriorityFeeEstimate`, `getSenderInfo`, `parseTransactions`, `transferSol`, `transferToken`
 **When**: sending SOL/SPL tokens, sending transactions, swap APIs (DFlow, Jupiter, Titan), trading bots, swap interfaces, transaction optimization
