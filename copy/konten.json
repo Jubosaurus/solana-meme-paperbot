@@ -2,7 +2,7 @@
  "wallets": {
   "Zrool": {
    "adresse": "99i9uVA7Q56bY22ajKKUfTZTgTeP5yCtVGsrG9J4pDYQ",
-   "bankroll_sol": 3.7614511920000258,
+   "bankroll_sol": 3.7213640850000256,
    "runde": 2,
    "positionen": {},
    "geschlossen": [
@@ -4238,30 +4238,44 @@
      "haltedauer_h": 0.03,
      "trader_pnl_sol": -0.831822,
      "trader_pnl_pct": -61.0
-    }
-   ],
-   "gestartet": "2026-09-30T09:59:09.362454+00:00",
-   "schatten": {
-    "7bC8ugu1ZJn21MhA4ht483nX8brLNesa8R7XLimpFyhq": {
+    },
+    {
      "mint": "7bC8ugu1ZJn21MhA4ht483nX8brLNesa8R7XLimpFyhq",
      "symbol": "SPLICE",
      "decimals": 6,
-     "tokens": 1814913.395563,
-     "invested_sol": 0.2,
-     "erloes_sol": 0.0,
-     "behalten": 1.0,
-     "opened": 1791068142.0447612,
-     "kaeufe": 1,
-     "preisabstand_pct": [
-      17.39
-     ],
-     "trader_ausgegeben_sol": 1.2703109,
-     "trader_erhalten_sol": 0.0,
-     "trader_tokens_aufgezeichnet": 13531640.988739,
+     "tokens_raw": 0,
+     "invested_sol": 0.4,
+     "fees_sol": 0.0010350000000000001,
+     "proceeds_sol": 0.360947893,
+     "opened": 1791068161.607619,
+     "kaeufe": 2,
+     "verkaeufe": 1,
+     "trader_ausgegeben_sol": 0.2,
+     "trader_erhalten_sol": 0.1615935236468476,
      "runde": 2,
-     "letzter_preis_sol": 9.854122992202393e-08
+     "vergleich_alt": false,
+     "trader_tokens_aufgezeichnet": 2.3283064365386963e-10,
+     "behalten": 1.0,
+     "gemerkt": 0,
+     "sigs": [
+      "4L2cuTLdaRtH2nEyAFijx1P9oTdtqh6JiyjRGnm2KE523z7EsB5jaTtHzFVHXXfcvF7WkjHLxhNJhyngLVqRNGRt",
+      "QSqYifm8devdgaP5S2nNheNVJ6NHrvzNisWf6M6ordPVGhQg7qHiz5FzxwKctLL2WXmAVC93x5sbHQ3SBaj84db",
+      "61CowtgRfwXHL6A1x7LurrmnrNkDmVXTa1bCDWdQ9bEGZEkTdtS59AmQ3jRfNFNuEdYpMce3y8j1vPiGnfNZM4wT"
+     ],
+     "tokens_gekauft_raw": 4370950771244,
+     "trader_bestand_raw": 0,
+     "letzte_gebuehr": 0.001005,
+     "pnl_sol": -0.040087,
+     "pnl_pct": -10.02,
+     "grund": "VERKAUF",
+     "geschlossen": "2026-10-03T22:56:17.173809+00:00",
+     "haltedauer_h": 0.0,
+     "trader_pnl_sol": -0.038406,
+     "trader_pnl_pct": -19.2
     }
-   },
+   ],
+   "gestartet": "2026-09-30T09:59:09.362454+00:00",
+   "schatten": {},
    "schatten_geschlossen": [
     {
      "mint": "HmztDDjYvreD3t1VLngjG5WVGthYCZNHjZxGvTrnhj72",
@@ -6157,9 +6171,37 @@
      "geschlossen": "2026-10-03T22:54:08.076315+00:00",
      "haltedauer_h": 0.0,
      "trader_pnl_pct": 2.39
+    },
+    {
+     "mint": "7bC8ugu1ZJn21MhA4ht483nX8brLNesa8R7XLimpFyhq",
+     "symbol": "SPLICE",
+     "decimals": 6,
+     "tokens": 1814913.395563,
+     "invested_sol": 0.2,
+     "erloes_sol": 0.14672092058053263,
+     "behalten": 0.0,
+     "opened": 1791068142.0447612,
+     "kaeufe": 1,
+     "preisabstand_pct": [
+      17.39
+     ],
+     "trader_ausgegeben_sol": 1.2703109,
+     "trader_erhalten_sol": 1.0939226233531525,
+     "trader_tokens_aufgezeichnet": 0.0,
+     "runde": 2,
+     "letzter_preis_sol": 9.854122992202393e-08,
+     "sigs": [
+      "61CowtgRfwXHL6A1x7LurrmnrNkDmVXTa1bCDWdQ9bEGZEkTdtS59AmQ3jRfNFNuEdYpMce3y8j1vPiGnfNZM4wT"
+     ],
+     "pnl_sol": -0.053279,
+     "pnl_pct": -26.64,
+     "grund": "TRADER_AUSSTIEG",
+     "geschlossen": "2026-10-03T22:56:15.888631+00:00",
+     "haltedauer_h": 0.01,
+     "trader_pnl_pct": -13.89
     }
    ],
-   "letzter_trade": 1791068141,
+   "letzter_trade": 1791068166,
    "abgedeckt_bis": 1791051420.5737824
   },
   "Loopierr": {
@@ -6208,7 +6250,7 @@
      "tokens_gekauft_raw": 32776591728,
      "trader_bestand_raw": 20128113273113,
      "letzte_gebuehr": 0.00016322100000000001,
-     "letzter_preis_sol": 1.6468333575316592e-05
+     "letzter_preis_sol": 1.6007836649266005e-05
     }
    },
    "geschlossen": [
@@ -6497,7 +6539,7 @@
      "tokens_gekauft_raw": 229186835277,
      "trader_bestand_raw": 13535960960971,
      "letzte_gebuehr": 0.000650139,
-     "letzter_preis_sol": 7.10949596363723e-07
+     "letzter_preis_sol": 6.86068512611968e-07
     },
     "DD2xUzFzrg7Hx2DymyoqMjyVqaXfRwocaZjSXEtbpump": {
      "mint": "DD2xUzFzrg7Hx2DymyoqMjyVqaXfRwocaZjSXEtbpump",
@@ -9610,7 +9652,7 @@
      "tokens_gekauft_raw": 9126096457,
      "trader_bestand_raw": 1238877411150,
      "letzte_gebuehr": 0.001005,
-     "letzter_preis_sol": 2.9177513568812635e-05
+     "letzter_preis_sol": 2.8793841593197174e-05
     },
     "DvdmEnztCmXwBnAbedD48XVGZJSxq31zNvnyftXdpump": {
      "mint": "DvdmEnztCmXwBnAbedD48XVGZJSxq31zNvnyftXdpump",
@@ -9636,7 +9678,7 @@
      "tokens_gekauft_raw": 9412363344,
      "trader_bestand_raw": 1276760722279,
      "letzte_gebuehr": 0.001005,
-     "letzter_preis_sol": 1.8588184911499367e-05
+     "letzter_preis_sol": 1.864216636810706e-05
     },
     "G4vqe8KAcRGTb7Kc55n9sz43aR4ugTPdSeUnAXZhpump": {
      "mint": "G4vqe8KAcRGTb7Kc55n9sz43aR4ugTPdSeUnAXZhpump",
@@ -12647,7 +12689,7 @@
      "trader_bestand_raw": 1431665789,
      "letzte_gebuehr": 7.8502e-05,
      "abgleich": true,
-     "letzter_preis_sol": 5.271112480733997e-05
+     "letzter_preis_sol": 5.2460456484471014e-05
     },
     "42AtRP5d3ySBj9iveMYeD23kkmN3HEZFwUzs1YKvkPA9": {
      "mint": "42AtRP5d3ySBj9iveMYeD23kkmN3HEZFwUzs1YKvkPA9",
@@ -12703,7 +12745,7 @@
      "tokens_gekauft_raw": 12017028409,
      "trader_bestand_raw": 2081965689779,
      "letzte_gebuehr": 0.000204694,
-     "letzter_preis_sol": 2.2851181929176407e-05
+     "letzter_preis_sol": 2.1448536365683705e-05
     },
     "6REnZgtxhwdSAHczAp4J5PRsGQYQt7T3x4kEDyfs9U7y": {
      "mint": "6REnZgtxhwdSAHczAp4J5PRsGQYQt7T3x4kEDyfs9U7y",
@@ -13131,7 +13173,7 @@
      "tokens_gekauft_raw": 7238909391,
      "trader_bestand_raw": 355047630036,
      "letzte_gebuehr": 0.000155,
-     "letzter_preis_sol": 4.617173053116892e-05
+     "letzter_preis_sol": 4.562641304785607e-05
     }
    },
    "geschlossen": [
@@ -57666,7 +57708,7 @@
      "tokens_gekauft_raw": 47787012679,
      "trader_bestand_raw": 5707952543550,
      "letzte_gebuehr": 0.0001,
-     "letzter_preis_sol": 8.235750249008239e-05
+     "letzter_preis_sol": 8.494494599435806e-05
     },
     "Aaan4fxwhKtUUPg2GSKq6natLV9oj9QQNf5xT4UE2gXr": {
      "mint": "Aaan4fxwhKtUUPg2GSKq6natLV9oj9QQNf5xT4UE2gXr",
@@ -57720,7 +57762,7 @@
      "tokens_gekauft_raw": 145724942318,
      "trader_bestand_raw": 8939530446514,
      "letzte_gebuehr": 0.0001,
-     "letzter_preis_sol": 1.7082944662474876e-06
+     "letzter_preis_sol": 1.5236069497059565e-06
     },
     "8HQgEcbhR5Xoh735zvndAocCLd7wdAYJfWHV55J8pump": {
      "mint": "8HQgEcbhR5Xoh735zvndAocCLd7wdAYJfWHV55J8pump",
@@ -57778,7 +57820,7 @@
      "tokens_gekauft_raw": 16872458937,
      "trader_bestand_raw": 3979866822194,
      "letzte_gebuehr": 0.0001,
-     "letzter_preis_sol": 0.00013163668235867211
+     "letzter_preis_sol": 0.00013132584605443366
     }
    },
    "geschlossen": [
@@ -59106,7 +59148,7 @@
       "syxXKT8mtKmW1ryLsgmx9Y8DA7pfJDPKnrxnXrLcMHHWQvxZwEygmv7VRa4zsKmSrntZjfSG5JoS4bbmdHVG9yg"
      ],
      "trader_bestand_raw": 10509412535900,
-     "letzter_preis_sol": 0.00011094285910492835
+     "letzter_preis_sol": 0.00011112638256975498
     }
    },
    "geschlossen": [],
@@ -59471,7 +59513,7 @@
      "tokens_gekauft_raw": 1767801476,
      "trader_bestand_raw": 9269758941544,
      "letzte_gebuehr": 0.0001,
-     "letzter_preis_sol": 0.0003258003077753637
+     "letzter_preis_sol": 0.0003300695228285148
     },
     "C1mBfBoDkwWfd6uTFZp62ARHLjeVp3bDpCDMfMZtPngE": {
      "mint": "C1mBfBoDkwWfd6uTFZp62ARHLjeVp3bDpCDMfMZtPngE",
@@ -59519,7 +59561,7 @@
      "tokens_gekauft_raw": 42108440290,
      "trader_bestand_raw": 15431715766724,
      "letzte_gebuehr": 1.5000000000000002e-05,
-     "letzter_preis_sol": 8.235750249008239e-05
+     "letzter_preis_sol": 8.494494599435806e-05
     },
     "XsoCS1TfEyfFhfvj8EtZ528L3CaKBDBRqRapnBbDF2W": {
      "mint": "XsoCS1TfEyfFhfvj8EtZ528L3CaKBDBRqRapnBbDF2W",
@@ -59545,7 +59587,7 @@
      "tokens_gekauft_raw": 3073637,
      "trader_bestand_raw": 497185,
      "letzte_gebuehr": 0.000105,
-     "letzter_preis_sol": 6.434202845047024,
+     "letzter_preis_sol": 6.432312920177717,
      "abgleich": true
     }
    },
@@ -63701,7 +63743,7 @@
      "gemerkt": 0,
      "tokens_gekauft_raw": 26798719802,
      "letzte_gebuehr": 0.00023000100000000002,
-     "letzter_preis_sol": 1.4824333949718972e-06
+     "letzter_preis_sol": 1.4813201364251124e-06
     },
     "5PiBn5JdjJDnRGziiSfsu2affgBR3DyTTCR3CHpcode": {
      "mint": "5PiBn5JdjJDnRGziiSfsu2affgBR3DyTTCR3CHpcode",
@@ -63772,7 +63814,7 @@
      "trader_erhalten_sol": 14.760209918000001,
      "trader_tokens_aufgezeichnet": 20110768.897766,
      "runde": 1,
-     "letzter_preis_sol": 1.6049733222807947e-06,
+     "letzter_preis_sol": 1.5827089242410686e-06,
      "sigs": [
       "5pcYLXJd2CZjzJqZbHDQ9AhDMp3uigbqRJZuYYKv8ZWeUV5nf7MZmaL17cbYekC2aZubuUPezQSwPCDcYunUhJJy",
       "QyQafkZxJ5vetzkWKiNTXiw6PyrRDfqMegfvapc3fS1sdMaSqxwwWN26kAYXJUiVm6R6JZtVZhJPTSo3uZB5SKx"
@@ -64190,7 +64232,7 @@
      "tokens_gekauft_raw": 13846771726,
      "trader_bestand_raw": 6052560197003,
      "letzte_gebuehr": 9e-06,
-     "letzter_preis_sol": 5.5592779733150665e-05
+     "letzter_preis_sol": 5.5095841285579246e-05
     },
     "H4KUxsEgCp2yDpFvyDuGM5k6XevSKKrrKUxZ3Zr6nyJc": {
      "mint": "H4KUxsEgCp2yDpFvyDuGM5k6XevSKKrrKUxZ3Zr6nyJc",
@@ -64224,7 +64266,7 @@
      "tokens_gekauft_raw": 174141506960,
      "trader_bestand_raw": 13577825227911,
      "letzte_gebuehr": 1.9e-05,
-     "letzter_preis_sol": 1.6468333575316592e-05
+     "letzter_preis_sol": 1.6007836649266005e-05
     },
     "J8PSdNP3QewKq2Z1JJJFDMaqF7KcaiJhR7gbr5KZpump": {
      "mint": "J8PSdNP3QewKq2Z1JJJFDMaqF7KcaiJhR7gbr5KZpump",
@@ -64250,7 +64292,7 @@
      "tokens_gekauft_raw": 3073057822,
      "trader_bestand_raw": 18870680403539,
      "letzte_gebuehr": 9.899000000000001e-06,
-     "letzter_preis_sol": 6.0346843066656574e-05
+     "letzter_preis_sol": 6.101511521252053e-05
     },
     "AXC2XcQiVx6UfCgLHjpRBU4nupF4WdsptydKQCvxsRuU": {
      "mint": "AXC2XcQiVx6UfCgLHjpRBU4nupF4WdsptydKQCvxsRuU",
@@ -64277,7 +64319,7 @@
      "tokens_gekauft_raw": 228535721736,
      "trader_bestand_raw": 24626679399937,
      "letzte_gebuehr": 0.001005,
-     "letzter_preis_sol": 2.900739578020105e-06
+     "letzter_preis_sol": 2.8967715887975207e-06
     },
     "8m5hzX9hprtWwPuVZL4daCZfggWYKc6fhSJDDpiqpump": {
      "mint": "8m5hzX9hprtWwPuVZL4daCZfggWYKc6fhSJDDpiqpump",
@@ -64434,7 +64476,7 @@
      "trader_erhalten_sol": 0.0,
      "trader_tokens_aufgezeichnet": 23603581.189151,
      "runde": 1,
-     "letzter_preis_sol": 2.900739578020105e-06
+     "letzter_preis_sol": 2.8967715887975207e-06
     }
    },
    "schatten_geschlossen": [
@@ -64552,7 +64594,7 @@
      "tokens_gekauft_raw": 23965809,
      "trader_bestand_raw": 17076884313,
      "letzte_gebuehr": 2.0641e-05,
-     "letzter_preis_sol": 0.00834705871294796
+     "letzter_preis_sol": 0.00834703281463734
     }
    },
    "geschlossen": [
@@ -65818,5 +65860,5 @@
    "abgedeckt_bis": 1791051420.5737824
   }
  },
- "saved_at": 1791068156.0731452
+ "saved_at": 1791068216.5022366
 }
