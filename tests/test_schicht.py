@@ -3,6 +3,7 @@ Prueft vor allem: kein Absturz, Daten gespeichert, jeder Bot sichert nur seine e
 import csv
 import json
 import os
+import signal
 import time
 
 import pytest
@@ -175,3 +176,105 @@ def test_scout_lauf(monkeypatch, sandbox):
     assert any("Wallet-Scout" in t for t, _ in sandbox["discord"])
     adds = git_adds(sandbox["git"])
     assert adds and all(a == (scout.SCOUT_DIR,) for a in adds)          # nur scout/
+
+
+# ================================================================ Copy-Bot: Abbruch (Fehler C, Pruefbericht 03.10.)
+# Am 02.10. wurde eine Schicht von Hand abgebrochen: Das Signal wurde von "except Exception" verschluckt, am Ende
+# nicht gespeichert, die Zrool-Position ging verloren und eine 922M-Position wurde doppelt geschlossen.
+
+def copy_shift_setup(clock, market, monkeypatch, script):
+    open(cb.WALLET_FILE, "w", encoding="utf-8").write(f"Alpha: {WALLET}\n")
+    market.set(MINT, price=PRICE_USD)
+    txs = {"live1": buy_tx(sig="live1", block_time=int(clock.now)),
+           "live2": sell_tx(sig="live2", tokens=1_000_000, pre=1_000_000, sol=0.6, block_time=int(clock.now) + 5)}
+
+    def rpc(method, params):
+        if method == "getTransaction":
+            return txs.get(params[0])
+        if method == "getSignaturesForAddress":
+            return []
+        return None
+    monkeypatch.setattr(core, "rpc", rpc)
+    confirm = json.dumps({"jsonrpc": "2.0", "id": 1, "result": 101})
+    ws = FakeWS(clock, [confirm] + script)
+    monkeypatch.setattr(cb.websocket, "create_connection", lambda url, timeout=None: ws)
+    monkeypatch.setattr(cb, "SHIFT_SECONDS", 30)
+    return ws
+
+
+def sigterm():
+    cb._on_signal(signal.SIGTERM, None)
+
+
+def saved_account():
+    return json.load(open(cb.ACCOUNTS_FILE, encoding="utf-8"))["wallets"]["Alpha"]
+
+
+def test_abbruch_wird_nicht_verschluckt_und_gespeichert(clock, market, monkeypatch, sandbox):
+    assert not issubclass(cb.Interrupted, Exception)
+    ws = copy_shift_setup(clock, market, monkeypatch, [
+        notification("live1"), sigterm, notification("live2", logs=("Program log: Instruction: Sell",))])
+    cb.run()                                                     # endet ohne Ausnahme (Sicherung + Kettenstart)
+    assert ws.script == [notification("live2", logs=("Program log: Instruction: Sell",))]   # sofort aufgehoert
+    acct = saved_account()
+    assert MINT in acct["positionen"] and acct["abgedeckt_bis"] > 0       # Kauf gespeichert
+    rows = list(csv.DictReader(open(cb.JOURNAL_FILE, encoding="utf-8")))
+    assert [r["aktion"] for r in rows] == ["KAUF"]
+    assert cb.STATS["errors"] == 0
+    titles = [t for t, _ in sandbox["discord"]]
+    assert any("Copy-Schicht beendet" in t for t in titles)
+
+
+def test_abbruch_mitten_im_kauf_bucht_ihn_vollstaendig(clock, market, monkeypatch, sandbox):
+    copy_shift_setup(clock, market, monkeypatch, [notification("live1"), notification("live2")])
+
+    def quote_with_signal(*a):
+        sigterm()                                                # Signal kommt waehrend der Jupiter-Abfrage
+        return market.quote(*a)
+    monkeypatch.setattr(cb, "quote_out", quote_with_signal)
+    cb.run()
+    acct = saved_account()
+    pos = acct["positionen"][MINT]
+    assert pos["kaeufe"] == 1 and acct["bankroll_sol"] < 10       # Kauf ganz gebucht ...
+    rows = list(csv.DictReader(open(cb.JOURNAL_FILE, encoding="utf-8")))
+    assert [r["aktion"] for r in rows] == ["KAUF"]               # ... und Journal passt zum Konto
+    assert pos["tokens_raw"] > 0
+    assert "uebersprungen (Abbruch)" in rows[0]["pruefungen"]    # lange Pruefungen nicht mehr abgewartet
+
+
+def test_zweites_signal_stoert_das_speichern_nicht(clock, market, monkeypatch, sandbox):
+    copy_shift_setup(clock, market, monkeypatch, [notification("live1"), sigterm])
+    original = cb.save_accounts
+    calls = []
+
+    def save_with_signal(data):
+        calls.append(1)
+        if len(calls) == 2:                                      # erster Aufruf: Start, zweiter: Ende
+            cb._on_signal(signal.SIGINT, None)                   # GitHub schickt noch ein Signal
+        original(data)
+    monkeypatch.setattr(cb, "save_accounts", save_with_signal)
+    cb.run()
+    assert len(calls) == 2 and MINT in saved_account()["positionen"]
+
+
+def test_fehler_in_bereinigung_und_endmeldung_verhindern_speichern_nicht(clock, market, monkeypatch, sandbox):
+    copy_shift_setup(clock, market, monkeypatch, [notification("live1")])
+
+    def boom(*a, **kw):
+        raise RuntimeError("kaputt")
+    monkeypatch.setattr(cb, "cleanup", boom)
+    monkeypatch.setattr(cb, "summary", boom)
+    cb.run()                                                     # kein Absturz: Kettenstart bleibt erhalten
+    assert MINT in saved_account()["positionen"]
+    assert "Bereinigung" in cb.STATS["last_error"]
+
+
+def test_signal_ausserhalb_einer_buchung_bricht_sofort_ab():
+    with pytest.raises(cb.Interrupted):
+        sigterm()
+    cb._stopping[0] = False
+    with pytest.raises(cb.Interrupted):
+        with cb.booking():
+            sigterm()                                            # wird aufgeschoben ...
+            assert cb._stop[0] == "SIGTERM"                      # ... bis die Buchung fertig ist
+    assert cb._critical[0] == 0 and cb._stop[0] is None

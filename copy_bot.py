@@ -16,6 +16,7 @@ import json
 import os
 import re
 import signal
+from contextlib import contextmanager
 import time
 from collections import deque
 from datetime import datetime, timezone
@@ -95,12 +96,38 @@ _rate = {}                              # Wallet -> Zeitpunkte der letzten Meldu
 _gap = {}                               # Wallet -> Beginn einer Luecke, die noch nachgeholt werden muss
 
 
-class Interrupted(Exception):
-    pass
+class Interrupted(BaseException):
+    """Abbruch-Signal. Erbt bewusst nicht von Exception: Die Sicherheitsnetze (except Exception) duerfen es
+    nicht verschlucken, sonst laeuft der Bot weiter und speichert am Ende nicht (Fehler C, Zrool 02.10.)."""
+
+
+_critical = [0]                          # > 0: gerade wird gebucht, Abbruch erst danach
+_stop = [None]                           # aufgeschobenes Abbruch-Signal
+_stopping = [False]                      # Abbruch laeuft oder Schicht endet: weitere Signale ignorieren
 
 
 def _on_signal(signum, frame):
-    raise Interrupted()
+    if _stopping[0]:
+        return                           # GitHub schickt SIGINT und danach SIGTERM: Speichern nicht stoeren
+    _stopping[0] = True
+    name = signal.Signals(signum).name
+    if _critical[0]:
+        _stop[0] = name                  # Buchung erst vollstaendig abschliessen
+        return
+    raise Interrupted(name)
+
+
+@contextmanager
+def booking():
+    """Kauf oder Verkauf wird ganz oder gar nicht gebucht: ein Abbruch-Signal wartet bis zum Ende."""
+    _critical[0] += 1
+    try:
+        yield
+    finally:
+        _critical[0] -= 1
+        if _critical[0] == 0 and _stop[0]:
+            name, _stop[0] = _stop[0], None
+            raise Interrupted(name)
 
 
 # ================================================================ Wallets und Konten
@@ -458,7 +485,9 @@ def copy_buy(name, acct, t, sig, now):
     pos["letzte_gebuehr"] = fee
     acct["bankroll_sol"] -= BUY_SOL + fee
     count("trades", "KAUF")
-    checks, v = run_checks(t["mint"], now)
+    # Pruefungen sind nur Beobachtung und koennen viele Sekunden dauern: bei Abbruch ueberspringen,
+    # damit die Buchung vor dem harten Ende (GitHub: ~10 s nach dem Signal) fertig und gespeichert ist
+    checks, v = ({"fehler": "uebersprungen (Abbruch)"}, None) if _stopping[0] else run_checks(t["mint"], now)
     if v:
         pos["symbol"] = v["symbol"]
     journal({"zeit": now_str(), "trader": name, "wallet": acct["adresse"], "aktion": "KAUF", "symbol": pos["symbol"],
@@ -764,7 +793,8 @@ def reconcile(data, now, sol_usd=None):
             if pos is None:
                 continue
             if pos.get("verkauf_offen"):
-                retry_sell(name, acct, pos, now)          # nach Jupiter-Ausfall vorgemerkten Verkauf nachholen
+                with booking():
+                    retry_sell(name, acct, pos, now)      # nach Jupiter-Ausfall vorgemerkten Verkauf nachholen
                 pos = acct["positionen"].get(mint)
                 if pos is None:
                     continue
@@ -797,31 +827,32 @@ def reconcile(data, now, sol_usd=None):
             out = quote_out(mint, core.WSOL_MINT, sell_raw) if sell_raw > 0 else 0
             if out is None:
                 continue                                     # Jupiter-Ausfall: beim naechsten Abgleich erneut
-            proceeds, fee = out / 1e9, (pos.get("letzte_gebuehr", DEFAULT_FEE_SOL) if out > 0 else 0)
-            pos["tokens_raw"] -= sell_raw
-            pos["proceeds_sol"] += proceeds
-            pos["fees_sol"] += fee
-            pos["verkaeufe"] += 1
-            pos["abgleich"] = True
-            pos["trader_bestand_raw"] = now_raw
-            pos["behalten"], pos["gemerkt"] = 1.0, 0
-            acct["bankroll_sol"] += proceeds - fee
-            rec = close_if_empty(name, acct, pos, "ABGLEICH", now)
-            STATS["abgleich"] += 1
-            count("trades", "ABGLEICH")
-            journal({"zeit": now_str(), "trader": name, "wallet": acct["adresse"], "aktion": "ABGLEICH",
-                     "symbol": pos["symbol"], "mint": mint, "runde": pos["runde"], "unser_sol": f"{proceeds:.6f}",
-                     "unsere_gebuehr_sol": f"{fee:.6f}", "trader_anteil": f"{fraction:.4f}",
-                     "pnl_sol": f"{rec['pnl_sol']:+.6f}" if rec else "", "pnl_pct": f"{rec['pnl_pct']:+.2f}" if rec else "",
-                     "hinweis": ("Trader haelt nichts mehr" if now_raw == 0 else
-                                 f"Trader haelt nur noch {now_raw / last_raw:.0%} seines letzten Bestands")
-                                + "; Verkaufssignal verpasst, Verkauf zum aktuellen Kurs"})
-            notify(f"🔄 {name}: Abgleich {pos['symbol']}", [
-                f"Der Trader hat verkauft, ohne dass wir das Signal gesehen haben "
-                f"({'komplett raus' if now_raw == 0 else f'{fraction:.0%} seines Bestands'}).",
-                f"**Wir:** {proceeds:.4f} SOL" + (f" | **Ergebnis:** {rec['pnl_sol']:+.4f} SOL ({rec['pnl_pct']:+.1f}%)"
-                                                   if rec else f" ({fraction:.0%} der Position)"),
-                account_line(acct)], 0x8B5CF6)
+            with booking():
+                proceeds, fee = out / 1e9, (pos.get("letzte_gebuehr", DEFAULT_FEE_SOL) if out > 0 else 0)
+                pos["tokens_raw"] -= sell_raw
+                pos["proceeds_sol"] += proceeds
+                pos["fees_sol"] += fee
+                pos["verkaeufe"] += 1
+                pos["abgleich"] = True
+                pos["trader_bestand_raw"] = now_raw
+                pos["behalten"], pos["gemerkt"] = 1.0, 0
+                acct["bankroll_sol"] += proceeds - fee
+                rec = close_if_empty(name, acct, pos, "ABGLEICH", now)
+                STATS["abgleich"] += 1
+                count("trades", "ABGLEICH")
+                journal({"zeit": now_str(), "trader": name, "wallet": acct["adresse"], "aktion": "ABGLEICH",
+                         "symbol": pos["symbol"], "mint": mint, "runde": pos["runde"], "unser_sol": f"{proceeds:.6f}",
+                         "unsere_gebuehr_sol": f"{fee:.6f}", "trader_anteil": f"{fraction:.4f}",
+                         "pnl_sol": f"{rec['pnl_sol']:+.6f}" if rec else "", "pnl_pct": f"{rec['pnl_pct']:+.2f}" if rec else "",
+                         "hinweis": ("Trader haelt nichts mehr" if now_raw == 0 else
+                                     f"Trader haelt nur noch {now_raw / last_raw:.0%} seines letzten Bestands")
+                                    + "; Verkaufssignal verpasst, Verkauf zum aktuellen Kurs"})
+                notify(f"🔄 {name}: Abgleich {pos['symbol']}", [
+                    f"Der Trader hat verkauft, ohne dass wir das Signal gesehen haben "
+                    f"({'komplett raus' if now_raw == 0 else f'{fraction:.0%} seines Bestands'}).",
+                    f"**Wir:** {proceeds:.4f} SOL" + (f" | **Ergebnis:** {rec['pnl_sol']:+.4f} SOL ({rec['pnl_pct']:+.1f}%)"
+                                                       if rec else f" ({fraction:.0%} der Position)"),
+                    account_line(acct)], 0x8B5CF6)
             done += 1
     return done
 
@@ -924,11 +955,13 @@ def handle_signature(name, acct, sig, sol_usd, nachgeholt=False):
                          "mint": t["mint"], "runde": acct["runde"],
                          "hinweis": "Kauf des Traders verpasst (Luecke), nur dokumentiert", **trader_fields(t, sig)})
             return
-        copy_buy(name, acct, t, sig, now)
+        with booking():
+            copy_buy(name, acct, t, sig, now)
     else:
         if nachgeholt:
             STATS["nachgeholt"] += 1
-        copy_sell(name, acct, t, sig, now, t["kind"], nachgeholt=nachgeholt)
+        with booking():
+            copy_sell(name, acct, t, sig, now, t["kind"], nachgeholt=nachgeholt)
 
 
 # ================================================================ Bereinigung am Schichtende
@@ -1165,10 +1198,18 @@ def run(probe=False):
                 git_push()
                 last_push = now
         normal_end = True
-    except Interrupted:
-        print("[COPY] Abbruch-Signal erhalten")
+    except Interrupted as sig:
+        print(f"[COPY] Abbruch-Signal erhalten ({sig}), speichere")
     finally:
-        cleaned = cleanup(data) if normal_end else 0
+        _stopping[0] = True                      # ab hier nur noch speichern: weitere Signale ignorieren
+        cleaned = 0
+        if normal_end:
+            try:
+                cleaned = cleanup(data)
+            except Exception as err:             # Bereinigung darf das Speichern nie verhindern
+                STATS["errors"] += 1
+                STATS["last_error"] = f"Bereinigung: {str(err)[:150]}"
+                print(f"[COPY] Bereinigung fehlgeschlagen: {str(err)[:150]}")
         end_ts = time.time()
         for name in active:                      # bis hierher lueckenlos zugehoert (ausser offene Luecken, Abmeldungen)
             if name not in STATS["muted"]:
@@ -1180,7 +1221,10 @@ def run(probe=False):
                 ws.close()
         except Exception:
             pass
-        summary(data, time.time() - started, cleaned, normal_end, active)
+        try:
+            summary(data, time.time() - started, cleaned, normal_end, active)
+        except Exception as err:                 # Endmeldung darf den Kettenstart nie verhindern
+            print(f"[COPY] Endmeldung fehlgeschlagen: {str(err)[:150]}")
 
 
 def process_message(msg, subs, data, sol_usd, ws=None):
