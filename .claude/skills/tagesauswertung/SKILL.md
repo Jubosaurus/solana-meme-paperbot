@@ -34,6 +34,12 @@ Tabelle für den Zeitraum **und** seit Start: Konto | Trades | Gewinner | Summe 
 - Experimente mit mindestens 200 Trades ausdrücklich bewerten (gegen Kontrollgruppe, ohne die 3 besten Trades) und Beenden oder Weiterführen vorschlagen.
 - Regel-Beobachtung: Wie liefen die als `FOMO_SPRUNG` (Tag 17) abgelehnten Coins in `knapp_abgelehnt.csv`? Hätten wir mit ihnen gewonnen oder verloren?
 
+**Messung der Ausführungskosten (seit 03.10., nur Beobachtung):** `messung.csv` (Hauptbot und Experimente, Spalte `konto`) und `copy/messung.csv` (Copy, je Trader), Spalte `abweichung_pct` (+ = 2 s später schlechter), getrennt nach KAUF/VERKAUF. Die 0,95-Notlösung steht in der Journal-Spalte `notloesung` (Hauptbot und Experimente). Je Bot und getrennt nach Kauf und Verkauf zeigen:
+- Median und den Wert, den jeder zehnte Trade überschreitet
+- wie oft die 0,95-Notlösung gegriffen hat
+
+Daraus grob schätzen, wie viel Verzögerung die Ergebnisse real kosten würde (Abweichung × 0,2 SOL × Anzahl Trades). Das ist eine Schätzung: Sandwich-Angriffe und gescheiterte Transaktionen sind darin nicht enthalten.
+
 ## 4. Copy Trading
 
 - Pro aktiver Wallet: Kontowert (frei + aktueller Wert der offenen Positionen, Kurse aus `copy/verlauf/`), Runde, geschlossene Positionen im Zeitraum, wir gegen Trader (Median je Position, nur gültige Trader-Vergleiche).

@@ -1,6 +1,7 @@
 """Copy-Bot: Kauf, Verkauf, Sammeln, Runde, Schatten, Nachholen, Abgleich, Flutschutz, Bereinigung, Wallet-Pruefung."""
 import csv
 import json
+import os
 import time
 
 import pytest
@@ -547,3 +548,52 @@ def test_kaputte_trader_zeit_im_journal_verhindert_start_nicht(env):
     cb.journal({"zeit": "x", "trader": "Alpha", "aktion": "KAUF", "trader_zeit": "kaputt", "trader_signatur": "z"})
     data = cb.load_accounts([("Alpha", WALLET)])
     assert "Alpha" in data["wallets"] and ("Alpha", "z") in cb._done
+
+
+# ================================================================ Messung Quote 2 s spaeter (03.10., nur Aufzeichnung)
+
+def messung_rows():
+    return list(csv.DictReader(open(cb.MESSUNG_FILE, encoding="utf-8")))
+
+
+def test_messung_nach_kauf_ohne_warten(env, monkeypatch):
+    monkeypatch.setattr(cb, "_jup_last", [0.0])
+    buy(env, sig="b1")
+    assert len(cb._rechecks) == 1
+    now = time.time()
+    cb.run_rechecks(now)                                          # noch nicht faellig
+    assert len(cb._rechecks) == 1
+    env.market.price[MINT] = PRICE_USD * 1.25                     # Kurs steigt: 2 s spaeter 20 % weniger Token
+    cb.run_rechecks(now + 2.5)
+    row = messung_rows()[0]
+    assert row["aktion"] == "KAUF" and row["trader_signatur"] == "b1" and row["abweichung_pct"] == "+20.00"
+    assert row["mint"] == MINT and cb.STATS["messung"] == [pytest.approx(20.0)]
+
+
+def test_messung_nach_verkauf(env, monkeypatch):
+    monkeypatch.setattr(cb, "_jup_last", [0.0])
+    buy(env)
+    cb._rechecks.clear()
+    sell(env, "s1", tokens=1_000_000, pre=1_000_000)
+    env.market.price[MINT] = PRICE_USD * 0.9
+    cb.run_rechecks(time.time() + 2.5)
+    row = messung_rows()[0]
+    assert row["aktion"] == "VERKAUF" and row["abweichung_pct"] == "+10.00" and row["mint"] == MINT
+
+
+def test_messung_wartet_auf_freien_jupiter_takt_und_verwirft_zu_spaete(env, monkeypatch):
+    buy(env)
+    now = time.time() + 2.5
+    monkeypatch.setattr(cb, "_jup_last", [now])                   # Jupiter gerade erst abgefragt
+    cb.run_rechecks(now)
+    assert len(cb._rechecks) == 1 and not os.path.exists(cb.MESSUNG_FILE)
+    cb.run_rechecks(now + 20)                                     # viel zu spaet: keine 2-s-Messung mehr
+    assert len(cb._rechecks) == 0 and cb.STATS["messung_verworfen"] == 1
+
+
+def test_messung_bei_ausfall_verworfen(env, monkeypatch):
+    monkeypatch.setattr(cb, "_jup_last", [0.0])
+    buy(env)
+    env.market.ausfall.add(MINT)
+    cb.run_rechecks(time.time() + 2.5)
+    assert cb.STATS["messung_verworfen"] == 1 and not os.path.exists(cb.MESSUNG_FILE)

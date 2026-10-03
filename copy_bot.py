@@ -41,6 +41,13 @@ MAX_PRICE_GAP_PCT = 15.0                # Kauf blockiert, wenn unser Kurs mehr a
 SELL_BATCH_MIN = 0.20                   # Teilverkaeufe sammeln, bis mindestens 20 % der Position verkauft werden
 PATH_EVERY = 60                         # Kursverlauf offener Positionen und Schattenpositionen etwa jede Minute
 COPY_VERLAUF_DIR = os.path.join("copy", "verlauf")
+# Messung seit 03.10. (nur Aufzeichnung): dieselbe Quote 2 s spaeter noch einmal. Laeuft nebenher, nur wenn der
+# Jupiter-Takt ohnehin frei ist, damit kein Trader-Signal warten muss. Zu spaete Messungen werden verworfen.
+MESSUNG_FILE = os.path.join(COPY_DIR, "messung.csv")
+MESSUNG_HEADER = ["zeit", "trader", "aktion", "mint", "trader_signatur", "quote_sofort", "quote_spaeter",
+                  "sekunden", "abweichung_pct"]
+QUOTE_RECHECK_SECONDS = 2.0
+QUOTE_RECHECK_MAX_S = 10.0
 WALLET_SILENT_H = 72                    # Wallet-Pruefung: so lange ohne eigenen Trade -> ersetzen
 BOT_MIN_MSGS = 200                      # Wallet-Pruefung: ab so vielen Meldungen pro Schicht ...
 BOT_FAILED_SHARE = 0.9                  # ... und so viel Anteil fehlgeschlagen ohne eigenen Trade -> Bot-Verdacht
@@ -83,8 +90,9 @@ JOURNAL_HEADER = [
 STATS = {"notifications": 0, "bytes": 0, "failed": 0, "no_hint": 0, "fetched": 0, "muted": [], "muted_info": {}, "abgleich": 0, "nachgeholt": 0, "verpasst_kauf": 0,
          "trades": {}, "skipped": {}, "reconnects": 0, "parse_errors": 0, "wallet": {}, "pfade": 0,
          "delays": [], "git_ok": 0, "git_fail": 0, "jup_429": 0, "errors": 0, "last_error": "",
-         "quote_ausfall": 0, "verkauf_verschoben": 0}
+         "quote_ausfall": 0, "verkauf_verschoben": 0, "messung": [], "messung_verworfen": 0}
 _jup_last = [0.0]
+_rechecks = deque(maxlen=200)           # (faellig, erste Quote um, Trader, Aktion, von, nach, Menge, erste, Signatur)
 _jup_error = [None]                      # Fehlercode der letzten Jupiter-Abfrage (None = keiner bekannt)
 # Nur diese Antworten bedeuten "Coin ist wirklich nicht (mehr) handelbar"; alles andere gilt als Ausfall.
 NO_ROUTE_CODES = {"TOKEN_NOT_TRADABLE", "COULD_NOT_FIND_ANY_ROUTE", "NO_ROUTES_FOUND"}
@@ -226,6 +234,37 @@ def jup(path):
         except ValueError:
             return None
     return None
+
+
+def schedule_recheck(name, aktion, input_mint, output_mint, raw, first_out, first_at, sig):
+    if first_out and first_out > 0 and raw > 0:
+        _rechecks.append((first_at + QUOTE_RECHECK_SECONDS, first_at, name, aktion, input_mint, output_mint,
+                          int(raw), int(first_out), sig))
+
+
+def run_rechecks(now):
+    """Hoechstens eine faellige Messung je Durchlauf, und nur, wenn Jupiter sofort abgefragt werden kann.
+    + = 2 s spaeter haetten wir weniger bekommen (Token beim Kauf, SOL beim Verkauf)."""
+    while _rechecks and now - _rechecks[0][0] > QUOTE_RECHECK_MAX_S:
+        _rechecks.popleft()
+        STATS["messung_verworfen"] += 1
+    if not _rechecks or _rechecks[0][0] > now or now - _jup_last[0] < JUP_INTERVAL:
+        return
+    due, first_at, name, aktion, in_m, out_m, raw, first, sig = _rechecks.popleft()
+    later = quote_out(in_m, out_m, raw)
+    if not later:
+        STATS["messung_verworfen"] += 1
+        return
+    drift = (1 - later / first) * 100
+    STATS["messung"].append(drift)
+    os.makedirs(COPY_DIR, exist_ok=True)
+    new = not os.path.exists(MESSUNG_FILE)
+    with open(MESSUNG_FILE, "a", newline="", encoding="utf-8") as f:
+        w = csv.writer(f)
+        if new:
+            w.writerow(MESSUNG_HEADER)
+        w.writerow([now_str(), name, aktion, in_m if aktion != "KAUF" else out_m, sig, first, later,
+                    f"{time.time() - first_at:.1f}", f"{drift:+.2f}"])
 
 
 def quote_out(input_mint, output_mint, raw_amount):
@@ -485,6 +524,7 @@ def copy_buy(name, acct, t, sig, now):
     pos["letzte_gebuehr"] = fee
     acct["bankroll_sol"] -= BUY_SOL + fee
     count("trades", "KAUF")
+    schedule_recheck(name, "KAUF", core.WSOL_MINT, t["mint"], int(BUY_SOL * 1e9), raw, our_time, sig)
     # Pruefungen sind nur Beobachtung und koennen viele Sekunden dauern: bei Abbruch ueberspringen,
     # damit die Buchung vor dem harten Ende (GitHub: ~10 s nach dem Signal) fertig und gespeichert ist
     checks, v = ({"fehler": "uebersprungen (Abbruch)"}, None) if _stopping[0] else run_checks(t["mint"], now)
@@ -618,6 +658,7 @@ def copy_sell(name, acct, t, sig, now, reason="VERKAUF", nachgeholt=False):
     pos["behalten"], pos["gemerkt"] = 1.0, 0
     acct["bankroll_sol"] += proceeds - fee
     count("trades", reason)
+    schedule_recheck(name, reason, t["mint"], core.WSOL_MINT, sell_raw, out, our_time, sig)
     tokens = sell_raw / 10 ** pos["decimals"]
     our_price = proceeds / tokens if tokens else None
     gap = (our_price / t["price_sol"] - 1) * 100 if our_price and t.get("price_sol") else None
@@ -1177,6 +1218,11 @@ def run(probe=False):
                 except Exception:
                     ws = None
                 last_ping = now
+            try:
+                run_rechecks(now)
+            except Exception as err:             # Messung darf den Copy-Bot nie stoppen
+                STATS["errors"] += 1
+                print(f"[COPY] Messung: {str(err)[:120]}")
             if now - last_sol > 300:
                 sol_usd, last_sol = core.sol_price() or sol_usd, now
             if now - last_reconcile > RECONCILE_EVERY:
@@ -1310,6 +1356,11 @@ def summary(data, dur, cleaned, normal_end, active=None):
         lines.append(f"**Jupiter-Ausfall:** {STATS['quote_ausfall']} Quotes ohne Antwort, "
                      f"{STATS['verkauf_verschoben']} Verkaeufe vorgemerkt statt mit Wert 0 gebucht, "
                      f"{pending} Position(en) warten noch auf den Verkauf")
+    if STATS["messung"] or STATS["messung_verworfen"]:
+        m = sorted(STATS["messung"])
+        lines.append("**Messung Quote 2 s spaeter:** " + (
+            f"Median {m[len(m) // 2]:+.2f}% schlechter, jeder zehnte ueber {m[int(len(m) * 0.9)]:+.2f}% "
+            f"({len(m)} Trades)" if m else "keine") + f", {STATS['messung_verworfen']} verworfen")
     per_day = credits_used() / max(dur, 1) * 86400
     lines.append(f"**Helius:** {STATS['bytes'] / 1e6:.1f} MB empfangen, {STATS['fetched']} Transaktionen abgefragt, "
                  f"~{credits_used():,.0f} Credits (hochgerechnet ~{per_day * 30:,.0f} im Monat) | "

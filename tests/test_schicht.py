@@ -125,7 +125,7 @@ def test_hauptbot_schicht(clock, market, monkeypatch, sandbox):
     titles = [t for t, _ in sandbox["discord"]]
     assert "🔴 Schicht beendet" in titles
     own = {core.PORTFOLIO_FILE, core.JOURNAL_FILE, core.REJECT_FILE, core.PHASE_FILE, core.VERLAUF_DIR,
-           core.NEAR_MISS_FILE, "verlauf.csv", core.EXP_DIR}
+           core.NEAR_MISS_FILE, "verlauf.csv", core.EXP_DIR, core.MESSUNG_FILE}
     adds = git_adds(sandbox["git"])
     assert len(adds) >= 2                                               # Zwischensicherung und Schichtende
     assert all(set(a) <= own for a in adds)

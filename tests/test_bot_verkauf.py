@@ -1,5 +1,6 @@
 """Hauptstrategie: Kauf und alle Verkaufsregeln (manage_positions)."""
 import csv
+import os
 import time
 
 import pytest
@@ -221,3 +222,79 @@ def test_ausfall_zaehlt_verschwunden_nicht_weiter(pos, market, monkeypatch):
     for _ in range(10):
         core.manage_positions(pos, market.sol_usd, time.time())
     assert MINT in pos["positions"] and pos["positions"][MINT]["missing_loops"] == 29
+
+
+# ================================================================ Messung (03.10., nur Aufzeichnung)
+
+def journal_rows_main():
+    return list(csv.DictReader(open(core.JOURNAL_FILE, encoding="utf-8")))
+
+
+def messung_rows_main():
+    return list(csv.DictReader(open(core.MESSUNG_FILE, encoding="utf-8")))
+
+
+def test_messung_quote_2s_in_der_pause_nicht_beim_handel(market, monkeypatch, clock):
+    market.set(MINT, price=START)
+    p = core.load_portfolio()
+    v = core.token_view(market.tokens[MINT], time.time())
+    t0 = clock.now
+    assert core.open_position(p, v, {"quelle": "block0", "block0_wallets": 0, "block0_supply_pct": 0.0,
+                                     "block0_still_held_pct": 0.0}, market.sol_usd)
+    assert clock.now == t0                                       # der Kauf wartet nicht auf die Messung
+    assert len(core._rechecks) == 1 and not os.path.exists(core.MESSUNG_FILE)
+    market.price[MINT] = START * 1.25                            # Kurs steigt in den 2 s: 20 % weniger Token
+    core.sleep_with_rechecks(12)
+    assert clock.now == pytest.approx(t0 + 12)                   # Pause wird nicht laenger
+    row = messung_rows_main()[0]
+    assert row["konto"] == "hauptstrategie" and row["aktion"] == "KAUF" and row["abweichung_pct"] == "+20.00"
+    assert float(row["sekunden"]) == pytest.approx(2.0)
+
+    pos = p["positions"][MINT]
+    t1 = clock.now
+    core.close_position(p, pos, START * 1.25, "TEST", market.sol_usd)
+    assert clock.now == t1                                       # Verkauf (z. B. Notbremse) wartet nicht
+    assert p["closed"][0]["proceeds_sol"] == pytest.approx(0.25 - core.TX_FEE_SOL, rel=1e-4)
+    market.price[MINT] = START                                   # 20 % billiger: 20 % weniger SOL
+    core.sleep_with_rechecks(12)
+    row = messung_rows_main()[-1]
+    assert row["aktion"] == "VERKAUF" and row["abweichung_pct"] == "+20.00"
+    assert len(core.STATS["quote_2s"]) == 2
+
+
+def test_messung_im_experiment_mit_kontoname(market, clock):
+    market.set(MINT, price=START)
+    with core.experiment("kontrollgruppe"):
+        p = core.load_portfolio()
+        core.open_position(p, core.token_view(market.tokens[MINT], time.time()),
+                           {"quelle": "experiment", "text": "Test"}, market.sol_usd)
+    core.sleep_with_rechecks(12)
+    assert messung_rows_main()[0]["konto"] == "kontrollgruppe"
+
+
+def test_messung_zu_spaet_oder_ohne_quote_verworfen(pos, market, monkeypatch, clock):
+    core._rechecks[0] = (clock.now - 20,) + core._rechecks[0][1:]   # Kauf-Messung laengst ueberfaellig
+    core.sleep_with_rechecks(12)
+    assert core.STATS["messung_verworfen"] == 1 and not os.path.exists(core.MESSUNG_FILE)
+    core.schedule_recheck("VERKAUF", "X", MINT, core.WSOL_MINT, 100, 50, clock.now)
+    monkeypatch.setattr(core, "quote", lambda *a: 0)
+    core.sleep_with_rechecks(12)
+    assert core.STATS["messung_verworfen"] == 2 and not os.path.exists(core.MESSUNG_FILE)
+
+
+def test_notloesung_wird_gezaehlt_und_vermerkt(pos, market, monkeypatch):
+    monkeypatch.setattr(core, "quote", lambda *a: 0)                       # keine Quote beim Verkauf
+    core.close_position(pos, pos["positions"][MINT], START, "TEST", market.sol_usd)
+    row = [r for r in journal_rows_main() if r["aktion"] == "VERKAUF"][0]
+    assert row["notloesung"] == "1"
+    assert core.STATS["notloesung"] == 1
+
+
+def test_alte_journale_bekommen_neue_spalten_hinten(market):
+    old = ["zeit", "aktion", "symbol", "mint", "preis_usd", "sol", "these", "verkaufsbedingung", "grund",
+           "pnl_sol", "pnl_pct"]
+    with open(core.JOURNAL_FILE, "w", newline="", encoding="utf-8") as f:
+        csv.writer(f).writerows([old, ["2026-10-01 00:00:00", "KAUF", "X", "m", "1", "0.2", "", "", "", "", ""]])
+    core.ensure_csv_columns(core.JOURNAL_FILE, core.JOURNAL_HEADER)
+    rows = list(csv.reader(open(core.JOURNAL_FILE, encoding="utf-8")))
+    assert rows[0] == core.JOURNAL_HEADER and rows[0][:11] == old and len(rows[1]) == len(core.JOURNAL_HEADER)

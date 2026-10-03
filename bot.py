@@ -14,6 +14,7 @@ import os
 import random
 import re
 import signal
+from collections import deque
 import subprocess
 import time
 from contextlib import contextmanager
@@ -61,6 +62,11 @@ NEAR_MISS_LOG_EVERY_LOOPS = 10          # Verlauf knapp Abgelehnter ca. alle 2 m
 START_BANKROLL_SOL = 10.0
 POSITION_SOL = 0.2                      # Tag 7: feste Groesse, nie aus Frust groesser
 TX_FEE_SOL = 0.0015                     # Netzwerk + Priority pro Transaktion
+QUOTE_RECHECK_SECONDS = 2.0             # Messung seit 03.10. (nur Aufzeichnung): Quote 2 s spaeter erneut,
+QUOTE_RECHECK_MAX_S = 10.0              # ausgefuehrt in der Pause zwischen zwei Durchlaeufen, nie waehrend des Handels
+MESSUNG_FILE = "messung.csv"
+MESSUNG_HEADER = ["zeit", "konto", "aktion", "symbol", "mint", "quote_sofort", "quote_spaeter", "sekunden",
+                  "abweichung_pct"]
 
 # ================================================================ Einstieg
 # Tag 5: frueh, solange sich die Story verbreitet
@@ -178,7 +184,7 @@ def fresh_stats():
             "rugcheck_ok": 0, "rugcheck_fail": 0, "helius_ok": 0, "helius_fail": 0,
             "git_ok": 0, "git_fail": 0, "discord_fail": 0, "block0_too_many": 0, "graduations": 0,
             "st_ok": 0, "st_fail": 0, "st_skipped": 0, "young_by_list": {}, "resets": 0,
-            "exp_errors": 0}
+            "exp_errors": 0, "quote_2s": [], "notloesung": 0, "messung_verworfen": 0}
 
 
 STATS = fresh_stats()
@@ -764,20 +770,77 @@ def save_portfolio(p):
     os.replace(tmp, path)
 
 
-def journal(action, pos, price_usd, sol, reason="", pnl_sol="", pnl_pct=""):
+# Spalte seit 03.10. hinten: notloesung (1 = Verkauf ohne Quote, Kurs x 0,95 angenommen)
+JOURNAL_HEADER = ["zeit", "aktion", "symbol", "mint", "preis_usd", "sol",
+                  "these", "verkaufsbedingung", "grund", "pnl_sol", "pnl_pct", "notloesung"]
+
+
+def journal(action, pos, price_usd, sol, reason="", pnl_sol="", pnl_pct="", notloesung=""):
     """Tag 3: Einstieg mit These und Verkaufsbedingung, jeder Verkauf mit Grund."""
     path = CTX["journal"]
     new = not os.path.exists(path)
     with open(path, "a", newline="", encoding="utf-8") as f:
         w = csv.writer(f)
         if new:
-            w.writerow(["zeit", "aktion", "symbol", "mint", "preis_usd", "sol",
-                        "these", "verkaufsbedingung", "grund", "pnl_sol", "pnl_pct"])
+            w.writerow(JOURNAL_HEADER)
         w.writerow([datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S"), action,
                     pos["symbol"], pos["mint"], f"{price_usd:.12g}", f"{sol:.4f}",
                     pos.get("thesis", ""), pos.get("exit_rule", ""), reason,
                     pnl_sol if pnl_sol == "" else f"{pnl_sol:+.4f}",
-                    pnl_pct if pnl_pct == "" else f"{pnl_pct:+.1f}"])
+                    pnl_pct if pnl_pct == "" else f"{pnl_pct:+.1f}", notloesung])
+
+
+_rechecks = deque(maxlen=200)       # (faellig, erste Quote um, Konto, Aktion, Symbol, von, nach, Menge, erste)
+
+
+def schedule_recheck(action, symbol, input_mint, output_mint, raw_amount, first_out, first_at):
+    """Messung vormerken, keine Regel: Was gaebe es 2 s spaeter? Ausgefuehrt in der Pause zwischen zwei
+    Durchlaeufen (sleep_with_rechecks), damit kein Kauf, Verkauf oder Notbremse darauf warten muss."""
+    if first_out and first_out > 0 and raw_amount > 0:
+        _rechecks.append((first_at + QUOTE_RECHECK_SECONDS, first_at, CTX["name"] or "hauptstrategie", action,
+                          symbol, input_mint, output_mint, int(raw_amount), int(first_out)))
+
+
+def run_recheck():
+    """Eine Messung ausfuehren. + = 2 s spaeter haetten wir weniger bekommen (Token beim Kauf, SOL beim Verkauf)."""
+    due, first_at, konto, action, symbol, in_m, out_m, raw, first = _rechecks.popleft()
+    if time.time() - due > QUOTE_RECHECK_MAX_S:
+        STATS["messung_verworfen"] += 1
+        return
+    later = quote(in_m, out_m, raw)                      # faengt Netzwerkfehler selbst ab (dann 0)
+    if not later or later <= 0:
+        STATS["messung_verworfen"] += 1
+        return
+    drift = (1 - later / first) * 100
+    STATS["quote_2s"].append(drift)
+    new = not os.path.exists(MESSUNG_FILE)
+    with open(MESSUNG_FILE, "a", newline="", encoding="utf-8") as f:
+        w = csv.writer(f)
+        if new:
+            w.writerow(MESSUNG_HEADER)
+        w.writerow([datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S"), konto, action, symbol,
+                    out_m if action == "KAUF" else in_m, first, later, f"{time.time() - first_at:.1f}",
+                    f"{drift:+.2f}"])
+
+
+def sleep_with_rechecks(seconds):
+    """Pause zwischen zwei Durchlaeufen; faellige Messungen laufen darin, die Pause wird nicht laenger."""
+    end = time.time() + seconds
+    while _rechecks and time.time() < end:
+        wait = _rechecks[0][0] - time.time()
+        if wait > 0:
+            time.sleep(max(0.0, min(wait, end - time.time())))   # nie negativ (ValueError)
+            continue
+        try:
+            run_recheck()
+        except Interrupted:
+            raise
+        except Exception as err:                         # Messung darf den Bot nie stoppen
+            STATS["messung_verworfen"] += 1
+            print(f"[MESSUNG] {str(err)[:100]}")
+    rest = end - time.time()
+    if rest > 0:
+        time.sleep(rest)
 
 
 ENTRY_FEATURES = ("age_h", "mcap", "liquidity", "holders", "holder_growth_1h", "holder_growth_5m",
@@ -1010,6 +1073,7 @@ def open_position(p, v, bundle, sol_usd, max_slippage_pct=None, extra_pos=None):
         return False
     lamports = int(POSITION_SOL * 1e9)
     raw_out = quote(WSOL_MINT, v["mint"], lamports)
+    quoted_at = time.time()
     if raw_out <= 0:
         log_reject(v, "KEIN_KAUFKURS")
         return False
@@ -1055,6 +1119,7 @@ def open_position(p, v, bundle, sol_usd, max_slippage_pct=None, extra_pos=None):
     p["positions"][v["mint"]] = pos
     p["cooldown"][v["mint"]] = time.time()
     journal("KAUF", pos, fill_usd, POSITION_SOL)
+    schedule_recheck("KAUF", v["symbol"], WSOL_MINT, v["mint"], lamports, raw_out, quoted_at)
     STATS["entries"].append({"symbol": v["symbol"], "roundtrip": roundtrip,
                              "mitlaeufer": bool(v.get("mitlaeufer"))})
     ml = v.get("mitlaeufer")
@@ -1085,17 +1150,23 @@ def sell(p, pos, fraction, price_usd, reason, sol_usd):
         return 0.0
     raw = int(tokens * (10 ** pos["decimals"]))
     lamports = quote(pos["mint"], WSOL_MINT, raw) if price_usd > 0 else 0
+    quoted_at = time.time()
+    notloesung = ""
     if lamports > 0:
         proceeds = lamports / 1e9
     else:
         proceeds = max(0.0, tokens * price_usd / sol_usd * 0.95) if price_usd > 0 else 0.0
+        if price_usd > 0:
+            notloesung = "1"                 # keine Quote: Kurs x 0,95 angenommen (wird gezaehlt)
+            STATS["notloesung"] += 1
     proceeds = max(0.0, proceeds - TX_FEE_SOL)
     pos["tokens_left"] -= tokens
     pos["proceeds_sol"] += proceeds
     pos["fees_sol"] += TX_FEE_SOL
     p["bankroll_sol"] = round(p["bankroll_sol"] + proceeds, 6)
     journal("TEILVERKAUF" if pos["tokens_left"] > 1e-12 else "VERKAUF", pos, price_usd,
-            proceeds, reason)
+            proceeds, reason, notloesung=notloesung)
+    schedule_recheck("VERKAUF", pos["symbol"], pos["mint"], WSOL_MINT, raw, lamports, quoted_at)
     return proceeds
 
 
@@ -1640,7 +1711,7 @@ def git_push():
     wird zeilenweise gemischt (das zerstoert JSON). Andere Dateien auf main, etwa eine
     zwischendurch hochgeladene bot.py, bleiben unangetastet."""
     files = [f for f in (PORTFOLIO_FILE, JOURNAL_FILE, REJECT_FILE, PHASE_FILE, VERLAUF_DIR,
-                         NEAR_MISS_FILE, "verlauf.csv", EXP_DIR) if os.path.exists(f)]
+                         NEAR_MISS_FILE, "verlauf.csv", EXP_DIR, MESSUNG_FILE) if os.path.exists(f)]
     if not files:
         return
     _git("config", "user.name", "github-actions[bot]")
@@ -1693,6 +1764,14 @@ def shift_summary(p, start_value, started, reason):
     ]
     if rts:
         lines.append(f"**Hin+zurueck (Ø):** {sum(rts) / len(rts):.2f}%")
+    drifts = STATS["quote_2s"] + [d for st in EXP_STATS.values() for d in st.get("quote_2s", [])]
+    notl = STATS["notloesung"] + sum(st.get("notloesung", 0) for st in EXP_STATS.values())
+    if drifts or notl:
+        med = sorted(drifts)[len(drifts) // 2] if drifts else None
+        lines.append("**Messung (inkl. Experimente):** " + (
+            f"Quote 2 s spaeter im Median {med:+.2f}% schlechter ({len(drifts)} Trades)" if drifts else
+            "keine Quote-Messung") + f", {STATS['messung_verworfen']} verworfen"
+            + f" | 0,95-Notloesung beim Verkauf: {notl}x")
     ml = sum(1 for e in STATS["entries"] if e.get("mitlaeufer"))
     if ml:
         lines.append(f"**Kaeufe mit Mitlaeufer-Verdacht:** {ml} von {len(STATS['entries'])}")
@@ -1750,6 +1829,8 @@ def run():
     synced = git_sync_start()
     ensure_csv_columns(REJECT_FILE, REJECT_HEADER)
     ensure_csv_columns(NEAR_MISS_FILE, NEAR_MISS_HEADER)
+    for path in [JOURNAL_FILE] + [os.path.join(EXP_DIR, n, "journal.csv") for n in EXPERIMENTS]:
+        ensure_csv_columns(path, JOURNAL_HEADER)
     p = load_portfolio()
     sol_usd = sol_price()
     age_min = (time.time() - p["saved_at"]) / 60 if p.get("saved_at") else None
@@ -1793,7 +1874,7 @@ def run():
                 STATS["loop_errors"] += 1
                 STATS["last_error"] = str(err)
                 print(f"[LOOP ERROR] {err}")
-            time.sleep(LOOP_SLEEP_SECONDS)
+            sleep_with_rechecks(LOOP_SLEEP_SECONDS)
     except Interrupted as sig:
         reason = f"abgebrochen ({sig})"
     except Exception as err:
