@@ -1,8 +1,81 @@
 {
   "strategy": "EXPERIMENT_ohne_limit",
   "started": "2026-09-29T08:33:20.747730+00:00",
-  "bankroll_sol": 8.277592,
-  "positions": {},
+  "bankroll_sol": 8.076092,
+  "positions": {
+    "CwBWEd3WMaS22uBdecbJt2L2WyWbnnjmxYXksvuBpump": {
+      "mint": "CwBWEd3WMaS22uBdecbJt2L2WyWbnnjmxYXksvuBpump",
+      "symbol": "COSMO",
+      "opened": 1791036054.980292,
+      "invested_sol": 0.2,
+      "fees_sol": 0.0015,
+      "entry_signal_usd": 6.990538105933616e-05,
+      "entry_fill_usd": 6.060676489178412e-05,
+      "entry_slippage_pct": -13.3,
+      "roundtrip_cost_pct": 2.68,
+      "tokens_initial": 394049.222596,
+      "tokens_left": 394049.222596,
+      "decimals": 6,
+      "proceeds_sol": 0.0,
+      "peak_usd": 6.140886287840216e-05,
+      "tp1_done": false,
+      "thesis_breaks": 0,
+      "missing_loops": 0,
+      "entry_liquidity": 10209.051813252658,
+      "entry_view": {
+        "age_h": 0.8121632713079453,
+        "mcap": 67402.52015502135,
+        "liquidity": 10209.051813252658,
+        "holders": 703,
+        "holder_growth_1h": 23333.333333333336,
+        "holder_growth_5m": 19.5578231292517,
+        "net_buyers_5m": 249,
+        "organic_buyers_5m": 30,
+        "organic_score": 43.55998981107268,
+        "price_change_1h": 1607.9401823848261,
+        "price_change_5m": 27.21309364485106,
+        "buys_5m": 897,
+        "sells_5m": 678,
+        "traders_5m": 578,
+        "traders_1h": 1137,
+        "buy_vol_5m": 33049.85915346527,
+        "sell_vol_5m": 32232.39871847097,
+        "buy_vol_1h": 98904.79473913176,
+        "sell_vol_1h": 88268.62673796319,
+        "organic_buy_vol_1h": 4618.196685060263,
+        "top_holders_pct": 19.486330332974894,
+        "dev_balance_pct": 0.0,
+        "dev_mints": 2,
+        "launchpad": "pump.fun",
+        "graduated": true,
+        "social": true,
+        "quelle": "organic1h+organic5m+traded1h+traded5m+trend1h+trend5m",
+        "trades_24h": 4421,
+        "organic_label": "medium",
+        "buy_organic_vol_5m": 1359.1651279441091,
+        "hour_utc": 14
+      },
+      "bundle": {
+        "quelle": "block0",
+        "slot": 452943257,
+        "block0_wallets": 2,
+        "block0_supply_pct": 12.95,
+        "block0_still_held_pct": 0.0,
+        "block0_exited": 2,
+        "early_tx_slot1_2": 6,
+        "bundle_holding_pct": 0.0,
+        "gebuendelt": false,
+        "rugcheck_insider_pct": 0
+      },
+      "phase": "ruhig",
+      "thesis": "Story verbreitet sich: Holder +23333%/h, 249 Netto-Kaeufer 5m, 30 organisch; Block 0: 2 Kaeufer, 12.9% gekauft, 0.0% noch gehalten; Dev-Coins 2",
+      "exit_rule": "Haelfte bei 2x; Rest raus, wenn Holder schrumpfen und Netto-Verkaeufer 2x in Folge, Liquiditaet -30%, -40%, nach 1,5x nicht unter Einstand, nach 2x 30 % vom Hoch (ab 10x 25 %)",
+      "mitlaeufer": null,
+      "solana_tracker": null,
+      "graduated": true,
+      "liq_low_checks": 0
+    }
+  },
   "closed": [
     {
       "symbol": "swordinu",
@@ -3824,7 +3897,8 @@
     "DV5tvaRN3MrkBiFXKx6ShgN82xgZFMyECKyoT4CYpump": 1791003818.9128485,
     "CUAQ9ufBanfF4wG2wr2tvkpuqwhi3DHyCn6qCXY1pump": 1791024909.2410789,
     "fCUBpdeRn76xfRaa4UPHDauGeRG3EvMB3MjuRgdpump": 1791025242.2034855,
-    "c2fJFn3satRgWcpdYcTP7smQHLKQeL9eGL6zMyVpump": 1791030742.6996584
+    "c2fJFn3satRgWcpdYcTP7smQHLKQeL9eGL6zMyVpump": 1791030742.6996584,
+    "CwBWEd3WMaS22uBdecbJt2L2WyWbnnjmxYXksvuBpump": 1791036054.980736
   },
   "watch": {
     "fCUBpdeRn76xfRaa4UPHDauGeRG3EvMB3MjuRgdpump": {
@@ -3857,5 +3931,5 @@
   },
   "runde": 1,
   "shadow": {},
-  "saved_at": 1791035975.5653791
+  "saved_at": 1791036088.5279288
 }
