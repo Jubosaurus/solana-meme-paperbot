@@ -23,6 +23,18 @@ Experimente (eigene 10-SOL-Konten): zweite_welle, heisse_coins, ohne_limit, kont
 
 Jeder Bot hat `--probe` (Kurztest ohne Handel, Ausgabe für die Kontrolle).
 
+## Helfer: Subagenten und Skills
+
+- **Subagenten** in `.claude/agents/`:
+  - `daten-pruefer`: rechnet Zahlen unabhängig nach. Vor jeder Antwort mit Kennzahlen einsetzen.
+  - `strategie-tester`: prüft vorgeschlagene Regeln an den aufgezeichneten Daten, bevor Code geändert wird.
+  - `code-pruefer`: prüft jede Änderung vor dem Einspielen gegen die Regeln unten.
+- **Skills** in `.claude/skills/`:
+  - `tagesauswertung`: fester Ablauf der täglichen Auswertung; jede Auswertung wird in `auswertungen/JJJJ-MM-TT.md` festgehalten.
+  - `wallet-pruefen`: neue Wallets über Prüfliste und Scout prüfen und nach Zustimmung aufnehmen.
+  - `einspielen`: sicher einspielen, Ankunft prüfen, betroffene Bots neu starten.
+- **Sparsam arbeiten:** eine Aufgabe pro Sitzung (der Betreiber startet neue Aufgaben mit `/clear`), Auswertungen per Skript statt große Dateien zu lesen, Subagenten nur einsetzen, wenn sie einen klaren Zweck haben.
+
 ## Goldene Regeln
 
 1. **Vor jeder Änderung `git pull`.** Die Bots pushen etwa jede Minute Daten nach `main` (Commits mit `[skip ci]`).
