@@ -1,7 +1,7 @@
 {
   "strategy": "NARRATIV",
   "started": "2026-09-26T02:46:00.825468+00:00",
-  "bankroll_sol": 8.996832,
+  "bankroll_sol": 9.112512,
   "positions": {
     "BzLRJmKYYvDaKW5ewyaJADiMV4eRCFV8scCEENbUpump": {
       "mint": "BzLRJmKYYvDaKW5ewyaJADiMV4eRCFV8scCEENbUpump",
@@ -75,94 +75,6 @@
         "fehler": "HTTPSConnectionPool(host='data.solanatracker.io', port=443): Read timed out. (re"
       },
       "graduated": false,
-      "liq_low_checks": 0
-    },
-    "kfzRw7SNqowbcQhzJwiKThT8HUYPY6idBpSE3TSvdw2": {
-      "mint": "kfzRw7SNqowbcQhzJwiKThT8HUYPY6idBpSE3TSvdw2",
-      "symbol": "SCAT",
-      "opened": 1790991631.947193,
-      "invested_sol": 0.2,
-      "fees_sol": 0.0015,
-      "entry_signal_usd": 6.360087456567292e-05,
-      "entry_fill_usd": 6.67256096350587e-05,
-      "entry_slippage_pct": 4.91,
-      "roundtrip_cost_pct": null,
-      "tokens_initial": 358044.891637,
-      "tokens_left": 358044.891637,
-      "decimals": 6,
-      "proceeds_sol": 0.0,
-      "peak_usd": 6.67256096350587e-05,
-      "tp1_done": false,
-      "thesis_breaks": 0,
-      "missing_loops": 0,
-      "entry_liquidity": 10465.856319167702,
-      "entry_view": {
-        "age_h": 1.196279635032018,
-        "mcap": 57715.41502911962,
-        "liquidity": 10465.856319167702,
-        "holders": 491,
-        "holder_growth_1h": 2484.2105263157896,
-        "holder_growth_5m": 3.1512605042016806,
-        "net_buyers_5m": 42,
-        "organic_buyers_5m": 8,
-        "organic_score": 41.63145287470131,
-        "price_change_1h": 831.0055658464667,
-        "price_change_5m": -6.570683514714361,
-        "buys_5m": 125,
-        "sells_5m": 89,
-        "traders_5m": 81,
-        "traders_1h": 683,
-        "buy_vol_5m": 4923.848282691911,
-        "sell_vol_5m": 6159.166003408117,
-        "buy_vol_1h": 125148.53833419087,
-        "sell_vol_1h": 115409.50265659473,
-        "organic_buy_vol_1h": 3634.3581617212244,
-        "top_holders_pct": 17.041173836191636,
-        "dev_balance_pct": 0.0,
-        "dev_mints": 10,
-        "launchpad": "pump.fun",
-        "graduated": true,
-        "social": true,
-        "quelle": "organic1h+organic5m+traded1h+trend1h",
-        "trades_24h": 3114,
-        "organic_label": "medium",
-        "buy_organic_vol_5m": 69.87721125598475,
-        "hour_utc": 1
-      },
-      "bundle": {
-        "quelle": "block0",
-        "slot": 452771571,
-        "block0_wallets": 1,
-        "block0_supply_pct": 9.86,
-        "block0_still_held_pct": 0.0,
-        "block0_exited": 1,
-        "early_tx_slot1_2": 3,
-        "bundle_holding_pct": 0.0,
-        "gebuendelt": false,
-        "rugcheck_insider_pct": 1.12
-      },
-      "phase": "normal",
-      "thesis": "Story verbreitet sich: Holder +2484%/h, 42 Netto-Kaeufer 5m, 8 organisch; Block 0: 1 Kaeufer, 9.9% gekauft, 0.0% noch gehalten; Dev-Coins 10",
-      "exit_rule": "Haelfte bei 2x; Rest raus, wenn Holder schrumpfen und Netto-Verkaeufer 2x in Folge, Liquiditaet -30%, -40%, nach 1,5x nicht unter Einstand, nach 2x 30 % vom Hoch (ab 10x 25 %)",
-      "mitlaeufer": {
-        "teil": "CAT",
-        "leader": "MEW",
-        "leader_mint": "MEW1gQWJ3nEXg2qgERiKu7FAFj79PHvQVREQUzScPP5",
-        "leader_mcap": 46869624
-      },
-      "solana_tracker": {
-        "score": 5,
-        "rugged": false,
-        "snipers_pct": 0,
-        "insiders_pct": 0,
-        "bundlers_pct": 2.5604,
-        "top10_pct": 15.464299999999998,
-        "risiken": [
-          "No social media",
-          "Top 10 Holders"
-        ]
-      },
-      "graduated": true,
       "liq_low_checks": 0
     }
   },
@@ -6233,6 +6145,90 @@
       "hold_h": 0.75,
       "closed_at": "2026-10-02T21:46:55.083921+00:00",
       "runde": null
+    },
+    {
+      "symbol": "SCAT",
+      "mint": "kfzRw7SNqowbcQhzJwiKThT8HUYPY6idBpSE3TSvdw2",
+      "invested_sol": 0.2,
+      "entry_fill_usd": 6.67256096350587e-05,
+      "entry_slippage_pct": 4.91,
+      "roundtrip_cost_pct": null,
+      "tp1_done": false,
+      "entry_view": {
+        "age_h": 1.196279635032018,
+        "mcap": 57715.41502911962,
+        "liquidity": 10465.856319167702,
+        "holders": 491,
+        "holder_growth_1h": 2484.2105263157896,
+        "holder_growth_5m": 3.1512605042016806,
+        "net_buyers_5m": 42,
+        "organic_buyers_5m": 8,
+        "organic_score": 41.63145287470131,
+        "price_change_1h": 831.0055658464667,
+        "price_change_5m": -6.570683514714361,
+        "buys_5m": 125,
+        "sells_5m": 89,
+        "traders_5m": 81,
+        "traders_1h": 683,
+        "buy_vol_5m": 4923.848282691911,
+        "sell_vol_5m": 6159.166003408117,
+        "buy_vol_1h": 125148.53833419087,
+        "sell_vol_1h": 115409.50265659473,
+        "organic_buy_vol_1h": 3634.3581617212244,
+        "top_holders_pct": 17.041173836191636,
+        "dev_balance_pct": 0.0,
+        "dev_mints": 10,
+        "launchpad": "pump.fun",
+        "graduated": true,
+        "social": true,
+        "quelle": "organic1h+organic5m+traded1h+trend1h",
+        "trades_24h": 3114,
+        "organic_label": "medium",
+        "buy_organic_vol_5m": 69.87721125598475,
+        "hour_utc": 1
+      },
+      "bundle": {
+        "quelle": "block0",
+        "slot": 452771571,
+        "block0_wallets": 1,
+        "block0_supply_pct": 9.86,
+        "block0_still_held_pct": 0.0,
+        "block0_exited": 1,
+        "early_tx_slot1_2": 3,
+        "bundle_holding_pct": 0.0,
+        "gebuendelt": false,
+        "rugcheck_insider_pct": 1.12
+      },
+      "phase": "normal",
+      "thesis": "Story verbreitet sich: Holder +2484%/h, 42 Netto-Kaeufer 5m, 8 organisch; Block 0: 1 Kaeufer, 9.9% gekauft, 0.0% noch gehalten; Dev-Coins 10",
+      "mitlaeufer": {
+        "teil": "CAT",
+        "leader": "MEW",
+        "leader_mint": "MEW1gQWJ3nEXg2qgERiKu7FAFj79PHvQVREQUzScPP5",
+        "leader_mcap": 46869624
+      },
+      "solana_tracker": {
+        "score": 5,
+        "rugged": false,
+        "snipers_pct": 0,
+        "insiders_pct": 0,
+        "bundlers_pct": 2.5604,
+        "top10_pct": 15.464299999999998,
+        "risiken": [
+          "No social media",
+          "Top 10 Holders"
+        ]
+      },
+      "graduated_waehrend": false,
+      "proceeds_sol": 0.11568,
+      "pnl_sol": -0.08582,
+      "pnl_pct": -42.91,
+      "peak_multiple": 1.0,
+      "exit_usd": 3.905389538038074e-05,
+      "exit_reason": "NOTBREMSE (-41%)",
+      "hold_h": 0.05,
+      "closed_at": "2026-10-03T01:43:36.359386+00:00",
+      "runde": null
     }
   ],
   "cooldown": {
@@ -6362,9 +6358,18 @@
       "exit_usd": 1.5671001258371787e-05,
       "exit_reason": "NOTBREMSE (-43%)",
       "until": 1790999215.0839307
+    },
+    "kfzRw7SNqowbcQhzJwiKThT8HUYPY6idBpSE3TSvdw2": {
+      "symbol": "SCAT",
+      "entry_fill_usd": 6.67256096350587e-05,
+      "opened": 1790991631.947193,
+      "peak_usd": 6.67256096350587e-05,
+      "exit_usd": 3.905389538038074e-05,
+      "exit_reason": "NOTBREMSE (-41%)",
+      "until": 1791013416.3593946
     }
   },
-  "saved_at": 1790991783.9145682,
+  "saved_at": 1790991870.3796587,
   "shadow": {
     "wdysfTqUsJ8qAVB1796BXgGisThoBzu1keQmdgswdyt": {
       "symbol": "WDYT",
