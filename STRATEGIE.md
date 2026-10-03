@@ -147,6 +147,7 @@ Grenzen: Vergangene Gewinne garantieren keine künftigen; frühe Käufer können
 | 02.10. | Copy: Konto-Zeile zeigt aktuellen Wert der offenen Positionen und Kontowert statt Einsatz | „Einsatz“ enthielt bereits zurückgeflossene Teilverkäufe; frei + Einsatz wirkte wie 19 SOL bei tatsächlich ~9,8 SOL |
 | 02.10. | Testsammlung `tests/` (145 automatische Tests für alle drei Bots, ohne echte APIs; Start mit `python -m pytest`); Regressionsprobe der Hauptstrategie festgeschrieben: 33 aufgezeichnete Verläufe, −0,021 SOL ohne Gebühren. Bot-Code unverändert | Änderungen künftig vor dem Push automatisch prüfen; frühere Probe (+0,068 SOL auf 28 Verläufen) war nicht nachvollziehbar |
 | 02.10. | Copy: Endmeldung zeigt je Trader Kontowert (frei + offene Positionen zum Kurs) und Plus/Minus gegenüber den 10 SOL der laufenden Runde, sortiert nach Kontowert (vorher: frei und realisierter Gewinn, sortiert nach realisiert) | Gleiche Rechnung wie die Konto-Zeile der Einzelmeldungen; realisiert seit Start ließ Runden und offene Verluste außen vor |
+| 03.10. | `requirements.txt` mit festen Versionen (requests 2.34.2, websocket-client 1.9.2) statt „mindestens“; Test prüft das | Prüfbericht 03.10.: ein neues Paket-Release hätte beim nächsten Schichtstart alle drei Bots stoppen können |
 
 ## Dateien seit 28.09.
 
