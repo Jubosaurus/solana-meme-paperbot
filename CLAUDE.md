@@ -68,6 +68,11 @@ Jeder Bot hat `--probe` (Kurztest ohne Handel, Ausgabe für die Kontrolle).
 
 ## Feste Entscheidungen des Betreibers (nicht ohne Rückfrage ändern)
 
+**Leitlinie (seit 04.10.): „Mutig starten, streng urteilen, nichts ohne Aufzeichnung.“**
+- **Mutig starten:** Auf Papier dürfen Experimente riskant sein, auch bewusst mit Rugs, Bundler- und Sniper-Coins.
+- **Nichts ohne Aufzeichnung:** Jeder Verlust soll Daten liefern, aus denen wir Muster lernen.
+- **Streng urteilen:** weiterhin nur nach den Testregeln – 200 Trades, Kontrollgruppe aus demselben Zeitraum, Ergebnis muss auch ohne die 3 besten Trades halten.
+
 **Hauptstrategie:** Regeln in `STRATEGIE.md`. Zuletzt Tag 17 (02.10.): kein Kauf nach > 30 % Anstieg in 5 min (`FOMO_SPRUNG`), wird als knapp abgelehnt weiterverfolgt.
 
 **Experimente:** Urteil frühestens nach 200 Trades, immer gegen die Kontrollgruppe aus demselben Zeitraum, und nur wenn das Ergebnis auch ohne die 3 besten Trades hält.
