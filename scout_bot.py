@@ -29,6 +29,12 @@ core.HELIUS_INTERVAL = 0.5          # Scout hoechstens ~2 Helius-Anfragen/s, lae
 SCOUT_DIR = "scout"
 STATE_FILE = os.path.join(SCOUT_DIR, "status.json")
 CANDIDATES_FILE = os.path.join(SCOUT_DIR, "kandidaten.csv")
+# Pruef-Modus (seit 04.10.): einzelne Transaktionen einer Wallet ueber Helius pruefen, ob der Copy-Bot sie erkennt
+TX_CHECK_FILE = os.path.join(SCOUT_DIR, "pruefen_tx.txt")
+TX_RESULT_FILE = os.path.join(SCOUT_DIR, "tx_pruefung.csv")
+TX_RESULT_HEADER = ["zeit", "name", "wallet", "signatur", "block_zeit", "erfolgreich", "copy_bot_erkennt", "sol",
+                    "mint", "live_filter", "sol_aenderung", "token_aenderung", "programme"]
+TX_CHECK_MAX = 40                   # hoechstens so viele Transaktionen je Wallet (Helius: ~1 Credit je Abfrage)
 LIST_FILE = os.path.join(SCOUT_DIR, "pruefen.txt")   # Pruefliste: Wallets, die du selbst gefunden hast
 LIST_TX = 150                       # fuer die Pruefliste mehr Transaktionen je Wallet auswerten
 SCORING_VERSION = "3"               # 02.10.: 7 Tage, gehaltene Coins zum Kurs, Reibung nach Haltedauer
@@ -449,6 +455,113 @@ def check_list(state, now, sol_usd):
     return rows, [l for _, l in sorted(lines, key=lambda x: -x[0])]
 
 
+# ================================================================ Pruef-Modus fuer einzelne Transaktionen
+
+def load_tx_checks():
+    """scout/pruefen_tx.txt: 'Name: Adresse seit JJJJ-MM-TTTHH:MM' (UTC). Ohne 'seit': die letzten 24 h."""
+    if not os.path.exists(TX_CHECK_FILE):
+        return [], ""
+    entries, raw = [], []
+    for line in open(TX_CHECK_FILE, encoding="utf-8"):
+        line = line.strip()
+        if not line or line.startswith("#"):
+            continue
+        addr = re.search(r"[1-9A-HJ-NP-Za-km-z]{32,44}", line)
+        if not addr:
+            continue
+        raw.append(line)
+        name = line.split(":", 1)[0].strip() if ":" in line and addr.group(0) not in line.split(":", 1)[0] \
+            else addr.group(0)[:6]
+        seit = None
+        m = re.search(r"seit\s+(\d{4}-\d{2}-\d{2}T\d{2}:\d{2})", line)
+        if m:
+            try:
+                seit = datetime.strptime(m.group(1), "%Y-%m-%dT%H:%M").replace(tzinfo=timezone.utc).timestamp()
+            except ValueError:
+                seit = None
+        entries.append((name, addr.group(0), seit))
+    return entries, hashlib.sha256("\n".join(raw).encode()).hexdigest()[:16]
+
+
+def _balance_changes(tx, wallet):
+    meta = tx.get("meta") or {}
+    keys = [k.get("pubkey") if isinstance(k, dict) else k for k in tx["transaction"]["message"]["accountKeys"]]
+    sol = None
+    if wallet in keys:
+        i = keys.index(wallet)
+        sol = (meta["postBalances"][i] - meta["preBalances"][i]) / 1e9
+
+    def bal(lst):
+        return {b["mint"]: core.as_float(b["uiTokenAmount"].get("uiAmount")) for b in lst or []
+                if b.get("owner") == wallet}
+    pre, post = bal(meta.get("preTokenBalances")), bal(meta.get("postTokenBalances"))
+    tokens = {m[:6]: round(post.get(m, 0) - pre.get(m, 0), 2) for m in set(pre) | set(post)
+              if abs(post.get(m, 0) - pre.get(m, 0)) > 0}
+    progs = sorted({line.split()[1][:8] for line in meta.get("logMessages") or []
+                    if line.startswith("Program ") and " invoke" in line})
+    return sol, tokens, progs
+
+
+def check_transactions(state, now, sol_usd):
+    """Prueft jede Transaktion der Wallets aus scout/pruefen_tx.txt (einmal je Dateiinhalt):
+    Erkennt der Copy-Bot sie als Kauf/Verkauf, und haette der Live-Filter (Log-Hinweis) sie ueberhaupt geholt?"""
+    entries, digest = load_tx_checks()
+    if not entries or state.get("tx_pruefung_hash") == digest:
+        return []
+    rows, lines = [], []
+    for name, wallet, seit in entries:
+        seit = seit or now - 86400
+        try:
+            sigs = core.rpc("getSignaturesForAddress", [wallet, {"limit": 100}]) or []
+            neu = [x for x in sigs if (x.get("blockTime") or 0) >= seit][:TX_CHECK_MAX]
+            zaehler = {}
+            for x in reversed(neu):                        # aelteste zuerst
+                ok = x.get("err") is None
+                tx = cb.fetch_tx(x["signature"]) if ok else None
+                t, art = None, "fehlgeschlagen" if not ok else "nicht abrufbar"
+                sol = tokens = progs = None
+                hint = None
+                if tx:
+                    try:
+                        t = cb.parse_trade(tx, wallet, sol_usd)
+                        art = t["kind"] if t else "kein Trade"
+                    except Exception as err:               # eine kaputte Transaktion stoppt die Pruefung nicht
+                        art = f"Fehler: {str(err)[:60]}"
+                    hint = cb.trade_hint({"logs": (tx.get("meta") or {}).get("logMessages") or []})
+                    sol, tokens, progs = _balance_changes(tx, wallet)
+                zaehler[art] = zaehler.get(art, 0) + 1
+                rows.append({"zeit": cb.now_str(), "name": name, "wallet": wallet, "signatur": x["signature"],
+                             "block_zeit": datetime.fromtimestamp(x.get("blockTime") or 0, timezone.utc)
+                             .strftime("%Y-%m-%d %H:%M:%S"),
+                             "erfolgreich": int(ok), "copy_bot_erkennt": art,
+                             "sol": f"{t['sol']:.6f}" if t else "", "mint": t["mint"] if t else "",
+                             "live_filter": hint or "", "sol_aenderung": f"{sol:+.6f}" if sol is not None else "",
+                             "token_aenderung": json.dumps(tokens, ensure_ascii=False) if tokens else "",
+                             "programme": " ".join(progs or [])})
+            verpasst = sum(1 for r in rows if r["wallet"] == wallet and r["copy_bot_erkennt"] in ("KAUF", "VERKAUF")
+                           and r["live_filter"] != "handel")
+            lines.append(f"**{name}** `{wallet}`: {len(neu)} Transaktionen seit "
+                         f"{datetime.fromtimestamp(seit, timezone.utc):%d.%m. %H:%M} UTC | "
+                         + ", ".join(f"{k} {v}" for k, v in sorted(zaehler.items()))
+                         + (f" | ⚠️ {verpasst} Trades ohne Log-Hinweis (Live-Filter haette sie nicht geholt)"
+                            if verpasst else ""))
+        except Exception as err:
+            STATS["fehler"] += 1
+            lines.append(f"⚠️ **{name}**: Fehler bei der Transaktions-Pruefung ({str(err)[:60]})")
+    os.makedirs(SCOUT_DIR, exist_ok=True)
+    if os.path.exists(TX_RESULT_FILE):
+        core.ensure_csv_columns(TX_RESULT_FILE, TX_RESULT_HEADER)
+    neu_datei = not os.path.exists(TX_RESULT_FILE)
+    with open(TX_RESULT_FILE, "a", newline="", encoding="utf-8") as f:
+        w = csv.writer(f)
+        if neu_datei:
+            w.writerow(TX_RESULT_HEADER)
+        for r in rows:
+            w.writerow([r.get(k, "") for k in TX_RESULT_HEADER])
+    state["tx_pruefung_hash"] = digest
+    return lines
+
+
 # ================================================================ Lauf
 
 def known_wallets():
@@ -467,6 +580,13 @@ def run():
     state = load_state()
     sol_usd = core.sol_price()
     list_rows, list_lines = check_list(state, now, sol_usd)
+    try:
+        tx_lines = check_transactions(state, now, sol_usd)
+    except Exception as err:                         # Pruef-Modus darf den Scout nie stoppen
+        STATS["fehler"] += 1
+        tx_lines = [f"⚠️ Transaktions-Pruefung fehlgeschlagen: {str(err)[:80]}"]
+    if tx_lines:
+        notify("🔎 Wallet-Scout: Transaktions-Pruefung", tx_lines)
     coins = winner_coins(state, now)
     STATS["coins"] = len(coins)
     known = known_wallets()

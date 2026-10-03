@@ -214,3 +214,38 @@ def test_fruehe_kaeufer_nur_wenn_start_erreichbar(chain):
     chain["sigs"][MINT] = [{"signature": f"s{i}", "slot": 99, "err": None} for i in range(1000)]
     assert scout.early_buyers(MINT, 100.0) == []
     assert scout.STATS["coins_zu_aktiv"] == 1
+
+
+# ================================================================ Pruef-Modus fuer Transaktionen (04.10.)
+
+def test_tx_pruefung_erkennt_trades_und_markiert_fehlenden_log_hinweis(chain, monkeypatch):
+    os.makedirs("scout", exist_ok=True)
+    open(scout.TX_CHECK_FILE, "w", encoding="utf-8").write(
+        f"# Kommentar\nAlpha: {WALLET} seit 2020-01-01T00:00\n")
+    kauf = buy_tx(sig="k1", block_time=int(NOW) - 600)
+    kauf["meta"]["logMessages"] = ["Program log: Instruction: Buy"]
+    ohne_hinweis = buy_tx(sig="k2", block_time=int(NOW) - 300)
+    ohne_hinweis["meta"]["logMessages"] = ["Program 11111111111111111111111111111111 invoke [1]"]
+    chain["sigs"][WALLET] = [{"signature": "k2", "blockTime": int(NOW) - 300, "err": None},
+                             {"signature": "k1", "blockTime": int(NOW) - 600, "err": None},
+                             {"signature": "f1", "blockTime": int(NOW) - 900, "err": {"x": 1}}]
+    chain["txs"].update({"k1": kauf, "k2": ohne_hinweis})
+    state = {}
+    lines = scout.check_transactions(state, NOW, 100.0)
+    rows = list(csv.DictReader(open(scout.TX_RESULT_FILE, encoding="utf-8")))
+    assert [r["copy_bot_erkennt"] for r in rows] == ["fehlgeschlagen", "KAUF", "KAUF"]   # aelteste zuerst
+    assert rows[1]["live_filter"] == "handel" and rows[2]["live_filter"] == ""
+    assert rows[1]["sol_aenderung"].startswith("-")
+    assert "1 Trades ohne Log-Hinweis" in lines[0]
+    assert scout.check_transactions(state, NOW, 100.0) == []                            # nur einmal je Inhalt
+
+
+def test_tx_pruefung_ohne_datei_und_kaputte_transaktion(chain, monkeypatch):
+    assert scout.check_transactions({}, NOW, 100.0) == []
+    os.makedirs("scout", exist_ok=True)
+    open(scout.TX_CHECK_FILE, "w", encoding="utf-8").write(f"{WALLET}\n")                # ohne 'seit': 24 h
+    chain["sigs"][WALLET] = [{"signature": "x1", "blockTime": int(NOW) - 60, "err": None}]
+    chain["txs"]["x1"] = {"kaputt": True}
+    monkeypatch.setattr(cb, "fetch_tx", lambda sig: chain["txs"].get(sig))
+    lines = scout.check_transactions({}, NOW, 100.0)
+    assert "Fehler" in lines[0] or "Fehler" in open(scout.TX_RESULT_FILE, encoding="utf-8").read()
