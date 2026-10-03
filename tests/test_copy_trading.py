@@ -597,3 +597,21 @@ def test_messung_bei_ausfall_verworfen(env, monkeypatch):
     env.market.ausfall.add(MINT)
     cb.run_rechecks(time.time() + 2.5)
     assert cb.STATS["messung_verworfen"] == 1 and not os.path.exists(cb.MESSUNG_FILE)
+
+
+def test_copy_verlauf_mit_flugschreiber_spalten_hinten(env, monkeypatch):
+    buy(env)
+    monkeypatch.setattr(cb, "jup", lambda path: env.market.search([MINT]) if path.startswith("/tokens/v2/search") else None)
+    alt = ["zeit", "trader", "art", "symbol", "mint", "minuten_seit_kauf", "preis_sol", "vielfaches", "wert_sol",
+           "liquiditaet"]
+    os.makedirs(cb.COPY_VERLAUF_DIR, exist_ok=True)
+    from datetime import datetime, timezone
+    pfad = os.path.join(cb.COPY_VERLAUF_DIR, datetime.now(timezone.utc).strftime("%Y-%m-%d") + ".csv")
+    with open(pfad, "w", newline="", encoding="utf-8") as f:
+        csv.writer(f).writerows([alt, ["x", "Alpha", "offen", "A", "m", "1", "1", "1", "1", "1"]])
+    cb.log_paths(env.data, 100.0, time.time())
+    rows = list(csv.reader(open(pfad, encoding="utf-8")))
+    assert rows[0] == cb.COPY_VERLAUF_HEADER and rows[0][:10] == alt
+    assert len(rows[1]) == len(cb.COPY_VERLAUF_HEADER) and rows[1][10:] == [""] * 5      # alte Zeile: leer ergaenzt
+    neu = dict(zip(rows[0], rows[-1]))
+    assert neu["mint"] == MINT and neu["holder"] != "" and neu["top10_pct"] != ""

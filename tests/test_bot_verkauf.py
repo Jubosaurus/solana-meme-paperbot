@@ -341,3 +341,49 @@ def test_dexscreener_ohne_antwort_und_nur_einmal_je_coin(market, monkeypatch, cl
     core.sleep_with_rechecks(12)                               # dex_get liefert im Test None
     r = dex_rows()[0]
     assert r["fehler"] == "keine Antwort" and r["grund"] == "FOMO_SPRUNG" and core.STATS["dex_fehler"] == 1
+
+
+# ================================================================ Flugschreiber (04.10., nur Aufzeichnung)
+
+def flug_rows():
+    import glob
+    return [r for f in sorted(glob.glob(os.path.join(core.FLUG_DIR, "*.csv")))
+            for r in csv.DictReader(open(f, encoding="utf-8"))]
+
+
+def test_flugschreiber_jede_minute_mit_bundler_bestand(market, monkeypatch, clock):
+    market.set(MINT, price=START)
+    core._block0_cache[MINT] = {"supply": 1e9, "bought": {"w1": 2e8, "w2": 1e8, "w3": 5e7}}
+    abfragen = []
+
+    def rpc(method, params):
+        abfragen.append(params[0])
+        menge = {"w1": 2e8, "w2": 0, "w3": 5e7}[params[0]]          # w2 ist ausgestiegen
+        return {"value": [{"account": {"data": {"parsed": {"info": {"tokenAmount": {"amount": str(int(menge))}}}}}}]}
+    monkeypatch.setattr(core, "rpc", rpc)
+    p = core.load_portfolio()
+    core.open_position(p, core.token_view(market.tokens[MINT], time.time()),
+                       {"quelle": "block0", "block0_wallets": 3, "block0_supply_pct": 35.0,
+                        "block0_still_held_pct": 35.0}, market.sol_usd)
+    pos = p["positions"][MINT]
+    assert set(pos["block0_flug"]["bought"]) == {"w1", "w2", "w3"}
+    for _ in range(3):                                         # 3 Durchlaeufe in derselben Minute: 1 Zeile
+        core.manage_positions(p, market.sol_usd, time.time())
+        clock.sleep(12)
+    rows = flug_rows()
+    assert len(rows) == 1
+    r = rows[0]
+    assert r["konto"] == "hauptstrategie" and r["block0_gehalten_pct"] == "25.0" and r["block0_ausgestiegen"] == "1"
+    assert r["holder"] and r["liquiditaet"] and r["top10_pct"] != ""
+    clock.sleep(60)
+    core.manage_positions(p, market.sol_usd, time.time())      # naechste Minute: neue Zeile, Bundler aus dem Speicher
+    assert len(flug_rows()) == 2 and len(abfragen) == 3        # Helius erst wieder nach 10 min
+    clock.sleep(600)
+    core.manage_positions(p, market.sol_usd, time.time())
+    assert len(abfragen) == 6
+
+
+def test_flugschreiber_ohne_bundler_daten_und_ohne_helius(pos, market, clock):
+    core.manage_positions(pos, market.sol_usd, time.time())
+    r = flug_rows()[0]
+    assert r["block0_gehalten_pct"] == "" and r["mint"] == MINT

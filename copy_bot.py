@@ -41,6 +41,11 @@ MAX_PRICE_GAP_PCT = 15.0                # Kauf blockiert, wenn unser Kurs mehr a
 SELL_BATCH_MIN = 0.20                   # Teilverkaeufe sammeln, bis mindestens 20 % der Position verkauft werden
 PATH_EVERY = 60                         # Kursverlauf offener Positionen und Schattenpositionen etwa jede Minute
 COPY_VERLAUF_DIR = os.path.join("copy", "verlauf")
+# Flugschreiber (seit 04.10.): Holder, Top-10-Anteil, Dev-Bestand, Netto-Kaeufer und Verkaeufe der letzten 5 min
+# aus denselben Jupiter-Daten (keine zusaetzliche Abfrage), Spalten hinten angehaengt
+COPY_VERLAUF_HEADER = ["zeit", "trader", "art", "symbol", "mint", "minuten_seit_kauf", "preis_sol", "vielfaches",
+                       "wert_sol", "liquiditaet", "holder", "top10_pct", "dev_pct", "netto_kaeufer_5m", "verkaeufe_5m"]
+_verlauf_geprueft = set()
 # Messung seit 03.10. (nur Aufzeichnung): dieselbe Quote 2 s spaeter noch einmal. Laeuft nebenher, nur wenn der
 # Jupiter-Takt ohnehin frei ist, damit kein Trader-Signal warten muss. Zu spaete Messungen werden verworfen.
 MESSUNG_FILE = os.path.join(COPY_DIR, "messung.csv")
@@ -913,11 +918,13 @@ def log_paths(data, sol_usd, now):
     os.makedirs(COPY_VERLAUF_DIR, exist_ok=True)
     path = os.path.join(COPY_VERLAUF_DIR, datetime.now(timezone.utc).strftime("%Y-%m-%d") + ".csv")
     new = not os.path.exists(path)
+    if not new and path not in _verlauf_geprueft:            # seit 04.10. Flugschreiber-Spalten hinten
+        core.ensure_csv_columns(path, COPY_VERLAUF_HEADER)
+        _verlauf_geprueft.add(path)
     with open(path, "a", newline="", encoding="utf-8") as f:
         w = csv.writer(f)
         if new:
-            w.writerow(["zeit", "trader", "art", "symbol", "mint", "minuten_seit_kauf", "preis_sol", "vielfaches",
-                        "wert_sol", "liquiditaet"])
+            w.writerow(COPY_VERLAUF_HEADER)
         for name, art, p in items:
             tok = toks.get(p["mint"])
             if not tok:
@@ -936,9 +943,15 @@ def log_paths(data, sol_usd, now):
                 p["letzter_preis_sol"] = price
                 if p["symbol"] == p["mint"][:6] and tok.get("symbol"):
                     p["symbol"] = tok["symbol"]
+            audit = tok.get("audit") or {}
+            s5 = tok.get("stats5m") or {}
             w.writerow([now_str(), name, art, p["symbol"], p["mint"], f"{(now - p['opened']) / 60:.1f}",
                         f"{price:.12g}", f"{price / entry:.4f}" if entry else "", f"{value:.6f}",
-                        f"{core.as_float(tok.get('liquidity')):.0f}"])
+                        f"{core.as_float(tok.get('liquidity')):.0f}",
+                        int(core.as_float(tok.get("holderCount"))),
+                        f"{core.as_float(audit.get('topHoldersPercentage')):.2f}",
+                        f"{core.as_float(audit.get('devBalancePercentage')):.2f}",
+                        int(core.as_float(s5.get("numNetBuyers"))), int(core.as_float(s5.get("numSells")))])
             STATS["pfade"] += 1
 
 

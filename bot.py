@@ -28,6 +28,16 @@ JOURNAL_FILE = "journal.csv"
 REJECT_FILE = "abgelehnt.csv"
 PHASE_FILE = "marktphase.json"
 VERLAUF_DIR = "verlauf"                  # eine Datei pro Tag (UTC), z. B. verlauf/2026-09-28.csv
+# Flugschreiber (seit 04.10., nur Aufzeichnung): je offene Position etwa jede Minute Liquiditaet, Holder,
+# Top-10-Anteil, Dev-Bestand und Handel der letzten 5 min (aus den Jupiter-Daten, 0 Helius-Credits); alle 10 min
+# zusaetzlich der Bestand der Block-0-Kaeufer (Bundler) ueber Helius. Fuer spaetere Muster vor Rugs.
+FLUG_DIR = "flugschreiber"
+FLUG_HEADER = ["zeit", "konto", "mint", "symbol", "minuten_seit_kauf", "vielfaches", "liquiditaet", "holder",
+               "top10_pct", "dev_pct", "netto_kaeufer_5m", "kaeufe_5m", "verkaeufe_5m", "kaufvol_5m", "verkaufvol_5m",
+               "block0_gehalten_pct", "block0_ausgestiegen", "block0_wallets"]
+FLUG_EVERY_S = 60
+FLUG_B0_EVERY_S = 600                   # Bundler-Bestand: ~8 Helius-Abfragen je Coin alle 10 min
+FLUG_B0_MAX_WALLETS = 8
 NEAR_MISS_FILE = "knapp_abgelehnt.csv"
 
 DISCORD_WEBHOOK_URL = os.environ.get("DISCORD_WEBHOOK_URL")
@@ -935,6 +945,59 @@ def verlauf_file():
     return os.path.join(VERLAUF_DIR, datetime.now(timezone.utc).strftime("%Y-%m-%d") + ".csv")
 
 
+_flug_b0 = {}                           # Mint -> (Zeitpunkt, gehalten %, ausgestiegen, Wallets) – geteilt von allen Konten
+
+
+def flug_block0(pos, mint, now):
+    """Bestand der gespeicherten Block-0-Kaeufer (hoechstens 8) – alle 10 min je Coin, sonst aus dem Zwischenspeicher."""
+    b0 = pos.get("block0_flug")
+    if not b0 or not b0.get("bought"):
+        return None
+    hit = _flug_b0.get(mint)
+    if hit and now - hit[0] < FLUG_B0_EVERY_S:
+        return hit[1:] if hit[3] else None
+    held, exited, known = 0.0, 0, 0
+    for owner, amount in list(b0["bought"].items())[:FLUG_B0_MAX_WALLETS]:
+        res = rpc("getTokenAccountsByOwner", [owner, {"mint": mint}, {"encoding": "jsonParsed"}])
+        if not isinstance(res, dict):
+            continue                              # unbekannt: nicht mitzaehlen
+        known += 1
+        current = 0.0
+        for acc in res.get("value") or []:
+            info = ((((acc.get("account") or {}).get("data") or {}).get("parsed") or {}).get("info") or {})
+            current += as_float((info.get("tokenAmount") or {}).get("amount"))
+        held += current
+        if current < amount * 0.1:
+            exited += 1
+    if not known:
+        _flug_b0[mint] = (now, "", "", 0)        # auch Fehlversuch 10 min merken (kein Dauerfeuer bei Ausfall)
+        return None
+    result = (round(held / b0["supply"] * 100, 3) if b0.get("supply") else None, exited, known)
+    _flug_b0[mint] = (now, *result)
+    return result
+
+
+def flug_aufzeichnen(pos, v, now):
+    """Flugschreiber: eine Zeile je offene Position etwa jede Minute (nur Aufzeichnung)."""
+    if now - pos.get("flug_last", 0) < FLUG_EVERY_S:
+        return
+    pos["flug_last"] = now
+    b0 = flug_block0(pos, v["mint"], now)
+    os.makedirs(FLUG_DIR, exist_ok=True)
+    path = os.path.join(FLUG_DIR, datetime.now(timezone.utc).strftime("%Y-%m-%d") + ".csv")
+    new = not os.path.exists(path)
+    with open(path, "a", newline="", encoding="utf-8") as f:
+        w = csv.writer(f)
+        if new:
+            w.writerow(FLUG_HEADER)
+        w.writerow([datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S"), CTX["name"] or "hauptstrategie",
+                    v["mint"], pos.get("symbol", ""), f"{(now - pos['opened']) / 60:.1f}",
+                    f"{v['price'] / pos['entry_fill_usd']:.4f}" if pos.get("entry_fill_usd") else "",
+                    f"{v['liquidity']:.0f}", v["holders"], f"{v['top_holders_pct']:.2f}", f"{v['dev_balance_pct']:.2f}",
+                    v["net_buyers_5m"], v["buys_5m"], v["sells_5m"], f"{v['buy_vol_5m']:.0f}", f"{v['sell_vol_5m']:.0f}",
+                    *(b0 if b0 else ("", "", ""))])
+
+
 def log_path(stage, mint, symbol, v, entry_fill, opened, peak_usd, tp1_done):
     """Kursverlauf als Vielfaches des Einstiegs, fuer die spaetere Bewertung der Ausstiegsregeln."""
     if not entry_fill:
@@ -1195,6 +1258,10 @@ def open_position(p, v, bundle, sol_usd, max_slippage_pct=None, extra_pos=None):
            "mitlaeufer": v.get("mitlaeufer"), "solana_tracker": v.get("solana_tracker"),
            "graduated": v.get("graduated", False), "liq_low_checks": 0}
     pos.update(extra_pos or {})
+    b0 = _block0_cache.get(v["mint"]) if (bundle or {}).get("quelle") == "block0" else None
+    if b0 and b0.get("bought"):
+        top = sorted(b0["bought"].items(), key=lambda x: -x[1])[:FLUG_B0_MAX_WALLETS]
+        pos["block0_flug"] = {"supply": b0["supply"], "bought": dict(top)}
     p["positions"][v["mint"]] = pos
     p["cooldown"][v["mint"]] = time.time()
     journal("KAUF", pos, fill_usd, POSITION_SOL)
@@ -1326,6 +1393,12 @@ def manage_positions(p, sol_usd, now):
         pos["peak_usd"] = max(pos["peak_usd"], price)
         log_path("offen", mint, pos["symbol"], v, pos["entry_fill_usd"], pos["opened"],
                  pos["peak_usd"], pos["tp1_done"])
+        try:
+            flug_aufzeichnen(pos, v, now)
+        except Interrupted:
+            raise
+        except Exception as err:                 # Aufzeichnung darf die Verwaltung nie stoppen
+            print(f"[FLUGSCHREIBER] {str(err)[:100]}")
         multiple = price / pos["entry_fill_usd"]
         change_pct = (multiple - 1) * 100
 
@@ -1798,7 +1871,8 @@ def git_push():
     wird zeilenweise gemischt (das zerstoert JSON). Andere Dateien auf main, etwa eine
     zwischendurch hochgeladene bot.py, bleiben unangetastet."""
     files = [f for f in (PORTFOLIO_FILE, JOURNAL_FILE, REJECT_FILE, PHASE_FILE, VERLAUF_DIR,
-                         NEAR_MISS_FILE, "verlauf.csv", EXP_DIR, MESSUNG_FILE, DEX_FILE) if os.path.exists(f)]
+                         NEAR_MISS_FILE, "verlauf.csv", EXP_DIR, MESSUNG_FILE, DEX_FILE, FLUG_DIR)
+             if os.path.exists(f)]
     if not files:
         return
     _git("config", "user.name", "github-actions[bot]")
