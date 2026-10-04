@@ -1,27 +1,17 @@
 {
   "strategy": "EXPERIMENT_drittel_leiter",
   "started": "2026-10-04T06:19:45.237722+00:00",
-  "bankroll_sol": 9.7985,
-  "positions": {
-    "BgNZw6VxzYoS6AHjhpv2S54wGUv5MWeANPkoU2KPTM1G": {
-      "mint": "BgNZw6VxzYoS6AHjhpv2S54wGUv5MWeANPkoU2KPTM1G",
+  "bankroll_sol": 9.928432,
+  "positions": {},
+  "closed": [
+    {
       "symbol": "DIT",
-      "opened": 1791097412.7228084,
+      "mint": "BgNZw6VxzYoS6AHjhpv2S54wGUv5MWeANPkoU2KPTM1G",
       "invested_sol": 0.2,
-      "fees_sol": 0.0015,
-      "entry_signal_usd": 4.8731137167196944e-05,
       "entry_fill_usd": 3.622956617116492e-05,
       "entry_slippage_pct": -25.65,
       "roundtrip_cost_pct": 3.84,
-      "tokens_initial": 668029.787745,
-      "tokens_left": 668029.787745,
-      "decimals": 6,
-      "proceeds_sol": 0.0,
-      "peak_usd": 3.622956617116492e-05,
       "tp1_done": false,
-      "thesis_breaks": 0,
-      "missing_loops": 0,
-      "entry_liquidity": 8064.216989665225,
       "entry_view": {
         "age_h": 0.6379631182882521,
         "mcap": 46461.76132590364,
@@ -70,7 +60,6 @@
       },
       "phase": "heiss",
       "thesis": "Story verbreitet sich: Holder +305%/h, 53 Netto-Kaeufer 5m, 7 organisch; Block 0: 4 Kaeufer, 12.8% gekauft, 0.0% noch gehalten; Dev-Coins 2",
-      "exit_rule": "Je ein Drittel bei 1,5x / 2x / 3x; sonst Rest raus, wenn Holder schrumpfen und Netto-Verkaeufer 2x in Folge, Liquiditaet -30%, -40%, nach 1,5x nicht unter Einstand, nach 2x 30 % vom Hoch (ab 10x 25 %)",
       "mitlaeufer": null,
       "solana_tracker": {
         "score": 7,
@@ -84,32 +73,33 @@
           "High Bundler Count"
         ]
       },
-      "graduated": true,
-      "liq_low_checks": 1,
-      "leiter": [
-        1.5,
-        2.0,
-        3.0
-      ],
-      "leiter_stufe": 0,
-      "block0_flug": {
-        "supply": 953430681629549.0,
-        "bought": {
-          "CT6ydsot8tLrLvaLptvAxVBVhKpg7tiSKWYS5HhExHWE": 110863468592792.0,
-          "HxcdEi6CWzQtPCmM8E2maEZ3oYVGZxESqCWU1iPzmhVW": 8439817313231.0,
-          "8y5xhxgBeYNh453AB2kWH4PV5kmBJTy4A1mjXmq9Th7W": 2782502776861.0,
-          "apexpDoPm9ypJ97YoUk6eNiZHZWqqq3Ktgfmv94QAov": 282469099904.0
-        }
-      },
-      "flug_last": 1791097427.8606706
+      "graduated_waehrend": false,
+      "proceeds_sol": 0.129932,
+      "pnl_sol": -0.071568,
+      "pnl_pct": -35.78,
+      "peak_multiple": 1.0,
+      "exit_usd": 2.2558871552126964e-05,
+      "exit_reason": "LIQUIDITAET_ABGEZOGEN",
+      "hold_h": 0.02,
+      "closed_at": "2026-10-04T07:04:38.153836+00:00",
+      "runde": 1
     }
-  },
-  "closed": [],
+  ],
   "cooldown": {
     "BgNZw6VxzYoS6AHjhpv2S54wGUv5MWeANPkoU2KPTM1G": 1791097412.723455
   },
-  "watch": {},
+  "watch": {
+    "BgNZw6VxzYoS6AHjhpv2S54wGUv5MWeANPkoU2KPTM1G": {
+      "symbol": "DIT",
+      "entry_fill_usd": 3.622956617116492e-05,
+      "opened": 1791097412.7228084,
+      "peak_usd": 3.622956617116492e-05,
+      "exit_usd": 2.2558871552126964e-05,
+      "exit_reason": "LIQUIDITAET_ABGEZOGEN",
+      "until": 1791119078.153845
+    }
+  },
   "runde": 1,
   "shadow": {},
-  "saved_at": 1791097453.2235904
+  "saved_at": 1791097555.3367004
 }
