@@ -54,6 +54,27 @@ with st.container(border=True):
     elif v["ampel"] == "basis":
         st.caption("Die Kontrollgruppe kauft zufällig ohne Filter. Sie ist der Maßstab für alle anderen Konten.")
 
+# ---------------------------------------------------------------- Paar-Experimente: Coin fuer Coin
+if k["key"] in rechnung.PAAR_EXPERIMENTE:
+    pv = rechnung.paarvergleich(k["closed"], nach_key["hauptstrategie"]["closed"])
+    with st.container(border=True):
+        st.markdown(f"**Coin für Coin gegen die Hauptstrategie** · gleiche Käufe, {pv['anzahl']} Paare abgeschlossen")
+        if pv["anzahl"]:
+            st.markdown(f"Unterschied gesamt {a.pm_html(pv['differenz'])} · ohne die 3 besten "
+                        f"{a.pm_html(pv['differenz_ohne_beste'])} · besser {pv['besser']}, schlechter "
+                        f"{pv['schlechter']}, gleich {pv['gleich']}", unsafe_allow_html=True)
+            st.dataframe(pd.DataFrame([{
+                "Coin": x["symbol"], "Experiment": x["experiment"], "Hauptstrategie": x["haupt"],
+                "Unterschied": x["differenz"], "Grund Experiment": x["grund_experiment"],
+                "Grund Hauptstrategie": x["grund_haupt"]} for x in pv["paare"]]),
+                hide_index=True, alt="Coin für Coin gegen die Hauptstrategie", column_config={
+                    c: st.column_config.NumberColumn(format="%+.4f")
+                    for c in ("Experiment", "Hauptstrategie", "Unterschied")})
+            st.caption("Nur Coins, die beide Konten gekauft und schon verkauft haben (Kauf höchstens 10 min "
+                       "auseinander). Positiv = Experiment besser.")
+        else:
+            st.caption("Noch keine Paare: Beide Konten müssen denselben Coin gekauft und verkauft haben.")
+
 # ---------------------------------------------------------------- Kontoverlauf (gross)
 with st.container(border=True):
     st.markdown(f"**Kontoverlauf** · {k['label']} violett"

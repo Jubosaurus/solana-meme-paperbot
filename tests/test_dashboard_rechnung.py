@@ -289,3 +289,19 @@ def test_exit_liquiditaet_trader_verkauft_schnell():
     assert e["kaeufe"] == 2 and e["raus_vor_uns"] == 1 and e["raus_60s"] == 1
     assert e["median_halte_s"] == pytest.approx((3 + 1800) / 2)
     assert "B" not in r.exit_liquiditaet(rows)
+
+
+def test_paarvergleich_coin_fuer_coin():
+    def c(mint, pnl, zu, hold_h=1.0, sym="X"):
+        return {"mint": mint, "symbol": sym, "pnl_sol": pnl, "hold_h": hold_h, "exit_reason": "R",
+                "closed_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(zu))}
+    t = 1_790_000_000
+    haupt = [c("A", -0.08, t), c("B", 0.10, t), c("C", 0.05, t), c("A", 0.30, t + 3 * 86400)]
+    exp = [c("A", -0.05, t + 60, hold_h=1.0 + 60 / 3600), c("B", 0.06, t), c("D", 1.0, t)]
+    pv = r.paarvergleich(exp, haupt)
+    assert pv["anzahl"] == 2                                      # D ohne Gegenstueck, A nur der fruehe Kauf
+    a = next(x for x in pv["paare"] if x["mint"] == "A")
+    assert a["haupt"] == -0.08 and a["differenz"] == pytest.approx(0.03)
+    assert pv["differenz"] == pytest.approx(-0.01) and pv["besser"] == 1 and pv["schlechter"] == 1
+    assert pv["differenz_ohne_beste"] == pytest.approx(0.0)       # nur 2 Paare: ohne die 3 besten bleibt nichts
+    assert r.paarvergleich([], haupt)["anzahl"] == 0

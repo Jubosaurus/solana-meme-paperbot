@@ -163,7 +163,8 @@ EXP_DIR = "experimente"
 EXPERIMENTS = {"zweite_welle": "Zweite Welle", "heisse_coins": "Heisse Coins", "ohne_limit": "Ohne Limit",
                "kontrollgruppe": "Kontrollgruppe", "endspurt": "Endspurt viele Trades",
                "endspurt_ohne_filter": "Endspurt ohne Filter", "notbremse_25": "Notbremse 25",
-               "offene_tuer": "Offene Tuer", "serien_devs": "Serien-Devs", "grosse_coins": "Grosse Coins"}
+               "offene_tuer": "Offene Tuer", "serien_devs": "Serien-Devs", "grosse_coins": "Grosse Coins",
+               "drittel_leiter": "Drittel-Leiter"}
 # Beendete Experimente (Datum): keine neuen Kaeufe, offene Positionen laufen regulaer zu Ende, Daten bleiben.
 EXP_BEENDET = {"endspurt_ohne_filter": "04.10.", "ohne_limit": "04.10."}
 NOTBREMSE_25_PCT = -25.0                # Experiment Notbremse 25 (seit 04.10.): kauft genau wie die
@@ -184,6 +185,10 @@ SERIEN_DEVS_MAX = 3000                  # hoechstens so viele Devs merken (aelte
 # Experiment Grosse Coins (seit 04.10., Video-Idee OrangieWEB3): nur Coins UEBER der Marktwert-Grenze von Tag 7
 # (MAX_MCAP_USD), sonst alle Pruefungen und Ausstiege wie die Hauptstrategie (inkl. Bundle-Check, Positionslimit
 # je Marktphase). Frage: Kostet uns die 3-Mio.-Grenze Gewinner?
+# Experiment Drittel-Leiter (seit 04.10., Nachrechnung Video-Idee): kauft genau dann, wenn die Hauptstrategie kauft
+# (wie Notbremse 25), verkauft aber je ein Drittel bei 1,5x / 2x / 3x (bei 3x ist alles verkauft) statt der Haelfte
+# bei 2x. Abstand zum Hoch (Tag 4) gilt ab der 2x-Stufe wie heute, alle anderen Ausstiege wie die Hauptstrategie.
+DRITTEL_LEITER = [1.5, 2.0, 3.0]
 
 # Experiment Endspurt (seit 30.09.): Pump.fun-Coins kurz vor der Graduation, raus bei der Graduation.
 # Grundlage: arXiv 2602.14860 (655.770 Pump.fun-Coins, Sept. 2025). Preis auf der Kurve = vSol^2 / K.
@@ -199,7 +204,7 @@ ENDSPURT_MIN_TRADES = 2000              # Filter: mindestens so viele Trades sei
 ENDSPURT_MAX_SLIPPAGE_PCT = 3.0
 KONTROLL_INTERVAL_MIN = 30              # Kontrollgruppe: etwa alle 30 min ein zufaelliger Coin
 EXP_WATCH_AFTER_EXIT = {"ohne_limit", "endspurt_ohne_filter", "notbremse_25", "offene_tuer", "serien_devs",
-                        "grosse_coins"}
+                        "grosse_coins", "drittel_leiter"}
 EXP_LOG_OPEN_EVERY_LOOPS = 3            # Experimente: offene Positionen alle ~36 s aufzeichnen   # nach dem Verkauf 6 h weiter aufzeichnen (fuer Nachrechnungen)
 DISCORD_WEBHOOK_EXPERIMENTE = (os.environ.get("DISCORD_WEBHOOK_EXPERIMENTE") or "").strip()
 
@@ -1281,6 +1286,9 @@ def open_position(p, v, bundle, sol_usd, max_slippage_pct=None, extra_pos=None):
                  f"Netto-Verkaeufer {THESIS_BREAK_CHECKS}x in Folge, Liquiditaet -{LIQ_DROP_EXIT_PCT:.0f}%, "
                  f"{stop_pct:.0f}%, nach 1,5x nicht unter Einstand, "
                  f"nach 2x 30 % vom Hoch (ab 10x 25 %)")
+    if (extra_pos or {}).get("leiter"):                 # Experiment Drittel-Leiter
+        stufen = " / ".join(f"{x:g}x" for x in extra_pos["leiter"]).replace(".", ",")
+        exit_rule = f"Je ein Drittel bei {stufen}; sonst" + exit_rule.split(";", 1)[1]
 
     p["bankroll_sol"] = round(p["bankroll_sol"] - POSITION_SOL - TX_FEE_SOL, 6)
     pos = {"mint": v["mint"], "symbol": v["symbol"], "opened": time.time(),
@@ -1467,8 +1475,24 @@ def manage_positions(p, sol_usd, now):
             v["liquidity"] < pos["entry_liquidity"] * (1 - LIQ_DROP_EXIT_PCT / 100)
         pos["liq_low_checks"] = pos.get("liq_low_checks", 0) + 1 if liq_low else 0
 
+        # Experiment Drittel-Leiter: Stufen statt "Haelfte bei 2x" (hoechstens eine Stufe je Durchlauf)
+        leiter = pos.get("leiter")
+        if leiter:
+            stufe = pos.get("leiter_stufe", 0)
+            if stufe < len(leiter) and multiple >= leiter[stufe]:
+                grund = f"DRITTEL_BEI_{leiter[stufe]:g}X".replace(".", ",")
+                if stufe == len(leiter) - 1:
+                    close_position(p, pos, price, grund + " (alles verkauft)", sol_usd)
+                    continue
+                got = sell(p, pos, 1 / (len(leiter) - stufe), price, grund, sol_usd)
+                pos["leiter_stufe"] = stufe + 1
+                if leiter[stufe] >= TP1_MULTIPLE:
+                    pos["tp1_done"] = True               # ab der 2x-Stufe: Abstand zum Hoch wie Tag 4
+                STATS["partials"].append({"symbol": pos["symbol"], "sol": got})
+                continue
+
         # Tag 2: Gewinne mitnehmen
-        if not pos["tp1_done"] and multiple >= TP1_MULTIPLE:
+        elif not pos["tp1_done"] and multiple >= TP1_MULTIPLE:
             got = sell(p, pos, TP1_SELL_FRACTION, price, f"HAELFTE_BEI_{TP1_MULTIPLE:.0f}X", sol_usd)
             pos["tp1_done"] = True
             STATS["partials"].append({"symbol": pos["symbol"], "sol": got})
@@ -1626,6 +1650,7 @@ def scan(p, sol_usd, now, exps=None):
     e2 = exps.get("heisse_coins") if "heisse_coins" not in EXP_BEENDET else None
     e3 = exps.get("ohne_limit") if "ohne_limit" not in EXP_BEENDET else None
     e4 = exps.get("notbremse_25") if "notbremse_25" not in EXP_BEENDET else None
+    e8 = exps.get("drittel_leiter") if "drittel_leiter" not in EXP_BEENDET else None
     for v in passed:
         main_slot = slots > 0
         e2_ok = e2 is not None and exp_can_buy(e2, v, now, MAX_POSITIONS.get(phase, 2))
@@ -1662,6 +1687,9 @@ def scan(p, sol_usd, now, exps=None):
             slots -= 1
             if e4 is not None and exp_can_buy(e4, v, now):            # Experiment Notbremse 25: gleicher Kauf
                 exp_buy("notbremse_25", e4, v, bundle, sol_usd, extra_pos={"stop_pct": NOTBREMSE_25_PCT})
+            if e8 is not None and exp_can_buy(e8, v, now):            # Experiment Drittel-Leiter: gleicher Kauf
+                exp_buy("drittel_leiter", e8, v, bundle, sol_usd, extra_pos={"leiter": list(DRITTEL_LEITER),
+                                                                             "leiter_stufe": 0})
 
 
 # ================================================================ Experimente

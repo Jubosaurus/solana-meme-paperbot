@@ -242,6 +242,38 @@ def vergleich_mit_kontrolle(konto, kontrolle):
             if besser else "ohne die 3 besten besser, mit ihnen schlechter"}
 
 
+PAAR_EXPERIMENTE = {"notbremse_25", "drittel_leiter"}   # kaufen genau mit der Hauptstrategie (gleiche Kaeufe)
+
+
+def paarvergleich(exp_closed, haupt_closed, toleranz_s=600):
+    """Coin fuer Coin: abgeschlossene Trades eines Paar-Experiments gegen denselben Kauf der Hauptstrategie
+    (gleiche Mint, Kauf hoechstens 10 min auseinander). Nur Paare, die auf beiden Seiten abgeschlossen sind."""
+    def kauf(c):
+        zu = zeitpunkt(c.get("closed_at"))
+        return zu.timestamp() - as_float(c.get("hold_h")) * 3600 if zu else None
+    haupt = {}
+    for c in haupt_closed or []:
+        haupt.setdefault(c.get("mint"), []).append(c)
+    paare = []
+    for c in exp_closed or []:
+        k = kauf(c)
+        treffer = [h for h in haupt.get(c.get("mint"), [])
+                   if k is not None and kauf(h) is not None and abs(kauf(h) - k) <= toleranz_s]
+        if not treffer:
+            continue
+        h = min(treffer, key=lambda x: abs(kauf(x) - k))
+        e_pnl, h_pnl = as_float(c.get("pnl_sol")), as_float(h.get("pnl_sol"))
+        paare.append({"symbol": c.get("symbol", "?"), "mint": c.get("mint"), "kauf": k,
+                      "experiment": e_pnl, "haupt": h_pnl, "differenz": e_pnl - h_pnl,
+                      "grund_experiment": c.get("exit_reason", ""), "grund_haupt": h.get("exit_reason", "")})
+    diffs = sorted((x["differenz"] for x in paare), reverse=True)
+    return {"paare": sorted(paare, key=lambda x: x["kauf"] or 0, reverse=True), "anzahl": len(paare),
+            "summe_experiment": sum(x["experiment"] for x in paare), "summe_haupt": sum(x["haupt"] for x in paare),
+            "differenz": sum(diffs), "differenz_ohne_beste": sum(diffs[BESTE_WEGLASSEN:]),
+            "besser": sum(1 for d in diffs if d > 1e-9), "schlechter": sum(1 for d in diffs if d < -1e-9),
+            "gleich": sum(1 for d in diffs if abs(d) <= 1e-9)}
+
+
 def urteil_kurz(v):
     """Kurzes Urteil: besser/schlechter als Zufall (Kontrollgruppe) UND im Plus/Minus getrennt,
     z. B. 'besser als Zufall, aber im Minus'. Plus/Minus = Summe der verglichenen Trades."""

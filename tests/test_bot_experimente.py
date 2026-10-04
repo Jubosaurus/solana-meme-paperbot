@@ -396,3 +396,48 @@ def test_gebuehren_feld_wird_nur_aufgezeichnet(scan_env, monkeypatch):
     p = core.load_portfolio()
     core.scan(p, SOL, time.time(), {})
     assert "jup_fees" in p["positions"][MINT]["entry_view"]                  # Kauf unveraendert, Feld gemerkt
+
+
+def test_drittel_leiter_kauft_wie_hauptstrategie_und_verkauft_in_dritteln(scan_env, monkeypatch, market):
+    bundle_ok(monkeypatch)
+    scan_env(MINT)
+    p = core.load_portfolio()
+    exps = {"drittel_leiter": load("drittel_leiter")}
+    core.scan(p, SOL, time.time(), exps)
+    ep = exps["drittel_leiter"]
+    assert set(p["positions"]) == {MINT} and set(ep["positions"]) == {MINT}
+    assert "leiter" not in p["positions"][MINT]
+    assert ep["positions"][MINT]["exit_rule"].startswith("Je ein Drittel bei 1,5x / 2x / 3x")
+    start = ep["positions"][MINT]["tokens_left"]
+    base = market.price[MINT]
+    market.price[MINT] = base * 1.6                                       # 1,5x-Stufe
+    core.manage_positions(p, SOL, time.time())
+    core.manage_experiments(p, exps, SOL, time.time())
+    lp = ep["positions"][MINT]
+    assert lp["tokens_left"] == pytest.approx(start * 2 / 3) and not lp["tp1_done"]
+    assert p["positions"][MINT]["tokens_left"] == pytest.approx(start)   # Hauptstrategie: noch kein Verkauf
+    market.price[MINT] = base * 2.1                                       # 2x-Stufe: Hauptstrategie verkauft Haelfte
+    core.manage_positions(p, SOL, time.time())
+    core.manage_experiments(p, exps, SOL, time.time())
+    assert lp["tokens_left"] == pytest.approx(start / 3) and lp["tp1_done"]
+    assert p["positions"][MINT]["tp1_done"]
+    market.price[MINT] = base * 3.2                                       # 3x-Stufe: alles verkauft
+    core.manage_positions(p, SOL, time.time())
+    core.manage_experiments(p, exps, SOL, time.time())
+    assert ep["positions"] == {} and ep["closed"][-1]["exit_reason"].startswith("DRITTEL_BEI_3X")
+    assert MINT in p["positions"]                                         # Hauptstrategie laeuft weiter
+
+
+def test_drittel_leiter_kurssprung_verkauft_eine_stufe_je_durchlauf(scan_env, monkeypatch, market):
+    bundle_ok(monkeypatch)
+    scan_env(MINT)
+    p = core.load_portfolio()
+    exps = {"drittel_leiter": load("drittel_leiter")}
+    core.scan(p, SOL, time.time(), exps)
+    ep = exps["drittel_leiter"]
+    market.price[MINT] *= 3.5                                             # Sprung direkt ueber 3x
+    for stufe in (1, 2):
+        core.manage_experiments(p, exps, SOL, time.time())
+        assert ep["positions"][MINT]["leiter_stufe"] == stufe
+    core.manage_experiments(p, exps, SOL, time.time())
+    assert ep["positions"] == {} and ep["closed"][-1]["exit_reason"].startswith("DRITTEL_BEI_3X")

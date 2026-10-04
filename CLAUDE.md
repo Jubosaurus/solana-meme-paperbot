@@ -21,7 +21,7 @@ Drei unabhängige Bots, jeweils eigener GitHub-Actions-Workflow, Schichten von k
 
 **Dashboard** (seit 03.10.) in `dashboard/`: Streamlit, nur lokal, nur lesen (alle 5 min `git pull`). Start per Doppelklick auf `dashboard/start.bat`. Eigene `dashboard/requirements.txt` und Umgebung `dashboard/.venv`. Die gemeinsame Rechnung (Kontowert wie Discord, Korrekturen, vorsichtiger Wert, Testurteil gegen die Kontrollgruppe) steht in `dashboard/rechnung.py`. Die Tagesauswertung nutzt sie auch. Wird die Rechnung der Bots geändert, `rechnung.py` und `tests/test_dashboard_rechnung.py` mitziehen.
 
-Experimente (eigene 10-SOL-Konten): zweite_welle, heisse_coins, kontrollgruppe, endspurt („Endspurt viele Trades“), notbremse_25, offene_tuer, serien_devs, grosse_coins; beendet 04.10.: ohne_limit, endspurt_ohne_filter (Daten bleiben). Details in `STRATEGIE.md`.
+Experimente (eigene 10-SOL-Konten): zweite_welle, heisse_coins, kontrollgruppe, endspurt („Endspurt viele Trades“), notbremse_25, offene_tuer, serien_devs, grosse_coins, drittel_leiter; beendet 04.10.: ohne_limit, endspurt_ohne_filter (Daten bleiben). Details in `STRATEGIE.md`.
 
 Jeder Bot hat `--probe` (Kurztest ohne Handel, Ausgabe für die Kontrolle).
 
