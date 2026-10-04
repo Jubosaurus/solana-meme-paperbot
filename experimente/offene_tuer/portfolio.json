@@ -1,7 +1,7 @@
 {
   "strategy": "EXPERIMENT_offene_tuer",
   "started": "2026-10-04T00:34:10.471054+00:00",
-  "bankroll_sol": 8.524417,
+  "bankroll_sol": 8.322917,
   "positions": {
     "AVKpeeWaCku3Mni5THbY4bkBnMrPzAEnnQKtP3wPpump": {
       "mint": "AVKpeeWaCku3Mni5THbY4bkBnMrPzAEnnQKtP3wPpump",
@@ -66,7 +66,7 @@
       "solana_tracker": null,
       "graduated": true,
       "liq_low_checks": 0,
-      "flug_last": 1791102293.5898154
+      "flug_last": 1791102364.8377695
     },
     "72LuwBNZwtk1GPzWEktDeD2kgvMHoKpksV2mLnhkLand": {
       "mint": "72LuwBNZwtk1GPzWEktDeD2kgvMHoKpksV2mLnhkLand",
@@ -132,7 +132,7 @@
       "solana_tracker": null,
       "graduated": false,
       "liq_low_checks": 0,
-      "flug_last": 1791102293.5898154
+      "flug_last": 1791102364.8377695
     },
     "2CZJzBoeS17uAQbAdBcrkpEJjPixEcsFvJAhwRV9pump": {
       "mint": "2CZJzBoeS17uAQbAdBcrkpEJjPixEcsFvJAhwRV9pump",
@@ -148,7 +148,7 @@
       "tokens_left": 113024.063819,
       "decimals": 6,
       "proceeds_sol": 0.0,
-      "peak_usd": 0.00038583631445608847,
+      "peak_usd": 0.0003896146179791849,
       "tp1_done": false,
       "thesis_breaks": 0,
       "missing_loops": 0,
@@ -198,7 +198,72 @@
       "solana_tracker": null,
       "graduated": true,
       "liq_low_checks": 0,
-      "flug_last": 1791102293.5898154
+      "flug_last": 1791102364.8377695
+    },
+    "2SEJhBjWd7rkLRx6rWujKXNGb6W6Nr1DeWAjGiiFZM5W": {
+      "mint": "2SEJhBjWd7rkLRx6rWujKXNGb6W6Nr1DeWAjGiiFZM5W",
+      "symbol": "PPL101",
+      "opened": 1791102394.5830965,
+      "invested_sol": 0.2,
+      "fees_sol": 0.0015,
+      "entry_signal_usd": 8.568636168469622e-05,
+      "entry_fill_usd": 8.423933120243919e-05,
+      "entry_slippage_pct": -1.69,
+      "roundtrip_cost_pct": 3.12,
+      "tokens_initial": 287333.712559,
+      "tokens_left": 287333.712559,
+      "decimals": 6,
+      "proceeds_sol": 0.0,
+      "peak_usd": 8.423933120243919e-05,
+      "tp1_done": false,
+      "thesis_breaks": 0,
+      "missing_loops": 0,
+      "entry_liquidity": 11791.066993335226,
+      "entry_view": {
+        "age_h": 1.7489771393272613,
+        "mcap": 83125.51111761952,
+        "liquidity": 11791.066993335226,
+        "holders": 893,
+        "holder_growth_1h": 850.0,
+        "holder_growth_5m": 4.6893317702227435,
+        "net_buyers_5m": 168,
+        "organic_buyers_5m": 30,
+        "organic_score": 47.29297386934647,
+        "price_change_1h": 926.1171118310083,
+        "price_change_5m": -2.6582577830944327,
+        "buys_5m": 589,
+        "sells_5m": 438,
+        "traders_5m": 417,
+        "traders_1h": 1458,
+        "buy_vol_5m": 30486.529617085016,
+        "sell_vol_5m": 28845.906678036878,
+        "buy_vol_1h": 169873.9413421111,
+        "sell_vol_1h": 162651.16875907534,
+        "organic_buy_vol_1h": 10289.283701185148,
+        "top_holders_pct": 18.786817669118523,
+        "dev_balance_pct": 0.0,
+        "dev_mints": 3,
+        "launchpad": "pump.fun",
+        "graduated": true,
+        "social": true,
+        "quelle": "organic1h+organic5m+traded1h+traded5m+trend1h",
+        "trades_24h": 8460,
+        "organic_label": "medium",
+        "buy_organic_vol_5m": 897.3796964107431,
+        "jup_fees": null,
+        "hour_utc": 8
+      },
+      "bundle": {
+        "quelle": "experiment",
+        "text": "Offene Tuer: ohne Sicherheits-, Bundle- und Dev-Pruefung"
+      },
+      "phase": "heiss",
+      "thesis": "Story verbreitet sich: Holder +850%/h, 168 Netto-Kaeufer 5m, 30 organisch; Offene Tuer: ohne Sicherheits-, Bundle- und Dev-Pruefung; Dev-Coins 3",
+      "exit_rule": "Haelfte bei 2x; Rest raus, wenn Holder schrumpfen und Netto-Verkaeufer 2x in Folge, Liquiditaet -30%, -40%, nach 1,5x nicht unter Einstand, nach 2x 30 % vom Hoch (ab 10x 25 %)",
+      "mitlaeufer": null,
+      "solana_tracker": null,
+      "graduated": true,
+      "liq_low_checks": 0
     }
   },
   "closed": [
@@ -1918,18 +1983,10 @@
     "3ZtY5iuH7BottzL249JoiQYqdSE9mFLikFYieNAHpump": 1791096681.8517663,
     "9iySUkakKgjuPu8ABFoCr3fzJADoXPXCdEs1pWi4pump": 1791097539.801205,
     "72LuwBNZwtk1GPzWEktDeD2kgvMHoKpksV2mLnhkLand": 1791098005.3415608,
-    "2CZJzBoeS17uAQbAdBcrkpEJjPixEcsFvJAhwRV9pump": 1791101813.614562
+    "2CZJzBoeS17uAQbAdBcrkpEJjPixEcsFvJAhwRV9pump": 1791101813.614562,
+    "2SEJhBjWd7rkLRx6rWujKXNGb6W6Nr1DeWAjGiiFZM5W": 1791102394.5837865
   },
   "watch": {
-    "7CHR2LVw4kwbR7p1ZRkdDgfysJmWTQXzXuNMrq8rpump": {
-      "symbol": "STIMMY",
-      "entry_fill_usd": 0.00011859113050315206,
-      "opened": 1791080613.788756,
-      "peak_usd": 0.0001242862350927584,
-      "exit_usd": 6.595370268795285e-05,
-      "exit_reason": "NOTBREMSE (-44%)",
-      "until": 1791102302.800652
-    },
     "AYLavJzDYKaif3gKVa56u2V7iQpMg8kkQRagLJ4bAote": {
       "symbol": "DIT",
       "entry_fill_usd": 1.3326109511755202e-05,
@@ -2033,7 +2090,7 @@
       "symbol": "TERMINAL",
       "entry_fill_usd": 0.00027536989321844563,
       "opened": 1791093007.3928294,
-      "peak_usd": 0.0016836294736938913,
+      "peak_usd": 0.0017843612709668958,
       "exit_usd": 0.0004815138136380322,
       "exit_reason": "STORY_ABGEKUEHLT (30% unter dem Hoch von 3.9x)",
       "until": 1791116771.456894
@@ -2095,5 +2152,5 @@
   },
   "runde": 1,
   "shadow": {},
-  "saved_at": 1791102296.101979
+  "saved_at": 1791102395.9988112
 }
