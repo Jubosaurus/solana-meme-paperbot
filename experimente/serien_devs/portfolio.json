@@ -1,7 +1,7 @@
 {
   "strategy": "EXPERIMENT_serien_devs",
   "started": "2026-10-04T00:34:10.471102+00:00",
-  "bankroll_sol": 9.680171,
+  "bankroll_sol": 9.901289,
   "positions": {
     "9ZmkKpVR3NdUcCmG5NByMHBzvjuqGnYpCPYu4zSSBtJv": {
       "mint": "9ZmkKpVR3NdUcCmG5NByMHBzvjuqGnYpCPYu4zSSBtJv",
@@ -75,27 +75,27 @@
         "zuerst": 1791100235,
         "mint": "7U62Lm4CKa25eRdBdYv3QeTJjJirxTVGJpA3ePkkpump"
       },
-      "flug_last": 1791102430.5477421
+      "flug_last": 1791102574.674791
     },
     "54iVa5c26DZH66isFtx4QYpyQtink5zEuTszD9dHeNAh": {
       "mint": "54iVa5c26DZH66isFtx4QYpyQtink5zEuTszD9dHeNAh",
       "symbol": "AIDEN",
       "opened": 1791102054.306257,
       "invested_sol": 0.2,
-      "fees_sol": 0.0015,
+      "fees_sol": 0.003,
       "entry_signal_usd": 1.9381259713310035e-05,
       "entry_fill_usd": 2.0654924147202207e-05,
       "entry_slippage_pct": 6.57,
       "roundtrip_cost_pct": 2.99,
       "tokens_initial": 1171427.974355,
-      "tokens_left": 1171427.974355,
+      "tokens_left": 585713.9871775,
       "decimals": 6,
-      "proceeds_sol": 0.0,
-      "peak_usd": 2.3708204468541857e-05,
-      "tp1_done": false,
+      "proceeds_sol": 0.22111770483630283,
+      "peak_usd": 4.845769386539423e-05,
+      "tp1_done": true,
       "thesis_breaks": 0,
       "missing_loops": 0,
-      "entry_liquidity": 8689.276104769304,
+      "entry_liquidity": 13593.539411726319,
       "entry_view": {
         "age_h": 0.751016214688619,
         "mcap": 19381.259713310035,
@@ -139,8 +139,8 @@
       "exit_rule": "Haelfte bei 2x; Rest raus, wenn Holder schrumpfen und Netto-Verkaeufer 2x in Folge, Liquiditaet -30%, -40%, nach 1,5x nicht unter Einstand, nach 2x 30 % vom Hoch (ab 10x 25 %)",
       "mitlaeufer": null,
       "solana_tracker": null,
-      "graduated": false,
-      "liq_low_checks": 0,
+      "graduated": true,
+      "liq_low_checks": 1,
       "dev_exit": true,
       "dev_pct_kauf": 0.0,
       "serien_vorgaenger": {
@@ -149,7 +149,8 @@
         "zuerst": 1791102036,
         "mint": "2CZJzBoeS17uAQbAdBcrkpEJjPixEcsFvJAhwRV9pump"
       },
-      "flug_last": 1791102430.5477421
+      "flug_last": 1791102574.674791,
+      "graduated_during": true
     }
   },
   "closed": [
@@ -644,5 +645,5 @@
   },
   "runde": 1,
   "shadow": {},
-  "saved_at": 1791102483.3699305
+  "saved_at": 1791102579.1416075
 }
