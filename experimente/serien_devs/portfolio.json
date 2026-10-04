@@ -1,7 +1,7 @@
 {
   "strategy": "EXPERIMENT_serien_devs",
   "started": "2026-10-04T00:34:10.471102+00:00",
-  "bankroll_sol": 10.059217,
+  "bankroll_sol": 9.857717,
   "positions": {
     "9ZmkKpVR3NdUcCmG5NByMHBzvjuqGnYpCPYu4zSSBtJv": {
       "mint": "9ZmkKpVR3NdUcCmG5NByMHBzvjuqGnYpCPYu4zSSBtJv",
@@ -75,7 +75,80 @@
         "zuerst": 1791100235,
         "mint": "7U62Lm4CKa25eRdBdYv3QeTJjJirxTVGJpA3ePkkpump"
       },
-      "flug_last": 1791104612.4481132
+      "flug_last": 1791104678.2501855
+    },
+    "8tn3sa36jaDiwuLFro6DPNMySvYQQC4ZGdGirwsko8re": {
+      "mint": "8tn3sa36jaDiwuLFro6DPNMySvYQQC4ZGdGirwsko8re",
+      "symbol": "SI",
+      "opened": 1791104705.791872,
+      "invested_sol": 0.2,
+      "fees_sol": 0.0015,
+      "entry_signal_usd": 1.980532125863656e-05,
+      "entry_fill_usd": 1.5065166115857749e-05,
+      "entry_slippage_pct": -23.93,
+      "roundtrip_cost_pct": 5.09,
+      "tokens_initial": 1604793.625587,
+      "tokens_left": 1604793.625587,
+      "decimals": 6,
+      "proceeds_sol": 0.0,
+      "peak_usd": 1.5065166115857749e-05,
+      "tp1_done": false,
+      "thesis_breaks": 0,
+      "missing_loops": 0,
+      "entry_liquidity": 5133.610667968692,
+      "entry_view": {
+        "age_h": 0.40767857359515297,
+        "mcap": 19805.32125863656,
+        "liquidity": 5133.610667968692,
+        "holders": 148,
+        "holder_growth_1h": 377.4193548387097,
+        "holder_growth_5m": 20.32520325203252,
+        "net_buyers_5m": 57,
+        "organic_buyers_5m": 0,
+        "organic_score": 0.0,
+        "price_change_1h": 255.60834034516967,
+        "price_change_5m": 90.3088402943463,
+        "buys_5m": 80,
+        "sells_5m": 44,
+        "traders_5m": 79,
+        "traders_1h": 478,
+        "buy_vol_5m": 6113.887803388462,
+        "sell_vol_5m": 3927.411835048643,
+        "buy_vol_1h": 60272.26213685899,
+        "sell_vol_1h": 53704.94421778266,
+        "organic_buy_vol_1h": 2419.7875896423125,
+        "top_holders_pct": 23.5104561499698,
+        "dev_balance_pct": 0.0,
+        "dev_mints": 19461,
+        "launchpad": "stonkfun",
+        "graduated": false,
+        "social": true,
+        "quelle": "traded1h+traded5m+trend1h+trend5m",
+        "trades_24h": 1831,
+        "organic_label": "low",
+        "buy_organic_vol_5m": 499.54275622694746,
+        "jup_fees": null,
+        "hour_utc": 9
+      },
+      "bundle": {
+        "quelle": "experiment",
+        "text": "Serien-Dev: frueherer Coin BOT bis 2,927,868 $"
+      },
+      "phase": "normal",
+      "thesis": "Story verbreitet sich: Holder +377%/h, 57 Netto-Kaeufer 5m, 0 organisch; Serien-Dev: frueherer Coin BOT bis 2,927,868 $; Dev-Coins 19461",
+      "exit_rule": "Haelfte bei 2x; Rest raus, wenn Holder schrumpfen und Netto-Verkaeufer 2x in Folge, Liquiditaet -30%, -40%, nach 1,5x nicht unter Einstand, nach 2x 30 % vom Hoch (ab 10x 25 %)",
+      "mitlaeufer": null,
+      "solana_tracker": null,
+      "graduated": false,
+      "liq_low_checks": 0,
+      "dev_exit": true,
+      "dev_pct_kauf": 0.0,
+      "serien_vorgaenger": {
+        "symbol": "BOT",
+        "peak": 2927868,
+        "zuerst": 1791103226,
+        "mint": "4WPn1oGVE7rza6PjFJwYpEXZn6qtjwxEKkCV9EtAxhUU"
+      }
     }
   },
   "closed": [
@@ -571,18 +644,10 @@
     "4vnJ6J1NwiHRKPNRpELqMTLNYRhCaJryTeZYcyodcH6p": 1791090619.769008,
     "7U62Lm4CKa25eRdBdYv3QeTJjJirxTVGJpA3ePkkpump": 1791095839.768621,
     "9ZmkKpVR3NdUcCmG5NByMHBzvjuqGnYpCPYu4zSSBtJv": 1791100252.4602473,
-    "54iVa5c26DZH66isFtx4QYpyQtink5zEuTszD9dHeNAh": 1791102054.3068967
+    "54iVa5c26DZH66isFtx4QYpyQtink5zEuTszD9dHeNAh": 1791102054.3068967,
+    "8tn3sa36jaDiwuLFro6DPNMySvYQQC4ZGdGirwsko8re": 1791104705.7926152
   },
   "watch": {
-    "9UR49voQHZQ6YyWhFCuzkjSuHMg7rDXedWcsMtBz5BBA": {
-      "symbol": "67coin",
-      "entry_fill_usd": 2.3174859393223094e-05,
-      "opened": 1791082491.4049172,
-      "peak_usd": 3.158298563329612e-05,
-      "exit_usd": 8.38888859374099e-06,
-      "exit_reason": "NOTBREMSE (-64%)",
-      "until": 1791104677.4644275
-    },
     "ER3hTY26ZUsnvPcn8m5ChAdow3u1WmicN31Aw7WXsf2Q": {
       "symbol": "Vampcat",
       "entry_fill_usd": 9.23365578132713e-06,
@@ -631,5 +696,5 @@
   },
   "runde": 1,
   "shadow": {},
-  "saved_at": 1791104612.6565425
+  "saved_at": 1791104710.5013719
 }
