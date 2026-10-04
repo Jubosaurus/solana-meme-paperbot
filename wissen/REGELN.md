@@ -4,7 +4,7 @@
 
 **Verbindlich** bleiben `STRATEGIE.md` (Regeln) und `CLAUDE.md` (Arbeitsweise). Das Wiki sammelt Wissen und beschließt nichts.
 
-**Rohquellen:** `auswertungen/*.md`, `STRATEGIE.md` (Änderungsprotokoll), `videos/regeln.md`, `korrekturen.md` (liegt in `auswertungen/`), `CLAUDE.md` (Lehren), `wissen/notizen/`. Sie werden verlinkt, nie kopiert oder verändert. Video-Transkripte (`videos/transkripte/`, lokal) dürfen gelesen, aber nie zitiert oder ins Repo gelegt werden.
+**Rohquellen:** `auswertungen/*.md`, `STRATEGIE.md` (Änderungsprotokoll), `videos/regeln.md`, `korrekturen.md` (liegt in `auswertungen/`), `CLAUDE.md` (Lehren), `copy_wallets.txt` (Adressen, Aufnahme-/Entfernungsgründe; offiziell seit 04.10.), `wissen/notizen/`. Für volle Adressen darf zusätzlich `scout/kandidaten.csv` per Skript gelesen werden (nur Adressen). Sie werden verlinkt, nie kopiert oder verändert. Video-Transkripte (`videos/transkripte/`, lokal) dürfen gelesen, aber nie zitiert oder ins Repo gelegt werden.
 
 ## Beim Einspeisen
 
@@ -12,7 +12,11 @@
 2. Aussagen extrahieren, nicht zusammenfassen. Eine Aussage = ein Satz, der für sich stimmt, mit Zahl und Datum. Unsicheres bleibt als unsicher markiert („geschätzt“, „nicht nachgerechnet“).
 3. Jede Aussage einer Seite zuordnen. Entitäten (Trader/Wallets, Experimente, Regeln, Werkzeuge, Coins mit Besonderheit) sofort als Seite. Muster-Seiten (z. B. „Exit-Liquidität“, „Rug-Vorzeichen“, „Ausreißer verzerren Ergebnis“) ab 2 Quellen, beim ersten Durchlauf ohne Schwelle.
 4. Jede Aussage bekommt `[[Quelle]]` als Link (Quellen-Seiten in `wiki/quellen/`, sie nennen den echten Pfad der Rohquelle).
-5. Widerspricht eine neue Aussage einer alten: nicht überschreiben, mit Datum anhängen und mit ⚠️ markieren.
+5. Widerspricht eine neue Aussage einer alten: nicht überschreiben, mit Datum anhängen und markieren. Drei getrennte Zeichen:
+   - ⚠️ **echter Widerspruch**: gleicher Zeitpunkt/Stand, beide Aussagen können nicht wahr sein. Bleibt stehen, bis es geklärt ist.
+   - 🕒 **überholt**: alter Stand, der neuere gilt (Entwicklung über die Zeit, kein Fehler).
+   - ✅ **geklärt**: ein früherer Widerspruch wurde aufgelöst (mit Verweis, wie).
+   Kein Zeichen: Meinungsunterschiede und Gegenbefunde, bei denen beide Aussagen stimmen (kurz als „Abweichung“ bzw. „Gegenbefund“ benennen).
 6. `index.md` und `log.md` aktualisieren.
 
 **Entitäten:** eine Sache, ein Name, eine Seite. Wallets mit Kurzname und voller Adresse. Vor jeder neuen Seite in `index.md` prüfen, ob es sie schon gibt.

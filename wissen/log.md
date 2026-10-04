@@ -17,15 +17,18 @@ Tabelle aller Aktionen am Wiki. Neueste unten.
 | 2026-10-04 | Einspeisen (Adressen und Entfernungsgründe) | copy_wallets.txt | Volle Adressen der Trader-Seiten; Sammelseite Wallets-entfernt-Uebersicht. Die Datei steht nicht in der Liste der Rohquellen; nur dafür verwendet |
 | 2026-10-04 | Nicht verarbeitet | auswertungen/README.md, skill-observations/, skill-updates/ | enthalten keine Aussagen |
 | 2026-10-04 | Nicht verarbeitet | wissen/notizen/ | leer |
+| 2026-10-04 | Überarbeitung | Anweisungen des Betreibers | Markierungen getrennt (⚠️ Widerspruch / 🕒 überholt / ✅ geklärt) und bestehende umgestellt; Regressionsprobe als geklärt; 52 %/24 % und ~40 % Graduation übernommen; Listing-Studien (Ante 2019, binance-listing-study) in STRATEGIE.md und Wiki; 7 Adress-Seiten aus scout/kandidaten.csv; copy_wallets.txt offizielle Rohquelle |
 
 ## Rückfragen
 
-Eingespeist wurde nur, was Datum und Quelle hat. Folgendes blieb draußen oder ist unvollständig:
+Erledigt am 04.10.2026 (Antworten des Betreibers):
+1. „52 % gegen 24 %“ (STRATEGIE.md, Endspurt, Filter-Änderung 01.10.) und „~40 % graduieren“ (Zusammenfassung vom 02.10.) sind jetzt auf [[Endspurt-ohne-Filter]] eingetragen, als nicht nachgerechnet markiert.
+2. Listing-Studien: Ante (2019) und `binance-listing-study` stehen als Quelle im Experiment-Eintrag in STRATEGIE.md und auf [[Listing-Welle]].
+3. Volle Adressen der Scout-Kandidaten aus `scout/kandidaten.csv` ergänzt: [[Deh9]], [[FuKH]], [[8zkg]], [[8p6F]], [[9Df3]], [[H2Ag]], [[CPi4]].
+4. `copy_wallets.txt` ist offizielle Rohquelle.
 
-1. **Endspurt: „Graduationsquote ~40 %“ und „52 % gegenüber 24 % in den ersten 74 Käufen“** (CLAUDE.md, STRATEGIE.md): Es fehlt der Messzeitpunkt bzw. die Rechnung; daher nicht als Aussage übernommen, nur als ⚠️-Hinweis auf [[Endspurt-ohne-Filter]]. Bitte Datum und Quelle der Rechnung nennen.
-2. **Listing-Welle, Studienhinweis** („Studien zum Listing-Effekt …“, STRATEGIE.md): keine konkrete Studie genannt, nicht übernommen.
-3. **Scout-Kandidaten ohne volle Adresse** (nur gekürzt in der Überprüfung 03.10.): Deh9…x7R5, FuKH…vpri, 8zkg…sNsZ, 8p6F…R3t8, 9Df3 und die Kleinstkäufer H2Ag…ByLV, CPi4…gmNy. Keine eigenen Seiten, solange die volle Adresse fehlt (Regel: Kurzname und volle Adresse). Ihre Aussagen stehen nur in [[Bot-Wallets]] bzw. [[Kleinstkaeufer-in-Ranglisten]].
-4. **Coins ohne volle Mint-Adresse** (PIGEON, WARP, cum, MASHUP): Quellen nennen nur Kurznamen; Seiten ohne Adresse angelegt. Mint nachreichen?
-5. **Wallet-Signal-Nachrechnung:** Abgrenzung von „Signal“ unklar (siehe ⚠️ auf [[Wallet-Signal-Nachrechnung]]); Skripte lagen nur im Scratchpad und sind nicht mehr vorhanden.
-6. **copy_wallets.txt** gehört nicht zu den genannten Rohquellen. Soll sie offiziell dazu, oder sollen die Adressen anders belegt werden?
-7. **Videos:** Die Transkripte (nur lokal) wurden nicht gelesen; alle Aussagen stammen aus `videos/regeln.md` und der Video-Auswertung.
+Noch offen:
+1. Coins ohne volle Mint-Adresse (PIGEON, WARP, cum, MASHUP): Quellen nennen nur Kurznamen.
+2. Wallet-Signal-Nachrechnung: Abgrenzung von „Signal“ unklar (⚠️ auf [[Wallet-Signal-Nachrechnung]]); Skripte lagen nur im Scratchpad und sind nicht mehr vorhanden.
+3. Videos: Die Transkripte (nur lokal) wurden nicht gelesen; alle Aussagen stammen aus `videos/regeln.md` und der Video-Auswertung.
+4. Zu prüfen in der Tagesauswertung am 06.10.: C7bF – Scout-Haltedauer 124 min gegen 4 von 4 Verkäufen binnen 5 s (⚠️ auf [[C7bF]]). Versteckt die Scout-Haltedauer schnelle Flips (Median statt Mittel? Anteil Verkäufe unter 60 s als eigene Kennzahl?).

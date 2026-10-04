@@ -62,23 +62,30 @@ Das Wiki sammelt Wissen und beschließt nichts. Verbindlich bleiben `STRATEGIE.m
 - [[6ANG]] – Trader 6ANG
 - [[77n6]] – Trader 77n6
 - [[7Cn1]] – Trader 7Cn1
+- [[8p6F]] – Scout-Kandidat 8p6F
+- [[8zkg]] – Scout-Kandidat 8zkg
 - [[922M]] – Trader 922M (entfernt 03.10.)
+- [[9Df3]] – Scout-Kandidat 9Df3
 - [[C7bF]] – Trader C7bF
 - [[Cooker]] – Trader Cooker (entfernt 04.10.)
+- [[CPi4]] – Scout-Kandidat CPi4 (Kleinstkäufer)
+- [[Deh9]] – Scout-Kandidat Deh9
 - [[Dior]] – Trader Dior
 - [[Eshi]] – Trader Eshi
+- [[FuKH]] – Scout-Kandidat FuKH
 - [[G7b2]] – Trader G7b2
 - [[Gake]] – Trader Gake
 - [[GeFg]] – Trader GeFg
+- [[H2Ag]] – Scout-Kandidat H2Ag (Kleinstkäufer)
+- [[haru]] – Trader haru
 - [[HEBO]] – Trader HEBO
+- [[koko]] – Trader koko
 - [[Loopierr]] – Trader Loopierr (entfernt 04.10.)
 - [[Pikalosi]] – Trader Pikalosi
 - [[Putrick]] – Trader Putrick (entfernt 04.10.)
 - [[Troupe]] – Trader Troupe
 - [[Wallets-entfernt-Uebersicht]] – Übersicht: früher entfernte Copy-Wallets
 - [[Zrool]] – Trader Zrool (entfernt 04.10.)
-- [[haru]] – Trader haru
-- [[koko]] – Trader koko
 
 ## Muster
 
@@ -127,6 +134,7 @@ Das Wiki sammelt Wissen und beschließt nichts. Verbindlich bleiben `STRATEGIE.m
 - [[Q-CLAUDE]] – Quelle: CLAUDE.md
 - [[Q-Copy-Wallets]] – Quelle: copy_wallets.txt
 - [[Q-Korrekturen]] – Quelle: Korrekturen Copy-Bot
+- [[Q-Scout-Kandidaten]] – Quelle: scout/kandidaten.csv (nur Adressen)
 - [[Q-STRATEGIE]] – Quelle: STRATEGIE.md
 - [[Q-Videos-Regeln]] – Quelle: videos/regeln.md
 - [[Q-Zusammenfassung-Chat]] – Quelle: Zusammenfassung fürs Chat-Projekt

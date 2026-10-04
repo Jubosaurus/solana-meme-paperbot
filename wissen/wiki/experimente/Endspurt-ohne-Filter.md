@@ -5,4 +5,5 @@
 - Stand 03.10.: 266 Trades, −2,724 SOL, −0,0102 je Trade gegen −0,0242 der Kontrollgruppe; auch ohne 3 beste besser (−0,0127 gegen −0,0330), aber in beiden Hälften im Minus: besser als Zufall, im Minus. [[Q-2026-10-03-Ueberpruefung]]
 - Mit realistischen Kosten wäre es noch tiefer im Minus; der Betreiber beendete das Experiment am 04.10. [[Q-2026-10-03-Ueberpruefung]] [[Q-STRATEGIE]]
 - Daten bleiben; Coins werden nach Verkauf 6 h weiter aufgezeichnet (Kursverläufe nach der Graduation, nutzbar für „Einstieg nach der Migration“). [[Q-STRATEGIE]]
-- ⚠️ Hinweis (CLAUDE.md, Stand 02.10.): „Graduationsquote ~40 %“ und „Hypothese viele Trades nicht bestätigt“ ohne Messzeitpunkt; siehe Rückfragen in [[log]]. [[Q-CLAUDE]]
+- Zur Idee „viele Trades“: Nach der Filter-Änderung vom 01.10. graduierten in den ersten 74 Käufen 52 % gegenüber 24 % (laut STRATEGIE.md, Rechnung nicht nachgerechnet). [[Q-STRATEGIE]]
+- Zusammenfassung vom 02.10.: etwa 40 % der Coins graduieren (geschätzt, nicht nachgerechnet); die Hypothese „viele Trades“ wurde damals als nicht bestätigt eingestuft. [[Q-CLAUDE]]

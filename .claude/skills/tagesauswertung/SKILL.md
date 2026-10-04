@@ -86,6 +86,6 @@ Erst nach Schritt 7.3, wenn der Bericht in `auswertungen/` liegt. Regeln stehen 
 
 1. Neue Berichte in `auswertungen/` und neue Dateien in `wissen/notizen/` seit dem letzten Eintrag in `wissen/log.md` suchen (die Notizen nur lesen, nie ändern).
 2. Je Quelle zuerst eine Quellen-Seite in `wissen/wiki/quellen/` anlegen (Pfad, Datum), dann Aussagen ausziehen (ein Satz, Zahl, Datum, `[[Quelle]]`), nicht zusammenfassen. Ohne Datum oder Quelle nicht verarbeiten, sondern in `log.md` unter „Rückfragen“.
-3. Vor jeder neuen Seite `wissen/index.md` prüfen. Widerspruch zu einer alten Aussage: anhängen, mit Datum und ⚠️, nie überschreiben.
+3. Vor jeder neuen Seite `wissen/index.md` prüfen. Widerspruch zu einer alten Aussage: anhängen, mit Datum, nie überschreiben; ⚠️ nur für echte Widersprüche (gleicher Stand), 🕒 für überholt (neuerer Stand gilt), ✅ für geklärt (siehe `wissen/REGELN.md`).
 4. `wissen/index.md` und `wissen/log.md` aktualisieren; am Ende Links prüfen (jede `[[...]]` hat eine Seite).
 5. Nur Doku: einspielen wie andere Berichte, aber nichts aus `wissen/.obsidian/` (steht in `.gitignore`). Werbung nur als Markierung, keine Schlüssel, keine Transkripte.

@@ -19,7 +19,7 @@ Dieses Wiki sammelt unser Wissen aus dem Paper-Trading-Projekt (kein echtes Geld
 
 ## Wie es wächst
 
-Die Tagesauswertung speist am Ende neue Berichte und neue Notizen ins Wiki ein. Zeichen ⚠️ im Text heißt: Zwei Aussagen widersprechen sich, beide bleiben stehen, mit Datum.
+Die Tagesauswertung speist am Ende neue Berichte und neue Notizen ins Wiki ein. Markierungen: ⚠️ = echter Widerspruch (gleicher Stand, beide können nicht stimmen), 🕒 = überholt (alter Stand, der neuere gilt), ✅ = geklärt. Alte Aussagen bleiben stehen, mit Datum.
 
 ## Fragen ans Wiki
 
