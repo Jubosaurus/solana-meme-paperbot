@@ -66,6 +66,10 @@ def sandbox(tmp_path, monkeypatch):
     monkeypatch.setattr(core, "SESSION", BlockedSession(net))
     monkeypatch.setattr(core, "jup_get", lambda path: None)
     monkeypatch.setattr(core, "dex_get", lambda path: None)
+
+    def listing_blocked(url):                 # Boersen- und RSS-Abfragen: scheitern wie ein Ausfall, Quelle wird gezaehlt
+        raise NetworkBlocked(f"Listing-Abfrage im Test: {url}")
+    monkeypatch.setattr(core, "listing_get", listing_blocked)
     monkeypatch.setattr(core, "_serien_devs", {"daten": None})
     monkeypatch.setattr(core, "rpc", lambda method, params: None)
     monkeypatch.setattr(cb, "jup", lambda path: None)

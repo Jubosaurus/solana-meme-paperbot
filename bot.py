@@ -22,6 +22,8 @@ from datetime import datetime, timezone
 
 import requests
 
+import listings
+
 # ================================================================ Dateien
 PORTFOLIO_FILE = "portfolio.json"
 JOURNAL_FILE = "journal.csv"
@@ -164,7 +166,7 @@ EXPERIMENTS = {"zweite_welle": "Zweite Welle", "heisse_coins": "Heisse Coins", "
                "kontrollgruppe": "Kontrollgruppe", "endspurt": "Endspurt viele Trades",
                "endspurt_ohne_filter": "Endspurt ohne Filter", "notbremse_25": "Notbremse 25",
                "offene_tuer": "Offene Tuer", "serien_devs": "Serien-Devs", "grosse_coins": "Grosse Coins",
-               "drittel_leiter": "Drittel-Leiter"}
+               "drittel_leiter": "Drittel-Leiter", "listing_welle": "Listing-Welle"}
 # Beendete Experimente (Datum): keine neuen Kaeufe, offene Positionen laufen regulaer zu Ende, Daten bleiben.
 EXP_BEENDET = {"endspurt_ohne_filter": "04.10.", "ohne_limit": "04.10."}
 NOTBREMSE_25_PCT = -25.0                # Experiment Notbremse 25 (seit 04.10.): kauft genau wie die
@@ -190,6 +192,28 @@ SERIEN_DEVS_MAX = 3000                  # hoechstens so viele Devs merken (aelte
 # bei 2x. Abstand zum Hoch (Tag 4) gilt ab der 2x-Stufe wie heute, alle anderen Ausstiege wie die Hauptstrategie.
 DRITTEL_LEITER = [1.5, 2.0, 3.0]
 
+# Experiment Listing-Welle (seit 04.10.): Boersen-Listing eines Solana-Tokens (Upbit, Binance, Coinbase; Bithumb nur
+# Aufzeichnung). Kauf bei Ankuendigung (juenger als 10 min), Verkauf zum Handelsstart, sonst nach 72 h, Notbremse -40 %.
+# Quellen und Grenzen: listings.py. Aufzeichnung: experimente/listing_welle/ereignisse.csv und geruechte.csv.
+LISTING_DIR = os.path.join(EXP_DIR, "listing_welle")
+LISTING_EREIGNISSE_FILE = os.path.join(LISTING_DIR, "ereignisse.csv")
+LISTING_GERUECHTE_FILE = os.path.join(LISTING_DIR, "geruechte.csv")
+LISTING_EREIGNISSE_HEADER = ["zeit_erfasst", "typ", "ereignis_id", "boerse", "quelle_typ", "art", "symbol", "titel",
+                             "ankuendigung_zeit", "handelsstart_zeit", "entscheidung", "mint", "kurs_usd",
+                             "liquiditaet_usd", "anstieg_3h_pct", "anstieg_3d_pct", "url"]
+LISTING_GERUECHTE_HEADER = ["zeit_erfasst", "nachricht_zeit", "coin", "quelle", "titel", "link", "offiziell_vorher"]
+LISTING_POLL_SEC = 120                  # Upbit-Ankuendigungen: hoechstens alle 2 min
+LISTING_LISTEN_POLL_SEC = 240           # Marktlisten (Binance, Coinbase, Bithumb): grosse Antworten, seltener
+LISTING_NEWS_POLL_SEC = 900             # RSS fuer Geruechte
+LISTING_MAX_ALTER_SEC = 600             # nur kaufen, wenn die Ankuendigung juenger als 10 min ist
+LISTING_MIN_START_SEC = 120             # Handelsstart muss mindestens so weit weg sein
+LISTING_MAX_HOLD_H = 72
+LISTING_MIN_LIQ_USD = 100_000
+LISTING_MIN_LIQ_NEBEN_USD = 10_000      # Treffer mit weniger Liquiditaet zaehlen bei der Eindeutigkeit nicht mit
+LISTING_MEHRDEUTIG_ANTEIL = 0.25        # zweiter Treffer mit >= 25 % der Liquiditaet des ersten -> nicht kaufen
+LISTING_MAX_POSITIONS = 6
+LISTING_GERUECHT_MAX_ALTER_H = 48
+
 # Experiment Endspurt (seit 30.09.): Pump.fun-Coins kurz vor der Graduation, raus bei der Graduation.
 # Grundlage: arXiv 2602.14860 (655.770 Pump.fun-Coins, Sept. 2025). Preis auf der Kurve = vSol^2 / K.
 PUMP_K = 30 * 1_073_000_000             # virtuelle SOL x virtuelle Token beim Start (SOL * Token)
@@ -204,7 +228,7 @@ ENDSPURT_MIN_TRADES = 2000              # Filter: mindestens so viele Trades sei
 ENDSPURT_MAX_SLIPPAGE_PCT = 3.0
 KONTROLL_INTERVAL_MIN = 30              # Kontrollgruppe: etwa alle 30 min ein zufaelliger Coin
 EXP_WATCH_AFTER_EXIT = {"ohne_limit", "endspurt_ohne_filter", "notbremse_25", "offene_tuer", "serien_devs",
-                        "grosse_coins", "drittel_leiter"}
+                        "grosse_coins", "drittel_leiter", "listing_welle"}
 EXP_LOG_OPEN_EVERY_LOOPS = 3            # Experimente: offene Positionen alle ~36 s aufzeichnen   # nach dem Verkauf 6 h weiter aufzeichnen (fuer Nachrechnungen)
 DISCORD_WEBHOOK_EXPERIMENTE = (os.environ.get("DISCORD_WEBHOOK_EXPERIMENTE") or "").strip()
 
@@ -1304,6 +1328,7 @@ def open_position(p, v, bundle, sol_usd, max_slippage_pct=None, extra_pos=None):
            "mitlaeufer": v.get("mitlaeufer"), "solana_tracker": v.get("solana_tracker"),
            "graduated": v.get("graduated", False), "liq_low_checks": 0}
     pos.update(extra_pos or {})
+    thesis, exit_rule = pos["thesis"], pos["exit_rule"]        # Experimente duerfen eigene Texte setzen
     b0 = _block0_cache.get(v["mint"]) if (bundle or {}).get("quelle") == "block0" else None
     if b0 and b0.get("bought"):
         top = sorted(b0["bought"].items(), key=lambda x: -x[1])[:FLUG_B0_MAX_WALLETS]
@@ -1380,6 +1405,9 @@ def close_position(p, pos, price_usd, reason, sol_usd):
                    "hold_h": round((time.time() - pos["opened"]) / 3600, 2),
                    "closed_at": datetime.now(timezone.utc).isoformat()})
     record["runde"] = p.get("runde")
+    for key in ("listing_boerse", "listing_id", "listing_ankuendigung", "listing_start"):   # Experiment Listing-Welle
+        if key in pos:
+            record[key] = pos[key]
     p["closed"].append(record)
     if CTX["watch"]:
         p.setdefault("watch", {})[pos["mint"]] = {
@@ -1460,6 +1488,20 @@ def manage_positions(p, sol_usd, now):
                 reason = f"KURVE_ZURUECK (vSol {vsol:.0f} statt {pos['entry_vsol']:.0f})"
             elif now - pos["opened"] > ENDSPURT_MAX_MIN * 60:
                 reason = f"ZEIT_STOP ({ENDSPURT_MAX_MIN} min ohne Graduation)"
+            if reason:
+                close_position(p, pos, price, reason, sol_usd)
+            continue
+
+        # Experiment Listing-Welle: Verkauf zum Handelsstart, sonst nach 72 h, Notbremse -40 %
+        if pos.get("exit_mode") == "listing":
+            start = pos.get("listing_start")
+            reason = None
+            if change_pct <= pos.get("stop_pct", EMERGENCY_STOP_PCT):
+                reason = f"NOTBREMSE ({change_pct:+.0f}%)"
+            elif start and now >= start:
+                reason = "HANDELSSTART (Listing an der Boerse beginnt, komplett raus)"
+            elif now - pos["opened"] > LISTING_MAX_HOLD_H * 3600:
+                reason = f"ZEIT_STOP ({LISTING_MAX_HOLD_H} h ohne Handelsstart)"
             if reason:
                 close_position(p, pos, price, reason, sol_usd)
             continue
@@ -1837,6 +1879,222 @@ def control_group_pick(ep, views, sol_usd, now):
             return
 
 
+def _listing_iso(ts):
+    return datetime.fromtimestamp(ts, timezone.utc).strftime("%Y-%m-%d %H:%M:%S") if ts else ""
+
+
+def _listing_csv(path, header, row):
+    """Eine Zeile anhaengen (Kopfzeile beim ersten Mal). Fremder Text: Zeilenumbrueche raus."""
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    new = not os.path.exists(path)
+    ensure_csv_columns(path, header)
+    with open(path, "a", newline="", encoding="utf-8") as f:
+        w = csv.writer(f)
+        if new:
+            w.writerow(header)
+        w.writerow([re.sub(r"[\r\n\t]+", " ", str(row.get(k, ""))).strip()[:300] for k in header])
+
+
+def listing_get(url):
+    res = SESSION.get(url, timeout=15)
+    res.raise_for_status()
+    return res.content
+
+
+def listing_token(symbol, braucht_verifiziert):
+    """Solana-Token zum Boersen-Ticker ueber Jupiter. Rueckgabe (token, None) oder (None, Grund).
+    Nur genau gleicher Ticker, genug Liquiditaet und ein eindeutiger Treffer. Ohne Netzwerk-Angabe der Boerse
+    (Binance, Coinbase) muss der Token bei Jupiter als verifiziert gelten: sonst koennte ein fremder Coin mit
+    demselben Ticker gemeint sein."""
+    if not re.fullmatch(r"[A-Z0-9]{2,12}", symbol or ""):
+        return None, "kein_gueltiger_ticker"
+    data = jup_get(f"/tokens/v2/search?query={symbol}")
+    if not isinstance(data, list):
+        return None, "jupiter_keine_antwort"
+    treffer = sorted((t for t in data if str(t.get("symbol", "")).upper() == symbol and t.get("id")
+                      and as_float(t.get("liquidity")) >= LISTING_MIN_LIQ_NEBEN_USD),
+                     key=lambda t: -as_float(t.get("liquidity")))
+    if not treffer:
+        return None, "kein_solana_token"
+    best = treffer[0]
+    best_liq = as_float(best.get("liquidity"))
+    if best_liq < LISTING_MIN_LIQ_USD:
+        return None, "zu_wenig_liquiditaet"
+    if len(treffer) > 1 and as_float(treffer[1].get("liquidity")) >= best_liq * LISTING_MEHRDEUTIG_ANTEIL:
+        return None, "mehrdeutig"
+    if braucht_verifiziert and not (best.get("isVerified") or "verified" in (best.get("tags") or [])):
+        return None, "nicht_verifiziert"
+    return best, None
+
+
+def listing_ereignis(ep, ev, sol_usd, now):
+    """Eine Boersen-Meldung verarbeiten: je Coin entscheiden (kaufen oder Grund), alles in ereignisse.csv."""
+    st = ep.setdefault("listing", {})
+    for coin in ev.get("coins", []):
+        sym, netz, start = coin.get("symbol", ""), coin.get("netzwerk", ""), coin.get("start")
+        row = {"zeit_erfasst": _listing_iso(now), "typ": "ankuendigung", "ereignis_id": ev["id"],
+               "boerse": ev["boerse"], "quelle_typ": ev["quelle_typ"], "art": ev["art"], "symbol": sym,
+               "titel": ev["titel"], "ankuendigung_zeit": _listing_iso(ev["zeit"]),
+               "handelsstart_zeit": _listing_iso(start), "url": ev.get("url", "")}
+        if ev["art"] == "listing":
+            off = st.setdefault("offiziell", {})
+            off[sym] = ev["zeit"]
+            for k in sorted(off, key=off.get)[:-500]:
+                del off[k]
+        try:
+            if ev["art"] != "listing":
+                row["entscheidung"] = ev["art"]
+            elif ev["quelle_typ"] == "handelsstart":
+                row["entscheidung"] = "nur_aufzeichnung"        # ein neuer Markt ist schon der Handelsstart
+            elif now - ev["zeit"] > LISTING_MAX_ALTER_SEC:
+                row["entscheidung"] = "zu_alt"
+            elif netz and "solana" not in netz.lower():
+                row["entscheidung"] = "anderes_netzwerk"
+            elif start and start - now < LISTING_MIN_START_SEC:
+                row["entscheidung"] = "start_zu_nah"
+            else:
+                _listing_kauf(ep, ev, coin, row, sol_usd, now)
+        except Interrupted:
+            raise
+        except Exception as err:
+            row["entscheidung"] = "fehler"
+            STATS["exp_errors"] += 1
+            STATS["last_error"] = str(err)
+            print(f"[EXPERIMENT listing_welle] {sym}: {str(err)[:100]}")
+        _listing_csv(LISTING_EREIGNISSE_FILE, LISTING_EREIGNISSE_HEADER, row)
+
+
+def _listing_kauf(ep, ev, coin, row, sol_usd, now):
+    sym, netz, start = coin["symbol"], coin.get("netzwerk", ""), coin.get("start")
+    tok, grund = listing_token(sym, braucht_verifiziert=not netz)
+    if tok is None:
+        row["entscheidung"] = grund
+        return
+    v = token_view(tok, now)
+    row.update(mint=v["mint"], kurs_usd=f"{v['price']:.12g}", liquiditaet_usd=round(v["liquidity"]))
+    if v["price"] <= 0:
+        row["entscheidung"] = "kein_kurs"
+        return
+    if not exp_can_buy(ep, v, now, LISTING_MAX_POSITIONS):
+        row["entscheidung"] = "kein_platz_oder_geld"
+        return
+    vor = listings.kurs_vorlauf(listing_get, v["mint"], ev["zeit"])
+    h3, d3 = vor["anstieg_3h_pct"], vor["anstieg_3d_pct"]
+    row.update(anstieg_3h_pct="" if h3 is None else h3, anstieg_3d_pct="" if d3 is None else d3)
+    start_txt = f"Handelsstart {_listing_iso(start)} UTC" if start else "Handelsstart noch offen"
+    extra = {"exit_mode": "listing", "listing_boerse": ev["boerse"], "listing_id": ev["id"],
+             "listing_ankuendigung": ev["zeit"], "listing_start": start,
+             "thesis": f"{ev['boerse']}-Listing angekuendigt ({start_txt}); Anstieg davor: "
+                       f"3 h {'?' if h3 is None else f'{h3:+.0f} %'}, 3 Tage {'?' if d3 is None else f'{d3:+.0f} %'}",
+             "exit_rule": f"Komplett zum Handelsstart, sonst nach {LISTING_MAX_HOLD_H} h; "
+                          f"Notbremse {EMERGENCY_STOP_PCT:.0f} %"}
+    ok = open_position(ep, dict(v, quelle="listing"),
+                       {"quelle": "experiment", "text": f"Listing-Welle: {ev['boerse']}"}, sol_usd, extra_pos=extra)
+    row["entscheidung"] = "gekauft" if ok else "kauf_fehlgeschlagen"
+    if ok:
+        save_portfolio(ep)
+
+
+def _listing_quelle(st, name, ok, err=""):
+    q = st.setdefault("quellen", {}).setdefault(name, {"ok": 0, "fehler": 0, "letzter_fehler": ""})
+    q["ok" if ok else "fehler"] += 1
+    if not ok:
+        q["letzter_fehler"] = str(err)[:100]
+
+
+def listing_geruechte(ep, now, items=None):
+    """Nachrichten ueber moegliche Listings nur aufzeichnen (geruechte.csv), nie handeln."""
+    st = ep.setdefault("listing", {})
+    if items is None:
+        try:
+            items, fehler = listings.hole_news(listing_get)
+            for f in fehler:
+                _listing_quelle(st, "RSS " + f.split(":")[0], False, f)
+            _listing_quelle(st, "RSS", bool(items), "keine Nachrichten")
+        except Interrupted:
+            raise
+        except Exception as err:
+            _listing_quelle(st, "RSS", False, err)
+            return
+    gesehen = st.setdefault("rss_gesehen", [])
+    off = st.get("offiziell", {})
+    for it in items:
+        key = it.get("link") or it["titel"]
+        if key in gesehen or now - it["zeit"] > LISTING_GERUECHT_MAX_ALTER_H * 3600 or not listings.ist_geruecht(it):
+            continue
+        gesehen.append(key)
+        for coin in listings.ticker_in_text(f"{it['titel']} {it['anriss']}")[:3]:
+            _listing_csv(LISTING_GERUECHTE_FILE, LISTING_GERUECHTE_HEADER, {
+                "zeit_erfasst": _listing_iso(now), "nachricht_zeit": _listing_iso(it["zeit"]), "coin": coin,
+                "quelle": it["quelle"], "titel": it["titel"][:200], "link": it["link"],
+                "offiziell_vorher": "ja" if off.get(coin, now + 1) <= now else "nein"})
+    del gesehen[:-600]
+
+
+def listing_welle_schritt(ep, sol_usd, now):
+    """Wird in jedem Durchlauf aufgerufen; die Abfragen selbst laufen nach Zeitplan (Upbit alle 2 min)."""
+    st = ep.setdefault("listing", {})
+    ereignisse = []
+    if now >= st.get("next_upbit", 0):
+        st["next_upbit"] = now + LISTING_POLL_SEC
+        try:
+            gesehen = set(st.get("upbit", []))
+            ereignisse += listings.upbit_ereignisse(listing_get, gesehen)
+            st["upbit"] = sorted(gesehen, key=lambda s: int(s.split(":")[1]))[-300:]
+            _listing_quelle(st, "Upbit", True)
+        except Interrupted:
+            raise
+        except Exception as err:
+            _listing_quelle(st, "Upbit", False, err)
+    if now >= st.get("next_listen", 0):
+        st["next_listen"] = now + LISTING_LISTEN_POLL_SEC
+        for name, key, fn, als_dict in (("Binance", "binance", listings.binance_ereignisse, False),
+                                        ("Coinbase", "coinbase", listings.coinbase_ereignisse, True),
+                                        ("Bithumb", "bithumb", listings.bithumb_ereignisse, False)):
+            try:
+                bekannt = dict(st.get(key, {})) if als_dict else set(st.get(key, []))
+                ereignisse += fn(listing_get, bekannt)
+                st[key] = bekannt if als_dict else sorted(bekannt)
+                _listing_quelle(st, name, True)
+            except Interrupted:
+                raise
+            except Exception as err:
+                _listing_quelle(st, name, False, err)
+        _listing_starts_nachtragen(ep, now)
+    for ev in ereignisse:
+        try:
+            listing_ereignis(ep, ev, sol_usd, now)
+        except Interrupted:
+            raise
+        except Exception as err:                 # ein Ereignis darf die anderen nicht mitreissen
+            STATS["exp_errors"] += 1
+            STATS["last_error"] = str(err)
+            print(f"[EXPERIMENT listing_welle] {ev.get('id')}: {str(err)[:100]}")
+    if now >= st.get("next_news", 0):
+        st["next_news"] = now + LISTING_NEWS_POLL_SEC
+        listing_geruechte(ep, now)
+
+
+def _listing_starts_nachtragen(ep, now):
+    """Binance/Coinbase nennen keinen Starttermin: Der Start ist, wenn das Paar voll handelbar wird."""
+    offen = [x for x in ep["positions"].values()
+             if x.get("exit_mode") == "listing" and not x.get("listing_start")
+             and x.get("listing_boerse") in ("Binance", "Coinbase")]
+    if not offen:
+        return
+    cb_basen = {x["symbol"].upper() for x in offen if x["listing_boerse"] == "Coinbase"}
+    bn_basen = {x["symbol"].upper() for x in offen if x["listing_boerse"] == "Binance"}
+    jetzt_offen = {("Coinbase", b) for b in listings.coinbase_offen(listing_get, cb_basen)} if cb_basen else set()
+    jetzt_offen |= {("Binance", b) for b in listings.binance_offen(listing_get, bn_basen)} if bn_basen else set()
+    for pos in offen:
+        if (pos["listing_boerse"], pos["symbol"].upper()) in jetzt_offen:
+            pos["listing_start"] = now
+            _listing_csv(LISTING_EREIGNISSE_FILE, LISTING_EREIGNISSE_HEADER, {
+                "zeit_erfasst": _listing_iso(now), "typ": "handelsstart", "ereignis_id": pos.get("listing_id", ""),
+                "boerse": pos["listing_boerse"], "symbol": pos["symbol"], "mint": pos["mint"],
+                "ankuendigung_zeit": _listing_iso(pos.get("listing_ankuendigung")), "handelsstart_zeit": _listing_iso(now)})
+
+
 def save_experiments(exps):
     for name, ep in exps.items():
         try:
@@ -1915,6 +2173,8 @@ def manage_experiments(p, exps, sol_usd, now):
         try:
             with experiment(name):
                 manage_positions(ep, sol_usd, now)
+                if name == "listing_welle" and name not in EXP_BEENDET:
+                    listing_welle_schritt(ep, sol_usd, now)
                 if name == "zweite_welle" and STATS["loops"] % WATCH_LOG_EVERY_LOOPS == 0:
                     second_wave_entries(p, ep, sol_usd, now)
                 if name not in EXP_BEENDET:              # beendet: keine neue Runde mehr
@@ -1924,6 +2184,18 @@ def manage_experiments(p, exps, sol_usd, now):
             EXP_STATS[name]["exp_errors"] += 1
             EXP_STATS[name]["last_error"] = str(err)
             print(f"[EXPERIMENT {name}] {err}")
+
+
+def listing_quellen_text(ep):
+    """Endmeldung: wie viele Abfragen je Quelle gelungen sind (zeigt z. B. eine gesperrte Quelle)."""
+    q = (ep.get("listing") or {}).get("quellen") or {}
+    teile = []
+    for name, v in q.items():
+        if name.startswith("RSS "):
+            continue
+        gesamt = v["ok"] + v["fehler"]
+        teile.append(f"{name} {v['ok']}/{gesamt}" + (f" (zuletzt: {v['letzter_fehler'][:40]})" if v["fehler"] and not v["ok"] else ""))
+    return f" | Listing-Quellen gesamt: {', '.join(teile)}" if teile else ""
 
 
 def experiment_lines():
@@ -1940,7 +2212,8 @@ def experiment_lines():
             lines.append(f"**{title}:** {value:.2f} SOL (Runde {ep.get('runde', 1)}) | Schicht: "
                          f"{len(s['entries'])} Kaeufe, {len(ex)} geschlossen, "
                          f"{sum(e['pnl_sol'] for e in ex):+.3f} SOL, offen {len(ep['positions'])}"
-                         + (f" | Fehler {s['exp_errors']}" if s["exp_errors"] else ""))
+                         + (f" | Fehler {s['exp_errors']}" if s["exp_errors"] else "")
+                         + (listing_quellen_text(ep) if name == "listing_welle" else ""))
         except Exception as err:
             lines.append(f"**{title}:** nicht lesbar ({str(err)[:80]})")
     return lines

@@ -96,6 +96,11 @@ CSS = f"""
 .pb-name {{ font-weight: 600; font-size: 0.92rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }}
 .pb-detail {{ font-size: 0.78rem; color: {TEXT_LEISE}; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }}
 .pb-wert {{ text-align: right; font-size: 0.92rem; white-space: nowrap; }}
+.pb-news {{ padding: 10px 6px; border-bottom: 1px solid rgba(160, 140, 255, 0.08); }}
+.pb-news:last-child {{ border-bottom: none; }}
+.pb-chips {{ display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 5px; }}
+.pb-frei {{ white-space: normal !important; overflow: visible !important; text-overflow: clip !important; }}
+.pb-link {{ color: {TEXT}; text-decoration: underline; text-decoration-color: rgba(139, 124, 246, 0.5); }}
 .pb-scroll {{ max-height: 520px; overflow-y: auto; padding-right: 4px; }}
 @media (max-width: 640px) {{
   .pb-zahl {{ font-size: 1.6rem; }}

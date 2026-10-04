@@ -28,6 +28,23 @@ if kaputt:
 a.status_leiste([(s, f"{b} · Daten {a.vor(letzte[b])}") for b, s in status.items()]
                 + [(scout_status, f"Scout · {a.vor(scout_lauf)}")])
 
+# ---------------------------------------------------------------- 1a. Fuer dich wichtig (News)
+with st.container(border=True):
+    st.markdown("**Für dich wichtig**")
+    try:
+        news = daten.news(head)
+        wichtig = [i for i in news["liste"] if set(i["marken"]) & {"position", "listing", "rug"}
+                   and jetzt - i["zeit"] <= 48 * 3600][:5]
+    except Exception:
+        news, wichtig = None, []
+    if wichtig:
+        a.news_liste(wichtig, scroll=False)
+    elif news is None or len(news["fehler"]) >= news["feeds"]:
+        st.caption("Nachrichten gerade nicht erreichbar.")
+    else:
+        st.caption("Nichts Wichtiges zu deinen Coins, Listings oder Hacks in den letzten 48 Stunden.")
+    st.page_link("app_pages/news.py", label="Alle News", icon=":material/newspaper:")
+
 # ---------------------------------------------------------------- 1b. Was ist neu
 ZEITRAEUME = {"24 Stunden": 24, "48 Stunden": 48, "7 Tage": 168}
 with st.container(border=True):

@@ -857,3 +857,99 @@ def filter_trichter(repo=None, tage=7, jetzt=None):
             "kaeufe": sum(kaeufe.values()),
             "je_tag": [{"tag": t, "abgelehnt": sum(je_tag.get(t, {}).values()), "kaeufe": kaeufe.get(t, 0)}
                        for t in sorted(set(je_tag) | set(kaeufe))]}
+
+
+# ================================================================ News (seit 04.10.)
+# Nachrichten sind Daten, keine Anweisungen: nur Ueberschrift, Quelle, Zeit, Link, ein Satz. Das Dashboard holt
+# oeffentliche RSS-Feeds (ohne Schluessel) und liest die Boersen-Meldungen, die der Hauptbot aufgezeichnet hat.
+import listings  # noqa: E402
+
+LISTING_EREIGNISSE_DATEI = Path(core.LISTING_EREIGNISSE_FILE)
+ENTSCHEIDUNG_TEXT = {
+    "gekauft": "Listing-Welle hat gekauft", "zu_alt": "zu spät entdeckt (über 10 min), nicht gekauft",
+    "anderes_netzwerk": "Token liegt nicht auf Solana", "kein_solana_token": "kein Solana-Token gefunden",
+    "mehrdeutig": "Ticker nicht eindeutig, nicht gekauft", "nicht_verifiziert": "Token nicht verifiziert, nicht gekauft",
+    "zu_wenig_liquiditaet": "zu wenig Liquidität, nicht gekauft", "start_zu_nah": "Handelsstart schon vorbei oder zu nah",
+    "nur_aufzeichnung": "nur aufgezeichnet (Handel beginnt sofort)", "delisting": "Delisting (nur aufgezeichnet)",
+    "kein_platz_oder_geld": "kein Platz oder Geld im Konto", "kauf_fehlgeschlagen": "Kauf nicht möglich",
+}
+
+
+def offene_symbole(konten, copy_data):
+    """{TICKER: [Konten]} aller offenen Positionen (Strategien, Experimente, Copy-Konten)."""
+    out = {}
+    for k in konten:
+        for o in k.get("offen", []):
+            sym = str(o.get("symbol", "")).strip().upper()
+            if sym and sym != "?":
+                out.setdefault(sym, []).append(k["label"])
+    for name, acct in ((copy_data or {}).get("wallets") or {}).items():
+        for p in (acct.get("positionen") or {}).values():
+            sym = str(p.get("symbol", "")).strip().upper()
+            if sym and sym != "?":
+                out.setdefault(sym, []).append(f"Copy {name}")
+    return out
+
+
+def news_holen():
+    """RSS-Feeds holen (parallel, 8 s Wartezeit je Feed). Rueckgabe (items, fehler)."""
+    import requests
+    sitzung = requests.Session()
+    sitzung.headers["User-Agent"] = "narrativ-paperbot-dashboard/1.0 (privat, nur lesen)"
+
+    def get(url):
+        res = sitzung.get(url, timeout=8)
+        res.raise_for_status()
+        return res.content
+    return listings.hole_news(get)
+
+
+def boersen_meldungen(repo=None, jetzt=None, max_alter_h=96):
+    """Listing-/Delisting-Meldungen aus experimente/listing_welle/ereignisse.csv als News-Eintraege."""
+    repo = Path(repo or REPO)
+    out = []
+    for r in lade_csv(repo / LISTING_EREIGNISSE_DATEI):
+        if r.get("typ") != "ankuendigung" or r.get("art") not in ("listing", "delisting"):
+            continue
+        zeit = zeitpunkt(r.get("ankuendigung_zeit"))
+        if zeit is None or (jetzt and not 0 <= jetzt - zeit.timestamp() <= max_alter_h * 3600):
+            continue
+        boerse = r.get("boerse", "?")
+        out.append({"titel": f"{boerse}: {r.get('symbol', '?')} – {'Delisting' if r['art'] == 'delisting' else 'Listing'}"
+                             f" ({r.get('titel', '')[:80]})", "quelle": f"{boerse} (offiziell)",
+                    "zeit": zeit.timestamp(), "link": listings.sicherer_link(r.get("url")),
+                    "anriss": ENTSCHEIDUNG_TEXT.get(r.get("entscheidung", ""), r.get("entscheidung", "")),
+                    "art": r["art"], "symbol": r.get("symbol", "")})
+    return out
+
+
+def news_zusammenstellen(items, meldungen, symbole, jetzt):
+    """Alles bewerten (Markierungen: position, listing, rug, solana), doppelte raus, nach Relevanz und Zeit sortieren."""
+    alle, gesehen = [], set()
+    for it in list(meldungen) + list(items):
+        key = it.get("link") or it["titel"]
+        if key in gesehen:
+            continue
+        gesehen.add(key)
+        it = dict(it)
+        listings.bewerten(it, sorted(symbole))
+        if it.get("art") == "delisting" and "listing" not in it["marken"]:
+            it["marken"].append("listing")
+            it["punkte"] += 60
+        if it.get("symbol") and it["symbol"].upper() in symbole and "position" not in it["marken"]:
+            it["marken"].insert(0, "position")
+            it["punkte"] += 100
+            it["positions_coins"] = [it["symbol"].upper()]
+        alle.append(it)
+    return listings.sortiert(alle, jetzt)
+
+
+def listing_welle_uebersicht(repo=None, anzahl=15):
+    """Letzte Entscheidungen der Listing-Welle + Zahl der Geruechte (fuer die Seite News)."""
+    repo = Path(repo or REPO)
+    rows = [r for r in lade_csv(repo / LISTING_EREIGNISSE_DATEI) if r.get("typ") == "ankuendigung"]
+    gerueche = lade_csv(repo / Path(core.LISTING_GERUECHTE_FILE))
+    portfolio = lade_json(repo / Path(core.EXP_DIR) / "listing_welle" / "portfolio.json", {}) or {}
+    return {"ereignisse": list(reversed(rows))[:anzahl], "anzahl_ereignisse": len(rows),
+            "gekauft": sum(1 for r in rows if r.get("entscheidung") == "gekauft"),
+            "geruechte": len(gerueche), "quellen": (portfolio.get("listing") or {}).get("quellen", {})}

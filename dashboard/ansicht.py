@@ -170,6 +170,28 @@ def ereignisse(zeilen):
     st.html(f'<div class="pb-karte"><div class="pb-scroll"><div class="pb-liste">{teile}</div></div></div>')
 
 
+NEWS_MARKEN = {"position": ("Meine Coins", "achtung"), "listing": ("Listing", ""), "rug": ("Rug / Hack", "schlecht"),
+               "solana": ("Solana", "gut")}
+
+
+def news_liste(items, scroll=True):
+    """Nachrichten: Markierungen, Ueberschrift (Link), hoechstens ein Satz, Quelle und Alter. Fremder Text wird
+    maskiert; Links nur http(s) (sicherer_link in listings.py)."""
+    zeilen = []
+    for i in items:
+        chips = "".join(chip(*NEWS_MARKEN[m]) for m in i.get("marken", []) if m in NEWS_MARKEN)
+        titel = e(i["titel"])
+        if i.get("link"):
+            titel = f'<a class="pb-link" href="{e(i["link"])}" target="_blank" rel="noopener noreferrer">{titel}</a>'
+        coins = f" · deine Coins: {e(', '.join(i['positions_coins']))}" if i.get("positions_coins") else ""
+        anriss = f'<div class="pb-detail pb-frei">{e(i["anriss"])}</div>' if i.get("anriss") else ""
+        zeilen.append('<div class="pb-news">' + (f'<div class="pb-chips">{chips}</div>' if chips else "") +
+                      f'<div class="pb-name pb-frei">{titel}</div>{anriss}'
+                      f'<div class="pb-detail">{e(i["quelle"])} · {e(vor(i["zeit"]))}{coins}</div></div>')
+    inhalt = f'<div class="pb-liste">{"".join(zeilen)}</div>'
+    st.html('<div class="pb-karte">' + (f'<div class="pb-scroll">{inhalt}</div>' if scroll else inhalt) + "</div>")
+
+
 # ================================================================ Diagramme
 
 def balken(df, wert, name, titel_x, stellen=3, referenz=None, referenz_text=""):

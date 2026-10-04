@@ -75,3 +75,29 @@ def neu_seit(head, stunden):
     korr = rechnung.korrekturen()
     zeilen = rechnung.journal_bereinigen(rechnung.lade_csv(rechnung.pfad(rechnung.cb.JOURNAL_FILE)), korr)
     return rechnung.neu_seit(jetzt - stunden * 3600, konten, zeilen, copy, jetzt)
+
+
+@st.cache_data(ttl=600, max_entries=1, show_spinner="Nachrichten werden geholt …")
+def news_roh():
+    """RSS-Feeds (oeffentlich, ohne Schluessel), hoechstens alle 10 min. Ein Ausfall zeigt nur einen Hinweis."""
+    try:
+        items, fehler = rechnung.news_holen()
+    except Exception as err:
+        items, fehler = [], [str(err)[:80]]
+    return items, fehler, time.time()
+
+
+@st.cache_data(ttl=300, max_entries=4, show_spinner=False)
+def news(head):
+    """Nachrichten + Boersen-Meldungen, bewertet fuer die offenen Positionen aller Konten."""
+    items, fehler, geholt = news_roh()
+    symbole = rechnung.offene_symbole(strategie_konten(head), copy_rohdaten(head))
+    jetzt = time.time()
+    liste = rechnung.news_zusammenstellen(items, rechnung.boersen_meldungen(jetzt=jetzt), set(symbole), jetzt)
+    return {"liste": liste, "fehler": fehler, "geholt": geholt, "feeds": len(rechnung.listings.RSS_QUELLEN),
+            "symbole": symbole}
+
+
+@st.cache_data(ttl=600, max_entries=4, show_spinner=False)
+def listing_welle(head):
+    return rechnung.listing_welle_uebersicht()
