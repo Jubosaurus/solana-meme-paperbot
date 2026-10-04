@@ -1,7 +1,7 @@
 {
   "strategy": "EXPERIMENT_offene_tuer",
   "started": "2026-10-04T00:34:10.471054+00:00",
-  "bankroll_sol": 4.22366,
+  "bankroll_sol": 4.02216,
   "positions": {
     "Finj8MnAmLC8ZmPGmkMBjDQV8YUEGyKWyosprUNYXn6i": {
       "mint": "Finj8MnAmLC8ZmPGmkMBjDQV8YUEGyKWyosprUNYXn6i",
@@ -67,7 +67,73 @@
       "solana_tracker": null,
       "graduated": false,
       "liq_low_checks": 0,
-      "flug_last": 1791157440.5054805
+      "flug_last": 1791157533.1479144
+    },
+    "DXyJSNZeL3ck9rM34mK5umG1hPG3R5XBGPwKN2wTd866": {
+      "mint": "DXyJSNZeL3ck9rM34mK5umG1hPG3R5XBGPwKN2wTd866",
+      "symbol": "Magikarp",
+      "opened": 1791157508.099222,
+      "invested_sol": 0.2,
+      "fees_sol": 0.0015,
+      "entry_signal_usd": 3.102134580000291e-05,
+      "entry_fill_usd": 3.1374406147581897e-05,
+      "entry_slippage_pct": 1.14,
+      "roundtrip_cost_pct": 2.89,
+      "tokens_initial": 774893.435824,
+      "tokens_left": 774893.435824,
+      "decimals": 6,
+      "proceeds_sol": 0.0,
+      "peak_usd": 3.1374406147581897e-05,
+      "tp1_done": false,
+      "thesis_breaks": 0,
+      "missing_loops": 0,
+      "entry_liquidity": 11373.150054204805,
+      "entry_view": {
+        "age_h": 0.8019557750225067,
+        "mcap": 30964.773439274024,
+        "liquidity": 11373.150054204805,
+        "holders": 205,
+        "holder_growth_1h": 1763.6363636363637,
+        "holder_growth_5m": 27.32919254658385,
+        "net_buyers_5m": 43,
+        "organic_buyers_5m": 6,
+        "organic_score": 33.74187088639393,
+        "price_change_1h": 630.7861608201825,
+        "price_change_5m": 13.250738453879588,
+        "buys_5m": 114,
+        "sells_5m": 54,
+        "traders_5m": 74,
+        "traders_1h": 581,
+        "buy_vol_5m": 4920.630740162561,
+        "sell_vol_5m": 5309.3608318802635,
+        "buy_vol_1h": 64026.433241151244,
+        "sell_vol_1h": 57906.83814782466,
+        "organic_buy_vol_1h": 511.947779065589,
+        "top_holders_pct": 25.874568257248843,
+        "dev_balance_pct": 0.22841063513278537,
+        "dev_mints": 4,
+        "launchpad": "pump.fun",
+        "graduated": false,
+        "social": true,
+        "quelle": "organic1h+traded1h+traded5m+trend1h",
+        "trades_24h": 2467,
+        "organic_label": "medium",
+        "buy_organic_vol_5m": 66.0028494292033,
+        "jup_fees": null,
+        "hour_utc": 23
+      },
+      "bundle": {
+        "quelle": "experiment",
+        "text": "Offene Tuer: ohne Sicherheits-, Bundle- und Dev-Pruefung"
+      },
+      "phase": "heiss",
+      "thesis": "Story verbreitet sich: Holder +1764%/h, 43 Netto-Kaeufer 5m, 6 organisch; Offene Tuer: ohne Sicherheits-, Bundle- und Dev-Pruefung; Dev-Coins 4",
+      "exit_rule": "Haelfte bei 2x; Rest raus, wenn Holder schrumpfen und Netto-Verkaeufer 2x in Folge, Liquiditaet -30%, -40%, nach 1,5x nicht unter Einstand, nach 2x 30 % vom Hoch (ab 10x 25 %)",
+      "mitlaeufer": null,
+      "solana_tracker": null,
+      "graduated": false,
+      "liq_low_checks": 0,
+      "flug_last": 1791157533.1479144
     }
   },
   "closed": [
@@ -8604,18 +8670,10 @@
     "bgzZngPG4bZTPRFjsyaVA12LMP64ZgFjdjjzHZ9qQNR": 1791155824.5570872,
     "9BMbyUfW6g4ptTGqyZeLdKRMz9tM4ssSgUEKYK94hook": 1791156437.7849405,
     "Finj8MnAmLC8ZmPGmkMBjDQV8YUEGyKWyosprUNYXn6i": 1791156655.4117906,
-    "AYHHpvAVf27Rv64PBPXHEJKg8MXaJ35vmsn8GV6wFigf": 1791156773.8502715
+    "AYHHpvAVf27Rv64PBPXHEJKg8MXaJ35vmsn8GV6wFigf": 1791156773.8502715,
+    "DXyJSNZeL3ck9rM34mK5umG1hPG3R5XBGPwKN2wTd866": 1791157508.0999613
   },
   "watch": {
-    "Eo7hAPND5wNHwqEEFp1qZ9cfDVsjtBkQi1hn782jd1bV": {
-      "symbol": "Yugi",
-      "entry_fill_usd": 3.3488812234691217e-05,
-      "opened": 1791135362.561317,
-      "peak_usd": 3.3488812234691217e-05,
-      "exit_usd": 1.950798646706446e-05,
-      "exit_reason": "NOTBREMSE (-42%)",
-      "until": 1791157442.0106535
-    },
     "APLeuTSqEx3EkzEzppAaCfrU8zHvWTNjQdR3rPXMnVHZ": {
       "symbol": "ROCKY",
       "entry_fill_usd": 7.144280798669064e-05,
@@ -8979,5 +9037,5 @@
   },
   "runde": 1,
   "shadow": {},
-  "saved_at": 1791157442.7699182
+  "saved_at": 1791157549.72844
 }
