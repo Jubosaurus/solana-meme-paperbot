@@ -1,7 +1,7 @@
 {
   "strategy": "EXPERIMENT_offene_tuer",
   "started": "2026-10-04T00:34:10.471054+00:00",
-  "bankroll_sol": 8.127172,
+  "bankroll_sol": 7.925672,
   "positions": {
     "FRJJM8d921GRTtGmYgzniEzmwAvZ6nhNyDqgXKZT92CQ": {
       "mint": "FRJJM8d921GRTtGmYgzniEzmwAvZ6nhNyDqgXKZT92CQ",
@@ -67,7 +67,73 @@
       "solana_tracker": null,
       "graduated": false,
       "liq_low_checks": 0,
-      "flug_last": 1791113404.3140063
+      "flug_last": 1791113465.936602
+    },
+    "287w94VmkRi54fsvfBP97fwDbftNFAXkAD2hQsHjpump": {
+      "mint": "287w94VmkRi54fsvfBP97fwDbftNFAXkAD2hQsHjpump",
+      "symbol": "ARENA",
+      "opened": 1791113491.2855084,
+      "invested_sol": 0.2,
+      "fees_sol": 0.0015,
+      "entry_signal_usd": 2.9625155300794826e-05,
+      "entry_fill_usd": 3.0013282517384794e-05,
+      "entry_slippage_pct": 1.31,
+      "roundtrip_cost_pct": 2.9,
+      "tokens_initial": 809081.015638,
+      "tokens_left": 809081.015638,
+      "decimals": 6,
+      "proceeds_sol": 0.0,
+      "peak_usd": 3.0013282517384794e-05,
+      "tp1_done": false,
+      "thesis_breaks": 0,
+      "missing_loops": 0,
+      "entry_liquidity": 10772.097227368453,
+      "entry_view": {
+        "age_h": 0.5073153660694758,
+        "mcap": 29546.769970047462,
+        "liquidity": 10772.097227368453,
+        "holders": 335,
+        "holder_growth_1h": 1993.75,
+        "holder_growth_5m": 1.82370820668693,
+        "net_buyers_5m": 71,
+        "organic_buyers_5m": 12,
+        "organic_score": 46.16512379973234,
+        "price_change_1h": 218.25092415056173,
+        "price_change_5m": -13.74681665464215,
+        "buys_5m": 159,
+        "sells_5m": 434,
+        "traders_5m": 167,
+        "traders_1h": 1109,
+        "buy_vol_5m": 5903.810387008338,
+        "sell_vol_5m": 6545.375401628498,
+        "buy_vol_1h": 98652.04948293803,
+        "sell_vol_1h": 93356.48167667289,
+        "organic_buy_vol_1h": 3014.4545452546326,
+        "top_holders_pct": 23.342123482576735,
+        "dev_balance_pct": 0.0,
+        "dev_mints": 1,
+        "launchpad": "pump.fun",
+        "graduated": false,
+        "social": false,
+        "quelle": "organic1h+organic5m+traded1h+traded5m+trend1h",
+        "trades_24h": 4744,
+        "organic_label": "medium",
+        "buy_organic_vol_5m": 285.2020920010906,
+        "jup_fees": null,
+        "hour_utc": 11
+      },
+      "bundle": {
+        "quelle": "experiment",
+        "text": "Offene Tuer: ohne Sicherheits-, Bundle- und Dev-Pruefung"
+      },
+      "phase": "normal",
+      "thesis": "Story verbreitet sich: Holder +1994%/h, 71 Netto-Kaeufer 5m, 12 organisch; Offene Tuer: ohne Sicherheits-, Bundle- und Dev-Pruefung; Dev-Coins 1",
+      "exit_rule": "Haelfte bei 2x; Rest raus, wenn Holder schrumpfen und Netto-Verkaeufer 2x in Folge, Liquiditaet -30%, -40%, nach 1,5x nicht unter Einstand, nach 2x 30 % vom Hoch (ab 10x 25 %)",
+      "mitlaeufer": null,
+      "solana_tracker": null,
+      "graduated": false,
+      "liq_low_checks": 0,
+      "flug_last": 1791113504.712236
     }
   },
   "closed": [
@@ -3024,7 +3090,8 @@
     "FRJJM8d921GRTtGmYgzniEzmwAvZ6nhNyDqgXKZT92CQ": 1791111157.3770485,
     "J6pPcwTGoQm6FaxVekKjpHaTNZGFQjZ9SGbttJpzD9D1": 1791111689.5225384,
     "4iSjtJhbZx7CFV8Qngb1zvebsy25SzYxnoQAvc6jpump": 1791111908.3208642,
-    "A1FjEfvA3kHiHyS65ySjEnXrsL8wVtpmwMEdCZbipump": 1791112561.5451272
+    "A1FjEfvA3kHiHyS65ySjEnXrsL8wVtpmwMEdCZbipump": 1791112561.5451272,
+    "287w94VmkRi54fsvfBP97fwDbftNFAXkAD2hQsHjpump": 1791113491.2862618
   },
   "watch": {
     "V9zCeRU67pBUXYwKz6A7aL1pXCJBXRVhC3NAWhLpump": {
@@ -3211,7 +3278,7 @@
       "symbol": "AGENT",
       "entry_fill_usd": 2.6933989479289703e-05,
       "opened": 1791107300.2164907,
-      "peak_usd": 3.063834568176134e-05,
+      "peak_usd": 3.539140324133804e-05,
       "exit_usd": 1.6347005218307155e-05,
       "exit_reason": "LIQUIDITAET_ABGEZOGEN",
       "until": 1791129432.97911
@@ -3309,5 +3376,5 @@
   },
   "runde": 1,
   "shadow": {},
-  "saved_at": 1791113433.0824258
+  "saved_at": 1791113521.284315
 }
