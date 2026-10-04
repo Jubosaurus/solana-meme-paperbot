@@ -1,7 +1,7 @@
 {
   "strategy": "EXPERIMENT_offene_tuer",
   "started": "2026-10-04T00:34:10.471054+00:00",
-  "bankroll_sol": 4.388931,
+  "bankroll_sol": 4.492094,
   "positions": {
     "9XKzy4KahcZaGJPJtz1PtqGPB3CiseoBrx7TcQhEpump": {
       "mint": "9XKzy4KahcZaGJPJtz1PtqGPB3CiseoBrx7TcQhEpump",
@@ -67,7 +67,7 @@
       "solana_tracker": null,
       "graduated": true,
       "liq_low_checks": 0,
-      "flug_last": 1791154081.3946295
+      "flug_last": 1791154145.2963655
     },
     "GbdUYiGiRxhr146N8d5hemgcscU8YUW8oYbKJhuApump": {
       "mint": "GbdUYiGiRxhr146N8d5hemgcscU8YUW8oYbKJhuApump",
@@ -133,73 +133,7 @@
       "solana_tracker": null,
       "graduated": true,
       "liq_low_checks": 0,
-      "flug_last": 1791154081.3946295
-    },
-    "7HE2WmPoYE7uaA7DKh25N5cUwEcUoiyjwZU9ZeaQpump": {
-      "mint": "7HE2WmPoYE7uaA7DKh25N5cUwEcUoiyjwZU9ZeaQpump",
-      "symbol": "pup",
-      "opened": 1791153978.6221225,
-      "invested_sol": 0.2,
-      "fees_sol": 0.0015,
-      "entry_signal_usd": 0.00018147083708355155,
-      "entry_fill_usd": 0.00020408699405525708,
-      "entry_slippage_pct": 12.46,
-      "roundtrip_cost_pct": 10.38,
-      "tokens_initial": 119462.078551,
-      "tokens_left": 119462.078551,
-      "decimals": 6,
-      "proceeds_sol": 0.0,
-      "peak_usd": 0.00020408699405525708,
-      "tp1_done": false,
-      "thesis_breaks": 0,
-      "missing_loops": 0,
-      "entry_liquidity": 18149.86095399698,
-      "entry_view": {
-        "age_h": 0.41882977856530085,
-        "mcap": 176927.37309829134,
-        "liquidity": 18149.86095399698,
-        "holders": 961,
-        "holder_growth_1h": 6764.285714285714,
-        "holder_growth_5m": 5.37280701754386,
-        "net_buyers_5m": 212,
-        "organic_buyers_5m": 30,
-        "organic_score": 52.85656666707294,
-        "price_change_1h": 1602.5832136865429,
-        "price_change_5m": -35.370892898392285,
-        "buys_5m": 791,
-        "sells_5m": 651,
-        "traders_5m": 507,
-        "traders_1h": 1375,
-        "buy_vol_5m": 52186.62686766302,
-        "sell_vol_5m": 55006.26213579155,
-        "buy_vol_1h": 266823.30881407246,
-        "sell_vol_1h": 253117.38085946548,
-        "organic_buy_vol_1h": 13460.503424488286,
-        "top_holders_pct": 20.301366825807428,
-        "dev_balance_pct": 0.0,
-        "dev_mints": 4,
-        "launchpad": "pump.fun",
-        "graduated": true,
-        "social": false,
-        "quelle": "organic1h+organic5m+traded1h+traded5m+trend1h",
-        "trades_24h": 7539,
-        "organic_label": "medium",
-        "buy_organic_vol_5m": 2864.3080138504356,
-        "jup_fees": null,
-        "hour_utc": 22
-      },
-      "bundle": {
-        "quelle": "experiment",
-        "text": "Offene Tuer: ohne Sicherheits-, Bundle- und Dev-Pruefung"
-      },
-      "phase": "normal",
-      "thesis": "Story verbreitet sich: Holder +6764%/h, 212 Netto-Kaeufer 5m, 30 organisch; Offene Tuer: ohne Sicherheits-, Bundle- und Dev-Pruefung; Dev-Coins 4",
-      "exit_rule": "Haelfte bei 2x; Rest raus, wenn Holder schrumpfen und Netto-Verkaeufer 2x in Folge, Liquiditaet -30%, -40%, nach 1,5x nicht unter Einstand, nach 2x 30 % vom Hoch (ab 10x 25 %)",
-      "mitlaeufer": null,
-      "solana_tracker": null,
-      "graduated": true,
-      "liq_low_checks": 0,
-      "flug_last": 1791154081.3946295
+      "flug_last": 1791154145.2963655
     }
   },
   "closed": [
@@ -8229,6 +8163,67 @@
       "hold_h": 0.01,
       "closed_at": "2026-10-04T22:32:45.474261+00:00",
       "runde": 1
+    },
+    {
+      "symbol": "pup",
+      "mint": "7HE2WmPoYE7uaA7DKh25N5cUwEcUoiyjwZU9ZeaQpump",
+      "invested_sol": 0.2,
+      "entry_fill_usd": 0.00020408699405525708,
+      "entry_slippage_pct": 12.46,
+      "roundtrip_cost_pct": 10.38,
+      "tp1_done": false,
+      "entry_view": {
+        "age_h": 0.41882977856530085,
+        "mcap": 176927.37309829134,
+        "liquidity": 18149.86095399698,
+        "holders": 961,
+        "holder_growth_1h": 6764.285714285714,
+        "holder_growth_5m": 5.37280701754386,
+        "net_buyers_5m": 212,
+        "organic_buyers_5m": 30,
+        "organic_score": 52.85656666707294,
+        "price_change_1h": 1602.5832136865429,
+        "price_change_5m": -35.370892898392285,
+        "buys_5m": 791,
+        "sells_5m": 651,
+        "traders_5m": 507,
+        "traders_1h": 1375,
+        "buy_vol_5m": 52186.62686766302,
+        "sell_vol_5m": 55006.26213579155,
+        "buy_vol_1h": 266823.30881407246,
+        "sell_vol_1h": 253117.38085946548,
+        "organic_buy_vol_1h": 13460.503424488286,
+        "top_holders_pct": 20.301366825807428,
+        "dev_balance_pct": 0.0,
+        "dev_mints": 4,
+        "launchpad": "pump.fun",
+        "graduated": true,
+        "social": false,
+        "quelle": "organic1h+organic5m+traded1h+traded5m+trend1h",
+        "trades_24h": 7539,
+        "organic_label": "medium",
+        "buy_organic_vol_5m": 2864.3080138504356,
+        "jup_fees": null,
+        "hour_utc": 22
+      },
+      "bundle": {
+        "quelle": "experiment",
+        "text": "Offene Tuer: ohne Sicherheits-, Bundle- und Dev-Pruefung"
+      },
+      "phase": "normal",
+      "thesis": "Story verbreitet sich: Holder +6764%/h, 212 Netto-Kaeufer 5m, 30 organisch; Offene Tuer: ohne Sicherheits-, Bundle- und Dev-Pruefung; Dev-Coins 4",
+      "mitlaeufer": null,
+      "solana_tracker": null,
+      "graduated_waehrend": false,
+      "proceeds_sol": 0.103163,
+      "pnl_sol": -0.098337,
+      "pnl_pct": -49.17,
+      "peak_multiple": 1.0,
+      "exit_usd": 0.00012035266092525952,
+      "exit_reason": "NOTBREMSE (-41%)",
+      "hold_h": 0.04,
+      "closed_at": "2026-10-04T22:48:53.093121+00:00",
+      "runde": 1
     }
   ],
   "cooldown": {
@@ -8773,9 +8768,18 @@
       "exit_usd": 1.8167526678332878e-05,
       "exit_reason": "NOTBREMSE (-58%)",
       "until": 1791174765.4742715
+    },
+    "7HE2WmPoYE7uaA7DKh25N5cUwEcUoiyjwZU9ZeaQpump": {
+      "symbol": "pup",
+      "entry_fill_usd": 0.00020408699405525708,
+      "opened": 1791153978.6221225,
+      "peak_usd": 0.00020408699405525708,
+      "exit_usd": 0.00012035266092525952,
+      "exit_reason": "NOTBREMSE (-41%)",
+      "until": 1791175733.0931325
     }
   },
   "runde": 1,
   "shadow": {},
-  "saved_at": 1791154107.9575639
+  "saved_at": 1791154192.7449455
 }
