@@ -1,7 +1,7 @@
 {
   "strategy": "EXPERIMENT_serien_devs",
   "started": "2026-10-04T00:34:10.471102+00:00",
-  "bankroll_sol": 9.881671,
+  "bankroll_sol": 9.680171,
   "positions": {
     "9ZmkKpVR3NdUcCmG5NByMHBzvjuqGnYpCPYu4zSSBtJv": {
       "mint": "9ZmkKpVR3NdUcCmG5NByMHBzvjuqGnYpCPYu4zSSBtJv",
@@ -75,7 +75,81 @@
         "zuerst": 1791100235,
         "mint": "7U62Lm4CKa25eRdBdYv3QeTJjJirxTVGJpA3ePkkpump"
       },
-      "flug_last": 1791101980.4737258
+      "flug_last": 1791102068.6543288
+    },
+    "54iVa5c26DZH66isFtx4QYpyQtink5zEuTszD9dHeNAh": {
+      "mint": "54iVa5c26DZH66isFtx4QYpyQtink5zEuTszD9dHeNAh",
+      "symbol": "AIDEN",
+      "opened": 1791102054.306257,
+      "invested_sol": 0.2,
+      "fees_sol": 0.0015,
+      "entry_signal_usd": 1.9381259713310035e-05,
+      "entry_fill_usd": 2.0654924147202207e-05,
+      "entry_slippage_pct": 6.57,
+      "roundtrip_cost_pct": 2.99,
+      "tokens_initial": 1171427.974355,
+      "tokens_left": 1171427.974355,
+      "decimals": 6,
+      "proceeds_sol": 0.0,
+      "peak_usd": 2.09014583266114e-05,
+      "tp1_done": false,
+      "thesis_breaks": 0,
+      "missing_loops": 0,
+      "entry_liquidity": 8689.276104769304,
+      "entry_view": {
+        "age_h": 0.751016214688619,
+        "mcap": 19381.259713310035,
+        "liquidity": 8689.276104769304,
+        "holders": 121,
+        "holder_growth_1h": 404.1666666666667,
+        "holder_growth_5m": 12.037037037037036,
+        "net_buyers_5m": 29,
+        "organic_buyers_5m": 1,
+        "organic_score": 43.71395839634289,
+        "price_change_1h": 298.93527713662536,
+        "price_change_5m": 54.60117975303624,
+        "buys_5m": 71,
+        "sells_5m": 59,
+        "traders_5m": 52,
+        "traders_1h": 475,
+        "buy_vol_5m": 3860.9013474811286,
+        "sell_vol_5m": 2619.574045579844,
+        "buy_vol_1h": 71355.03560325009,
+        "sell_vol_1h": 66385.85159613527,
+        "organic_buy_vol_1h": 2042.7033778833072,
+        "top_holders_pct": 29.0346049272394,
+        "dev_balance_pct": 0.0,
+        "dev_mints": 2,
+        "launchpad": "pump.fun",
+        "graduated": false,
+        "social": false,
+        "quelle": "organic1h+traded1h+traded5m+trend1h+trend5m",
+        "trades_24h": 2448,
+        "organic_label": "medium",
+        "buy_organic_vol_5m": 82.67634157664395,
+        "jup_fees": null,
+        "hour_utc": 8
+      },
+      "bundle": {
+        "quelle": "experiment",
+        "text": "Serien-Dev: frueherer Coin Reelpad bis 313,049 $"
+      },
+      "phase": "heiss",
+      "thesis": "Story verbreitet sich: Holder +404%/h, 29 Netto-Kaeufer 5m, 1 organisch; Serien-Dev: frueherer Coin Reelpad bis 313,049 $; Dev-Coins 2",
+      "exit_rule": "Haelfte bei 2x; Rest raus, wenn Holder schrumpfen und Netto-Verkaeufer 2x in Folge, Liquiditaet -30%, -40%, nach 1,5x nicht unter Einstand, nach 2x 30 % vom Hoch (ab 10x 25 %)",
+      "mitlaeufer": null,
+      "solana_tracker": null,
+      "graduated": false,
+      "liq_low_checks": 0,
+      "dev_exit": true,
+      "dev_pct_kauf": 0.0,
+      "serien_vorgaenger": {
+        "symbol": "Reelpad",
+        "peak": 313049,
+        "zuerst": 1791102036,
+        "mint": "2CZJzBoeS17uAQbAdBcrkpEJjPixEcsFvJAhwRV9pump"
+      },
+      "flug_last": 1791102068.6543288
     }
   },
   "closed": [
@@ -509,7 +583,8 @@
     "ETjCicCXaCkNMQX51tBWdZHsvB6AbtYRhF1311sqnVHe": 1791089281.4650662,
     "4vnJ6J1NwiHRKPNRpELqMTLNYRhCaJryTeZYcyodcH6p": 1791090619.769008,
     "7U62Lm4CKa25eRdBdYv3QeTJjJirxTVGJpA3ePkkpump": 1791095839.768621,
-    "9ZmkKpVR3NdUcCmG5NByMHBzvjuqGnYpCPYu4zSSBtJv": 1791100252.4602473
+    "9ZmkKpVR3NdUcCmG5NByMHBzvjuqGnYpCPYu4zSSBtJv": 1791100252.4602473,
+    "54iVa5c26DZH66isFtx4QYpyQtink5zEuTszD9dHeNAh": 1791102054.3068967
   },
   "watch": {
     "XSeqKH7y53dYjzSxmsfojE6dRGmxGQ14kDFaftTpump": {
@@ -569,5 +644,5 @@
   },
   "runde": 1,
   "shadow": {},
-  "saved_at": 1791102001.4004629
+  "saved_at": 1791102103.8662243
 }
