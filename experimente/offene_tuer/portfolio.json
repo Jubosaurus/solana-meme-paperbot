@@ -1,7 +1,7 @@
 {
   "strategy": "EXPERIMENT_offene_tuer",
   "started": "2026-10-04T00:34:10.471054+00:00",
-  "bankroll_sol": 7.45305,
+  "bankroll_sol": 7.25155,
   "positions": {
     "HLY9HcppREq5UiNUKS3boByRYx8wAEa2bAtoKQ1Rpump": {
       "mint": "HLY9HcppREq5UiNUKS3boByRYx8wAEa2bAtoKQ1Rpump",
@@ -67,7 +67,7 @@
       "solana_tracker": null,
       "graduated": true,
       "liq_low_checks": 0,
-      "flug_last": 1791127501.5413163
+      "flug_last": 1791127562.3199215
     },
     "BFwwmAUFcD9pX9BCNEt8vaNwGq79HeYnN3xVpA6VF1AT": {
       "mint": "BFwwmAUFcD9pX9BCNEt8vaNwGq79HeYnN3xVpA6VF1AT",
@@ -133,7 +133,73 @@
       "solana_tracker": null,
       "graduated": true,
       "liq_low_checks": 0,
-      "flug_last": 1791127501.5413163
+      "flug_last": 1791127562.3199215
+    },
+    "2Le24Rb7TejWx98Fohq8RmKvAEUkKBKyWqQnCVUw2EuS": {
+      "mint": "2Le24Rb7TejWx98Fohq8RmKvAEUkKBKyWqQnCVUw2EuS",
+      "symbol": "PIZZA",
+      "opened": 1791127591.151227,
+      "invested_sol": 0.2,
+      "fees_sol": 0.0015,
+      "entry_signal_usd": 7.578099278411437e-05,
+      "entry_fill_usd": 7.587253749349895e-05,
+      "entry_slippage_pct": 0.12,
+      "roundtrip_cost_pct": 2.0,
+      "tokens_initial": 320835.398158,
+      "tokens_left": 320835.398158,
+      "decimals": 6,
+      "proceeds_sol": 0.0,
+      "peak_usd": 7.72357160541185e-05,
+      "tp1_done": false,
+      "thesis_breaks": 0,
+      "missing_loops": 0,
+      "entry_liquidity": 11065.606150055944,
+      "entry_view": {
+        "age_h": 0.6263573085599475,
+        "mcap": 73562.42875695856,
+        "liquidity": 11065.606150055944,
+        "holders": 731,
+        "holder_growth_1h": 1988.5714285714287,
+        "holder_growth_5m": 6.095791001451379,
+        "net_buyers_5m": 105,
+        "organic_buyers_5m": 23,
+        "organic_score": 38.7651694763237,
+        "price_change_1h": 1432.099012560518,
+        "price_change_5m": 9.518062099880924,
+        "buys_5m": 403,
+        "sells_5m": 272,
+        "traders_5m": 260,
+        "traders_1h": 1408,
+        "buy_vol_5m": 14758.872611580508,
+        "sell_vol_5m": 11829.714663860488,
+        "buy_vol_1h": 170504.634224595,
+        "sell_vol_1h": 158829.96722693113,
+        "organic_buy_vol_1h": 5147.774004038896,
+        "top_holders_pct": 17.698931593253416,
+        "dev_balance_pct": 0.0,
+        "dev_mints": 1,
+        "launchpad": "pump.fun",
+        "graduated": true,
+        "social": false,
+        "quelle": "organic1h+organic5m+traded1h+traded5m+trend1h+trend5m",
+        "trades_24h": 6101,
+        "organic_label": "medium",
+        "buy_organic_vol_5m": 335.59704793935487,
+        "jup_fees": null,
+        "hour_utc": 15
+      },
+      "bundle": {
+        "quelle": "experiment",
+        "text": "Offene Tuer: ohne Sicherheits-, Bundle- und Dev-Pruefung"
+      },
+      "phase": "heiss",
+      "thesis": "Story verbreitet sich: Holder +1989%/h, 105 Netto-Kaeufer 5m, 23 organisch; Offene Tuer: ohne Sicherheits-, Bundle- und Dev-Pruefung; Dev-Coins 1",
+      "exit_rule": "Haelfte bei 2x; Rest raus, wenn Holder schrumpfen und Netto-Verkaeufer 2x in Folge, Liquiditaet -30%, -40%, nach 1,5x nicht unter Einstand, nach 2x 30 % vom Hoch (ab 10x 25 %)",
+      "mitlaeufer": null,
+      "solana_tracker": null,
+      "graduated": true,
+      "liq_low_checks": 0,
+      "flug_last": 1791127604.6872976
     }
   },
   "closed": [
@@ -4889,7 +4955,8 @@
     "BFwwmAUFcD9pX9BCNEt8vaNwGq79HeYnN3xVpA6VF1AT": 1791125636.9181428,
     "8BCVKvFBRSwfkdq94Kcw46W6g7cWLJCtM3xxmxiZHVJ8": 1791126076.0738711,
     "AfYb3wbHuDxi3cfXw4CWx1C6sMzRATum8Q4nfprLyoFZ": 1791126079.373371,
-    "2d1RrVaNKX2NyEQhKjENAQdU1X5JJr6Yvmj9kCfmpump": 1791126438.4827747
+    "2d1RrVaNKX2NyEQhKjENAQdU1X5JJr6Yvmj9kCfmpump": 1791126438.4827747,
+    "2Le24Rb7TejWx98Fohq8RmKvAEUkKBKyWqQnCVUw2EuS": 1791127591.1519482
   },
   "watch": {
     "5rfN5RBoAYJApnXvhCrh9xcapQGEJNG8sd9zyJDkpump": {
@@ -5282,5 +5349,5 @@
   },
   "runde": 1,
   "shadow": {},
-  "saved_at": 1791127505.0890193
+  "saved_at": 1791127605.0178788
 }
