@@ -1,8 +1,93 @@
 {
   "strategy": "NARRATIV",
   "started": "2026-09-26T02:46:00.825468+00:00",
-  "bankroll_sol": 9.779764,
-  "positions": {},
+  "bankroll_sol": 9.578264,
+  "positions": {
+    "AVKpeeWaCku3Mni5THbY4bkBnMrPzAEnnQKtP3wPpump": {
+      "mint": "AVKpeeWaCku3Mni5THbY4bkBnMrPzAEnnQKtP3wPpump",
+      "symbol": "CARNAGE",
+      "opened": 1791074530.2461705,
+      "invested_sol": 0.2,
+      "fees_sol": 0.0015,
+      "entry_signal_usd": 4.8978387395561835e-05,
+      "entry_fill_usd": 5.012695588922555e-05,
+      "entry_slippage_pct": 2.35,
+      "roundtrip_cost_pct": 2.78,
+      "tokens_initial": 479076.218406,
+      "tokens_left": 479076.218406,
+      "decimals": 6,
+      "proceeds_sol": 0.0,
+      "peak_usd": 5.012695588922555e-05,
+      "tp1_done": false,
+      "thesis_breaks": 0,
+      "missing_loops": 0,
+      "entry_liquidity": 11827.759762248732,
+      "entry_view": {
+        "age_h": 1.1574550014734268,
+        "mcap": 32145.9938934398,
+        "liquidity": 11827.759762248732,
+        "holders": 129,
+        "holder_growth_1h": 21.69811320754717,
+        "holder_growth_5m": 0.78125,
+        "net_buyers_5m": 39,
+        "organic_buyers_5m": 3,
+        "organic_score": 39.13523563789049,
+        "price_change_1h": 22.3412102776315,
+        "price_change_5m": 10.786507228881602,
+        "buys_5m": 40,
+        "sells_5m": 17,
+        "traders_5m": 54,
+        "traders_1h": 1012,
+        "buy_vol_5m": 2247.2004380872513,
+        "sell_vol_5m": 1435.9459226917331,
+        "buy_vol_1h": 25292.217439162712,
+        "sell_vol_1h": 23827.79152269356,
+        "organic_buy_vol_1h": 301.6285589503926,
+        "top_holders_pct": 21.309566227276733,
+        "dev_balance_pct": 3.656696076624872e-12,
+        "dev_mints": 4,
+        "launchpad": "pump.fun",
+        "graduated": true,
+        "social": false,
+        "quelle": "organic1h+organic5m+traded1h+traded5m+trend5m",
+        "trades_24h": 2073,
+        "organic_label": "medium",
+        "buy_organic_vol_5m": 0.0,
+        "hour_utc": 0
+      },
+      "bundle": {
+        "quelle": "block0",
+        "slot": 453082296,
+        "block0_wallets": 0,
+        "block0_supply_pct": 0.0,
+        "block0_still_held_pct": 0.0,
+        "block0_exited": 0,
+        "early_tx_slot1_2": 6,
+        "bundle_holding_pct": 0.0,
+        "gebuendelt": false,
+        "rugcheck_insider_pct": 8.55
+      },
+      "phase": "normal",
+      "thesis": "Story verbreitet sich: Holder +22%/h, 39 Netto-Kaeufer 5m, 3 organisch; Block 0: 0 Kaeufer, 0.0% gekauft, 0.0% noch gehalten; Dev-Coins 4",
+      "exit_rule": "Haelfte bei 2x; Rest raus, wenn Holder schrumpfen und Netto-Verkaeufer 2x in Folge, Liquiditaet -30%, -40%, nach 1,5x nicht unter Einstand, nach 2x 30 % vom Hoch (ab 10x 25 %)",
+      "mitlaeufer": null,
+      "solana_tracker": {
+        "score": 8,
+        "rugged": false,
+        "snipers_pct": 2.1889,
+        "insiders_pct": 0,
+        "bundlers_pct": 4.2251,
+        "top10_pct": 13.985999999999999,
+        "risiken": [
+          "LP Burned",
+          "Top 10 Holders",
+          "Bundlers Detected"
+        ]
+      },
+      "graduated": true,
+      "liq_low_checks": 0
+    }
+  },
   "closed": [
     {
       "symbol": "SHOGGOTH",
@@ -7370,7 +7455,8 @@
     "2AVjqmGbMqg7rSyHVv2deVdggsBgBtu1Bi69BUvE5WRv": 1791054017.5423489,
     "AP3NcmQ1yNfBaDTwKSXu1NhsneFpK4Rpavo7zqr91TEY": 1791059016.1721115,
     "4SKVVMaesazTkmp3WDsGfGASFTR5HPkTF7i6qQiCpump": 1791065778.8099618,
-    "3J742o8WTojtBqFScxrBsF4Z5M6WsB7i3Q1kRjpDti36": 1791066359.264071
+    "3J742o8WTojtBqFScxrBsF4Z5M6WsB7i3Q1kRjpDti36": 1791066359.264071,
+    "AVKpeeWaCku3Mni5THbY4bkBnMrPzAEnnQKtP3wPpump": 1791074530.246741
   },
   "watch": {
     "2AVjqmGbMqg7rSyHVv2deVdggsBgBtu1Bi69BUvE5WRv": {
@@ -7410,26 +7496,8 @@
       "until": 1791089692.6965764
     }
   },
-  "saved_at": 1791074438.058152,
+  "saved_at": 1791074533.7359765,
   "shadow": {
-    "DSgB7ASKXrfMUkpcr5T9Brt3kVAc7ttuUUd5fW58MPaH": {
-      "symbol": "POOPYBOT",
-      "reason": "LIQUIDITAET_ZU_GERING",
-      "detail": "Liquiditaet $3,099",
-      "ref_price": 1.2150069541359535e-05,
-      "since": 1791052914.3158705,
-      "peak_usd": 2.386309956134826e-05,
-      "until": 1791074514.3158705
-    },
-    "FPUDkQBAMYVzbg7Rmfr83bVTUKoZ7yoGHLQZLvMvfsC7": {
-      "symbol": "Milly",
-      "reason": "STORY_ZU_ALT",
-      "detail": "6.0 h alt (Grenze 6)",
-      "ref_price": 3.37872837817145e-05,
-      "since": 1791052914.3158705,
-      "peak_usd": 4.211507995607963e-05,
-      "until": 1791074514.3158705
-    },
     "GpixWJ8XKkUts8Hg43nkvYkBrGGJK3gJJFNKXmcn7iQt": {
       "symbol": "Mentor",
       "reason": "KEINE_ECHTEN_KAEUFER",
@@ -7927,7 +7995,7 @@
     }
   },
   "st_usage": {
-    "date": "2026-10-03",
-    "count": 15
+    "date": "2026-10-04",
+    "count": 1
   }
 }
