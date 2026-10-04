@@ -49,6 +49,7 @@ Drei Bots, jeder in Schichten von knapp 6 Stunden, die sich selbst weiterstarten
 | Offene Tür (neu 04.10.) | Story-Filter ohne Sicherheitsprüfungen, kauft bewusst auch Rugs |
 | Serien-Devs (neu 04.10.) | Coins von Erstellern, deren früherer Coin ≥ 300.000 $ wert war; Verkauf auch, wenn der Ersteller verkauft |
 | Große Coins (neu 04.10.) | wie die Hauptstrategie, aber nur Coins **über** 3 Mio. $ (prüft Tag 7) |
+| Drittel-Leiter (neu 04.10.) | kauft genau mit der Hauptstrategie, verkauft je ⅓ bei 1,5x / 2x / 3x |
 | *Beendet 04.10.:* Ohne Limit, Endspurt ohne Filter | Daten bleiben |
 
 - **Neu: Aufzeichnung (nur Beobachtung, keine Regel)**
@@ -86,8 +87,12 @@ Alle Konten starten mit 10 SOL. Kontowert = freies Geld + Wert der offenen Posit
 | Notbremse 25 / Offene Tür / Serien-Devs / Große Coins | 9,96 / 9,54 / 9,48 / 10,00 | 3 / 17 / 5 / 0 | erst seit heute Nacht, viel zu früh |
 
 **Copy Trading seit Start**
-- Insgesamt **−44,0 SOL** über alle Wallets, auch die entfernten. Der Großteil des Verlusts kommt von entfernten Wallets wie 922M.
-- Die 22 aktiven zusammen: **+21,8 SOL**. Fast alles kommt von **HEBO (+23,1)**, danach 4DOV (+2,9). Ohne HEBO wären die aktiven etwa −1,3.
+- **Hauptzahl: seit Start −44,0 SOL** (alle Wallets, auch die entfernten).
+- Die 22 aktiven zusammen: +21,7 SOL. **Diese Zahl beschönigt:**
+  - Durch das Entfernen von Zrool, Putrick und Cooker sind deren Verluste aus der Summe der aktiven verschwunden. Am Vorabend, mit ihnen, stand die Summe der aktiven bei etwa +0,7 SOL.
+  - Fast alles hängt an einem einzigen Trade: **PIGEON von HEBO mit +32,0 SOL**.
+  - **Aktive ohne PIGEON: −10,3 SOL.**
+- HEBO insgesamt +23,1 SOL, ohne PIGEON also im Minus. 4DOV +2,9 SOL.
 - Die meisten neuen Wallets haben erst 0–3 Positionen, ein Urteil ist noch nicht möglich.
 - **Erkenntnis Exit-Liquidität:**
   - Verlierer-Trader verkaufen oft binnen 60 s nach ihrem Kauf, manchmal schon vor unserem Kauf. Wir kaufen dann ihre Verkaufsware.
@@ -98,7 +103,7 @@ Alle Konten starten mit 10 SOL. Kontowert = freies Geld + Wert der offenen Posit
 - Viel Werbung mit Empfehlungslinks, und er widerspricht sich selbst.
 - Daraus entstanden: Experiment Große Coins, das Gebühren-Feld und zwei Nachrechnungen (`auswertungen/2026-10-04_video_nachrechnung.md`):
   - Wallet-Signal (2 Copy-Wallets kaufen denselben Coin): hilft nicht.
-  - Verkauf in Drittel-Stücken bei 1,5x/2x/3x: etwas besser als „Hälfte bei 2x“, aber auch im Minus. Möglich wäre ein Experiment „Drittel-Leiter“, das wartet auf meine Entscheidung.
+  - Verkauf in Drittel-Stücken bei 1,5x/2x/3x: etwas besser als „Hälfte bei 2x“, aber auch im Minus. Daraus wurde das Experiment „Drittel-Leiter“.
 
 ## 5. Budgets
 
@@ -116,16 +121,19 @@ Alle Konten starten mit 10 SOL. Kontowert = freies Geld + Wert der offenen Posit
 
 1. **Helius-Zahl** aus dem Dashboard melden. Erst dann wird über mehr als 22 Wallets entschieden.
 2. **05.10. ab 12:12 UTC (14:12 deutsche Zeit): stille Wallets entfernen** und mit den besten Scout-Kandidaten auf 22 auffüllen.
-   - Achtung: haru, Eshi und koko haben inzwischen gehandelt.
-   - Wirklich still sind nur noch **43Nu und 42wu**.
+   - Beschlossen: nur **43Nu und 42wu** entfernen, falls weiter still, und mit 2 Kandidaten auffüllen.
+   - haru, Eshi und koko haben inzwischen gehandelt und bleiben.
 3. **C7bF** beobachten bis 20 Käufe. Bleibt das Muster (verkauft binnen Sekunden), wird die Wallet ersetzt.
 4. **Videos:** ruhiger zweiter Versuch heute Nacht ab 22:00 UTC (24:00 deutsche Zeit), etwa 4 Videos pro Stunde.
    - Bei erneuter Sperre wird aufgegeben, nichts umgangen.
    - Läuft auf meinem PC, der muss also an bleiben.
-5. **Experiment „Drittel-Leiter“?** Kauft wie die Hauptstrategie, verkauft je ⅓ bei 1,5x / 2x / 3x. Wartet auf meine Entscheidung.
+5. **Experiment „Drittel-Leiter“** (beschlossen 04.10.): kauft wie die Hauptstrategie, verkauft je ⅓ bei 1,5x / 2x / 3x. Auswertung auch Coin für Coin gegen die Hauptstrategie.
 6. **Gebühren-Feld:** nach einem Tag prüfen, ob Jupiter es überhaupt liefert.
 7. Tag 17 beobachten: Wie liefen die abgelehnten „FOMO-Sprung“-Coins?
 8. Auswertung der DexScreener-Daten ab 100 Käufen, des Flugschreibers nach den ersten Rugs.
+9. **Repository-Größe:** 634 MB nach 6 Tagen (lokal ist der Git-Ordner 718 MB). Die Bots pushen jede Minute Daten, deshalb wächst es weiter.
+   - Lösung erst nach Prüfung und mit meinem OK.
+   - **Achtung:** `copy/journal.csv` ist das Gedächtnis des Copy-Bots gegen doppeltes Nachholen. Es darf nicht gekürzt oder ausgelagert werden, ohne diesen Schutz anzupassen.
 
 ## 7. Entscheidungen und Vorlieben
 
