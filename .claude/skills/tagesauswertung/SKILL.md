@@ -79,3 +79,13 @@ Verbrauch mit dem Wert aus der letzten Auswertung vergleichen, pro Tag und hochg
 1. Die wichtigsten Zahlen vom Subagenten **daten-pruefer** nachrechnen lassen. Abweichungen korrigieren, bevor du antwortest.
 2. Antwort an den Betreiber: erst das Wichtigste in drei Sätzen, dann die Tabellen, dann **Vorschläge** (nummeriert, je ein Satz Begründung). Auf Zustimmung warten, nichts davon selbst umsetzen.
 3. Eine kurze Zusammenfassung als `auswertungen/JJJJ-MM-TT.md` speichern: Zeitraum, Kernzahlen je Konto, Helius-Stand, Vorschläge und was der Betreiber entschieden hat. Einspielen erst nach seinem OK, zusammen mit der nächsten freigegebenen Änderung oder einzeln.
+
+## 8. Wiki einspeisen (nach dem Speichern des Berichts)
+
+Erst nach Schritt 7.3, wenn der Bericht in `auswertungen/` liegt. Regeln stehen in `wissen/REGELN.md` – vorher lesen.
+
+1. Neue Berichte in `auswertungen/` und neue Dateien in `wissen/notizen/` seit dem letzten Eintrag in `wissen/log.md` suchen (die Notizen nur lesen, nie ändern).
+2. Je Quelle zuerst eine Quellen-Seite in `wissen/wiki/quellen/` anlegen (Pfad, Datum), dann Aussagen ausziehen (ein Satz, Zahl, Datum, `[[Quelle]]`), nicht zusammenfassen. Ohne Datum oder Quelle nicht verarbeiten, sondern in `log.md` unter „Rückfragen“.
+3. Vor jeder neuen Seite `wissen/index.md` prüfen. Widerspruch zu einer alten Aussage: anhängen, mit Datum und ⚠️, nie überschreiben.
+4. `wissen/index.md` und `wissen/log.md` aktualisieren; am Ende Links prüfen (jede `[[...]]` hat eine Seite).
+5. Nur Doku: einspielen wie andere Berichte, aber nichts aus `wissen/.obsidian/` (steht in `.gitignore`). Werbung nur als Markierung, keine Schlüssel, keine Transkripte.

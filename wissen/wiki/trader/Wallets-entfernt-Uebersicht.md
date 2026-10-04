@@ -1,0 +1,10 @@
+# Übersicht: früher entfernte Copy-Wallets
+
+Sammelseite für Wallets ohne eigene Auswertung; Adressen und Gründe aus [[Q-Copy-Wallets]]. Ausführlich behandelte Wallets haben eigene Seiten ([[922M]], [[Zrool]], [[Putrick]], [[Cooker]], [[Loopierr]]).
+
+- Bot-Wallets mit Hunderten fehlschlagender Transaktionen pro Minute, entfernt 30.09.: nyhrox `6S8GezkxYUfZy9JPtYnanbcZTMB87Wjt1qx3c6ELajKC`, Daumen `8MaVa9kdt3NW4Q5HyNAm1X5LbR8PQRVDc1W8NMVK88D5`, HSEC `HSeCG7T2KCTuVAARGXZuxBNZg6pas1EdJdjn7Xyy1ENB`, decu `4vw54BmAogeRV3vPKWyFet5yf8DTLcREzdSzx4rw9Ud9`, R32X `R32xAccFis3YzBzGwZ1C4QkGiehLxSao7gDmErA3kjk`, B7XW `B7XwXUuZn9zkRSV17mcn35J77hv91GJpK5jMH3Y7kk5R`. [[Q-Copy-Wallets]]
+- Bot mit fast nur fehlschlagenden Transaktionen und ohne eigenen Trade, entfernt 01.10.: 8NQ3 `8NQ32SyFKD1d5kenq4oM8Da6C6J9TQSMW1uAgFRveEQr`, DTVM `DtvmxrTACskMG2W8a6KXgSemUfvyNVeQTgfpJoGvMVKx`, 9EWQ `9EwQoN74Hzw747EM7wB3WtvgAdRGH1czaPtbqZj1qDj4` (ersetzt durch Cooker, Gake, Jijo). [[Q-Copy-Wallets]] [[Q-STRATEGIE]]
+- Jijo `4BdKaxN8G6ka4GYtQQWk4G4dZRUTX2vQH9GcXdBREFUk`: entfernt 01.10., Bot mit 2.600 Meldungen pro Minute, alle fehlgeschlagen. [[Q-Copy-Wallets]]
+- BGOK `Bgokg3jutarxEMWQVospwUucSQfpG6Jw27jRbMxcvU2q`: entfernt 01.10., Flutschutz ausgelöst, seit Beginn kein eigener Trade. [[Q-Copy-Wallets]]
+- Still, entfernt 02.10.: fomo `9FEHWFjgbYnFCRRHkesJNq6znHjc5Aaq7TiKi1rCVSnH`, Cendol `9A4h17UgLGaVws6T1mBxzH5gkG35CUSrTfNgNK5Uj4Rp`, 8K1B `8k1BPp8pCxq7RJxxBz3BUxvBjsfjhkHKnhr2WSQABGM9`, AFYP `AFyPSLmMnhJVkJ7WbZWzPVPESmEGfyD26BeSs4KNbQWZ` (seit Beginn kein abgeschlossener Trade), FKUJ `FkujdDSpXxzosqH1WHgkBedcDuapqnJcb6X7kDjCYnA6` (1 Trade in 3 Tagen). [[Q-Copy-Wallets]]
+- Verlierer, entfernt 02.10.: 9LXM `9LxMdvs1m8QRFvFuhvzzMXykAkpaHTJhktULdpBztUMm` (−1,44 SOL bei 5 Positionen, Trader selbst −40 % je Coin), GYYR `GYYRpq8bw6PNcadwkP8zwCofVZ1MbXm6kYBULvJ9ydnn` (−1,48 SOL bei 6 Positionen), ENKM `ENKmXSZB7xksLfya4NibwkmJiGJUWk7vLqDYDpe6EBMd` (−1,12 SOL bei 7 Positionen, Trader selbst −38 % je Coin). [[Q-Copy-Wallets]]

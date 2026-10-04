@@ -2,6 +2,10 @@
 
 Paper-Trading-Projekt für Solana-Memecoins. **Es wird kein echtes Geld gehandelt.** Der Betreiber programmiert kaum; er entscheidet über Strategie und Regeln, Claude setzt um, testet und erklärt. Alles Fachliche zur Strategie steht in `STRATEGIE.md` (Regeln, Experimente, Änderungsprotokoll) – vor jeder Änderung lesen.
 
+## Wissens-Wiki (seit 04.10.)
+
+**Bei Fragen zu Tradern, Mustern, Experimenten oder früheren Entscheidungen zuerst `wissen/index.md` lesen**, dann 1–3 passende Seiten, nur daraus antworten, mit Quelle; steht es nicht drin: „steht nicht im Wiki“. Das Wiki (Obsidian-Vault `wissen/`, nur Doku) sammelt Wissen und beschließt nichts; verbindlich bleiben `STRATEGIE.md` und diese Datei. Regeln fürs Einspeisen: `wissen/REGELN.md`; eigene Notizen des Betreibers nur in `wissen/notizen/` (Claude liest, ändert nie). Die Tagesauswertung speist am Ende neue Berichte und Notizen ein (Skill, Schritt 8).
+
 ## Kommunikation mit dem Betreiber
 
 - Deutsch, einfache Sprache, kein Fachjargon ohne Erklärung. Er liest oft am Handy.

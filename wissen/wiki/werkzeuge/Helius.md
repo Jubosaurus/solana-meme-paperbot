@@ -1,0 +1,9 @@
+# Helius (Solana-Zugang)
+
+- Gratis-Tarif, 1 Mio. Credits/Monat; nur `logsSubscribe`, kein `transactionSubscribe`; WebSockets kosten 2 Credits je 0,1 MB. [[Q-CLAUDE]]
+- Stand 02.10.: rund 520.000 Credits/Monat hochgerechnet, davon ~70 % durch die Wallet [[922M]] (am 03.10. entfernt). [[Q-CLAUDE]]
+- Schätzung neuer Funktionen 04.10. zusammen ≤ ~80.000/Monat: Flugschreiber Bundler-Bestand ≤ 69.000, 4 neue Copy-Wallets ~10.000, Prüf-Modus < 350, übrige 0. [[Q-2026-10-04-Nachtlauf]]
+- Die aktuelle Zahl aus dem Helius-Dashboard fehlte am 04.10. noch. [[Q-Zusammenfassung-Chat]]
+- Tempo: Hauptbot `HELIUS_INTERVAL = 0.15`, Copy 0.33, Scout 0.5; bei 429 bis zu drei Wiederholungen. [[Q-CLAUDE]]
+- `getTransaction` braucht `maxSupportedTransactionVersion: 1`. [[Q-CLAUDE]]
+- Am 01.10. trieben sich Hauptbot und Copy-Bot gegenseitig ins Limit, Bundle-Checks fielen öfter aus. [[Q-STRATEGIE]]
