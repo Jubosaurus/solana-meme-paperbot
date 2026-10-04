@@ -31,6 +31,7 @@ Jeder Bot hat `--probe` (Kurztest ohne Handel, Ausgabe für die Kontrolle).
   - `daten-pruefer`: rechnet Zahlen unabhängig nach. Vor jeder Antwort mit Kennzahlen einsetzen.
   - `strategie-tester`: prüft vorgeschlagene Regeln an den aufgezeichneten Daten, bevor Code geändert wird.
   - `code-pruefer`: prüft jede Änderung vor dem Einspielen gegen die Regeln unten.
+  - Daten-Prüfer und Strategie-Tester speichern ihre Berichte selbst in `auswertungen/` (nur dort, nie Code, Daten oder andere Ordner) und geben nur Kurzfassung und Dateinamen zurück. Einspielen macht die Hauptunterhaltung.
 - **Skills** in `.claude/skills/`:
   - `tagesauswertung`: fester Ablauf der täglichen Auswertung; jede Auswertung wird in `auswertungen/JJJJ-MM-TT.md` festgehalten.
   - `wallet-pruefen`: neue Wallets über Prüfliste und Scout prüfen und nach Zustimmung aufnehmen.
