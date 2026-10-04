@@ -32,10 +32,10 @@ else:
     st.caption("Nichts Passendes in den letzten 4 Tagen.")
 
 st.subheader("Listing-Welle (Experiment)", anchor=False)
-st.caption("Kauft einen Solana-Token, sobald eine Börse sein Listing ankündigt (nur wenn die Meldung jünger als 10 min "
-           "ist), und verkauft zum Handelsstart, sonst nach 72 h (Notbremse −40 %). Binance und Coinbase zeigen nur "
-           "ein neues Handelspaar, Bithumb nur den Handelsstart: dort gibt es keine echte Vorab-Ankündigung; das "
-           "steht in der Spalte „Quelle“.")
+st.caption("Kauft einen Solana-Token, sobald Binance oder Coinbase ein neues Paar zeigt (nur wenn jünger als 10 min), "
+           "und verkauft zum Handelsstart, sonst nach 72 h (Notbremse −40 %). Binance und Coinbase: erkannt wird das "
+           "neue Handelspaar, nicht die Ankündigung (also Kauf kurz vor/zum Handelsstart). Upbit und Bithumb: nur "
+           "Aufzeichnung, kein Kauf. Hauptwert: wie stark Kurse vor dem Listing steigen und ob Gerüchte vorausgingen.")
 a.raster([a.karte("Erfasste Listings", str(lw["anzahl_ereignisse"]), f"davon gekauft: {lw['gekauft']}", klein=True),
           a.karte("Gerüchte aufgezeichnet", str(lw["geruechte"]), "nur Aufzeichnung, kein Handel", klein=True)])
 if lw["quellen"]:

@@ -213,3 +213,10 @@ def test_kurs_vorlauf_ohne_daten_ist_kein_fehler():
     def get(url):
         raise RuntimeError("429")
     assert L.kurs_vorlauf(get, "Mint", JETZT) == {"anstieg_3h_pct": None, "anstieg_3d_pct": None}
+
+
+def test_upbit_marktliste_neues_asset_nur_handelsstart():
+    get = lambda url: json.dumps([{"market": "KRW-BTC"}, {"market": "BTC-BTC"}, {"market": "KRW-NEU", "english_name": "Neu"}]).encode()
+    (ev,) = L.upbit_markt_ereignisse(get, {"BTC"})
+    assert ev["id"] == "upbit-markt:NEU" and ev["quelle_typ"] == "handelsstart"
+    assert L.upbit_markt_ereignisse(get, set()) == []

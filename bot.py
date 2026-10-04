@@ -202,7 +202,8 @@ LISTING_EREIGNISSE_HEADER = ["zeit_erfasst", "typ", "ereignis_id", "boerse", "qu
                              "ankuendigung_zeit", "handelsstart_zeit", "entscheidung", "mint", "kurs_usd",
                              "liquiditaet_usd", "anstieg_3h_pct", "anstieg_3d_pct", "url"]
 LISTING_GERUECHTE_HEADER = ["zeit_erfasst", "nachricht_zeit", "coin", "quelle", "titel", "link", "offiziell_vorher"]
-LISTING_POLL_SEC = 120                  # Upbit-Ankuendigungen: hoechstens alle 2 min
+LISTING_UPBIT_ANKUENDIGUNG = False      # Upbit-Ankuendigungen: von GitHub aus 403 (gesperrt, nicht umgehen) -> aus
+LISTING_POLL_SEC = 120                  # Upbit-Ankuendigungen (falls an): hoechstens alle 2 min
 LISTING_LISTEN_POLL_SEC = 240           # Marktlisten (Binance, Coinbase, Bithumb): grosse Antworten, seltener
 LISTING_NEWS_POLL_SEC = 900             # RSS fuer Geruechte
 LISTING_MAX_ALTER_SEC = 600             # nur kaufen, wenn die Ankuendigung juenger als 10 min ist
@@ -1946,6 +1947,13 @@ def listing_ereignis(ep, ev, sol_usd, now):
                 row["entscheidung"] = ev["art"]
             elif ev["quelle_typ"] == "handelsstart":
                 row["entscheidung"] = "nur_aufzeichnung"        # ein neuer Markt ist schon der Handelsstart
+                tok, _ = listing_token(sym, braucht_verifiziert=True)
+                if tok is not None:                              # Token gefunden: Kursanstieg davor mitschreiben
+                    v = token_view(tok, now)
+                    vor = listings.kurs_vorlauf(listing_get, v["mint"], ev["zeit"])
+                    row.update(mint=v["mint"], kurs_usd=f"{v['price']:.12g}", liquiditaet_usd=round(v["liquidity"]))
+                    for k in ("anstieg_3h_pct", "anstieg_3d_pct"):
+                        row[k] = "" if vor[k] is None else vor[k]
             elif now - ev["zeit"] > LISTING_MAX_ALTER_SEC:
                 row["entscheidung"] = "zu_alt"
             elif netz and "solana" not in netz.lower():
@@ -2035,7 +2043,7 @@ def listing_welle_schritt(ep, sol_usd, now):
     """Wird in jedem Durchlauf aufgerufen; die Abfragen selbst laufen nach Zeitplan (Upbit alle 2 min)."""
     st = ep.setdefault("listing", {})
     ereignisse = []
-    if now >= st.get("next_upbit", 0):
+    if LISTING_UPBIT_ANKUENDIGUNG and now >= st.get("next_upbit", 0):
         st["next_upbit"] = now + LISTING_POLL_SEC
         try:
             gesehen = set(st.get("upbit", []))
@@ -2049,6 +2057,7 @@ def listing_welle_schritt(ep, sol_usd, now):
     if now >= st.get("next_listen", 0):
         st["next_listen"] = now + LISTING_LISTEN_POLL_SEC
         for name, key, fn, als_dict in (("Binance", "binance", listings.binance_ereignisse, False),
+                                        ("Upbit-Markt", "upbit_markt", listings.upbit_markt_ereignisse, False),
                                         ("Coinbase", "coinbase", listings.coinbase_ereignisse, True),
                                         ("Bithumb", "bithumb", listings.bithumb_ereignisse, False)):
             try:

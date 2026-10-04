@@ -32,6 +32,7 @@ UPBIT_LISTE = "https://api-manager.upbit.com/api/v1/announcements?os=web&page=1&
 UPBIT_DETAIL = "https://api-manager.upbit.com/api/v1/announcements/{id}"
 BINANCE_PAARE = "https://data-api.binance.vision/api/v3/exchangeInfo?permissions=SPOT"
 COINBASE_PRODUKTE = "https://api.exchange.coinbase.com/products"
+UPBIT_MAERKTE = "https://api.upbit.com/v1/market/all"
 BITHUMB_MAERKTE = "https://api.bithumb.com/v1/market/all"
 
 ANRISS_MAX = 200
@@ -271,6 +272,24 @@ def upbit_ereignisse(get, gesehen):
         out.append({"id": eid, "boerse": "Upbit", "art": art, "titel": titel[:200], "zeit": zeit,
                     "quelle_typ": "ankuendigung", "coins": coins,
                     "url": f"https://upbit.com/service_center/notice?id={n['id']}"})
+    return out
+
+
+def upbit_markt_ereignisse(get, bekannt):
+    """Neues Basis-Asset in der offiziellen Upbit-Marktliste. Ein neuer Markt IST schon der Handelsstart
+    (die Ankuendigungs-Schnittstelle ist fuer den Bot gesperrt, 403) -> nur Aufzeichnung."""
+    erster_lauf = not bekannt
+    out, jetzt = [], datetime.now(timezone.utc).timestamp()
+    for m in _json(get, UPBIT_MAERKTE):
+        base = str(m.get("market", "")).split("-")[-1]
+        if not base or base in bekannt:
+            continue
+        bekannt.add(base)
+        if not erster_lauf:
+            out.append({"id": f"upbit-markt:{base}", "boerse": "Upbit", "art": "listing",
+                        "titel": f"Upbit: neuer Markt {m.get('market')} ({m.get('english_name', '')})", "zeit": jetzt,
+                        "quelle_typ": "handelsstart", "coins": [{"symbol": base.upper(), "netzwerk": "", "start": jetzt}],
+                        "url": ""})
     return out
 
 

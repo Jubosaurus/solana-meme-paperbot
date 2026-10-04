@@ -67,7 +67,7 @@ def test_upbit_solana_listing_wird_gekauft_und_aufgezeichnet(lw, clock):
     ({"netz": "Base"}, "anderes_netzwerk"),
     ({"start": "bald"}, "start_zu_nah"),
     ({"art": "delisting"}, "delisting"),
-    ({"typ": "handelsstart", "boerse": "Bithumb"}, "nur_aufzeichnung"),
+    ({"typ": "handelsstart", "boerse": "Bithumb", "netz": ""}, "nur_aufzeichnung"),
     ({"symbol": "NIX"}, "kein_solana_token"),
 ])
 def test_kein_kauf_und_grund_in_der_csv(lw, clock, kw, grund):
@@ -184,6 +184,7 @@ def fake_netz(monkeypatch, upbit, binance=None, coinbase=None, bithumb=None, rss
 
 
 def test_schritt_erster_lauf_merkt_nur_und_fehler_einer_quelle_stoppt_nichts(lw, clock, monkeypatch):
+    monkeypatch.setattr(core, "LISTING_UPBIT_ANKUENDIGUNG", True)
     now = clock.time()
     fake_netz(monkeypatch, [{"id": 5, "title": "x (POD) 신규 거래지원 안내", "listed_at": "2026-10-04T10:00:00+09:00"}],
               binance=None, coinbase=[{"base_currency": "OLD", "status": "online", "id": "OLD-USD"}])
@@ -202,6 +203,7 @@ def test_schritt_erster_lauf_merkt_nur_und_fehler_einer_quelle_stoppt_nichts(lw,
 
 
 def test_schritt_neue_upbit_ankuendigung_nach_dem_ersten_lauf_wird_gekauft(lw, clock, monkeypatch):
+    monkeypatch.setattr(core, "LISTING_UPBIT_ANKUENDIGUNG", True)
     now = clock.time()
     jetzt_kst = datetime.fromtimestamp(now - 30, timezone.utc).astimezone(core.listings.KST).isoformat()
     ep = load()
@@ -250,3 +252,32 @@ def test_hauptstrategie_und_andere_experimente_bleiben_unberuehrt(lw, clock):
     import os
     assert not os.path.exists("journal.csv") and not os.path.exists("experimente/kontrollgruppe/journal.csv")
     assert core.EXPERIMENTS[NAME] == "Listing-Welle"
+
+
+def test_upbit_ankuendigung_ist_aus_und_marktliste_nur_aufzeichnung(lw, clock, monkeypatch):
+    assert core.LISTING_UPBIT_ANKUENDIGUNG is False
+    now = clock.time()
+    stand = {"m": [{"market": "KRW-BTC"}]}
+
+    def get(url):
+        assert "announcements" not in url                       # gesperrte Schnittstelle wird nicht angefragt
+        if "api.upbit.com/v1/market" in url:
+            return json.dumps(stand["m"]).encode()
+        return b"[]" if "bithumb" in url or "coinbase" in url else b'{"symbols": []}'
+    monkeypatch.setattr(core, "listing_get", get)
+    ep = load()
+    with core.experiment(NAME):
+        core.listing_welle_schritt(ep, SOL, now)                 # erster Lauf: nur merken
+        stand["m"].append({"market": "KRW-POD", "english_name": "Dolphin"})
+        core.listing_welle_schritt(ep, SOL, now + core.LISTING_LISTEN_POLL_SEC + 1)
+    assert ep["positions"] == {} and ep["listing"]["quellen"]["Upbit-Markt"]["ok"] == 2
+    (r,) = zeilen(core.LISTING_EREIGNISSE_FILE)
+    assert (r["boerse"], r["symbol"], r["entscheidung"], r["quelle_typ"]) == ("Upbit", "POD", "nur_aufzeichnung", "handelsstart")
+
+
+def test_nur_aufzeichnung_schreibt_kursanstieg_davor_ohne_zu_kaufen(lw, clock):
+    now = clock.time()
+    ep = kaufen(event(now, boerse="Upbit", typ="handelsstart", netz="", eid="upbit-markt:POD"), now)
+    assert ep["positions"] == {}
+    (r,) = zeilen(core.LISTING_EREIGNISSE_FILE)
+    assert (r["entscheidung"], r["mint"], r["anstieg_3h_pct"], r["anstieg_3d_pct"]) == ("nur_aufzeichnung", MINT, "12.0", "80.0")
