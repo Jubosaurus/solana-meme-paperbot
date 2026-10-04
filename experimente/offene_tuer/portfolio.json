@@ -1,7 +1,7 @@
 {
   "strategy": "EXPERIMENT_offene_tuer",
   "started": "2026-10-04T00:34:10.471054+00:00",
-  "bankroll_sol": 6.226502,
+  "bankroll_sol": 6.34155,
   "positions": {
     "58gc3wbz2WndNAtGqYAN32WytjUNTrEGYynXURNuHQdc": {
       "mint": "58gc3wbz2WndNAtGqYAN32WytjUNTrEGYynXURNuHQdc",
@@ -19,7 +19,7 @@
       "proceeds_sol": 0.0,
       "peak_usd": 1.249292158096689e-05,
       "tp1_done": false,
-      "thesis_breaks": 0,
+      "thesis_breaks": 1,
       "missing_loops": 0,
       "entry_liquidity": 6881.275004849473,
       "entry_view": {
@@ -67,7 +67,7 @@
       "solana_tracker": null,
       "graduated": false,
       "liq_low_checks": 0,
-      "flug_last": 1791137276.0759425
+      "flug_last": 1791137418.5342886
     },
     "HMUPtg39uGQDtU6oFst5zawEvNVko928h9V2w4L9MvtA": {
       "mint": "HMUPtg39uGQDtU6oFst5zawEvNVko928h9V2w4L9MvtA",
@@ -133,7 +133,7 @@
       "solana_tracker": null,
       "graduated": false,
       "liq_low_checks": 0,
-      "flug_last": 1791137276.0759425
+      "flug_last": 1791137418.5342886
     },
     "D6MKSaDHFSrCJMGUssSMDV7i4yvcJSjrxR3BY422toiU": {
       "mint": "D6MKSaDHFSrCJMGUssSMDV7i4yvcJSjrxR3BY422toiU",
@@ -199,73 +199,7 @@
       "solana_tracker": null,
       "graduated": true,
       "liq_low_checks": 0,
-      "flug_last": 1791137276.0759425
-    },
-    "DdmbM4XGDaBQHttm7XTf1rLfkyLtmLix9T19Qj9qarT": {
-      "mint": "DdmbM4XGDaBQHttm7XTf1rLfkyLtmLix9T19Qj9qarT",
-      "symbol": "RMPL",
-      "opened": 1791137051.857299,
-      "invested_sol": 0.2,
-      "fees_sol": 0.0015,
-      "entry_signal_usd": 7.907074850987664e-05,
-      "entry_fill_usd": 8.791354144560506e-05,
-      "entry_slippage_pct": 11.18,
-      "roundtrip_cost_pct": 2.71,
-      "tokens_initial": 276229.034618,
-      "tokens_left": 276229.034618,
-      "decimals": 6,
-      "proceeds_sol": 0.0,
-      "peak_usd": 8.791354144560506e-05,
-      "tp1_done": false,
-      "thesis_breaks": 0,
-      "missing_loops": 0,
-      "entry_liquidity": 11233.21001200054,
-      "entry_view": {
-        "age_h": 1.0724235444598729,
-        "mcap": 76070.53199389426,
-        "liquidity": 11233.21001200054,
-        "holders": 472,
-        "holder_growth_1h": 4190.909090909091,
-        "holder_growth_5m": 2.386117136659436,
-        "net_buyers_5m": 34,
-        "organic_buyers_5m": 12,
-        "organic_score": 50.742436701209996,
-        "price_change_1h": 1923.4652657521526,
-        "price_change_5m": 24.78091076408133,
-        "buys_5m": 116,
-        "sells_5m": 82,
-        "traders_5m": 77,
-        "traders_1h": 1115,
-        "buy_vol_5m": 7696.70066023001,
-        "sell_vol_5m": 6840.541826612584,
-        "buy_vol_1h": 207042.15321218863,
-        "sell_vol_1h": 194328.3969404207,
-        "organic_buy_vol_1h": 7600.139997486537,
-        "top_holders_pct": 22.68562111906337,
-        "dev_balance_pct": 0.0,
-        "dev_mints": 1,
-        "launchpad": "pump.fun",
-        "graduated": true,
-        "social": false,
-        "quelle": "organic1h+organic5m+traded1h+traded5m+trend1h+trend5m",
-        "trades_24h": 6283,
-        "organic_label": "medium",
-        "buy_organic_vol_5m": 197.90696896849119,
-        "jup_fees": null,
-        "hour_utc": 18
-      },
-      "bundle": {
-        "quelle": "experiment",
-        "text": "Offene Tuer: ohne Sicherheits-, Bundle- und Dev-Pruefung"
-      },
-      "phase": "heiss",
-      "thesis": "Story verbreitet sich: Holder +4191%/h, 34 Netto-Kaeufer 5m, 12 organisch; Offene Tuer: ohne Sicherheits-, Bundle- und Dev-Pruefung; Dev-Coins 1",
-      "exit_rule": "Haelfte bei 2x; Rest raus, wenn Holder schrumpfen und Netto-Verkaeufer 2x in Folge, Liquiditaet -30%, -40%, nach 1,5x nicht unter Einstand, nach 2x 30 % vom Hoch (ab 10x 25 %)",
-      "mitlaeufer": null,
-      "solana_tracker": null,
-      "graduated": true,
-      "liq_low_checks": 0,
-      "flug_last": 1791137276.0759425
+      "flug_last": 1791137418.5342886
     }
   },
   "closed": [
@@ -6343,6 +6277,67 @@
       "hold_h": 0.3,
       "closed_at": "2026-10-04T18:04:03.056785+00:00",
       "runde": 1
+    },
+    {
+      "symbol": "RMPL",
+      "mint": "DdmbM4XGDaBQHttm7XTf1rLfkyLtmLix9T19Qj9qarT",
+      "invested_sol": 0.2,
+      "entry_fill_usd": 8.791354144560506e-05,
+      "entry_slippage_pct": 11.18,
+      "roundtrip_cost_pct": 2.71,
+      "tp1_done": false,
+      "entry_view": {
+        "age_h": 1.0724235444598729,
+        "mcap": 76070.53199389426,
+        "liquidity": 11233.21001200054,
+        "holders": 472,
+        "holder_growth_1h": 4190.909090909091,
+        "holder_growth_5m": 2.386117136659436,
+        "net_buyers_5m": 34,
+        "organic_buyers_5m": 12,
+        "organic_score": 50.742436701209996,
+        "price_change_1h": 1923.4652657521526,
+        "price_change_5m": 24.78091076408133,
+        "buys_5m": 116,
+        "sells_5m": 82,
+        "traders_5m": 77,
+        "traders_1h": 1115,
+        "buy_vol_5m": 7696.70066023001,
+        "sell_vol_5m": 6840.541826612584,
+        "buy_vol_1h": 207042.15321218863,
+        "sell_vol_1h": 194328.3969404207,
+        "organic_buy_vol_1h": 7600.139997486537,
+        "top_holders_pct": 22.68562111906337,
+        "dev_balance_pct": 0.0,
+        "dev_mints": 1,
+        "launchpad": "pump.fun",
+        "graduated": true,
+        "social": false,
+        "quelle": "organic1h+organic5m+traded1h+traded5m+trend1h+trend5m",
+        "trades_24h": 6283,
+        "organic_label": "medium",
+        "buy_organic_vol_5m": 197.90696896849119,
+        "jup_fees": null,
+        "hour_utc": 18
+      },
+      "bundle": {
+        "quelle": "experiment",
+        "text": "Offene Tuer: ohne Sicherheits-, Bundle- und Dev-Pruefung"
+      },
+      "phase": "heiss",
+      "thesis": "Story verbreitet sich: Holder +4191%/h, 34 Netto-Kaeufer 5m, 12 organisch; Offene Tuer: ohne Sicherheits-, Bundle- und Dev-Pruefung; Dev-Coins 1",
+      "mitlaeufer": null,
+      "solana_tracker": null,
+      "graduated_waehrend": false,
+      "proceeds_sol": 0.115048,
+      "pnl_sol": -0.086452,
+      "pnl_pct": -43.23,
+      "peak_multiple": 1.0,
+      "exit_usd": 5.165540967945136e-05,
+      "exit_reason": "NOTBREMSE (-41%)",
+      "hold_h": 0.09,
+      "closed_at": "2026-10-04T18:09:36.502658+00:00",
+      "runde": 1
     }
   ],
   "cooldown": {
@@ -6892,9 +6887,18 @@
       "exit_usd": 2.1134912086101725e-05,
       "exit_reason": "GEWINN_GESCHUETZT (Hoch 1.8x, zurueck auf Einstand)",
       "until": 1791158643.056794
+    },
+    "DdmbM4XGDaBQHttm7XTf1rLfkyLtmLix9T19Qj9qarT": {
+      "symbol": "RMPL",
+      "entry_fill_usd": 8.791354144560506e-05,
+      "opened": 1791137051.857299,
+      "peak_usd": 8.791354144560506e-05,
+      "exit_usd": 5.165540967945136e-05,
+      "exit_reason": "NOTBREMSE (-41%)",
+      "until": 1791158976.5026672
     }
   },
   "runde": 1,
   "shadow": {},
-  "saved_at": 1791137332.1526089
+  "saved_at": 1791137420.8098993
 }
