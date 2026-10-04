@@ -6,7 +6,10 @@ Ablauf (alle 6 Stunden):
    verfuegbar, die Top-Trader laut Birdeye (Gratis-Tarif: CU-Zaehler, Stopp bei 28.000 CUs im Monat).
 3. Stufe 1 (1 Helius-Credit je Wallet): letzte 1.000 Transaktionen mit Fehlerstatus -> Bots und stille Wallets raus.
 4. Stufe 2 (rund 60 Credits je Wallet): letzte 60 erfolgreiche Transaktionen mit der Logik des Copy-Bots auswerten.
-5. Rangliste in Discord und in scout/kandidaten.csv. Die Entscheidung trifft der Mensch.
+5. Rangliste in Discord und in scout/kandidaten.csv.
+6. Automatik (seit 04.10., Schalter AUTO_AUFNAHME): gute Kandidaten kommen selbst in copy_wallets.txt, bei vollem
+   Limit ersetzen sie eine Wallet, die eine Wallet-Regel erfuellt; sonst Warteliste (scout/warteliste.csv).
+Modus --nur-pruefliste: nur die Pruefliste bewerten (ohne Gewinner-Coins und Birdeye), danach die Automatik.
 """
 import argparse
 import csv
@@ -23,6 +26,11 @@ import requests
 
 import bot as core
 import copy_bot as cb
+
+# ================================================================ Schalter (Entscheidung des Betreibers 04.10.)
+AUTO_AUFNAHME = True                # True: Scout nimmt Copy-Wallets selbst auf und ersetzt sie. False: nur melden
+AUTO_MAX_WALLETS = 22               # hoechstens so viele aktive Wallets in copy_wallets.txt
+AUTO_MAX_PRO_TAG = 3                # hoechstens so viele Aenderungen (Aufnahme oder Ersetzen) pro Tag (UTC)
 
 core.HELIUS_INTERVAL = 0.5          # Scout hoechstens ~2 Helius-Anfragen/s, laeuft parallel zu den anderen Bots
 
@@ -71,6 +79,19 @@ MAX_WINDOW_PAGES = 5
 MIN_COINS = 3
 MIN_KAUF_SOL = 0.05                 # darunter blaeht die Rendite in % auf (z. B. 0,002 SOL -> 472.633 %), nicht kopierbar
 FRICTION_SHORT, FRICTION_MID, FRICTION_LONG = 10.0, 6.0, 3.0   # Reibung in Prozentpunkten je nach Haltedauer
+
+# Automatik: Aufnahme-Kriterien (alle muessen erfuellt sein) und Warteliste
+WAIT_FILE = os.path.join(SCOUT_DIR, "warteliste.csv")
+WAIT_HEADER = ["seit", "bewertet", "wallet", "name", "quelle", "punkte", "rendite_ohne_besten_pct", "coins",
+               "kauf_median_sol", "trades_pro_tag", "inaktiv_h"]
+AUTO_MAX_IDLE_H = 24                # letzte Aktivitaet unter 24 h
+AUTO_MIN_COINS = 5                  # mindestens 5 Coins im Zeitraum
+AUTO_MAX_TRADES_TAG = 200           # hoechstens 200 Trades pro Tag
+AUTO_MIN_KAUF_SOL = 0.1             # Kauf-Median mindestens 0,1 SOL (darunter kaufen wir 0,2 SOL, der Trader viel weniger)
+AUTO_SCHONFRIST_TAGE = 7            # unter 7 Tagen UND unter 30 Positionen: nicht wegen Ergebnis ersetzen
+WAIT_RECHECK_H = 6                  # Bewertung aelter als 6 h: vor der Aufnahme neu pruefen
+WAIT_MAX_TAGE = 7                   # nach 7 Tagen faellt ein Kandidat von der Warteliste
+ADDR_RE = re.compile(r"[1-9A-HJ-NP-Za-km-z]{32,44}")
 
 _birdeye_last = [0.0]
 STATS = {"coins": 0, "kandidaten": 0, "stufe1_raus": {}, "stufe2": 0, "birdeye_cu": 0, "birdeye_fehler": "", "fehler": 0}
@@ -414,17 +435,42 @@ def load_list():
     return entries
 
 
+def _rating_line(name, w, s2, pts):
+    """(Sortierwert, Discord-Zeile) fuer eine bewertete Wallet."""
+    detail = (f"7 Tage: {s2['coins']} Coins ({s2['coins_gehalten']} noch gehalten), Trader {s2.get('rendite_pct')} % "
+              f"auf den Einsatz, ohne besten Coin {s2.get('rendite_ohne_besten_pct')} %, Treffer "
+              f"{(s2.get('trefferquote') or 0):.0%}, Kauf-Median {s2.get('kauf_median_sol')} SOL, "
+              f"{s2.get('trades_pro_tag')} Trades/Tag, Haltedauer {s2.get('haltedauer_median_min')} min, "
+              f"Reibung {s2['reibung_pp']:.0f} Punkte")
+    if pts is None:
+        return -500, f"❔ **{name}** `{w}`\n   {not_rated_reason(s2)} | {detail}"
+    return pts, f"{'✅' if pts > 0 else '➖'} **{name}** `{w}`\n   fuer uns {pts:+.0f} % | {detail}"
+
+
+def _list_digest(entries):
+    return hashlib.sha256((SCORING_VERSION + ":" + ",".join(sorted(a for _, a in entries))).encode()).hexdigest()[:16]
+
+
 def check_list(state, now, sol_usd):
-    """Bewertet jede Wallet der Pruefliste einmal (erneut nur, wenn sich die Liste aendert)."""
+    """Bewertet nur Adressen der Pruefliste, die noch nicht (mit der aktuellen SCORING_VERSION) bewertet sind.
+    Bereits bewertete kommen aus dem Speicher (state['liste_bewertet']) und werden nur angezeigt.
+    Rueckgabe: (Zeilen fuer kandidaten.csv, nur neue; Discord-Zeilen, neue und gespeicherte; leer = nichts Neues)."""
     entries = load_list()
     if not entries:
         return [], []
-    # Version der Bewertung im Hash: nach einer Aenderung der Methode wird dieselbe Liste neu geprueft
-    digest = hashlib.sha256((SCORING_VERSION + ":" + ",".join(sorted(a for _, a in entries))).encode()).hexdigest()[:16]
-    if state.get("liste_hash") == digest:
+    first = "liste_bewertet" not in state
+    memo = state.setdefault("liste_bewertet", {})
+    if first and state.get("liste_hash") == _list_digest(entries):
+        # Uebergang vom alten Listen-Hash: die ganze Liste war mit dieser Version schon bewertet
+        for _, w in entries:
+            memo[w] = {"version": SCORING_VERSION, "zeit": state["wallets_geprueft"].get(w, now)}
+    todo = [(n, w) for n, w in entries if (memo.get(w) or {}).get("version") != SCORING_VERSION]
+    STATS["liste_neu"] = len(todo)
+    if not todo:
         return [], []
     rows, lines = [], []
-    for name, w in entries:
+    for name, w in todo:
+        n_lines = len(lines)
         try:
             m, reason = stage1(w, now, LIST_MAX_IDLE_H)
             row = {"zeit": cb.now_str(), "wallet": w, "quelle": "liste", "coin": name,
@@ -433,25 +479,29 @@ def check_list(state, now, sol_usd):
                 rows.append(dict(row, ergebnis="raus", grund=reason))
                 lines.append((-999, f"❌ **{name}** `{w}`\n   raus: {reason} ({min(m.get('tx_pro_h') or 0, 9999)} Tx/h, "
                                     f"{(m.get('fehlgeschlagen') or 0):.0%} fehlgeschlagen, {m.get('inaktiv_h')} h inaktiv)"))
-                continue
-            s2 = stage2(w, window_sigs(w, m["_page"], now, LIST_TX), sol_usd)
-            pts = score(s2)
-            rows.append(dict(row, **s2, ergebnis="bewertet" if pts is not None else not_rated_reason(s2),
-                             punkte=pts if pts is not None else ""))
-            detail = (f"7 Tage: {s2['coins']} Coins ({s2['coins_gehalten']} noch gehalten), Trader {s2.get('rendite_pct')} % "
-                      f"auf den Einsatz, ohne besten Coin {s2.get('rendite_ohne_besten_pct')} %, Treffer "
-                      f"{(s2.get('trefferquote') or 0):.0%}, Kauf-Median {s2.get('kauf_median_sol')} SOL, "
-                      f"{s2.get('trades_pro_tag')} Trades/Tag, Haltedauer {s2.get('haltedauer_median_min')} min, "
-                      f"Reibung {s2['reibung_pp']:.0f} Punkte")
-            if pts is None:
-                lines.append((-500, f"❔ **{name}** `{w}`\n   {not_rated_reason(s2)} | {detail}"))
             else:
-                lines.append((pts, f"{'✅' if pts > 0 else '➖'} **{name}** `{w}`\n   fuer uns {pts:+.0f} % | {detail}"))
-        except Exception as err:
+                s2 = stage2(w, window_sigs(w, m["_page"], now, LIST_TX), sol_usd)
+                pts = score(s2)
+                rows.append(dict(row, **s2, ergebnis="bewertet" if pts is not None else not_rated_reason(s2),
+                                 punkte=pts if pts is not None else ""))
+                lines.append(_rating_line(name, w, s2, pts))
+        except Exception as err:                    # nicht gespeichert: naechster Lauf versucht es erneut
             STATS["fehler"] += 1
             lines.append((-998, f"⚠️ **{name}**: Fehler bei der Pruefung ({str(err)[:60]})"))
+            continue
         state["wallets_geprueft"][w] = now
-    state["liste_hash"] = digest
+        if rows and rows[-1]["wallet"] == w and str(rows[-1].get("grund", "")).startswith("zu wenig Transaktionen"):
+            continue                                # evtl. nur leere Helius-Antwort: naechster Lauf prueft erneut
+        if len(lines) > n_lines:
+            memo[w] = {"version": SCORING_VERSION, "zeit": now, "sort": lines[-1][0], "zeile": lines[-1][1]}
+    new = {w for _, w in todo}
+    for name, w in entries:                         # schon bewertete aus dem Speicher anzeigen
+        m = memo.get(w)
+        if w in new or not m:
+            continue
+        when = datetime.fromtimestamp(m.get("zeit") or now, timezone.utc).strftime("%d.%m. %H:%M")
+        lines.append((m.get("sort", -600), (m.get("zeile") or f"🗂️ **{name}** `{w}`\n   schon bewertet, Ergebnis im Dashboard")
+                      + f"\n   (aus dem Speicher, bewertet {when} UTC)"))
     return rows, [l for _, l in sorted(lines, key=lambda x: -x[0])]
 
 
@@ -562,6 +612,289 @@ def check_transactions(state, now, sol_usd):
     return lines
 
 
+# ================================================================ Automatik: Copy-Wallets aufnehmen und ersetzen
+
+def auto_reason(r):
+    """Warum ein bewerteter Kandidat NICHT automatisch aufgenommen wird (None = alle Kriterien erfuellt)."""
+    def num(k):
+        try:
+            return float(r.get(k))
+        except (TypeError, ValueError):
+            return None
+    if r.get("ergebnis") != "bewertet":            # Stufe 1 (Bot, still) nicht bestanden oder nicht bewertbar
+        return str(r.get("grund") or r.get("ergebnis") or "nicht bewertet")
+    checks = [
+        (num("inaktiv_h") is not None and num("inaktiv_h") < AUTO_MAX_IDLE_H, f"letzte Aktivitaet nicht unter {AUTO_MAX_IDLE_H} h"),
+        ((num("coins") or 0) >= AUTO_MIN_COINS, f"unter {AUTO_MIN_COINS} Coins im Zeitraum"),
+        ((num("punkte") or 0) > 0, "fuer uns nicht im Plus nach Reibung"),
+        ((num("rendite_ohne_besten_pct") or 0) > 0, "ohne besten Coin nicht im Plus"),
+        (num("trades_pro_tag") is not None and num("trades_pro_tag") <= AUTO_MAX_TRADES_TAG,
+         f"mehr als {AUTO_MAX_TRADES_TAG} Trades pro Tag"),
+        ((num("kauf_median_sol") or 0) >= AUTO_MIN_KAUF_SOL, f"Kauf-Median unter {AUTO_MIN_KAUF_SOL} SOL"),
+    ]
+    return next((why for ok, why in checks if not ok), None)
+
+
+def load_waitlist():
+    if not os.path.exists(WAIT_FILE):
+        return {}
+    with open(WAIT_FILE, encoding="utf-8") as f:
+        return {r["wallet"]: r for r in csv.DictReader(f) if r.get("wallet")}
+
+
+def save_waitlist(wait):
+    os.makedirs(SCOUT_DIR, exist_ok=True)
+    tmp = WAIT_FILE + ".tmp"
+    with open(tmp, "w", newline="", encoding="utf-8") as f:
+        w = csv.writer(f)
+        w.writerow(WAIT_HEADER)
+        for e in sorted(wait.values(), key=lambda e: -core.as_float(e.get("punkte"))):
+            w.writerow([e.get(k, "") for k in WAIT_HEADER])
+    os.replace(tmp, WAIT_FILE)
+
+
+def _wait_entry(r, now, since=None):
+    name = r.get("coin") if r.get("quelle") == "liste" else ""
+    return {"seit": since or now, "bewertet": now, "wallet": r["wallet"], "name": name or r["wallet"][:4],
+            "quelle": r.get("quelle", ""), **{k: r.get(k, "") for k in WAIT_HEADER[5:]}}
+
+
+def wallet_file_names(text):
+    """Alle Namen in copy_wallets.txt, auch auskommentierte."""
+    names = set()
+    for line in text.splitlines():
+        name, _, rest = line.strip().lstrip("#").strip().partition(":")
+        if ADDR_RE.match(rest.strip()):
+            names.add(name.strip())
+    return names
+
+
+def unique_name(base, addr, taken):
+    """Name ohne ':'/'#', der weder in copy_wallets.txt noch in copy/konten.json vorkommt (sonst erbt die neue
+    Wallet ein altes Konto)."""
+    base = re.sub(r"[^0-9A-Za-z_.\-]", "", base or "")[:20]
+    for cand in (base, addr[:4], addr[:6], addr[:8], addr):
+        if cand and cand not in taken:
+            return cand
+    return addr
+
+
+def load_copy_accounts():
+    try:
+        with open(cb.ACCOUNTS_FILE, encoding="utf-8") as f:
+            return json.load(f).get("wallets", {})
+    except (OSError, ValueError):
+        return {}
+
+
+def replaceable_wallets(active, accounts, now):
+    """Aktive Wallets, die eine Wallet-Regel erfuellen, in der Reihenfolge Bot, still (laengste Pause zuerst),
+    groesster Verlust. [(Name, Adresse, Grund)]"""
+    out = []
+    for name, addr in active:
+        try:
+            _, reason = stage1(addr, now, max_idle_h=10 ** 6)   # nur die Bot-Regeln von Stufe 1 (1 Credit)
+        except Exception as err:
+            STATS["fehler"] += 1
+            print(f"[SCOUT] Automatik Stufe 1 {name}: {str(err)[:100]}")
+            reason = None
+        if reason and reason.startswith("Bot"):
+            out.append((0, 0, name, addr, reason))
+            continue
+        a = accounts.get(name)
+        if not a:
+            continue                                 # Konto noch nicht eroeffnet (gerade aufgenommen)
+        try:
+            start = datetime.fromisoformat(a["gestartet"]).timestamp()
+        except (KeyError, TypeError, ValueError):
+            start = now
+        idle_h = (now - (a.get("letzter_trade") or start)) / 3600
+        if idle_h >= cb.WALLET_SILENT_H:
+            out.append((1, -idle_h, name, addr, f"still, seit {idle_h:.0f} h kein eigener Trade"))
+            continue
+        closed = a.get("geschlossen") or []
+        realized = sum(core.as_float(c.get("pnl_sol")) for c in closed)
+        schonfrist = now - start < AUTO_SCHONFRIST_TAGE * 86400 and len(closed) < cb.REVIEW_AFTER_CLOSED
+        if not schonfrist and len(closed) >= cb.REVIEW_AFTER_CLOSED and realized <= -cb.REVIEW_MIN_LOSS_SOL:
+            out.append((2, realized, name, addr, f"Verlust, {len(closed)} Positionen, {realized:+.2f} SOL"))
+    return [(n, a, g) for _, _, n, a, g in sorted(out, key=lambda x: (x[0], x[1]))]
+
+
+def recheck(e, now, sol_usd):
+    """Kandidat von der Warteliste vor der Aufnahme frisch bewerten. Rueckgabe: Zeile fuer kandidaten.csv."""
+    w = e["wallet"]
+    m, reason = stage1(w, now)
+    row = {"zeit": cb.now_str(), "wallet": w, "quelle": "warteliste", "coin": e.get("name", ""),
+           **{k: v for k, v in m.items() if not k.startswith("_")}}
+    if reason:
+        return dict(row, ergebnis="raus", grund=reason)
+    s2 = stage2(w, window_sigs(w, m["_page"], now, LIST_TX if e.get("quelle") == "liste" else STAGE2_TX), sol_usd)
+    pts = score(s2)
+    return dict(row, **s2, ergebnis="bewertet" if pts is not None else not_rated_reason(s2),
+                punkte=pts if pts is not None else "")
+
+
+def _add_reason(e):
+    return (f"Scout ({e.get('quelle') or '?'}), fuer uns {core.as_float(e.get('punkte')):+.0f} %, ohne besten Coin "
+            f"{core.as_float(e.get('rendite_ohne_besten_pct')):+.0f} %, {e.get('coins')} Coins, Kauf-Median "
+            f"{e.get('kauf_median_sol')} SOL, {e.get('trades_pro_tag')} Trades/Tag")
+
+
+def apply_wallet_changes(plans, datum, taken_accounts):
+    """Schreibt die geplanten Aenderungen in copy_wallets.txt (frischer Stand). Prueft jede Aenderung gegen die
+    Datei: Adresse schon drin, zu ersetzende Wallet nicht mehr aktiv oder Limit voll -> ausgelassen.
+    Rueckgabe: tatsaechlich ausgefuehrte Plaene (mit endgueltigem Namen)."""
+    path = cb.WALLET_FILE
+    raw = open(path, "rb").read() if os.path.exists(path) else b""
+    nl = "\r\n" if b"\r\n" in raw else "\n"
+    lines = raw.decode("utf-8").splitlines()
+    addrs = set(ADDR_RE.findall("\n".join(lines)))
+    taken = wallet_file_names("\n".join(lines)) | set(taken_accounts)
+
+    def active_index(addr):
+        for i, line in enumerate(lines):
+            s = line.strip()
+            if s and not s.startswith("#") and s.partition(":")[2].strip() == addr:
+                return i
+        return None
+    active = sum(1 for line in lines if line.strip() and not line.strip().startswith("#")
+                 and ADDR_RE.fullmatch(line.strip().partition(":")[2].strip()))
+    done = []
+    for p in plans:
+        if p["adresse"] in addrs:
+            continue
+        name = unique_name(p["name"], p["adresse"], taken)
+        if p.get("raus"):
+            i = active_index(p["raus"]["adresse"])
+            if i is None:
+                continue
+            lines[i] = (f"# {lines[i].strip()}   <- entfernt {datum} automatisch: {p['raus']['grund']}; "
+                        f"ersetzt durch {name}")
+        elif active >= AUTO_MAX_WALLETS:
+            continue
+        else:
+            active += 1
+        lines += [f"# {datum} automatisch aufgenommen: {p['grund']}", f"{name}: {p['adresse']}"]
+        addrs.add(p["adresse"])
+        taken.add(name)
+        done.append(dict(p, name=name))
+    if done:
+        with open(path, "w", encoding="utf-8", newline="") as f:
+            f.write(nl.join(lines) + nl)
+    return done
+
+
+def push_wallet_changes(plans, now, taken_accounts):
+    """Aenderungen auf den neuesten Stand von copy_wallets.txt anwenden, NUR diese Datei committen und pushen.
+    Rueckgabe: ausgefuehrte Plaene ([] = nichts geaendert oder Push fehlgeschlagen)."""
+    g = core._git
+    datum = datetime.fromtimestamp(now, timezone.utc).strftime("%d.%m.")
+    g("config", "user.name", "github-actions[bot]")
+    g("config", "user.email", "github-actions[bot]@users.noreply.github.com")
+    for _ in range(3):
+        if g("fetch", "-q", "origin", "main").returncode != 0:
+            continue
+        g("reset", "-q", "origin/main")
+        g("checkout", "-q", "origin/main", "--", cb.WALLET_FILE)
+        done = apply_wallet_changes(plans, datum, taken_accounts)
+        if not done:
+            return []
+        g("add", cb.WALLET_FILE)
+        if g("diff", "--cached", "--quiet").returncode == 0:
+            return []
+        g("commit", "-q", "-m", f"SCOUT Copy-Wallets automatisch: {', '.join(p['name'] for p in done)} [skip ci]")
+        if g("push", "-q", "origin", "HEAD:main").returncode == 0:
+            return done
+    g("reset", "-q", "origin/main")                     # nichts halb Gespeichertes liegen lassen
+    g("checkout", "-q", "origin/main", "--", cb.WALLET_FILE)
+    STATS["fehler"] += 1
+    return None
+
+
+def auto_wallets(state, now, sol_usd, rows):
+    """Automatik nach jeder Bewertung: Kandidaten aus diesem Lauf (Suche und Pruefliste) und von der Warteliste.
+    Aufnahme, wenn Platz ist; sonst eine Wallet ersetzen, die eine Wallet-Regel erfuellt; sonst Warteliste.
+    Schreibt nur copy_wallets.txt (eigener Commit) und scout/warteliste.csv. Rueckgabe: Discord-Zeilen."""
+    if not AUTO_AUFNAHME:
+        return []
+    known = set(ADDR_RE.findall(open(cb.WALLET_FILE, encoding="utf-8").read())) \
+        if os.path.exists(cb.WALLET_FILE) else set()
+    wait = load_waitlist()
+    for w, e in list(wait.items()):
+        if w in known or now - core.as_float(e.get("seit")) > WAIT_MAX_TAGE * 86400:
+            del wait[w]
+    for r in list(rows):
+        w = r.get("wallet")
+        if not w or w in known:
+            continue
+        if auto_reason(r) is None:
+            wait[w] = _wait_entry(r, now, (wait.get(w) or {}).get("seit"))
+        else:
+            wait.pop(w, None)                        # frische Bewertung sagt nein
+    log = [e for e in state.get("auto_aenderungen", []) if now - e.get("zeit", 0) < 30 * 86400]
+    today = datetime.fromtimestamp(now, timezone.utc).strftime("%Y-%m-%d")
+    budget = AUTO_MAX_PRO_TAG - sum(1 for e in log if datetime.fromtimestamp(e["zeit"], timezone.utc)
+                                    .strftime("%Y-%m-%d") == today)
+    active = cb.load_wallets() if os.path.exists(cb.WALLET_FILE) else []
+    free = AUTO_MAX_WALLETS - len(active)
+    accounts = load_copy_accounts()
+    repl = None                                      # erst abfragen, wenn ein Kandidat auf einen vollen Platz trifft
+    plans, lines = [], []
+    for e in sorted(wait.values(), key=lambda e: -core.as_float(e.get("punkte"))):
+        if budget <= 0:
+            break
+        if free <= 0 and repl is None:
+            repl = replaceable_wallets(active, accounts, now)
+        if free <= 0 and not repl:
+            break
+        if now - core.as_float(e.get("bewertet")) > WAIT_RECHECK_H * 3600:
+            try:
+                r = recheck(e, now, sol_usd)
+            except Exception as err:
+                STATS["fehler"] += 1
+                print(f"[SCOUT] Automatik Neupruefung {e['wallet'][:8]}: {str(err)[:100]}")
+                continue
+            rows.append(r)
+            why = auto_reason(r)
+            if why:
+                del wait[e["wallet"]]
+                lines.append(f"➖ **{e.get('name')}** `{e['wallet']}` von der Warteliste gestrichen: {why}")
+                continue
+            e = wait[e["wallet"]] = dict(_wait_entry(r, now, e.get("seit")), name=e.get("name"), quelle=e.get("quelle"))
+        plan = {"name": e.get("name") or e["wallet"][:4], "adresse": e["wallet"], "grund": _add_reason(e)}
+        if free > 0:
+            free -= 1
+        else:
+            name, addr, why = repl.pop(0)
+            plan["raus"] = {"name": name, "adresse": addr, "grund": why}
+        plans.append(plan)
+        budget -= 1
+    done = push_wallet_changes(plans, now, accounts) if plans else []
+    for p in done or []:
+        wait.pop(p["adresse"], None)
+        log.append({"zeit": now, "name": p["name"], "adresse": p["adresse"], "grund": p["grund"],
+                    "raus": p.get("raus")})
+        if p.get("raus"):
+            lines.append(f"🔁 **{p['name']}** `{p['adresse']}` ersetzt **{p['raus']['name']}** "
+                         f"({p['raus']['grund']})\n   {p['grund']}")
+        else:
+            lines.append(f"➕ **{p['name']}** `{p['adresse']}` aufgenommen\n   {p['grund']}")
+    if done is None:
+        lines.append("⚠️ copy_wallets.txt konnte nicht gespeichert werden (Push fehlgeschlagen); "
+                     "die Kandidaten bleiben auf der Warteliste.")
+    state["auto_aenderungen"] = log
+    save_waitlist(wait)
+    STATS["warteliste"] = len(wait)
+    STATS["auto_heute"] = sum(1 for e in log if datetime.fromtimestamp(e["zeit"], timezone.utc)
+                              .strftime("%Y-%m-%d") == today)
+    if done:
+        lines.append("Der Copy-Bot uebernimmt die Aenderung beim naechsten Schichtwechsel.")
+    if lines and wait:
+        lines.append(f"⏳ Warteliste: {len(wait)} Kandidat(en) (kein freier Platz, keine ersetzbare Wallet "
+                     f"oder Tageslimit {AUTO_MAX_PRO_TAG})")
+    return lines
+
+
 # ================================================================ Lauf
 
 def known_wallets():
@@ -574,19 +907,8 @@ def known_wallets():
     return known
 
 
-def run():
-    now = time.time()
-    core.git_sync_start()
-    state = load_state()
-    sol_usd = core.sol_price()
-    list_rows, list_lines = check_list(state, now, sol_usd)
-    try:
-        tx_lines = check_transactions(state, now, sol_usd)
-    except Exception as err:                         # Pruef-Modus darf den Scout nie stoppen
-        STATS["fehler"] += 1
-        tx_lines = [f"⚠️ Transaktions-Pruefung fehlgeschlagen: {str(err)[:80]}"]
-    if tx_lines:
-        notify("🔎 Wallet-Scout: Transaktions-Pruefung", tx_lines)
+def search(state, now, sol_usd):
+    """Gewinner-Coins -> Kandidaten -> Stufe 1 und 2. Rueckgabe: (Coins, Zeilen fuer kandidaten.csv, Rangliste)."""
     coins = winner_coins(state, now)
     STATS["coins"] = len(coins)
     known = known_wallets()
@@ -636,14 +958,55 @@ def run():
         if pts is not None:
             ranked.append(r)
     ranked.sort(key=lambda r: -r["punkte"])
-    write_csv(list_rows + rows)
+    return coins, rows, ranked
+
+
+def auto_status_line():
+    if not AUTO_AUFNAHME:
+        return "**Automatik:** aus (AUTO_AUFNAHME = False), copy_wallets.txt wird nicht geaendert"
+    return (f"**Automatik:** an | heute {STATS.get('auto_heute', 0)} von {AUTO_MAX_PRO_TAG} Aenderungen | "
+            f"Warteliste {STATS.get('warteliste', 0)} | Limit {AUTO_MAX_WALLETS} aktive Wallets")
+
+
+def run(nur_liste=False):
+    """nur_liste=True: nur die Pruefliste bewerten (ohne Gewinner-Coins, Birdeye und Transaktions-Pruefung)."""
+    now = time.time()
+    core.git_sync_start()
+    state = load_state()
+    sol_usd = core.sol_price()
+    list_rows, list_lines = check_list(state, now, sol_usd)
+    coins, rows, ranked = [], [], []
+    if not nur_liste:
+        try:
+            tx_lines = check_transactions(state, now, sol_usd)
+        except Exception as err:                     # Pruef-Modus darf den Scout nie stoppen
+            STATS["fehler"] += 1
+            tx_lines = [f"⚠️ Transaktions-Pruefung fehlgeschlagen: {str(err)[:80]}"]
+        if tx_lines:
+            notify("🔎 Wallet-Scout: Transaktions-Pruefung", tx_lines)
+        coins, rows, ranked = search(state, now, sol_usd)
+    all_rows = list_rows + rows
+    try:
+        auto_lines = auto_wallets(state, now, sol_usd, all_rows)
+    except Exception as err:                         # Automatik darf den Scout nie stoppen
+        STATS["fehler"] += 1
+        auto_lines = [f"⚠️ Automatik fehlgeschlagen, nichts geaendert: {str(err)[:80]}"]
+    write_csv(all_rows)
     save_state(state)
     if list_lines:
         good = sum(1 for l in list_lines if l.startswith("✅"))
         notify("📋 Wallet-Scout: deine Pruefliste", [
-            f"**{len(list_lines)} Wallets geprueft, {good} fuer uns im Plus** (Rendite des Traders der letzten 7 Tage "
+            f"**{STATS.get('liste_neu', 0)} Wallets neu geprueft, {len(list_lines) - STATS.get('liste_neu', 0)} aus dem "
+            f"Speicher, {good} fuer uns im Plus** (Rendite des Traders der letzten 7 Tage "
             f"auf den Einsatz, gehaltene Coins zum aktuellen Kurs, ohne seinen besten Coin, minus 3 bis 10 "
             f"Prozentpunkte Reibung je nach Haltedauer)"] + list_lines)
+    elif nur_liste:
+        notify("📋 Wallet-Scout: deine Pruefliste", ["Keine neuen Adressen, alle schon bewertet (Ergebnis im Dashboard)."])
+    if auto_lines:
+        notify("🔁 Wallet-Scout: Copy-Wallets automatisch geaendert", auto_lines)
+    if nur_liste:
+        git_push()
+        return
     lines = [f"**Gewinner-Coins:** {', '.join(f'{s} {m:.1f}x' for _, s, m in coins) or 'keine neuen'}",
              f"**Kandidaten:** {STATS['kandidaten']} neu | **Stufe 1 aussortiert:** {STATS['stufe1_raus'] or 0} | "
              f"**Stufe 2 bewertet:** {STATS['stufe2']}"
@@ -668,12 +1031,14 @@ def run():
                          f"   {r['punkte']:+.0f} % (Trader {r['rendite_pct']:+.0f} %, ohne besten {r['rendite_ohne_besten_pct']:+.0f} %) | "
                          f"{(r['trefferquote'] or 0):.0%} | {r['coins']} | {r['kauf_median_sol']} SOL | "
                          f"{r['trades_pro_tag']} | {r['haltedauer_median_min']} min")
-        lines.append("Eintragen in copy_wallets.txt als `Name: Adresse`.")
+        lines.append("Aufnahme entscheidet die Automatik (Kriterien siehe STRATEGIE.md)." if AUTO_AUFNAHME
+                     else "Eintragen in copy_wallets.txt als `Name: Adresse`.")
     else:
         lines.append("Keine Wallet, die nach Abzug der Reibung fuer uns im Plus waere.")
     lines.append(f"**Birdeye:** {STATS['birdeye_cu']} CUs in diesem Lauf, {state['birdeye']['cu']} im Monat"
                  + (f" | {STATS['birdeye_fehler']}" if STATS["birdeye_fehler"] else "") if BIRDEYE_API_KEY
                  else "**Birdeye:** kein Key, nur Helius")
+    lines.append(auto_status_line())
     if STATS["fehler"]:
         lines.append(f"**Fehler:** {STATS['fehler']}")
     notify("🔭 Wallet-Scout", lines)
@@ -729,4 +1094,6 @@ def probe():
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()
     ap.add_argument("--probe", action="store_true")
-    probe() if ap.parse_args().probe else run()
+    ap.add_argument("--nur-pruefliste", action="store_true", help="nur scout/pruefen.txt bewerten, danach Automatik")
+    args = ap.parse_args()
+    probe() if args.probe else run(nur_liste=args.nur_pruefliste)

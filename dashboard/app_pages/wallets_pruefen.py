@@ -7,9 +7,11 @@ import rechnung
 import wallets
 
 st.title("Wallets prüfen", anchor=False)
-st.caption("Hier schickst du neue Wallet-Adressen zur Prüfung an den Scout. Das ist die einzige Seite, die etwas "
-           "speichert – und zwar nur ans Ende von scout/pruefen.txt. Ins Copy Trading kommt nichts automatisch: "
-           "Das entscheidest du.")
+st.caption("Hier schickst du neue Wallet-Adressen zur Prüfung an den Scout. Diese Seite speichert nur ans Ende "
+           "von scout/pruefen.txt und startet einen kurzen Scout-Lauf, der nur die Prüfliste bewertet (ohne "
+           "Coin-Suche und Birdeye). Erfüllt eine Wallet alle Aufnahme-Kriterien, nimmt der Scout sie automatisch "
+           "ins Copy Trading auf oder ersetzt eine schwache Wallet (höchstens 3 Änderungen pro Tag); sonst kommt sie "
+           "auf die Warteliste. Abschalten: Schalter AUTO_AUFNAHME oben in scout_bot.py.")
 
 # ---------------------------------------------------------------- Eingabe
 with st.container(border=True):
@@ -68,6 +70,6 @@ if zeilen:
         "abgeschl. Coins": st.column_config.NumberColumn(format="%d"),
     })
     st.caption("Die Punkte kommen vom Scout und sind nur eine Hilfe. Vorsicht bei wenigen abgeschlossenen Coins. "
-               "Der Scout bewertet bei jeder Änderung der Liste alle Adressen neu.")
+               "Jede Adresse wird nur einmal bewertet; neu erst, wenn sich die Bewertungsmethode ändert.")
 else:
     st.caption("Die Prüfliste ist leer.")

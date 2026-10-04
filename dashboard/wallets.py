@@ -1,6 +1,6 @@
 """Wallets pruefen: die EINZIGE Stelle im Dashboard, die schreibt - und auch hier nur an das Ende von
-scout/pruefen.txt. Nie loeschen oder umschreiben, nie eine andere Datei committen. copy_wallets.txt wird nicht
-angefasst: ob eine Wallet ins Copy Trading kommt, entscheidet der Betreiber.
+scout/pruefen.txt. Nie loeschen oder umschreiben, nie eine andere Datei committen. copy_wallets.txt wird hier nicht
+angefasst: die Aufnahme ins Copy Trading macht seit 04.10. die Automatik im Scout (auf GitHub).
 
 Kein Streamlit-Import (Tests benutzen das Modul direkt). Keine Schluessel: git und gh benutzen die
 Anmeldung des Rechners.
@@ -16,6 +16,7 @@ import rechnung
 PRUEFLISTE = "scout/pruefen.txt"
 COPY_LISTE = "copy_wallets.txt"
 KANDIDATEN = "scout/kandidaten.csv"
+WARTELISTE = "scout/warteliste.csv"
 SCOUT_WORKFLOW = "scout_runner.yml"
 MAX_ADRESSEN = 20
 MAX_NAME = 30
@@ -177,7 +178,8 @@ def _verwerfen(repo, eigener_commit):
 
 
 def scout_anstossen(repo=None):
-    """Startet einen Scout-Lauf per gh, aber nur wenn gerade keiner laeuft. Rueckgabe: (gestartet, Meldung)."""
+    """Startet einen Scout-Lauf im Modus "pruefliste" (nur die Pruefliste, ohne Coin-Suche und Birdeye) per gh,
+    aber nur wenn gerade keiner laeuft. Rueckgabe: (gestartet, Meldung)."""
     repo = repo or rechnung.REPO
     spaeter = "Die Adressen werden beim nächsten Scout-Lauf geprüft (alle 6 Stunden)."
     try:
@@ -188,11 +190,11 @@ def scout_anstossen(repo=None):
         status = re.findall(r'"status"\s*:\s*"([a-z_]+)"', res.stdout)
         if any(s in LAUFEND for s in status):
             return False, "Ein Scout-Lauf läuft gerade. Die neuen Adressen werden beim nächsten Lauf geprüft."
-        res = subprocess.run(["gh", "workflow", "run", SCOUT_WORKFLOW, "-f", "modus=normal"], cwd=repo,
+        res = subprocess.run(["gh", "workflow", "run", SCOUT_WORKFLOW, "-f", "modus=pruefliste"], cwd=repo,
                              capture_output=True, text=True, timeout=60)
         if res.returncode != 0:
             return False, f"Scout-Lauf konnte nicht gestartet werden (gh: {res.stderr.strip()[:100]}). " + spaeter
-        return True, "Scout-Lauf gestartet. Das Ergebnis steht in 10–20 Minuten unten in der Liste."
+        return True, "Scout-Lauf gestartet. Das Ergebnis steht in 5–15 Minuten unten in der Liste."
     except (OSError, subprocess.SubprocessError):
         return False, "Scout-Lauf konnte nicht gestartet werden (gh nicht erreichbar). " + spaeter
 
@@ -228,6 +230,7 @@ def pruefliste_status(repo=None):
             neueste[d["wallet"]] = d
     aktiv = {a for _, a in rechnung.aktive_wallets(repo)}
     in_copy_je = set(ADRESSE.findall(_lies(repo, COPY_LISTE)))
+    wartend = set(ADRESSE.findall(_lies(repo, WARTELISTE)))
     zeilen, gesehen = [], set()
     for roh in _lies(repo, PRUEFLISTE).splitlines():
         zeile = roh.strip()
@@ -242,7 +245,8 @@ def pruefliste_status(repo=None):
             zeilen.append({
                 "name": kopf or kurzname(adresse), "wallet": adresse,
                 "status": "geprüft" if d else "wartet",
-                "copy": "aktiv" if adresse in aktiv else "früher" if adresse in in_copy_je else "",
+                "copy": "aktiv" if adresse in aktiv else "früher" if adresse in in_copy_je
+                        else "Warteliste" if adresse in wartend else "",
                 "zeit": d["zeit"] if d else None,
                 "ergebnis": d["ergebnis"] if d else None,
                 "grund": (d.get("grund") or "") if d else "",

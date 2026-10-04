@@ -956,7 +956,9 @@ def log_paths(data, sol_usd, now):
 
 
 def wallet_check(data, active, now):
-    """Welche Wallets erfuellen eine Regel zum Ersetzen? Entscheidung bleibt beim Menschen."""
+    """Welche Wallets erfuellen eine Regel zum Ersetzen? Nur Meldung; ersetzt wird seit 04.10. von der
+    Automatik im Scout (scout_bot.auto_wallets): still und Verlust mit denselben Konstanten, Bot dort nach den
+    Regeln von Scout-Stufe 1 (der Flutschutz hier wird nicht gespeichert)."""
     notes = []
     for name in active:
         a, s = data["wallets"][name], STATS["wallet"].get(name, {})

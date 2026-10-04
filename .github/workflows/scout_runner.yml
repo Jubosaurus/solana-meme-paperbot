@@ -4,12 +4,13 @@ on:
   workflow_dispatch:
     inputs:
       modus:
-        description: "normal oder probe (Kurztest)"
+        description: "normal, pruefliste (nur scout/pruefen.txt, ohne Coin-Suche und Birdeye) oder probe (Kurztest)"
         required: true
         default: probe
         type: choice
         options:
           - normal
+          - pruefliste
           - probe
   # Alle 6 Stunden, versetzt zu den anderen Bots. Faellt ein Lauf aus, ist das unkritisch.
   schedule:
@@ -50,11 +51,13 @@ jobs:
         run: |
           if [ "${{ github.event.inputs.modus }}" = "probe" ]; then
             python scout_bot.py --probe
+          elif [ "${{ github.event.inputs.modus }}" = "pruefliste" ]; then
+            python scout_bot.py --nur-pruefliste
           else
             python scout_bot.py
           fi
 
-      # Sichert nur den Ordner scout/
+      # Sichert nur den Ordner scout/ (copy_wallets.txt committet die Automatik im Scout selbst)
       - name: Sicherung
         if: always() && github.event.inputs.modus != 'probe'
         run: |

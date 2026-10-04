@@ -168,7 +168,8 @@ def gh_nachmachen(monkeypatch, status, start_code=0):
 def test_scout_wird_angestossen_wenn_keiner_laeuft(monkeypatch):
     aufrufe = gh_nachmachen(monkeypatch, '[{"status":"completed"},{"status":"completed"}]')
     ok, meldung = w.scout_anstossen()
-    assert ok and any(a[:3] == ["gh", "workflow", "run"] for a in aufrufe)
+    start = [a for a in aufrufe if a[:3] == ["gh", "workflow", "run"]]
+    assert ok and len(start) == 1 and start[0][-2:] == ["-f", "modus=pruefliste"]    # nur die Pruefliste, ohne Birdeye
 
 
 @pytest.mark.parametrize("laufend", ["in_progress", "queued"])
@@ -207,6 +208,19 @@ def test_pruefliste_status_wartet_und_geprueft(tmp_path):
     assert zeilen[A1]["haltedauer_min"] == 7.5 and zeilen[A1]["rendite_ohne_besten"] == 3.2
     assert zeilen[A3]["status"] == "wartet" and zeilen[A3]["punkte"] is None
     assert zeilen[A2]["ergebnis"] == "raus" and zeilen[A2]["grund"] == "Bot" and zeilen[A2]["copy"] == "früher"
+    assert zeilen[A3]["copy"] == ""
+    (tmp_path / "scout" / "warteliste.csv").write_text(f"seit,bewertet,wallet\n1,1,{A3}\n", encoding="utf-8")
+    assert {z["wallet"]: z for z in w.pruefliste_status(tmp_path)}[A3]["copy"] == "Warteliste"
+
+
+def test_was_ist_neu_zeigt_automatische_aenderungen(monkeypatch):
+    diff = (f"+++ b/copy_wallets.txt\n+# 05.10. automatisch aufgenommen: Scout (liste), fuer uns +20 %\n+Haru: {A1}\n"
+            f"-43Nu: {A2}\n+# 43Nu: {A2}   <- entfernt 05.10. automatisch: still, seit 80 h kein eigener Trade; "
+            f"ersetzt durch Haru\n+Hand: {A3}\n")
+    monkeypatch.setattr(w.rechnung, "_git_text", lambda repo, *a: diff if "copy_wallets.txt" in a else "")
+    out = w.rechnung.wallet_aenderungen(0, "repo")
+    assert out["aufgenommen"] == ["Haru (automatisch: Scout (liste), fuer uns +20 %)", "Hand"]
+    assert out["entfernt"] == ["43Nu: entfernt 05.10. automatisch: still, seit 80 h kein eigener Trade; ersetzt durch Haru"]
 
 
 # ---------------------------------------------------------------- Ausfuehrungskosten, Flugschreiber

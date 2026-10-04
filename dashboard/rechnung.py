@@ -646,6 +646,7 @@ def wallet_aenderungen(ab, repo=None):
     repo = repo or REPO
     out = {"aufgenommen": [], "entfernt": [], "geprueft_neu": 0}
     text = _git_text(repo, "log", f"--since=@{int(ab)}", "-p", "--format=", "--", "copy_wallets.txt")
+    auto = None                     # Kommentar der Scout-Automatik vor einer neuen Zeile: "# 05.10. automatisch aufgenommen: ..."
     for zeile in text.splitlines():
         if zeile.startswith("+++") or not zeile.startswith("+"):
             continue
@@ -654,10 +655,13 @@ def wallet_aenderungen(ab, repo=None):
             m = re.match(rf"#\s*([^:]{{1,40}}):\s*{ADRESSE_TEXT}\s*<-\s*(.*)", z)
             if m:
                 out["entfernt"].append(f"{m.group(1).strip()}: {m.group(2).strip()}")
+            m = re.match(r"#\s*\d\d\.\d\d\.\s*automatisch aufgenommen:\s*(.*)", z)
+            auto = m.group(1).strip() if m else None
         else:
             m = re.match(rf"^([^:#]{{1,40}}):\s*{ADRESSE_TEXT}", z)
             if m:
-                out["aufgenommen"].append(m.group(1).strip())
+                out["aufgenommen"].append(m.group(1).strip() + (f" (automatisch: {auto})" if auto else ""))
+            auto = None
     liste = _git_text(repo, "log", f"--since=@{int(ab)}", "-p", "--format=", "--", "scout/pruefen.txt")
     out["geprueft_neu"] = sum(1 for z in liste.splitlines() if z.startswith("+") and not z.startswith("+++")
                               and re.search(ADRESSE_TEXT, z))
