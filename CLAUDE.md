@@ -6,6 +6,8 @@ Paper-Trading-Projekt für Solana-Memecoins. **Es wird kein echtes Geld gehandel
 
 **Bei Fragen zu Tradern, Mustern, Experimenten oder früheren Entscheidungen zuerst `wissen/index.md` lesen**, dann 1–3 passende Seiten, nur daraus antworten, mit Quelle; steht es nicht drin: „steht nicht im Wiki“. Das Wiki (Obsidian-Vault `wissen/`, nur Doku) sammelt Wissen und beschließt nichts; verbindlich bleiben `STRATEGIE.md` und diese Datei. Regeln fürs Einspeisen: `wissen/REGELN.md`; eigene Notizen des Betreibers nur in `wissen/notizen/` (Claude liest, ändert nie). Die Tagesauswertung speist am Ende neue Berichte und Notizen ein (Skill, Schritt 8).
 
+**Wiki aktuell halten:** Nach jeder Aufgabe, die eine Entscheidung, eine Regeländerung, ein neues oder beendetes Experiment, eine Wallet-Änderung oder eine wichtige Erkenntnis bringt: die betroffenen Wiki-Seiten sofort nachführen (nach `wissen/REGELN.md`, mit Quelle). Alles andere sammelt die Tagesauswertung.
+
 ## Kommunikation mit dem Betreiber
 
 - Deutsch, einfache Sprache, kein Fachjargon ohne Erklärung. Er liest oft am Handy.
