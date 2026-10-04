@@ -275,3 +275,17 @@ def test_copy_ergebnis_seit_start_ueber_alle_runden():
     assert k["ergebnis_seit_start"] == pytest.approx(-9.5 + 0.3 + (0.05 + 0.1 - 0.2 - 0.002))   # beide Runden
     assert k["ergebnis_runde"] == pytest.approx(0.1)                       # nur laufende Runde: 10 + 0,1 - 10
     assert k["ergebnis_seit_start_vorsichtig"] == pytest.approx(-9.5 + 0.3 + (0.05 - 0.2 - 0.002))
+
+
+def test_exit_liquiditaet_trader_verkauft_schnell():
+    rows = [
+        {"aktion": "KAUF", "trader": "A", "mint": "m1", "trader_zeit": "2026-10-03 10:00:00", "zeit": "2026-10-03 10:00:05"},
+        {"aktion": "VERKAUF", "trader": "A", "mint": "m1", "trader_zeit": "2026-10-03 10:00:03"},   # vor unserem Kauf
+        {"aktion": "KAUF", "trader": "A", "mint": "m2", "trader_zeit": "2026-10-03 11:00:00", "zeit": "2026-10-03 11:00:02"},
+        {"aktion": "VERKAUF_GEMERKT", "trader": "A", "mint": "m2", "trader_zeit": "2026-10-03 11:30:00"},
+        {"aktion": "KAUF", "trader": "B", "mint": "m3", "trader_zeit": "kaputt", "zeit": "x"},
+    ]
+    e = r.exit_liquiditaet(rows)["A"]
+    assert e["kaeufe"] == 2 and e["raus_vor_uns"] == 1 and e["raus_60s"] == 1
+    assert e["median_halte_s"] == pytest.approx((3 + 1800) / 2)
+    assert "B" not in r.exit_liquiditaet(rows)

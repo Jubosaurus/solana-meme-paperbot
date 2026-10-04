@@ -82,6 +82,10 @@ st.dataframe(pd.DataFrame([{
     "wir %": a.txt(k["wir_median_pct"], 1, True), "Trader %": a.txt(k["trader_median_pct"], 1, True),
     "Verzögerung s": a.txt(k["verzoegerung_median_s"], 1), "Preisabstand %": a.txt(k["preisabstand_median_pct"], 1, True),
     "Schatten": k["schatten"], "Schatten SOL": a.plusminus(k["schatten_pnl"]),
+    "Trader raus ≤ 60 s": a.txt(k["exit_liq"]["raus_60s"] / k["exit_liq"]["kaeufe"] * 100, 0, einheit=" %")
+    if k.get("exit_liq") and k["exit_liq"]["kaeufe"] else "–",
+    "raus vor uns": a.txt(k["exit_liq"]["raus_vor_uns"] / k["exit_liq"]["kaeufe"] * 100, 0, einheit=" %")
+    if k.get("exit_liq") and k["exit_liq"]["kaeufe"] else "–",
     "letzter Trade": a.vor(k["letzter_trade"]), "Hinweise": hinweise(k),
 } for k in liste]), hide_index=True, alt="Alle Copy-Trader", column_config={
     "seit Start": st.column_config.TextColumn(help="Alle Runden: geschlossene Positionen + offene zum letzten Kurs"),
@@ -95,6 +99,10 @@ st.dataframe(pd.DataFrame([{
     "Verzögerung s": st.column_config.TextColumn(help="Median beim Kauf, Sekunden nach dem Trader"),
     "Preisabstand %": st.column_config.TextColumn(help="Unser Kaufkurs gegenüber dem des Traders (Median, + = teurer)"),
     "Schatten SOL": st.column_config.TextColumn(help="Wegen Preisgrenze nicht gekauft, nur verfolgt"),
+    "Trader raus ≤ 60 s": st.column_config.TextColumn(help="Anteil unserer Kaeufe, bei denen der Trader innerhalb von "
+                                                           "60 s nach seinem Kauf schon wieder verkauft (Exit-Liquiditaet)"),
+    "raus vor uns": st.column_config.TextColumn(help="Anteil, bei dem der Trader schon verkauft hatte, bevor unser "
+                                                     "Kauf ausgefuehrt war – dann kaufen wir seine Ware"),
     "Hinweise": st.column_config.TextColumn(width="large"),
 })
 st.caption("Wallet-Regeln: 72 h ohne Trade → ersetzen; nach 30 Positionen und mehr als 1 SOL Verlust → prüfen. "

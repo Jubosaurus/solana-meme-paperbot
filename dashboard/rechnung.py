@@ -312,7 +312,42 @@ def aktive_wallets(repo=None):
         return []
 
 
-def copy_konto(name, acct, aktiv, journal_rows, korrigiert):
+def _ts(text):
+    try:
+        return datetime.strptime(text, "%Y-%m-%d %H:%M:%S").replace(tzinfo=timezone.utc).timestamp()
+    except (TypeError, ValueError):
+        return None
+
+
+def exit_liquiditaet(journal_rows):
+    """Je Trader: Wie oft verkauft er schnell nach seinem Kauf, waehrend wir noch kaufen (wir = Exit-Liquiditaet)?
+    Rueckgabe {Trader: {kaeufe, raus_vor_uns, raus_60s, median_halte_s}} aus den Trader-Zeiten im Journal."""
+    verk = {}
+    for x in journal_rows:
+        if x.get("aktion") in ("VERKAUF", "VERKAUF_GEMERKT", "SCHATTEN_VERKAUF", "UEBERWEISUNG") and x.get("trader_zeit"):
+            t = _ts(x["trader_zeit"])
+            if t:
+                verk.setdefault((x.get("trader"), x.get("mint")), []).append(t)
+    erg = {}
+    for x in journal_rows:
+        if x.get("aktion") != "KAUF" or not x.get("trader_zeit"):
+            continue
+        tk, wir = _ts(x["trader_zeit"]), _ts(x.get("zeit"))
+        if tk is None:
+            continue
+        e = erg.setdefault(x["trader"], {"kaeufe": 0, "raus_vor_uns": 0, "raus_60s": 0, "_halte": []})
+        e["kaeufe"] += 1
+        spaeter = sorted(t for t in verk.get((x["trader"], x.get("mint")), []) if t >= tk)
+        if spaeter:
+            e["_halte"].append(spaeter[0] - tk)
+            e["raus_60s"] += spaeter[0] - tk <= 60
+            e["raus_vor_uns"] += wir is not None and spaeter[0] <= wir
+    for e in erg.values():
+        e["median_halte_s"] = statistics.median(e.pop("_halte")) if e["_halte"] else None
+    return erg
+
+
+def copy_konto(name, acct, aktiv, journal_rows, korrigiert, exit_liq=None):
     wert = cb.open_value(acct)                                    # gleiche Rechnung wie die Konto-Zeile in Discord
     wartend = [p for p in acct.get("positionen", {}).values() if p.get("verkauf_offen")]
     wert_wartend = cb.open_value({"positionen": {p["mint"]: p for p in wartend}}) if wartend else 0.0
@@ -352,6 +387,7 @@ def copy_konto(name, acct, aktiv, journal_rows, korrigiert):
         "preisabstand_median_pct": statistics.median(abstand) if abstand else None,
         "schatten": len(schatten), "schatten_pnl": sum(as_float(s.get("pnl_sol")) for s in schatten),
         "letzter_trade": acct.get("letzter_trade"), "korrigiert": any(t == name for t, _ in korrigiert),
+        "exit_liq": (exit_liq or {}).get(name),
     }
 
 
@@ -362,7 +398,8 @@ def copy_konten(repo=None):
     korr = korrekturen(repo)
     rows = journal_bereinigen(lade_csv(repo / cb.JOURNAL_FILE), korr)
     korrigiert = korrigierte_positionen(korr)
-    konten = [copy_konto(n, a, n in aktiv, rows, korrigiert) for n, a in (data.get("wallets") or {}).items()]
+    exit_liq = exit_liquiditaet(rows)
+    konten = [copy_konto(n, a, n in aktiv, rows, korrigiert, exit_liq) for n, a in (data.get("wallets") or {}).items()]
     return sorted(konten, key=lambda k: -k["kontowert"]), data.get("saved_at"), rows
 
 
