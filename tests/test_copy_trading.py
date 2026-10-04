@@ -257,6 +257,28 @@ def test_flutschutz_bot_mit_vielen_fehlschlaegen(env):
     assert cb.STATS["muted"] == ["Alpha"] and subs == {}
 
 
+def test_flutschutz_wird_mit_datum_gespeichert(env):
+    """Seit 04.10.: Abmeldung landet in copy/flutschutz.json (Bot-Hinweis fuer die Scout-Automatik)."""
+    for durchgang in (1, 2):
+        cb.STATS["muted"] = []
+        subs = {1: ("Alpha", WALLET)}
+        for i in range(31):
+            cb.process_message(note(sig=f"f{durchgang}-{i}", err={"x": 1}), subs, env.data, 100.0)
+    e = json.load(open(cb.FLOOD_FILE, encoding="utf-8"))[WALLET]
+    assert e["name"] == "Alpha" and e["anzahl"] == 2 and e["fehlgeschlagen_anteil"] == 1.0
+    assert len(e["erstes"]) == 19 and e["zuletzt"] >= e["erstes"]
+
+
+def test_flutschutz_kaputte_datei_stoppt_nichts(env):
+    os.makedirs("copy", exist_ok=True)
+    open(cb.FLOOD_FILE, "w").write("[kaputt")
+    subs = {1: ("Alpha", WALLET)}
+    for i in range(31):
+        cb.process_message(note(sig=f"f{i}", err={"x": 1}), subs, env.data, 100.0)
+    assert cb.STATS["muted"] == ["Alpha"]
+    assert WALLET in json.load(open(cb.FLOOD_FILE, encoding="utf-8"))
+
+
 def test_flutschutz_laesst_echten_vieltrader_in_ruhe(env, monkeypatch):
     """Lehre aus 922M: viele erfolgreiche Meldungen sind kein Bot."""
     monkeypatch.setattr(cb, "handle_signature", lambda *a, **kw: None)

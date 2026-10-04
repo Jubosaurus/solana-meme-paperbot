@@ -12,9 +12,10 @@ on:
           - normal
           - pruefliste
           - probe
-  # Alle 6 Stunden, versetzt zu den anderen Bots. Faellt ein Lauf aus, ist das unkritisch.
+  # Seit 04.10. stuendlich angestossen: GitHub hat geplante Laeufe ausgelassen oder bis zu 6 h spaeter gestartet.
+  # Der Scout laeuft trotzdem nur einmal je 6-h-Fenster (00, 06, 12, 18 UTC), sonst endet er sofort (--wenn-faellig).
   schedule:
-    - cron: '29 */6 * * *'
+    - cron: '29 * * * *'
 
 concurrency:
   group: wallet-scout
@@ -53,6 +54,8 @@ jobs:
             python scout_bot.py --probe
           elif [ "${{ github.event.inputs.modus }}" = "pruefliste" ]; then
             python scout_bot.py --nur-pruefliste
+          elif [ "${{ github.event_name }}" = "schedule" ]; then
+            python scout_bot.py --wenn-faellig
           else
             python scout_bot.py
           fi

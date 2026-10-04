@@ -31,6 +31,12 @@ import copy_bot as cb
 AUTO_AUFNAHME = True                # True: Scout nimmt Copy-Wallets selbst auf und ersetzt sie. False: nur melden
 AUTO_MAX_WALLETS = 22               # hoechstens so viele aktive Wallets in copy_wallets.txt
 AUTO_MAX_PRO_TAG = 3                # hoechstens so viele Aenderungen (Aufnahme oder Ersetzen) pro Tag (UTC)
+FLOOD_HINT_DAYS = 7                 # Flutschutz-Abmeldung im Copy-Bot zaehlt so lange als Bot-Hinweis beim Ersetzen
+
+# Zeitplan (seit 04.10.): GitHub laesst geplante Laeufe aus oder startet sie Stunden spaeter. Der Workflow stoesst
+# deshalb stuendlich an; mit --wenn-faellig laeuft der Scout nur, wenn im aktuellen 6-h-Fenster (00, 06, 12, 18 UTC)
+# noch kein kompletter Lauf war.
+RUN_SLOT_S = 6 * 3600
 
 core.HELIUS_INTERVAL = 0.5          # Scout hoechstens ~2 Helius-Anfragen/s, laeuft parallel zu den anderen Bots
 
@@ -691,14 +697,36 @@ def load_copy_accounts():
         return {}
 
 
+def load_flood_hints(now):
+    """Vom Copy-Bot per Flutschutz abgemeldete Wallets der letzten FLOOD_HINT_DAYS Tage: {Adresse: Datum}."""
+    try:
+        with open(cb.FLOOD_FILE, encoding="utf-8") as f:
+            flood = json.load(f)
+    except (OSError, ValueError):
+        return {}
+    out = {}
+    for addr, e in (flood.items() if isinstance(flood, dict) else []):
+        try:
+            last = datetime.strptime(e["zuletzt"], "%Y-%m-%d %H:%M:%S").replace(tzinfo=timezone.utc).timestamp()
+        except (KeyError, TypeError, ValueError):
+            continue
+        if now - last <= FLOOD_HINT_DAYS * 86400:
+            out[addr] = e["zuletzt"][:10]
+    return out
+
+
 def replaceable_wallets(active, accounts, now, check_bots=True):
     """Aktive Wallets, die eine Wallet-Regel erfuellen, in der Reihenfolge Bot, still (laengste Pause zuerst),
-    groesster Verlust. [(Name, Adresse, Grund)]. check_bots=False: ohne Helius-Abfrage (nur still/Verlust)."""
+    groesster Verlust. [(Name, Adresse, Grund)]. check_bots=False: ohne Helius-Abfrage (nur still/Verlust).
+    Bot-Hinweis auch aus dem Flutschutz des Copy-Bots (copy/flutschutz.json, ohne Abfrage)."""
+    flood = load_flood_hints(now)
     out = []
     for name, addr in active:
         reason = None
         try:
-            if check_bots:
+            if addr in flood:
+                reason = f"Bot (Flutschutz im Copy-Bot, zuletzt {flood[addr]})"
+            elif check_bots:
                 _, reason = stage1(addr, now, max_idle_h=10 ** 6)   # nur die Bot-Regeln von Stufe 1 (1 Credit)
         except Exception as err:
             STATS["fehler"] += 1
@@ -1066,6 +1094,8 @@ def run(nur_liste=False):
         STATS["fehler"] += 1
         auto_lines = [f"⚠️ Automatik fehlgeschlagen, nichts geaendert: {str(err)[:80]}"]
     write_csv(all_rows)
+    if not nur_liste:
+        state["letzter_lauf"] = now                  # fuer --wenn-faellig (Startzeit, nur kompletter Lauf)
     save_state(state)
     if list_lines:
         good = sum(1 for l in list_lines if l.startswith("✅"))
@@ -1165,9 +1195,28 @@ def probe():
     print("[SCOUT PROBE] fertig. Diese Ausgabe bitte an Claude schicken.")
 
 
-if __name__ == "__main__":
+def run_due(state, now):
+    """True, wenn im aktuellen 6-h-Fenster noch kein kompletter Lauf war."""
+    last = state.get("letzter_lauf")
+    if not isinstance(last, (int, float)):
+        return True
+    return int(last // RUN_SLOT_S) != int(now // RUN_SLOT_S)
+
+
+def main(argv=None):
     ap = argparse.ArgumentParser()
     ap.add_argument("--probe", action="store_true")
     ap.add_argument("--nur-pruefliste", action="store_true", help="nur scout/pruefen.txt bewerten, danach Automatik")
-    args = ap.parse_args()
-    probe() if args.probe else run(nur_liste=args.nur_pruefliste)
+    ap.add_argument("--wenn-faellig", action="store_true",
+                    help="nur laufen, wenn im aktuellen 6-h-Fenster noch kein kompletter Lauf war (Zeitplan)")
+    args = ap.parse_args(argv)
+    if args.probe:
+        probe()
+    elif args.wenn_faellig and not args.nur_pruefliste and not run_due(load_state(), time.time()):
+        print("[SCOUT] In diesem 6-h-Fenster schon gelaufen, nichts zu tun.")
+    else:
+        run(nur_liste=args.nur_pruefliste)
+
+
+if __name__ == "__main__":
+    main()

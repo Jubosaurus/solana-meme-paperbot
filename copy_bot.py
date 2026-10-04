@@ -71,6 +71,8 @@ JUP_INTERVAL = 1.6                      # Copy-Bot fragt Jupiter etwas langsamer
 FLOOD_PER_MIN = 30                      # ab so vielen Meldungen pro Minute ...
 FLOOD_FAILED_SHARE = 0.8                # ... und so viel Anteil fehlgeschlagen -> Bot, fuer die Schicht abmelden
 FLOOD_HARD_PER_MIN = 300                # ab so vielen Meldungen pro Minute immer abmelden (Schutz des Kontingents)
+# Seit 04.10.: jede Abmeldung mit Datum festhalten (Schluessel = Adresse), die Scout-Automatik nutzt das als Bot-Hinweis
+FLOOD_FILE = os.path.join("copy", "flutschutz.json")
 CREDITS_PER_100KB = 2                   # Helius: WebSocket-Daten 2 Credits pro 0,1 MB
 SWAP_HINTS = ("buy", "sell", "swap", "route")   # Log-Stichworte fuer Kauf, Verkauf, Tausch
 MAX_TRADE_AGE_S = 60                    # Kaeufe, die aelter sind, werden nie nachgekauft
@@ -1336,6 +1338,7 @@ def mute(ws, subs, sub, name, per_min, failed_share=1.0, data=None):
     fuer den Rest der Schicht abmelden, damit das Helius-Kontingent nicht aufgebraucht wird."""
     STATS["muted"].append(name)
     STATS["muted_info"][name] = (per_min, failed_share)
+    record_flood(name, (subs.get(sub) or (None, None))[1], per_min, failed_share)
     if data is not None:
         data["wallets"][name]["abgedeckt_bis"] = time.time()   # naechste Schicht holt ab hier nach
     subs.pop(sub, None)
@@ -1349,6 +1352,33 @@ def mute(ws, subs, sub, name, per_min, failed_share=1.0, data=None):
         f"{per_min} Meldungen in der letzten Minute, davon {failed_share:.0%} fehlgeschlagen. Die Wallet wird fuer den Rest "
         f"der Schicht nicht mehr beobachtet, damit das Helius-Kontingent nicht aufgebraucht wird.",
         "Vermutlich ein Bot mit sehr vielen, meist fehlschlagenden Transaktionen."], 0xF59E0B)
+
+
+def record_flood(name, addr, per_min, failed_share):
+    """Abmeldung in copy/flutschutz.json festhalten (erste und letzte Abmeldung, Anzahl). Darf nie stoppen."""
+    if not addr:
+        return
+    try:
+        try:
+            with open(FLOOD_FILE, encoding="utf-8") as f:
+                flood = json.load(f)
+        except (OSError, ValueError):
+            flood = {}
+        if not isinstance(flood, dict):
+            flood = {}
+        e = flood.get(addr) if isinstance(flood.get(addr), dict) else {}
+        e.setdefault("erstes", now_str())
+        e.update(name=name, zuletzt=now_str(), anzahl=int(e.get("anzahl") or 0) + 1,
+                 pro_min=per_min, fehlgeschlagen_anteil=round(failed_share, 3))
+        flood[addr] = e
+        os.makedirs(COPY_DIR, exist_ok=True)
+        tmp = FLOOD_FILE + ".tmp"
+        with open(tmp, "w", encoding="utf-8") as f:
+            json.dump(flood, f, indent=1)
+        os.replace(tmp, FLOOD_FILE)
+    except Exception as err:
+        STATS["errors"] += 1
+        print(f"[COPY] Flutschutz-Datei nicht geschrieben: {str(err)[:100]}")
 
 
 def credits_used():

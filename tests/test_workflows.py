@@ -23,3 +23,10 @@ def test_gruppen_verschieden():
     gruppen = [re.search(r"^concurrency:\n\s+group:\s*(\S+)", (WF / d).read_text(encoding="utf-8"), re.M).group(1)
                for d in ("bot_runner.yml", "copy_runner.yml", "scout_runner.yml")]
     assert len(set(gruppen)) == 3                       # Bots blockieren sich nicht gegenseitig
+
+
+def test_scout_stuendlich_mit_faelligkeitspruefung():
+    """04.10.: GitHub liess geplante Scout-Laeufe aus. Stuendlich anstossen, Scout laeuft einmal je 6-h-Fenster."""
+    text = (WF / "scout_runner.yml").read_text(encoding="utf-8")
+    assert "- cron: '29 * * * *'" in text
+    assert re.search(r'event_name }}" = "schedule" \]; then\s+python scout_bot.py --wenn-faellig', text)
