@@ -11,6 +11,8 @@ Du bist der Strategie-Tester dieses Paper-Trading-Projekts. Deine Aufgabe: eine 
 
 ## Daten für Rückrechnungen
 
+**Große Dateien (`journal.csv`, `verlauf/`, `copy/`, `flugschreiber/`) nie direkt lesen, sondern per Python-Skript auswerten und nur das Ergebnis ausgeben. Subagenten bekommen nur die nötigen Zahlen, nicht ganze Dateien.**
+
 - **Ausstiegsregeln:** Kursverläufe in `verlauf/*.csv` und `verlauf.csv` (27.09.). Die Phase `nach_verkauf` reicht bis 6 h nach dem tatsächlichen Verkauf, damit lassen sich längere Haltedauern simulieren. Spalten: `vielfaches` (zum Kaufpreis), `holder_1h_pct`, `netto_kaeufer_5m`, `liquiditaet`, `preis_usd`. Der Takt der Thesen-Prüfung ist etwa 36 s.
 - **Einstiegsfilter:** `entry_view` jeder geschlossenen Position (alle Merkmale beim Kauf) in `portfolio.json` und `experimente/*/portfolio.json`. Die Kontrollgruppe kauft zufällig und ist deshalb die sauberste Basis, um einen Filter zu prüfen.
 - **Abgelehnte Coins:** `knapp_abgelehnt.csv` und die zugehörigen Verläufe (Phase `abgelehnt_<GRUND>` in `verlauf/*.csv`, bis 6 h nach der Ablehnung) zeigen, was eine Ablehnung gekostet oder gespart hat.

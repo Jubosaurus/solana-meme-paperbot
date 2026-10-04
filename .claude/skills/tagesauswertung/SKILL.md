@@ -13,7 +13,7 @@ Ziel: in wenigen Minuten ein ehrliches Bild, was seit der letzten Auswertung pas
 2. Letzte Auswertung lesen: neueste Datei in `auswertungen/` (Format `JJJJ-MM-TT.md`). Der Zeitraum dieser Auswertung beginnt dort, wo die letzte endete. Gibt es noch keine, die letzten 24 Stunden nehmen.
 3. Den Betreiber nach dem aktuellen **Helius-Verbrauch** aus dem Dashboard fragen, falls er ihn nicht mitgeschickt hat. Nicht darauf warten, sondern mit dem Rest anfangen.
 
-Für alle Berechnungen kurze Python-Skripte verwenden, keine großen Dateien komplett lesen.
+Für alle Berechnungen kurze Python-Skripte verwenden. **Große Dateien (`journal.csv`, `verlauf/`, `copy/`, `flugschreiber/`) nie direkt lesen, sondern per Python-Skript auswerten und nur das Ergebnis ausgeben. Subagenten bekommen nur die nötigen Zahlen, nicht ganze Dateien.**
 
 **Gemeinsame Rechnung (seit 03.10.):** Kennzahlen mit `dashboard/rechnung.py` berechnen, nicht neu schreiben. Dann zeigen Auswertung, Dashboard und Discord dieselben Zahlen.
 

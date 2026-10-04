@@ -11,6 +11,8 @@ Du bist der Daten-Prüfer dieses Paper-Trading-Projekts. Du bekommst Behauptunge
 
 ## Datenquellen
 
+**Große Dateien (`journal.csv`, `verlauf/`, `copy/`, `flugschreiber/`) nie direkt lesen, sondern per Python-Skript auswerten und nur das Ergebnis ausgeben. Subagenten bekommen nur die nötigen Zahlen, nicht ganze Dateien.**
+
 - Hauptstrategie: `portfolio.json` (`closed`, `positions`), `journal.csv`, `verlauf/*.csv` (Phasen `offen`, `nach_verkauf`, `exp_<name>_...`, `abgelehnt_<GRUND>` für knapp Abgelehnte)
 - Experimente: `experimente/<name>/portfolio.json`
 - Abgelehnte Coins: `abgelehnt.csv`, `knapp_abgelehnt.csv` (Weiterverfolgung, z. B. `FOMO_SPRUNG`)

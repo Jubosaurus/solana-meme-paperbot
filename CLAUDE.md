@@ -46,6 +46,7 @@ Jeder Bot hat `--probe` (Kurztest ohne Handel, Ausgabe für die Kontrolle).
 - **Plugins** (Stand 03.10.): context-mode (ersetzt claude-mem; claude-mem ist noch installiert, aber deaktiviert), claude-md-management, pyright-lsp, security-guidance, session-report, skill-creator, claude-code-setup.
 - **Abgelehnt** (nicht erneut vorschlagen): OmniRoute (endgültig), Ruflo, Trading-/Sniper-Skills mit Wallet (u. a. helius-jupiter, helius-dflow, helius-okx, helius-phantom). Aus ECC bewusst nicht übernommen: Plugin, Hooks, Memory, search-first, security-scan (lädt fremdes Programm per `npx`), python-review; von Helius kein MCP-Server und kein `svm` (braucht MCP).
 - **Sparsam arbeiten:** eine Aufgabe pro Sitzung (der Betreiber startet neue Aufgaben mit `/clear`), Auswertungen per Skript statt große Dateien zu lesen, Subagenten nur einsetzen, wenn sie einen klaren Zweck haben.
+  **Große Dateien (`journal.csv`, `verlauf/`, `copy/`, `flugschreiber/`) nie direkt lesen, sondern per Python-Skript auswerten und nur das Ergebnis ausgeben. Subagenten bekommen nur die nötigen Zahlen, nicht ganze Dateien.**
 
 ## Goldene Regeln
 
