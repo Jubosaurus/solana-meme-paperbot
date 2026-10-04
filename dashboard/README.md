@@ -10,7 +10,21 @@ Doppelklick auf **`dashboard/start.bat`**.
 - Läuft es schon, öffnet ein erneuter Doppelklick nur den Browser.
 - Beenden: das schwarze Fenster schließen.
 
-Das Dashboard ist nur auf diesem Rechner erreichbar (`localhost`), nicht im Netzwerk.
+Normal (`start.bat`) ist das Dashboard nur auf diesem Rechner erreichbar (`localhost`), nicht im Netzwerk.
+
+## Aufs Handy (Heimnetz)
+
+Doppelklick auf **`dashboard/start_handy.bat`** statt `start.bat`:
+1. Beim ersten Mal fragt Windows, ob „netsh“ etwas ändern darf. **Mit „Ja“ bestätigen.** Das legt eine einzige Firewall-Regel an (`Paperbot-Dashboard-8501`: nur Port 8501, nur *private* Netzwerke, nur eingehend). Danach fragt es nie wieder.
+2. Das Fenster zeigt die Adresse (z. B. `http://192.168.178.113:8501`) und öffnet einen **QR-Code** (`handy_qr.png`). Mit der Handy-Kamera scannen, im Browser öffnen, fertig. Tipp: als Lesezeichen/Startbildschirm-Symbol speichern.
+3. Handy und PC müssen im selben WLAN/Heimnetz sein, und der PC muss laufen. Beenden: schwarzes Fenster schließen.
+4. Lief das Dashboard schon über `start.bat`, erst dessen Fenster schließen, sonst meldet `start_handy.bat` das.
+
+**Wichtig – Netzwerkprofil:** Die Regel gilt nur für Netzwerke, die Windows als **„Privat“** einstuft. Zeigt `start_handy.bat` „ACHTUNG: … ÖFFENTLICH“, erreicht das Handy nichts. Umstellen: Windows-Einstellungen → Netzwerk und Internet → WLAN (oder Ethernet) → Eigenschaften → Netzwerkprofil „Privat“. Nur im eigenen Heimnetz tun, nie im Café o. Ä.
+Regel wieder löschen: `netsh advfirewall firewall delete rule name=Paperbot-Dashboard-8501` (als Administrator).
+
+**Sicherheit:** Vom Handy aus ist alles nur zum **Anschauen**. Die Seite „Wallets prüfen“ zeigt dort statt Eingabefeld und Knopf den Hinweis „Absenden nur am PC“ (Erkennung: nur Zugriffe von diesem PC selbst gelten als lokal, auch über seine Heimnetz-Adresse; Test in `tests/test_dashboard_wallets.py`). Das Dashboard hat keine Anmeldung: Jeder im Heimnetz, der die Adresse kennt, kann die Zahlen sehen, aber nichts ändern. Kein Port-Freigeben im Router!
+Handy-Ansicht geprüft bei 390 px Breite (kein seitliches Scrollen), Fotos in `auswertungen/dashboard/`. Das Seitenmenü steckt am Handy hinter dem Pfeil oben links.
 
 ## Was es tut
 

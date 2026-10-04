@@ -14,30 +14,36 @@ st.caption("Hier schickst du neue Wallet-Adressen zur Prüfung an den Scout. Die
            "auf die Warteliste. Abschalten: Schalter AUTO_AUFNAHME oben in scout_bot.py.")
 
 # ---------------------------------------------------------------- Eingabe
-with st.container(border=True):
-    st.markdown("**Neue Adressen**")
-    text = st.text_area("Adressen", height=150, label_visibility="collapsed",
-                        placeholder="Eine Adresse pro Zeile, optional mit Namen:\nMeinName: 9yYya3F5EJoLnBNKW6z4bZvyQytMXzDcpU5D6yYr4jqL",
-                        key="wallet_text")
-    vorschau, abgelehnt = wallets.eingabe_pruefen(text)
-    if text.strip():
-        if vorschau:
-            st.caption(f":material/check_circle: {len(vorschau)} gültige Adresse(n) bereit "
-                       f"(höchstens {wallets.MAX_ADRESSEN} pro Absenden).")
-        for zeile, grund in abgelehnt:
-            st.warning(f"**{zeile}**  \n{grund}", icon=":material/block:")
-    if st.button("Zur Prüfung schicken", type="primary", icon=":material/send:", disabled=not vorschau):
-        with st.spinner("Wird gespeichert und hochgeladen …"):
-            ok, meldung = wallets.zur_pruefung_schicken(vorschau)
-        if ok:
-            st.success(meldung, icon=":material/check_circle:")
-            with st.spinner("Scout wird angestoßen …"):
-                _, scout_meldung = wallets.scout_anstossen()
-            st.info(scout_meldung, icon=":material/travel_explore:")
-            daten.neueste_daten.clear()
-            st.session_state.pop("head", None)
-        else:
-            st.error(meldung, icon=":material/error:")
+# Schreiben nur am PC selbst (localhost). Vom Handy im Heimnetz: nur anschauen.
+am_pc = wallets.ist_lokal(st.context.ip_address, dict(st.context.headers))
+if not am_pc:
+    st.info("Absenden nur am PC. Auf dem Handy kannst du die Prüfliste nur anschauen.",
+            icon=":material/lock:")
+if am_pc:
+    with st.container(border=True):
+        st.markdown("**Neue Adressen**")
+        text = st.text_area("Adressen", height=150, label_visibility="collapsed",
+                            placeholder="Eine Adresse pro Zeile, optional mit Namen:\nMeinName: 9yYya3F5EJoLnBNKW6z4bZvyQytMXzDcpU5D6yYr4jqL",
+                            key="wallet_text")
+        vorschau, abgelehnt = wallets.eingabe_pruefen(text)
+        if text.strip():
+            if vorschau:
+                st.caption(f":material/check_circle: {len(vorschau)} gültige Adresse(n) bereit "
+                           f"(höchstens {wallets.MAX_ADRESSEN} pro Absenden).")
+            for zeile, grund in abgelehnt:
+                st.warning(f"**{zeile}**  \n{grund}", icon=":material/block:")
+        if st.button("Zur Prüfung schicken", type="primary", icon=":material/send:", disabled=not vorschau):
+            with st.spinner("Wird gespeichert und hochgeladen …"):
+                ok, meldung = wallets.zur_pruefung_schicken(vorschau)
+            if ok:
+                st.success(meldung, icon=":material/check_circle:")
+                with st.spinner("Scout wird angestoßen …"):
+                    _, scout_meldung = wallets.scout_anstossen()
+                st.info(scout_meldung, icon=":material/travel_explore:")
+                daten.neueste_daten.clear()
+                st.session_state.pop("head", None)
+            else:
+                st.error(meldung, icon=":material/error:")
 
 # ---------------------------------------------------------------- Liste mit Ergebnissen
 zeilen = wallets.pruefliste_status()

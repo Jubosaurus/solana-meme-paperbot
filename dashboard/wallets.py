@@ -7,6 +7,7 @@ Anmeldung des Rechners.
 """
 import csv
 import re
+import socket
 import subprocess
 from datetime import datetime
 from pathlib import Path
@@ -24,6 +25,30 @@ ALPHABET = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz"
 ADRESSE = re.compile(r"[1-9A-HJ-NP-Za-km-z]{32,44}")     # wie scout_bot.load_list
 LAUFEND = {"in_progress", "queued", "waiting", "pending", "requested"}
 COMMIT_TEXT = "Wallet-Pruefliste: {n} Adresse(n) per Dashboard [skip ci]"
+
+
+# ================================================================ Zugriff nur vom PC selbst
+
+def eigene_adressen():
+    """IP-Adressen dieses Rechners (wer ueber die Heimnetz-Adresse des PCs im PC-Browser surft, ist auch lokal)."""
+    adressen = {"127.0.0.1", "::1", "localhost"}
+    try:
+        for info in socket.getaddrinfo(socket.gethostname(), None):
+            adressen.add(str(info[4][0]).split("%")[0])
+    except OSError:
+        pass
+    return adressen
+
+
+def ist_lokal(ip, header=None, eigene=None):
+    """True nur, wenn der Zugriff vom PC selbst kommt. Streamlit meldet bei localhost None (ip_address).
+    Ein Proxy-Kopf (X-Forwarded-For o. ae.) heisst: nicht lokal. Unbekannte Adresse = nicht lokal."""
+    if header and any(k.lower() in ("x-forwarded-for", "forwarded", "x-real-ip") for k in header.keys()):
+        return False
+    if ip is None:
+        return True
+    eigene = eigene_adressen() if eigene is None else eigene
+    return str(ip).split("%")[0] in eigene
 
 
 # ================================================================ Adressen pruefen

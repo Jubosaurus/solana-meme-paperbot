@@ -247,3 +247,43 @@ def test_flug_verkauf_minuten_seit_kauf(tmp_path):
         wr.writerow(["2026-10-04 00:30:00", "VERKAUF", "M", "NOTBREMSE (-25%)", "-26.0"])
     v = w.rechnung.flug_verkaeufe("notbremse_25", "M", tmp_path)
     assert v == [{"minuten": 30.0, "grund": "NOTBREMSE (-25%)", "pnl_pct": -26.0}]
+
+
+# ---------------------------------------------------------------- Zugriff nur vom PC (Handy: nur anschauen)
+EIGEN = {"127.0.0.1", "::1", "192.168.1.20"}
+
+
+def test_localhost_ist_lokal():
+    assert w.ist_lokal(None, {}, EIGEN)                 # Streamlit meldet bei localhost None
+
+
+def test_eigene_heimnetz_adresse_ist_lokal():
+    assert w.ist_lokal("192.168.1.20", {}, EIGEN)
+
+
+def test_handy_ist_nicht_lokal():
+    assert not w.ist_lokal("192.168.1.55", {}, EIGEN)
+    assert not w.ist_lokal("fe80::1%12", {}, EIGEN)
+
+
+def test_proxy_kopf_ist_nicht_lokal():
+    assert not w.ist_lokal(None, {"X-Forwarded-For": "192.168.1.55"}, EIGEN)
+
+
+def test_seite_zeigt_am_handy_keine_knoepfe(monkeypatch):
+    """Echte Seite per AppTest: vom Handy (fremde IP) kein Textfeld, kein Knopf, aber der Hinweis."""
+    from unittest import mock
+    pytest.importorskip("streamlit")      # nur in der Dashboard-Umgebung (dashboard/.venv) vorhanden
+    from streamlit.testing.v1 import AppTest
+    import threading
+    import time
+    # conftest macht time.sleep wirkungslos; AppTest wartet damit im Kreis -> hier echt warten
+    monkeypatch.setattr(time, "sleep", lambda s: threading.Event().wait(s))
+    seite = Path(__file__).resolve().parent.parent / "dashboard" / "app_pages" / "wallets_pruefen.py"
+    for ip, lokal in ((None, True), ("192.168.1.55", False)):
+        with mock.patch("streamlit.runtime.context.ContextProxy.ip_address", new_callable=mock.PropertyMock,
+                        return_value=ip):
+            at = AppTest.from_file(str(seite), default_timeout=30).run()
+        assert not at.exception, at.exception
+        assert bool(at.text_area) == lokal and bool(at.button) == lokal
+        assert any("Absenden nur am PC" in i.value for i in at.info) == (not lokal)
