@@ -637,6 +637,9 @@ def token_view(tok, now):
         "trades_24h": int(as_float(s24.get("numBuys")) + as_float(s24.get("numSells"))),
         "organic_label": str(tok.get("organicScoreLabel") or ""),
         "buy_organic_vol_5m": as_float(s5.get("buyOrganicVolume")),
+        # seit 04.10. nur Aufzeichnung: Feld "fees" der Jupiter-Antwort (gezahlte Gebuehren, Video-Idee gegen Buendel);
+        # nicht dokumentiert, daher leer, wenn Jupiter es nicht liefert
+        "jup_fees": as_float(tok["fees"]) if tok.get("fees") is not None else None,
     }
 
 
@@ -969,7 +972,8 @@ ENTRY_FEATURES = ("age_h", "mcap", "liquidity", "holders", "holder_growth_1h", "
                   "price_change_5m", "buys_5m", "sells_5m", "traders_5m", "traders_1h",
                   "buy_vol_5m", "sell_vol_5m", "buy_vol_1h", "sell_vol_1h", "organic_buy_vol_1h",
                   "top_holders_pct", "dev_balance_pct", "dev_mints", "launchpad", "graduated",
-                  "social", "quelle", "trades_24h", "organic_label", "buy_organic_vol_5m")
+                  "social", "quelle", "trades_24h", "organic_label", "buy_organic_vol_5m",
+                  "jup_fees")                     # neue Merkmale nur hinten anhaengen (CSV-Spalten)
 
 
 NEAR_MISS_HEADER = ["zeit", "symbol", "mint", "grund", "detail", "preis_usd", *ENTRY_FEATURES]

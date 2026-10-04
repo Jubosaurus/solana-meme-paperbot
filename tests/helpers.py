@@ -51,7 +51,7 @@ def tok(mint=MINT, age_h=1.0, now=None, graduated=False, trades_24h=500, **kw):
         "id": mint, "symbol": "TEST", "name": "Test Coin", "decimals": 6, "usdPrice": 0.0001,
         "mcap": 500_000, "fdv": 500_000, "liquidity": 50_000, "holderCount": 800,
         "organicScore": 60, "organicScoreLabel": "medium", "twitter": "https://x.com/test",
-        "dev": addr("Dev"), "launchpad": "pump.fun",
+        "dev": addr("Dev"), "launchpad": "pump.fun", "fees": 1.2,
         "firstPool": {"id": POOL, "createdAt": datetime.fromtimestamp(now - age_h * 3600, timezone.utc)
                       .strftime("%Y-%m-%dT%H:%M:%SZ")} if age_h is not None else {},
         "audit": {"mintAuthorityDisabled": True, "freezeAuthorityDisabled": True, "isSus": False,

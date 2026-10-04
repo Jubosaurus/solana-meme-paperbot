@@ -385,3 +385,14 @@ def test_grosse_coins_sonst_alle_pruefungen_wie_hauptstrategie(scan_env, monkeyp
     scan_env(addr("Gross3"), mcap=5_000_000)
     core.scan(core.load_portfolio(), SOL, time.time(), exps)
     assert exps["grosse_coins"]["positions"] == {}
+
+
+def test_gebuehren_feld_wird_nur_aufgezeichnet(scan_env, monkeypatch):
+    assert core.ENTRY_FEATURES[-1] == "jup_fees" and core.NEAR_MISS_HEADER[-1] == "jup_fees"
+    assert core.token_view({"id": MINT, "fees": "2.5"}, time.time())["jup_fees"] == 2.5
+    assert core.token_view({"id": MINT}, time.time())["jup_fees"] is None     # Feld fehlt: leer, kein Fehler
+    bundle_ok(monkeypatch)
+    scan_env(MINT)
+    p = core.load_portfolio()
+    core.scan(p, SOL, time.time(), {})
+    assert "jup_fees" in p["positions"][MINT]["entry_view"]                  # Kauf unveraendert, Feld gemerkt
