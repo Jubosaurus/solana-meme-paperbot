@@ -85,12 +85,13 @@ WAIT_FILE = os.path.join(SCOUT_DIR, "warteliste.csv")
 WAIT_HEADER = ["seit", "bewertet", "wallet", "name", "quelle", "punkte", "rendite_ohne_besten_pct", "coins",
                "kauf_median_sol", "trades_pro_tag", "inaktiv_h"]
 AUTO_MAX_IDLE_H = 24                # letzte Aktivitaet unter 24 h
-AUTO_MIN_COINS = 5                  # mindestens 5 Coins im Zeitraum
+AUTO_MIN_COINS = 3                  # mindestens 3 Coins im Zeitraum (04.10. abends: gelockert von 5)
 AUTO_MAX_TRADES_TAG = 200           # hoechstens 200 Trades pro Tag
 AUTO_MIN_KAUF_SOL = 0.1             # Kauf-Median mindestens 0,1 SOL (darunter kaufen wir 0,2 SOL, der Trader viel weniger)
 AUTO_SCHONFRIST_TAGE = 7            # unter 7 Tagen UND unter 30 Positionen: nicht wegen Ergebnis ersetzen
 WAIT_RECHECK_H = 6                  # Bewertung aelter als 6 h: vor der Aufnahme neu pruefen
 WAIT_MAX_TAGE = 7                   # nach 7 Tagen faellt ein Kandidat von der Warteliste
+RECHECK_MAX_PRO_LAUF = 5            # hoechstens so viele Neupruefungen (Stufe 1+2, bis ~150 Credits) je Lauf
 ADDR_RE = re.compile(r"[1-9A-HJ-NP-Za-km-z]{32,44}")
 
 _birdeye_last = [0.0]
@@ -370,14 +371,17 @@ def score(s2):
 
 # ================================================================ Ausgabe
 
+CANDIDATES_HEADER = ["zeit", "wallet", "quelle", "coin", "ergebnis", "grund", "punkte", "tx", "fehlgeschlagen", "tx_pro_h",
+                     "inaktiv_h", "trades", "kaeufe", "verkaeufe", "trades_pro_tag", "kauf_median_sol", "anteil_kaeufe_ab_0_1",
+                     "coins_abgeschlossen", "trefferquote", "gewinn_sol", "gewinn_ohne_beste_sol", "beste_abgezogen",
+                     "rendite_median_pct", "rendite_ohne_beste_pct", "haltedauer_median_min",
+                     "mini_verkaeufe_anteil", "bot_gebuehr_anteil", "coins", "coins_gehalten", "rendite_pct",
+                     "rendite_ohne_besten_pct", "reibung_pp"]
+
+
 def write_csv(rows):
     os.makedirs(SCOUT_DIR, exist_ok=True)
-    header = ["zeit", "wallet", "quelle", "coin", "ergebnis", "grund", "punkte", "tx", "fehlgeschlagen", "tx_pro_h",
-              "inaktiv_h", "trades", "kaeufe", "verkaeufe", "trades_pro_tag", "kauf_median_sol", "anteil_kaeufe_ab_0_1",
-              "coins_abgeschlossen", "trefferquote", "gewinn_sol", "gewinn_ohne_beste_sol", "beste_abgezogen",
-              "rendite_median_pct", "rendite_ohne_beste_pct", "haltedauer_median_min",
-              "mini_verkaeufe_anteil", "bot_gebuehr_anteil", "coins", "coins_gehalten", "rendite_pct",
-              "rendite_ohne_besten_pct", "reibung_pp"]
+    header = CANDIDATES_HEADER
     if os.path.exists(CANDIDATES_FILE):
         core.ensure_csv_columns(CANDIDATES_FILE, header)
     new = not os.path.exists(CANDIDATES_FILE)
@@ -687,17 +691,18 @@ def load_copy_accounts():
         return {}
 
 
-def replaceable_wallets(active, accounts, now):
+def replaceable_wallets(active, accounts, now, check_bots=True):
     """Aktive Wallets, die eine Wallet-Regel erfuellen, in der Reihenfolge Bot, still (laengste Pause zuerst),
-    groesster Verlust. [(Name, Adresse, Grund)]"""
+    groesster Verlust. [(Name, Adresse, Grund)]. check_bots=False: ohne Helius-Abfrage (nur still/Verlust)."""
     out = []
     for name, addr in active:
+        reason = None
         try:
-            _, reason = stage1(addr, now, max_idle_h=10 ** 6)   # nur die Bot-Regeln von Stufe 1 (1 Credit)
+            if check_bots:
+                _, reason = stage1(addr, now, max_idle_h=10 ** 6)   # nur die Bot-Regeln von Stufe 1 (1 Credit)
         except Exception as err:
             STATS["fehler"] += 1
             print(f"[SCOUT] Automatik Stufe 1 {name}: {str(err)[:100]}")
-            reason = None
         if reason and reason.startswith("Bot"):
             out.append((0, 0, name, addr, reason))
             continue
@@ -761,6 +766,14 @@ def apply_wallet_changes(plans, datum, taken_accounts):
                  and ADDR_RE.fullmatch(line.strip().partition(":")[2].strip()))
     done = []
     for p in plans:
+        if not p.get("adresse"):                     # nur entfernen (still, ohne Ersatz)
+            i = active_index(p["raus"]["adresse"])
+            if i is None:
+                continue
+            lines[i] = f"# {lines[i].strip()}   <- entfernt {datum} automatisch: {p['raus']['grund']}; ohne Ersatz"
+            active -= 1
+            done.append(p)
+            continue
         if p["adresse"] in addrs:
             continue
         name = unique_name(p["name"], p["adresse"], taken)
@@ -811,6 +824,42 @@ def push_wallet_changes(plans, now, taken_accounts):
     return None
 
 
+def _row_time(r, default):
+    try:
+        return datetime.strptime(str(r.get("zeit", ""))[:19], "%Y-%m-%d %H:%M:%S").replace(tzinfo=timezone.utc).timestamp()
+    except ValueError:
+        return default
+
+
+def stored_rows(state):
+    """Bewertungen aus dem Speicher (letzte Zeile je Wallet in scout/kandidaten.csv, auch die Pruefliste), die die
+    Automatik noch nicht gesehen hat. Keine neue Abfrage. Die Kopfzeile der Datei ist noch die alte (25 Spalten),
+    neuere Zeilen haben den Aufbau von CANDIDATES_HEADER: jede Zeile wird nach ihrer Laenge zugeordnet (wie im
+    Dashboard), andere Laengen werden uebersprungen."""
+    if not os.path.exists(CANDIDATES_FILE):
+        return []
+    latest = {}
+    try:
+        with open(CANDIDATES_FILE, newline="", encoding="utf-8") as f:
+            rd = csv.reader(f)
+            header = next(rd, [])
+            for row in rd:
+                if len(row) == len(CANDIDATES_HEADER):      # (Spalte rendite_ohne_besten_pct doppelt: die hintere zaehlt)
+                    r = dict(zip(CANDIDATES_HEADER, row))
+                elif len(row) == len(header):
+                    r = dict(zip(header, row))
+                else:
+                    continue
+                if r.get("wallet") and r.get("zeit", "") >= latest.get(r["wallet"], {}).get("zeit", ""):
+                    latest[r["wallet"]] = r
+    except (OSError, csv.Error, UnicodeDecodeError) as err:  # kaputte Datei darf die Automatik nie stoppen
+        STATS["fehler"] += 1
+        print(f"[SCOUT] kandidaten.csv nicht lesbar: {str(err)[:100]}")
+        return []
+    seen = state.get("speicher_geprueft", {})
+    return [r for w, r in latest.items() if seen.get(w) != r.get("zeit")]
+
+
 def auto_wallets(state, now, sol_usd, rows):
     """Automatik nach jeder Bewertung: Kandidaten aus diesem Lauf (Suche und Pruefliste) und von der Warteliste.
     Aufnahme, wenn Platz ist; sonst eine Wallet ersetzen, die eine Wallet-Regel erfuellt; sonst Warteliste.
@@ -823,6 +872,11 @@ def auto_wallets(state, now, sol_usd, rows):
     for w, e in list(wait.items()):
         if w in known or now - core.as_float(e.get("seit")) > WAIT_MAX_TAGE * 86400:
             del wait[w]
+    stored = stored_rows(state)                      # gespeicherte Bewertungen, auch die alte Pruefliste
+    for r in stored:
+        w = r["wallet"]
+        if w not in known and w not in wait and auto_reason(r) is None:
+            wait[w] = dict(_wait_entry(r, now), bewertet=_row_time(r, 0))   # alt -> vor Aufnahme frisch pruefen
     for r in list(rows):
         w = r.get("wallet")
         if not w or w in known:
@@ -839,7 +893,7 @@ def auto_wallets(state, now, sol_usd, rows):
     free = AUTO_MAX_WALLETS - len(active)
     accounts = load_copy_accounts()
     repl = None                                      # erst abfragen, wenn ein Kandidat auf einen vollen Platz trifft
-    plans, lines = [], []
+    plans, lines, rechecks = [], [], 0
     for e in sorted(wait.values(), key=lambda e: -core.as_float(e.get("punkte"))):
         if budget <= 0:
             break
@@ -848,6 +902,9 @@ def auto_wallets(state, now, sol_usd, rows):
         if free <= 0 and not repl:
             break
         if now - core.as_float(e.get("bewertet")) > WAIT_RECHECK_H * 3600:
+            if rechecks >= RECHECK_MAX_PRO_LAUF:
+                break
+            rechecks += 1
             try:
                 r = recheck(e, now, sol_usd)
             except Exception as err:
@@ -869,12 +926,26 @@ def auto_wallets(state, now, sol_usd, rows):
             plan["raus"] = {"name": name, "adresse": addr, "grund": why}
         plans.append(plan)
         budget -= 1
+    # Stille Wallets (72 h ohne eigenen Trade) auch ohne Ersatz entfernen, im Rahmen des Tageslimits
+    planned = {p["raus"]["adresse"] for p in plans if p.get("raus")}
+    if budget > 0:
+        pool = repl if repl is not None else replaceable_wallets(active, accounts, now, check_bots=False)
+        for name, addr, why in pool:
+            if budget <= 0:
+                break
+            if why.startswith("still") and addr not in planned:
+                plans.append({"name": name, "adresse": None, "grund": why,
+                              "raus": {"name": name, "adresse": addr, "grund": why}})
+                budget -= 1
     done = push_wallet_changes(plans, now, accounts) if plans else []
     for p in done or []:
-        wait.pop(p["adresse"], None)
+        if p.get("adresse"):
+            wait.pop(p["adresse"], None)
         log.append({"zeit": now, "name": p["name"], "adresse": p["adresse"], "grund": p["grund"],
                     "raus": p.get("raus")})
-        if p.get("raus"):
+        if not p.get("adresse"):
+            lines.append(f"➖ **{p['raus']['name']}** `{p['raus']['adresse']}` entfernt, ohne Ersatz ({p['raus']['grund']})")
+        elif p.get("raus"):
             lines.append(f"🔁 **{p['name']}** `{p['adresse']}` ersetzt **{p['raus']['name']}** "
                          f"({p['raus']['grund']})\n   {p['grund']}")
         else:
@@ -884,6 +955,9 @@ def auto_wallets(state, now, sol_usd, rows):
                      "die Kandidaten bleiben auf der Warteliste.")
     state["auto_aenderungen"] = log
     save_waitlist(wait)
+    seen = state.setdefault("speicher_geprueft", {})   # erst nach Erfolg als gesehen markieren
+    for r in stored:
+        seen[r["wallet"]] = r.get("zeit")
     STATS["warteliste"] = len(wait)
     STATS["auto_heute"] = sum(1 for e in log if datetime.fromtimestamp(e["zeit"], timezone.utc)
                               .strftime("%Y-%m-%d") == today)

@@ -139,7 +139,8 @@ def test_modus_nur_pruefliste_ohne_coinsuche_und_birdeye(monkeypatch, sandbox):
     ({}, None),
     ({"ergebnis": "raus", "grund": "Bot (zu hoher Takt)"}, "Bot"),
     ({"inaktiv_h": 30}, "Aktivitaet"),
-    ({"coins": 4}, "Coins"),
+    ({"coins": 2}, "Coins"),
+    ({"coins": 3}, None),                                              # 05.10.: 3 Coins reichen
     ({"punkte": -1}, "nach Reibung"),
     ({"rendite_ohne_besten_pct": 0}, "ohne besten"),
     ({"trades_pro_tag": 201}, "200 Trades"),
@@ -367,3 +368,117 @@ def test_zu_wenig_transaktionen_wird_nicht_gemerkt(monkeypatch):
     scout.check_list(state, NOW, 100.0)
     scout.check_list(state, NOW, 100.0)
     assert len(calls) == 2
+
+
+# ================================================================ Lockerung 05.10.
+
+def test_stille_wallets_ohne_ersatz_entfernt_hoechstens_drei(sandbox, no_bots):
+    names = write_wallets(22)
+    accts = {n: acct(a) for n, a in names}
+    for i, h in ((2, 80), (3, 100), (4, 75), (5, 90)):
+        accts[f"W{i}"] = acct(names[i][1], idle_h=h)
+    accts["W6"] = acct(names[6][1], idle_h=71)                          # knapp unter 72 h: bleibt
+    write_accounts(accts)
+    state = scout.load_state()
+    lines = scout.auto_wallets(state, NOW, 100.0, [])
+    assert [e["raus"]["name"] for e in state["auto_aenderungen"]] == ["W3", "W5", "W2"]   # laengste Pause zuerst
+    text = open(cb.WALLET_FILE, encoding="utf-8").read()
+    assert f"# W3: {names[3][1]}   <- entfernt" in text and "ohne Ersatz" in text
+    assert len(cb.load_wallets()) == 19 and "W4: " + names[4][1] in active_lines()
+    assert sum(l.startswith("➖") and "ohne Ersatz" in l for l in lines) == 3
+    assert no_bots["calls"] == [] and git_adds(sandbox["git"]) == [(cb.WALLET_FILE,)]   # keine Helius-Abfrage
+
+
+def test_kandidat_ersetzt_stille_wallet_statt_zwei_aenderungen(sandbox, no_bots):
+    names = write_wallets(22)
+    accts = {n: acct(a) for n, a in names}
+    accts["W2"] = acct(names[2][1], idle_h=80)
+    accts["W3"] = acct(names[3][1], idle_h=90)
+    write_accounts(accts)
+    state = scout.load_state()
+    scout.auto_wallets(state, NOW, 100.0, [good_row(kand(0))])
+    log = state["auto_aenderungen"]
+    assert [(e["adresse"], e["raus"]["name"]) for e in log] == [(kand(0), "W3"), (None, "W2")]
+    assert len(cb.load_wallets()) == 21
+
+
+def write_candidates(rows):
+    header = ["zeit", "wallet", "quelle", "coin", "ergebnis", "grund", "punkte", "tx", "fehlgeschlagen", "tx_pro_h",
+              "inaktiv_h", "trades", "kaeufe", "verkaeufe", "trades_pro_tag", "kauf_median_sol"]
+    full = header + ["coins", "rendite_ohne_besten_pct"]
+    os.makedirs("scout", exist_ok=True)
+    with open(scout.CANDIDATES_FILE, "w", newline="", encoding="utf-8") as f:
+        w = csv.writer(f)
+        w.writerow(full)
+        for r in rows:
+            keys = full if r.get("coins") is not None else header           # alte Zeilen: weniger Spalten
+            w.writerow([r.get(k, "") for k in keys])
+
+
+def test_gespeicherte_bewertungen_ohne_neue_abfrage(sandbox, monkeypatch, no_bots):
+    write_wallets(10)
+    old = "2026-10-03 22:00:00"
+    write_candidates([
+        good_row(kand(0), quelle="liste", coin="Haru", zeit=old),          # passt -> Warteliste/Aufnahme
+        good_row(kand(1), zeit=old, coins=None),                           # alte Zeile ohne Coins -> nein
+        good_row(kand(2), zeit=old, punkte=-3),                            # nicht im Plus -> nein
+        good_row(kand(3), zeit="2026-10-01 10:00:00", punkte=-3),          # aeltere Zeile derselben Wallet ...
+        good_row(kand(3), zeit=old),                                       # ... die neueste zaehlt: passt
+    ])
+    rechecked = []
+
+    def recheck(e, now, sol_usd):
+        rechecked.append(e["wallet"])
+        return good_row(e["wallet"], quelle="warteliste", coin=e["name"])
+    monkeypatch.setattr(scout, "recheck", recheck)
+    state = scout.load_state()
+    scout.auto_wallets(state, NOW, 100.0, [])
+    assert sorted(rechecked) == sorted([kand(0), kand(3)])               # alt: vor Aufnahme frisch geprueft
+    assert f"Haru: {kand(0)}" in active_lines() and len(cb.load_wallets()) == 12
+    assert no_bots["calls"] == []
+    rechecked.clear()
+    scout.auto_wallets(state, NOW + 60, 100.0, [])                      # gleiche Zeilen: nicht noch einmal
+    assert rechecked == []
+
+
+def test_gespeicherte_bewertung_wartet_ohne_platz(sandbox, no_bots, monkeypatch):
+    names = write_wallets(22)
+    write_accounts({n: acct(a) for n, a in names})
+    write_candidates([good_row(kand(0), zeit="2026-10-03 22:00:00")])
+    monkeypatch.setattr(scout, "recheck", lambda *a: pytest.fail("ohne Platz keine Neupruefung"))
+    scout.auto_wallets(scout.load_state(), NOW, 100.0, [])
+    assert kand(0) in open(scout.WAIT_FILE, encoding="utf-8").read() and git_adds(sandbox["git"]) == []
+
+
+def test_gespeicherte_zeilen_nach_laenge_wie_im_dashboard(sandbox, no_bots):
+    """Echte Datei: alte Kopfzeile (25 Spalten), neuere Zeilen im Aufbau von CANDIDATES_HEADER (32 Spalten)."""
+    os.makedirs("scout", exist_ok=True)
+    old_header = [f"alt{i}" for i in range(25)]
+    new = good_row(kand(0), zeit="2026-10-04 05:00:00")
+    with open(scout.CANDIDATES_FILE, "w", newline="", encoding="utf-8") as f:
+        w = csv.writer(f)
+        w.writerow(old_header)
+        w.writerow([new.get(k, "") for k in scout.CANDIDATES_HEADER])
+        w.writerow(["x"] * 27)                                           # Zwischenformat: uebersprungen
+    rows = scout.stored_rows({})
+    assert len(rows) == 1 and rows[0]["wallet"] == kand(0) and scout.auto_reason(rows[0]) is None
+
+
+def test_kaputte_kandidaten_datei_und_fehlende_konten_stoppen_nichts(sandbox, no_bots):
+    write_wallets(22)                                                    # kein copy/konten.json
+    os.makedirs("scout", exist_ok=True)
+    open(scout.CANDIDATES_FILE, "wb").write(b"zeit,wallet\n\xff\xfe kaputt\x00\n")
+    state = scout.load_state()
+    assert scout.auto_wallets(state, NOW, 100.0, []) == []
+    assert len(cb.load_wallets()) == 22 and scout.STATS["fehler"] == 1
+
+
+def test_hoechstens_fuenf_neupruefungen_je_lauf(sandbox, monkeypatch, no_bots):
+    write_wallets(10)
+    write_candidates([good_row(kand(i), zeit="2026-10-03 22:00:00") for i in range(8)])
+    calls = []
+    monkeypatch.setattr(scout, "recheck", lambda e, now, s: calls.append(e) or good_row(e["wallet"], punkte=-1))
+    state = scout.load_state()
+    scout.auto_wallets(state, NOW, 100.0, [])
+    assert len(calls) == 5 and len(cb.load_wallets()) == 10            # alle durchgefallen, Rest wartet
+    assert len(list(csv.DictReader(open(scout.WAIT_FILE, encoding="utf-8")))) == 3

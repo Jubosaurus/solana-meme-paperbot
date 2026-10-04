@@ -175,7 +175,9 @@ def test_scout_lauf(monkeypatch, sandbox):
     assert MINT in state["coins_erledigt"] and cand in state["wallets_geprueft"]
     assert any("Wallet-Scout" in t for t, _ in sandbox["discord"])
     adds = git_adds(sandbox["git"])
-    assert adds and all(a == (scout.SCOUT_DIR,) for a in adds)          # nur scout/
+    # seit 05.10. reichen 3 Coins: die Automatik nimmt den Kandidaten auf (eigener Commit nur fuer copy_wallets.txt)
+    assert adds == [(cb.WALLET_FILE,), (scout.SCOUT_DIR,)]
+    assert f"{cand[:4]}: {cand}" in open(cb.WALLET_FILE, encoding="utf-8").read()
 
 
 # ================================================================ Copy-Bot: Abbruch (Fehler C, Pruefbericht 03.10.)
