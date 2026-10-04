@@ -5,6 +5,7 @@ import os
 import re
 import sys
 import time
+from datetime import datetime, timezone
 from pathlib import Path
 
 import pytest
@@ -305,3 +306,64 @@ def test_paarvergleich_coin_fuer_coin():
     assert pv["differenz"] == pytest.approx(-0.01) and pv["besser"] == 1 and pv["schlechter"] == 1
     assert pv["differenz_ohne_beste"] == pytest.approx(0.0)       # nur 2 Paare: ohne die 3 besten bleibt nichts
     assert r.paarvergleich([], haupt)["anzahl"] == 0
+
+
+# ================================================================ Seite Lernen
+
+def test_urteils_kalender_zaehlt_wie_testurteil_und_schaetzt_datum():
+    jetzt = datetime(2026, 10, 4, 12, tzinfo=timezone.utc).timestamp()
+    kg = {"key": "kontrollgruppe", "label": "KG", "gestartet": "2026-10-01T00:00:00+00:00", "closed": [closed(0.0)]}
+    alt_ = [closed(0.01, "2026-09-30T00:00:00+00:00")]                   # vor dem Start der Kontrollgruppe
+    neu = [closed(0.01, "2026-10-03T12:00:00+00:00") for _ in range(30)]  # 30 Trades in den letzten 3 Tagen
+    a = {**konto("a", []), "label": "A", "closed": alt_ + neu}
+    still = {**konto("b", [0.01] * 5), "label": "B"}                      # 5 Trades am 02.10., noch im 3-Tage-Fenster
+    fertig = {**konto("c", [0.01] * 200), "label": "C"}
+    beendet = {**konto("d", [0.01]), "label": "D", "beendet": "04.10."}
+    for k in (a, still, fertig, beendet):
+        k["vergleich"] = r.vergleich_mit_kontrolle(k, kg)
+    kal = {z["key"]: z for z in r.urteils_kalender([kg, a, still, fertig, beendet], jetzt)}
+    assert set(kal) == {"a", "b", "c"}                                    # ohne Kontrollgruppe und beendete
+    assert kal["a"]["trades"] == 30 and kal["a"]["tempo_pro_tag"] == pytest.approx(10)
+    assert kal["a"]["tage_bis_urteil"] == pytest.approx(17)               # 170 fehlen / 10 je Tag
+    assert kal["c"]["rest"] == 0 and kal["c"]["tage_bis_urteil"] == 0
+    assert kal["b"]["tempo_pro_tag"] == pytest.approx(5 / 3)
+    kal_spaet = {z["key"]: z for z in r.urteils_kalender([kg, still], jetzt + 5 * 86400)}
+    assert kal_spaet["b"]["eta"] is None                                  # kein Trade in 3 Tagen: nicht absehbar
+
+
+def test_verlust_lupe_merkmale_gruende_und_verschenkt():
+    def c(pnl, grund, hoch=1.0, sprung=10.0):
+        return {"pnl_sol": pnl, "exit_reason": grund, "peak_multiple": hoch, "symbol": "X", "mint": "M",
+                "closed_at": "2026-10-02T12:00:00+00:00", "entry_view": {"price_change_5m": sprung}}
+    k = {"key": "hauptstrategie", "label": "Haupt", "closed": [
+        c(-0.10, "NOTBREMSE (-25 %)", sprung=5), c(-0.05, "NOTBREMSE (-30 %)", sprung=7),
+        c(-0.02, "GEWINN_GESCHUETZT (Hoch 1.6x, zurueck auf Einstand)", hoch=1.6, sprung=9),
+        c(0.20, "TP2", hoch=3.0, sprung=30), {"pnl_sol": 0.1, "exit_reason": "", "closed_at": None}]}
+    trades = r.lupe_trades([k])
+    assert len(trades) == 5 and trades[4]["grund"] == "?" and trades[4]["Kurs 5 min %"] is None
+    v = r.lupe_vergleich(trades)
+    m = next(x for x in v["merkmale"] if x["merkmal"] == "Kurs 5 min %")
+    assert v["verlierer"] == 3 and v["gewinner"] == 2
+    assert m["verlierer"] == 7 and m["gewinner"] == 30 and m["n_gewinner"] == 1   # fehlender Wert zaehlt nicht
+    g = r.lupe_gruende(trades)
+    assert g[0]["grund"] == "NOTBREMSE" and g[0]["trades"] == 2 and g[0]["summe"] == pytest.approx(-0.15)
+    assert g[0]["anteil_verlierer"] == 1.0 and g[0]["schlechtester"] == pytest.approx(-0.10)
+    assert [t["grund"] for t in trades if t["verschenkt"]] == ["GEWINN_GESCHUETZT"]
+
+
+def test_filter_trichter_zaehlt_coins_je_grund_und_kaeufe(tmp_path):
+    jetzt = datetime(2026, 10, 4, 12, tzinfo=timezone.utc).timestamp()
+    write_csv(tmp_path / "abgelehnt.csv", ["zeit", "symbol", "mint", "grund"], [
+        ["2026-10-04 10:00:00", "A", "m1", "STORY_ZU_ALT"], ["2026-10-04 10:05:00", "A", "m1", "STORY_ZU_ALT"],
+        ["2026-10-04 10:06:00", "B", "m2", "STORY_ZU_ALT"], ["2026-10-03 09:00:00", "C", "m3", "FOMO_SPRUNG"],
+        ["2026-09-20 09:00:00", "D", "m4", "ZU_JUNG"]])                       # zu alt fuer 7 Tage
+    write_csv(tmp_path / "journal.csv", ["zeit", "aktion", "symbol", "mint"], [
+        ["2026-10-04 11:00:00", "KAUF", "E", "m5"], ["2026-10-04 11:30:00", "VERKAUF", "E", "m5"]])
+    t = r.filter_trichter(tmp_path, tage=7, jetzt=jetzt)
+    assert t["pruefungen"] == 4 and t["coins"] == 3 and t["kaeufe"] == 1
+    assert t["gruende"][0] == {"grund": "STORY_ZU_ALT", "pruefungen": 3, "coins": 2, "anteil": 0.75}
+    assert t["je_tag"] == [{"tag": "2026-10-03", "abgelehnt": 1, "kaeufe": 0},
+                           {"tag": "2026-10-04", "abgelehnt": 3, "kaeufe": 1}]
+    heute = r.filter_trichter(tmp_path, tage=1, jetzt=jetzt)               # 1 = nur heute (UTC)
+    assert heute["pruefungen"] == 3 and heute["kaeufe"] == 1 and [d["tag"] for d in heute["je_tag"]] == ["2026-10-04"]
+    assert r.filter_trichter(tmp_path / "leer", jetzt=jetzt)["pruefungen"] == 0

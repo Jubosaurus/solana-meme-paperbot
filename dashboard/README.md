@@ -21,6 +21,7 @@ Das Dashboard ist nur auf diesem Rechner erreichbar (`localhost`), nicht im Netz
   - **Copy Trading**: je Trader der Kontowert (auch vorsichtig), wir gegen den Trader, Verzögerung, Schattenpositionen und Hinweise nach den Wallet-Regeln.
   - **Scout**: die Rangliste.
   - **Flugschreiber**: je Coin Kurs, Dev-Bestand, Top 10, Holder und Liquidität bis zum Verkauf, mit Verkaufsgrund.
+  - **Lernen** (seit 04.10.): *Wann gibt es ein Urteil?* – je Experiment Trades bis 200 (gezählt wie im Testurteil), Tempo der letzten 3 Tage und geschätztes Datum. *Verlust-Lupe* – Verlierer gegen Gewinner beim Kauf (Median je Merkmal), Ergebnis je Verkaufsgrund, „Gewinn verschenkt“ (erst ≥ 1,5× im Plus, am Ende im Minus). *Filter-Trichter* – woran die Coins der Hauptstrategie scheitern (`abgelehnt.csv`), 1/3/7 Tage, und wie viele gekauft wurden.
   - **Wallets prüfen**: Adressen einfügen → werden geprüft (Base58, keine Duplikate, nicht schon in `copy_wallets.txt`/Prüfliste, höchstens 20) und ans Ende von `scout/pruefen.txt` angehängt (nur diese Datei wird committet und gepusht, bei Fehler wird alles zurückgenommen). Danach wird per `gh workflow run` ein Scout-Lauf gestartet, sofern keiner läuft. Darunter die Prüfliste mit Status und Scout-Ergebnis. Aufnahme ins Copy Trading entscheidest weiterhin du.
   - **Betrieb**: letzte Daten je Bot, Lücken der letzten 48 h, die Ausführungskosten (Median, schlechteste 10 %, Abstand in Sekunden) und die Korrekturen.
 - Zeiten stehen in UTC, in Klammern die deutsche Zeit.

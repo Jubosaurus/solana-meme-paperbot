@@ -1,0 +1,33 @@
+{
+  "permissions": {
+    "deny": [
+      "mcp__plugin_discord_discord__reply",
+      "mcp__plugin_discord_discord__react",
+      "mcp__plugin_discord_discord__edit_message"
+    ]
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash|PowerShell",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python \"$CLAUDE_PROJECT_DIR/.claude/hooks/git_schutz.py\"",
+            "timeout": 300,
+            "statusMessage": "Git-Schutz: pruefe Commit/Push..."
+          }
+        ]
+      },
+      {
+        "matcher": "mcp__playwright__browser_navigate|mcp__playwright__browser_tabs",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python \"$CLAUDE_PROJECT_DIR/.claude/hooks/nur_localhost.py\""
+          }
+        ]
+      }
+    ]
+  }
+}

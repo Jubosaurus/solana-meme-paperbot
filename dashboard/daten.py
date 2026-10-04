@@ -61,6 +61,11 @@ def messung_detail(head):
     return rechnung.messung_detail()
 
 
+@st.cache_data(ttl=600, max_entries=4, show_spinner="Abgelehnte Coins werden gezählt …")
+def filter_trichter(head, tage):
+    return rechnung.filter_trichter(tage=tage)
+
+
 @st.cache_data(ttl=600, max_entries=6, show_spinner=False)
 def neu_seit(head, stunden):
     """Was ist neu seit N Stunden? (gleicher Stand head = gleiche Antwort)"""

@@ -713,3 +713,147 @@ def neu_seit(ab, strategie_konten, copy_zeilen, copy_konten_liste, jetzt, repo=N
             beendet.append((name, datum))
     return {"trades": trades, "copy": je_trader, "beendete_experimente": beendet,
             "wallets": wallet_aenderungen(ab, repo), "commits": projekt_commits(ab, repo), "auffaellig": auffaellig}
+
+
+# ================================================================ Lernen: Urteils-Kalender, Verlust-Lupe, Filter-Trichter
+
+def urteils_kalender(konten, jetzt, tempo_tage=3):
+    """Je Experiment: Trades im Vergleichszeitraum (wie das Testurteil), Tempo der letzten Tage und
+    voraussichtliches Datum, an dem 200 Trades erreicht sind. Beendete Experimente und die Kontrollgruppe fehlen."""
+    out = []
+    for k in konten:
+        v = k.get("vergleich") or {}
+        if k["key"] == KONTROLLE or k.get("beendet"):
+            continue
+        beginn = v.get("beginn")
+        geschlossen = [zeitpunkt(c.get("closed_at")) for c in k["closed"]]
+        geschlossen = [t for t in geschlossen if t and (beginn is None or t >= beginn)]
+        n = len(geschlossen)
+        neu = sum(1 for t in geschlossen if t.timestamp() >= jetzt - tempo_tage * 86400)
+        tempo = neu / tempo_tage
+        rest = max(0, ZIEL_TRADES - n)
+        if rest == 0:
+            eta = jetzt
+        elif tempo > 0:
+            eta = jetzt + rest / tempo * 86400
+        else:
+            eta = None
+        out.append({"key": k["key"], "label": k["label"], "trades": n, "rest": rest, "tempo_pro_tag": tempo,
+                    "eta": eta, "tage_bis_urteil": None if eta is None else (eta - jetzt) / 86400,
+                    "anteil": min(1.0, n / ZIEL_TRADES), "ampel": v.get("ampel"),
+                    "urteil": urteil_kurz(v) if v else ""})
+    return sorted(out, key=lambda x: (x["eta"] is None, x["eta"] or 0))
+
+
+# Merkmale beim Kauf, die sich als Spur fuer neue Regeln eignen: (Name, Weg im closed-Eintrag, Einheit)
+LUPE_MERKMALE = [
+    ("Alter h", ("entry_view", "age_h"), ""),
+    ("Marktwert $", ("entry_view", "mcap"), ""),
+    ("Liquidität $", ("entry_view", "liquidity"), ""),
+    ("Holder", ("entry_view", "holders"), ""),
+    ("Holder +1h %", ("entry_view", "holder_growth_1h"), " %"),
+    ("Kurs 5 min %", ("entry_view", "price_change_5m"), " %"),
+    ("Kurs 1 h %", ("entry_view", "price_change_1h"), " %"),
+    ("Netto-Käufer 5 min", ("entry_view", "net_buyers_5m"), ""),
+    ("Organisch-Score", ("entry_view", "organic_score"), ""),
+    ("Top-10 %", ("entry_view", "top_holders_pct"), " %"),
+    ("Dev %", ("entry_view", "dev_balance_pct"), " %"),
+    ("Block 0 gekauft %", ("bundle", "block0_supply_pct"), " %"),
+    ("Bundler % (Tracker)", ("solana_tracker", "bundlers_pct"), " %"),
+    ("Sniper % (Tracker)", ("solana_tracker", "snipers_pct"), " %"),
+]
+GEWINN_VERSCHENKT_AB = 1.5      # Hoch mindestens 1,5x, Ende im Minus
+
+
+def _merkmal(c, weg):
+    x = c
+    for teil in weg:
+        x = x.get(teil) if isinstance(x, dict) else None
+    return as_float(x, None)
+
+
+def grund_kurz(text):
+    """'GEWINN_GESCHUETZT (Hoch 1.5x, ...)' -> 'GEWINN_GESCHUETZT'."""
+    return (text or "?").split(" (")[0].strip() or "?"
+
+
+def lupe_trades(konten):
+    """Alle abgeschlossenen Trades aller Konten als flache Zeilen (fuer Filter und Tabellen)."""
+    out = []
+    for k in konten:
+        for c in k["closed"]:
+            pnl = as_float(c.get("pnl_sol"))
+            hoch = as_float(c.get("peak_multiple"), None)
+            z = {"konto": k["label"], "key": k["key"], "symbol": c.get("symbol", "?"), "mint": c.get("mint", ""),
+                 "pnl_sol": pnl, "pnl_pct": as_float(c.get("pnl_pct"), None), "hoch": hoch,
+                 "grund": grund_kurz(c.get("exit_reason")), "grund_lang": c.get("exit_reason", ""),
+                 "halte_h": as_float(c.get("hold_h"), None), "zeit": c.get("closed_at"),
+                 "phase": c.get("phase") or "?", "verschenkt": pnl < 0 and (hoch or 0) >= GEWINN_VERSCHENKT_AB}
+            for name, weg, _ in LUPE_MERKMALE:
+                z[name] = _merkmal(c, weg)
+            out.append(z)
+    return out
+
+
+def lupe_vergleich(trades):
+    """Median je Merkmal: Verlierer gegen Gewinner, mit Anzahl Werte (fehlende Felder zaehlen nicht)."""
+    verlierer = [t for t in trades if t["pnl_sol"] < 0]
+    gewinner = [t for t in trades if t["pnl_sol"] > 0]
+    out = []
+    for name, _, einheit in LUPE_MERKMALE:
+        v = [t[name] for t in verlierer if t[name] is not None]
+        g = [t[name] for t in gewinner if t[name] is not None]
+        mv = statistics.median(v) if v else None
+        mg = statistics.median(g) if g else None
+        out.append({"merkmal": name, "einheit": einheit, "verlierer": mv, "gewinner": mg,
+                    "n_verlierer": len(v), "n_gewinner": len(g),
+                    "abstand_pct": (mv - mg) / abs(mg) * 100 if mv is not None and mg not in (None, 0) else None})
+    return {"verlierer": len(verlierer), "gewinner": len(gewinner), "merkmale": out}
+
+
+def lupe_gruende(trades):
+    """Je Verkaufsgrund: Anzahl, Summe, Anteil Verlierer, schlechtester Trade. Schlechteste Summe zuerst."""
+    je = {}
+    for t in trades:
+        d = je.setdefault(t["grund"], {"grund": t["grund"], "trades": 0, "summe": 0.0, "verlierer": 0,
+                                       "schlechtester": 0.0})
+        d["trades"] += 1
+        d["summe"] += t["pnl_sol"]
+        d["verlierer"] += t["pnl_sol"] < 0
+        d["schlechtester"] = min(d["schlechtester"], t["pnl_sol"])
+    for d in je.values():
+        d["anteil_verlierer"] = d["verlierer"] / d["trades"]
+    return sorted(je.values(), key=lambda d: d["summe"])
+
+
+def filter_trichter(repo=None, tage=7, jetzt=None):
+    """Hauptstrategie: abgelehnte Coins je Grund (Pruefungen und verschiedene Coins) und Kaeufe, je Tag (UTC).
+    tage = Kalendertage einschliesslich heute (1 = nur heute)."""
+    repo = Path(repo or REPO)
+    jetzt = jetzt or datetime.now(timezone.utc).timestamp()
+    ab = datetime.fromtimestamp(jetzt - (tage - 1) * 86400, timezone.utc).strftime("%Y-%m-%d")
+    je_tag, je_grund, coins = {}, {}, {}
+    pfad_ab = repo / core.REJECT_FILE
+    if pfad_ab.exists():
+        with open(pfad_ab, newline="", encoding="utf-8", errors="replace") as f:
+            for r in csv.DictReader(f):
+                tag = (r.get("zeit") or "")[:10]
+                if tag < ab:
+                    continue
+                grund = (r.get("grund") or "?").strip() or "?"
+                je_tag.setdefault(tag, {}).setdefault(grund, 0)
+                je_tag[tag][grund] += 1
+                je_grund[grund] = je_grund.get(grund, 0) + 1
+                coins.setdefault(grund, set()).add(r.get("mint"))
+    kaeufe = {}
+    for j in lade_csv(repo / core.JOURNAL_FILE):
+        tag = (j.get("zeit") or "")[:10]
+        if j.get("aktion") == "KAUF" and tag >= ab:
+            kaeufe[tag] = kaeufe.get(tag, 0) + 1
+    gesamt = sum(je_grund.values())
+    gruende = [{"grund": g, "pruefungen": n, "coins": len(coins[g]), "anteil": n / gesamt if gesamt else 0.0}
+               for g, n in sorted(je_grund.items(), key=lambda x: -x[1])]
+    return {"gruende": gruende, "pruefungen": gesamt, "coins": len(set().union(*coins.values())) if coins else 0,
+            "kaeufe": sum(kaeufe.values()),
+            "je_tag": [{"tag": t, "abgelehnt": sum(je_tag.get(t, {}).values()), "kaeufe": kaeufe.get(t, 0)}
+                       for t in sorted(set(je_tag) | set(kaeufe))]}

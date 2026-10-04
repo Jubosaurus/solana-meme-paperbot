@@ -43,6 +43,7 @@ seiten = st.navigation([
     st.Page("app_pages/copy_trading.py", title="Copy Trading", icon=":material/group:"),
     st.Page("app_pages/scout.py", title="Scout", icon=":material/travel_explore:"),
     st.Page("app_pages/flugschreiber.py", title="Flugschreiber", icon=":material/flight:"),
+    st.Page("app_pages/lernen.py", title="Lernen", icon=":material/school:"),
     st.Page("app_pages/wallets_pruefen.py", title="Wallets prüfen", icon=":material/playlist_add_check:"),
     st.Page("app_pages/betrieb.py", title="Betrieb", icon=":material/build:"),
 ], position="top")
