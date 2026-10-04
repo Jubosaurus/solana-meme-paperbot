@@ -163,7 +163,7 @@ EXP_DIR = "experimente"
 EXPERIMENTS = {"zweite_welle": "Zweite Welle", "heisse_coins": "Heisse Coins", "ohne_limit": "Ohne Limit",
                "kontrollgruppe": "Kontrollgruppe", "endspurt": "Endspurt viele Trades",
                "endspurt_ohne_filter": "Endspurt ohne Filter", "notbremse_25": "Notbremse 25",
-               "offene_tuer": "Offene Tuer", "serien_devs": "Serien-Devs"}
+               "offene_tuer": "Offene Tuer", "serien_devs": "Serien-Devs", "grosse_coins": "Grosse Coins"}
 # Beendete Experimente (Datum): keine neuen Kaeufe, offene Positionen laufen regulaer zu Ende, Daten bleiben.
 EXP_BEENDET = {"endspurt_ohne_filter": "04.10.", "ohne_limit": "04.10."}
 NOTBREMSE_25_PCT = -25.0                # Experiment Notbremse 25 (seit 04.10.): kauft genau wie die
@@ -181,6 +181,9 @@ SERIEN_MAX_POSITIONS = 4
 SERIEN_DEV_EXIT_ANTEIL = 0.5
 SERIEN_DEVS_FILE = os.path.join("experimente", "serien_devs", "devs.json")
 SERIEN_DEVS_MAX = 3000                  # hoechstens so viele Devs merken (aelteste zuerst raus)
+# Experiment Grosse Coins (seit 04.10., Video-Idee OrangieWEB3): nur Coins UEBER der Marktwert-Grenze von Tag 7
+# (MAX_MCAP_USD), sonst alle Pruefungen und Ausstiege wie die Hauptstrategie (inkl. Bundle-Check, Positionslimit
+# je Marktphase). Frage: Kostet uns die 3-Mio.-Grenze Gewinner?
 
 # Experiment Endspurt (seit 30.09.): Pump.fun-Coins kurz vor der Graduation, raus bei der Graduation.
 # Grundlage: arXiv 2602.14860 (655.770 Pump.fun-Coins, Sept. 2025). Preis auf der Kurve = vSol^2 / K.
@@ -195,7 +198,8 @@ ENDSPURT_MAX_POSITIONS = 8
 ENDSPURT_MIN_TRADES = 2000              # Filter: mindestens so viele Trades seit Start
 ENDSPURT_MAX_SLIPPAGE_PCT = 3.0
 KONTROLL_INTERVAL_MIN = 30              # Kontrollgruppe: etwa alle 30 min ein zufaelliger Coin
-EXP_WATCH_AFTER_EXIT = {"ohne_limit", "endspurt_ohne_filter", "notbremse_25", "offene_tuer", "serien_devs"}
+EXP_WATCH_AFTER_EXIT = {"ohne_limit", "endspurt_ohne_filter", "notbremse_25", "offene_tuer", "serien_devs",
+                        "grosse_coins"}
 EXP_LOG_OPEN_EVERY_LOOPS = 3            # Experimente: offene Positionen alle ~36 s aufzeichnen   # nach dem Verkauf 6 h weiter aufzeichnen (fuer Nachrechnungen)
 DISCORD_WEBHOOK_EXPERIMENTE = (os.environ.get("DISCORD_WEBHOOK_EXPERIMENTE") or "").strip()
 
@@ -1590,6 +1594,17 @@ def scan(p, sol_usd, now, exps=None):
         except Exception as err:
             print(f"[EXPERIMENT offene_tuer/serien_devs] {v.get('symbol')}: {str(err)[:100]}")
 
+    e7 = exps_alle.get("grosse_coins") if "grosse_coins" not in EXP_BEENDET else None
+    for v in views if e7 is not None else []:
+        try:
+            grosse_coins_pick(e7, v, phase, sol_usd, now)
+        except Interrupted:
+            raise
+        except Exception as err:
+            EXP_STATS["grosse_coins"]["exp_errors"] += 1
+            EXP_STATS["grosse_coins"]["last_error"] = str(err)
+            print(f"[EXPERIMENT grosse_coins] {v.get('symbol')}: {str(err)[:100]}")
+
     passed = []
     for v in views:
         if v["mint"] in p["positions"] or now - p["cooldown"].get(v["mint"], 0) < 24 * 3600:
@@ -1659,6 +1674,23 @@ def load_experiments():
             EXP_STATS[name]["last_error"] = str(err)
             print(f"[EXPERIMENT {name}] {err}")
     return exps
+
+
+def grosse_coins_pick(ep, v, phase, sol_usd, now):
+    """Experiment Grosse Coins: wie die Hauptstrategie, nur Marktwert ueber statt unter MAX_MCAP_USD."""
+    if v["mcap"] <= MAX_MCAP_USD or not exp_can_buy(ep, v, now, MAX_POSITIONS.get(phase, 2)):
+        return
+    if quick_checks({**v, "mcap": MAX_MCAP_USD}) is not None:    # alle Schnellpruefungen ausser der Marktwert-Grenze
+        return
+    if REQUIRE_SOCIAL_LINK and not has_social(v):
+        return
+    if safety_shield(v["mint"]):
+        return
+    reason, bundle = bundle_dev_check(v["mint"])
+    if reason:
+        return
+    v = dict(v, mitlaeufer=follower_of(v, now))                  # nur Beobachtung, wie Hauptstrategie
+    exp_buy("grosse_coins", ep, v, bundle, sol_usd)
 
 
 def exp_can_buy(ep, v, now, limit=None):

@@ -361,3 +361,27 @@ def test_serien_devs_kein_kauf_ohne_bekannten_dev(scan_env, monkeypatch):
     exps = {"serien_devs": load("serien_devs")}
     core.scan(p, SOL, time.time(), exps)
     assert exps["serien_devs"]["positions"] == {}
+
+
+def test_grosse_coins_kauft_nur_ueber_der_marktwert_grenze(scan_env, monkeypatch):
+    bundle_ok(monkeypatch)
+    scan_env(MINT, mcap=5_000_000)                                         # Hauptstrategie: SCHON_GELAUFEN
+    scan_env(MINT2, mcap=500_000)                                          # normaler Coin: nur Hauptstrategie
+    p = core.load_portfolio()
+    exps = {"grosse_coins": load("grosse_coins")}
+    core.scan(p, SOL, time.time(), exps)
+    assert set(p["positions"]) == {MINT2}
+    assert set(exps["grosse_coins"]["positions"]) == {MINT}
+
+
+def test_grosse_coins_sonst_alle_pruefungen_wie_hauptstrategie(scan_env, monkeypatch):
+    bundle_ok(monkeypatch)
+    scan_env(MINT, mcap=5_000_000, price_change_5m=60)                     # FOMO-Sprung
+    scan_env(MINT2, mcap=5_000_000, age_h=20)                              # zu alt
+    exps = {"grosse_coins": load("grosse_coins")}
+    core.scan(core.load_portfolio(), SOL, time.time(), exps)
+    assert exps["grosse_coins"]["positions"] == {}
+    bundle_ok(monkeypatch, "GEBUENDELT")
+    scan_env(addr("Gross3"), mcap=5_000_000)
+    core.scan(core.load_portfolio(), SOL, time.time(), exps)
+    assert exps["grosse_coins"]["positions"] == {}

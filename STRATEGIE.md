@@ -52,7 +52,7 @@ Alle Schwellen stehen oben in `bot.py` und lassen sich dort ändern.
 
 ## Experimente (seit 29.09.)
 
-Die Experimente laufen im selben Bot auf denselben Daten (seit 04.10.: fünf aktiv, zwei beendet), aber mit eigenen Konten (je 10 SOL, gleicher Einsatz; Ausstiegsregeln wie die Hauptstrategie, außer bei den beiden Endspurt-Experimenten). Ist ein Konto aufgebraucht, startet es mit 10 SOL neu; die Rundennummer bleibt bei jedem Trade gespeichert. Die Hauptstrategie wird dadurch nicht verändert.
+Die Experimente laufen im selben Bot auf denselben Daten (seit 04.10.: acht aktiv, zwei beendet), aber mit eigenen Konten (je 10 SOL, gleicher Einsatz; Ausstiegsregeln wie die Hauptstrategie, außer bei den beiden Endspurt-Experimenten). Ist ein Konto aufgebraucht, startet es mit 10 SOL neu; die Rundennummer bleibt bei jedem Trade gespeichert. Die Hauptstrategie wird dadurch nicht verändert.
 
 | Experiment | Kauft, wenn … | Frage dahinter |
 |---|---|---|
@@ -65,6 +65,7 @@ Die Experimente laufen im selben Bot auf denselben Daten (seit 04.10.: fünf akt
 | Notbremse 25 (seit 04.10.) | genau dann, wenn die Hauptstrategie kauft (gleicher Coin, gleicher Moment); alle Ausstiege gleich, nur die Notbremse greift schon bei −25 % statt −40 %. Zeichnet nach dem Verkauf 6 h weiter auf | Spart eine frühere Notbremse mehr Verluste, als sie spätere Gewinner kostet? (Überprüfung 03.10., Hypothese H1: Hauptstrategie-Verläufe dafür, Kontrollgruppe dagegen) |
 | Offene Tür (seit 04.10.) | ein Coin dieselben Story-Filter wie die Hauptstrategie besteht (Alter, Holder-Wachstum, echte Käufer, organisch, Liquidität, kein FOMO-Sprung) – **ohne** jede Sicherheitsprüfung (Dev, Contract, Nachahmer, Vamp, Transfergebühr, Bundle/Block 0, Links); höchstens 4 Positionen. Ausstiege wie Hauptstrategie, 6 h Nachlauf | Was sparen bzw. kosten unsere Sicherheitsprüfungen? Kauft bewusst auch Rugs, um ihre Muster im Flugschreiber aufzuzeichnen |
 | Serien-Devs (seit 04.10.) | ein junger Coin (15 min–6 h, Liquidität ≥ Minimum) von einem Dev stammt, dessen früherer Coin mindestens 300.000 $ Marktwert erreichte (eigene Liste aus den Jupiter-Daten, `experimente/serien_devs/devs.json`); keine weiteren Prüfungen; höchstens 4 Positionen. Ausstiege wie Hauptstrategie **plus** „Dev verkauft“: Dev hält weniger als die Hälfte seines Bestands beim Kauf | Lohnen erfahrene Devs, auch wenn sie später rugen – und erkennt man den Rug am Dev-Verkauf rechtzeitig? |
+| Große Coins (seit 04.10.) | ein Coin alle Prüfungen der Hauptstrategie besteht (Alter, Verbreitung, Käufer, organisch, Liquidität, Sicherheit, FOMO, Links, Transfergebühr, Bundle/Block 0) – nur der Marktwert liegt **über** 3 Mio. $ statt darunter; Positionslimit je Marktphase wie die Hauptstrategie. Ausstiege wie Hauptstrategie, 6 h Nachlauf. Erwartet selten: etwa 0–3 Kandidaten pro Tag | Kostet uns die 3-Mio.-Grenze (Tag 7) Gewinner? (Video-Idee OrangieWEB3: größte Gewinne in Coins über 3 Mio.) |
 
 „Ohne Limit“ und „Endspurt ohne Filter“ zeichnen Coins nach dem Verkauf 6 h weiter auf. Bei „Endspurt ohne Filter“ sind das die Kursverläufe nach der Graduation, damit lässt sich auch eine Strategie „Einstieg nach der Migration“ nachrechnen. Damit lassen sich strengere Filter, ein Einstieg erst nach der ersten Korrektur und andere Ausstiege nachrechnen, ohne eigene Experimente.
 
@@ -170,6 +171,7 @@ Grenzen: Vergangene Gewinne garantieren keine künftigen; frühe Käufer können
 | 04.10. | Copy: 4 Wallets neu (G7b2, GeFg, 499R, 2Nxj) – lockere Aufnahme: kein Bot, aktiv, Trader im Plus über 7 Tage (Scout/Birdeye); damit 22 aktive (Grenze). Bot-Verdacht ausgeschlossen: 8 „frühe Käufer“ mit identischen Kennzahlen (Sniper-Netz, Haltedauer ~6 s), Deh9, 8zkg, 9Df3 | Nachtlauf-Auftrag 04.10.: bis 22 auffüllen; Urteil nach 7 Tagen oder 30 Positionen |
 | 04.10. | Dashboard: Exit-Liquidität je Copy-Trader (Anteil unserer Käufe, bei denen der Trader ≤ 60 s nach seinem Kauf bzw. schon vor unserem Kauf verkauft), aus den Trader-Zeiten im Journal | Nachtlauf 04.10., Experiment-Idee c: Verlierer (922M, Zrool, Cooker, 6ANG) verkaufen in 51–71 % der Fälle binnen 60 s, in 11–37 % schon vor unserem Kauf; Gewinner (4DOV, HEBO) halten Minuten bis eine halbe Stunde |
 | 04.10. | Video-Auswertung (nur Doku, keine Regeländerung): 14 Videos von OrangieWEB3 in `videos/regeln.md` und `auswertungen/2026-10-04_videos.md`; weitere Kanäle durch YouTube-Sperre nicht abrufbar. 4 Vorschläge warten auf Zustimmung | Nachtlauf-Auftrag 04.10., Schritt 2 |
+| 04.10. | Neues Experiment „Große Coins“ (10 SOL): alle Prüfungen der Hauptstrategie, aber nur Coins über 3 Mio. $ Marktwert; Ausstiege wie Hauptstrategie. Hauptstrategie unverändert (Regressionsprobe gleich). Helius: Bundle-Check nur für die wenigen Kandidaten, geschätzt < 15.000 Credits/Monat | Entscheidung des Betreibers 04.10. nach der Video-Auswertung (Widerspruch zu Tag 7) |
 
 ## Dateien seit 28.09.
 

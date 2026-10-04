@@ -15,13 +15,13 @@ Drei unabhängige Bots, jeweils eigener GitHub-Actions-Workflow, Schichten von k
 
 | Bot | Datei | Workflow | Daten |
 |---|---|---|---|
-| Hauptstrategie NARRATIV + 6 Experimente | `bot.py` | `bot_runner.yml` (Kettenstart, Sicherheitsnetz Minute 17) | `portfolio.json`, `journal.csv`, `messung.csv`, `dexscreener.csv`, `flugschreiber/`, `abgelehnt.csv`, `knapp_abgelehnt.csv`, `marktphase.json`, `verlauf/`, `experimente/<name>/` |
+| Hauptstrategie NARRATIV + Experimente | `bot.py` | `bot_runner.yml` (Kettenstart, Sicherheitsnetz Minute 17) | `portfolio.json`, `journal.csv`, `messung.csv`, `dexscreener.csv`, `flugschreiber/`, `abgelehnt.csv`, `knapp_abgelehnt.csv`, `marktphase.json`, `verlauf/`, `experimente/<name>/` |
 | Copy Trading | `copy_bot.py` (nutzt `bot.py` als `core`) | `copy_runner.yml` (Kettenstart, Minute 47) | `copy/konten.json`, `copy/journal.csv`, `copy/messung.csv`, `copy/verlauf/`; Wallets in `copy_wallets.txt` |
 | Wallet-Scout | `scout_bot.py` (nutzt `copy_bot.py`) | `scout_runner.yml` (alle 6 h, Minute 29) | `scout/status.json`, `scout/kandidaten.csv`, `scout/tx_pruefung.csv`; Prüfliste `scout/pruefen.txt`, Transaktions-Prüfung `scout/pruefen_tx.txt` |
 
 **Dashboard** (seit 03.10.) in `dashboard/`: Streamlit, nur lokal, nur lesen (alle 5 min `git pull`). Start per Doppelklick auf `dashboard/start.bat`. Eigene `dashboard/requirements.txt` und Umgebung `dashboard/.venv`. Die gemeinsame Rechnung (Kontowert wie Discord, Korrekturen, vorsichtiger Wert, Testurteil gegen die Kontrollgruppe) steht in `dashboard/rechnung.py`. Die Tagesauswertung nutzt sie auch. Wird die Rechnung der Bots geändert, `rechnung.py` und `tests/test_dashboard_rechnung.py` mitziehen.
 
-Experimente (eigene 10-SOL-Konten): zweite_welle, heisse_coins, ohne_limit, kontrollgruppe, endspurt („Endspurt viele Trades“), endspurt_ohne_filter. Details in `STRATEGIE.md`.
+Experimente (eigene 10-SOL-Konten): zweite_welle, heisse_coins, kontrollgruppe, endspurt („Endspurt viele Trades“), notbremse_25, offene_tuer, serien_devs, grosse_coins; beendet 04.10.: ohne_limit, endspurt_ohne_filter (Daten bleiben). Details in `STRATEGIE.md`.
 
 Jeder Bot hat `--probe` (Kurztest ohne Handel, Ausgabe für die Kontrolle).
 
