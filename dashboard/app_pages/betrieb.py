@@ -83,3 +83,20 @@ with st.container(horizontal=True):
               help="Verkauf ohne Jupiter-Quote: Kurs × 0,95 angenommen (Hauptbot und Experimente).")
     st.metric("Korrekturen herausgerechnet", n_korrekturen, border=True,
               help="Zeilen aus auswertungen/korrekturen.csv (Fehlbuchungen im Copy-Journal bis 03.10.)")
+
+detail = daten.messung_detail(head)
+st.markdown("**Ausführungskosten genauer: typisch und im schlechten Fall**")
+st.dataframe(pd.DataFrame([{
+    "Bot": m["quelle"], "Aktion": "Kauf" if m["aktion"] == "KAUF" else "Verkauf", "Messungen": m["anzahl"],
+    "Median": ansicht.txt(m["median"], 2, True, " %"),
+    "schlechteste 10 % im Mittel": ansicht.txt(m["schlechteste_10"], 1, True, " %"),
+    "jede zehnte schlechter als": ansicht.txt(m["schwelle_10"], 1, True, " %"),
+    "über 5 % schlechter": ansicht.txt(m["schlechter_5"] * 100 if m["schlechter_5"] is not None else None, 0,
+                                       einheit=" %"),
+    "Abstand der 2. Quote, Median": ansicht.txt(m["median_s"], 1, einheit=" s"),
+    "Abstand, längster": ansicht.txt(m["max_s"], 1, einheit=" s"),
+} for m in detail if m["anzahl"]]), hide_index=True, alt="Ausführungskosten je Bot und Aktion")
+st.caption("Plus = 2 Sekunden später hätten wir weniger bekommen (Kauf: weniger Token, Verkauf: weniger SOL). "
+           "Der Median liegt meist bei 0; die Kosten stecken im schlechten Zehntel, vor allem bei schnellen "
+           "Coins. „Abstand“ = tatsächliche Zeit zwischen den beiden Quoten: "
+           "Gewollt sind 2 s, gemessen wird aber erst in der Pause zwischen zwei Durchläufen, daher später.")

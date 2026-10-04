@@ -162,6 +162,14 @@ def protokoll(eintraege, scroll=True):
     st.html(f'<div class="pb-karte">' + (f'<div class="pb-scroll">{inhalt}</div>' if scroll else inhalt) + "</div>")
 
 
+def ereignisse(zeilen):
+    """Liste 'Was ist neu'. zeilen: (Titel, Text) - beides MUSS schon mit e() maskiert sein (Text darf HTML enthalten)."""
+    teile = "".join(f'<div class="pb-eintrag"><div class="pb-symbol">•</div><div style="min-width:0">'
+                    f'<div class="pb-name">{titel}</div><div class="pb-detail" style="white-space:normal">{text}</div>'
+                    f'</div><div></div></div>' for titel, text in zeilen)
+    st.html(f'<div class="pb-karte"><div class="pb-scroll"><div class="pb-liste">{teile}</div></div></div>')
+
+
 # ================================================================ Diagramme
 
 def balken(df, wert, name, titel_x, stellen=3, referenz=None, referenz_text=""):

@@ -1,6 +1,6 @@
 # Dashboard (nur Anschauen)
 
-Zeigt den Stand aller drei Bots im Browser auf diesem Rechner. Es wird **kein echtes Geld** gehandelt, und das Dashboard **ändert nichts**: Es liest nur die Dateien im Repository, startet keine Bots und braucht keine Schlüssel.
+Zeigt den Stand aller drei Bots im Browser auf diesem Rechner. Es wird **kein echtes Geld** gehandelt, und das Dashboard **ändert nichts** (einzige Ausnahme: die Seite „Wallets prüfen“, siehe unten): Es liest nur die Dateien im Repository, startet keine Bots und braucht keine Schlüssel.
 
 ## Starten
 
@@ -20,7 +20,9 @@ Das Dashboard ist nur auf diesem Rechner erreichbar (`localhost`), nicht im Netz
   - **Strategie & Experimente**: je Konto der Vergleich mit der Kontrollgruppe, der Kontoverlauf, offene Positionen und die letzten Trades mit Grund.
   - **Copy Trading**: je Trader der Kontowert (auch vorsichtig), wir gegen den Trader, Verzögerung, Schattenpositionen und Hinweise nach den Wallet-Regeln.
   - **Scout**: die Rangliste.
-  - **Betrieb**: letzte Daten je Bot, Lücken der letzten 48 h, die Messung der Ausführungskosten und die Korrekturen.
+  - **Flugschreiber**: je Coin Kurs, Dev-Bestand, Top 10, Holder und Liquidität bis zum Verkauf, mit Verkaufsgrund.
+  - **Wallets prüfen**: Adressen einfügen → werden geprüft (Base58, keine Duplikate, nicht schon in `copy_wallets.txt`/Prüfliste, höchstens 20) und ans Ende von `scout/pruefen.txt` angehängt (nur diese Datei wird committet und gepusht, bei Fehler wird alles zurückgenommen). Danach wird per `gh workflow run` ein Scout-Lauf gestartet, sofern keiner läuft. Darunter die Prüfliste mit Status und Scout-Ergebnis. Aufnahme ins Copy Trading entscheidest weiterhin du.
+  - **Betrieb**: letzte Daten je Bot, Lücken der letzten 48 h, die Ausführungskosten (Median, schlechteste 10 %, Abstand in Sekunden) und die Korrekturen.
 - Zeiten stehen in UTC, in Klammern die deutsche Zeit.
 
 ## Rechnung

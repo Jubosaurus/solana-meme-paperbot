@@ -524,3 +524,188 @@ def git_pull(repo=None):
     except (OSError, subprocess.SubprocessError) as err:
         return False, str(err)[:200], ""
     return res.returncode == 0, (res.stderr or res.stdout).strip()[:300], head
+
+
+# ================================================================ Ausfuehrungskosten (Messung)
+
+def _schlechteste_zehntel(werte_sortiert):
+    """Mittelwert der schlechtesten 10 % (mindestens 1 Wert); werte aufsteigend sortiert, + = schlechter fuer uns."""
+    n = max(1, round(len(werte_sortiert) * 0.1))
+    return statistics.mean(werte_sortiert[-n:])
+
+
+def messung_detail(repo=None):
+    """Ausfuehrungskosten je Quelle und Aktion (nur KAUF/VERKAUF): Anzahl, Median, schlechteste 10 %
+    (Mittel und Schwelle), tatsaechlicher Abstand der zweiten Quote in Sekunden. + = 2 s spaeter schlechter."""
+    repo = Path(repo or REPO)
+    out = []
+    for quelle, datei in (("Hauptbot und Experimente", repo / "messung.csv"), ("Copy-Bot", repo / cb.MESSUNG_FILE)):
+        rows = lade_csv(datei)
+        for aktion in ("KAUF", "VERKAUF"):
+            je = [(as_float(r.get("abweichung_pct"), None), as_float(r.get("sekunden"), None))
+                  for r in rows if r.get("aktion") == aktion]
+            werte = sorted(w for w, _ in je if w is not None)
+            sek = sorted(s for _, s in je if s is not None)
+            out.append({
+                "quelle": quelle, "aktion": aktion, "anzahl": len(werte),
+                "median": statistics.median(werte) if werte else None,
+                "schlechteste_10": _schlechteste_zehntel(werte) if werte else None,
+                "schwelle_10": werte[min(len(werte) - 1, int(len(werte) * 0.9))] if werte else None,
+                "median_s": statistics.median(sek) if sek else None,
+                "max_s": sek[-1] if sek else None,
+                "schlechter_5": sum(1 for w in werte if w > 5) / len(werte) if werte else None,
+            })
+    return out
+
+
+# ================================================================ Flugschreiber
+
+FLUG_ZAHLEN = ["minuten_seit_kauf", "vielfaches", "liquiditaet", "holder", "top10_pct", "dev_pct",
+               "netto_kaeufer_5m", "block0_gehalten_pct"]
+
+
+def _journal_pfad(repo, konto):
+    return Path(repo) / (core.JOURNAL_FILE if konto == "hauptstrategie" else Path(core.EXP_DIR) / konto / "journal.csv")
+
+
+def flug_zeilen(repo=None):
+    """Alle Messpunkte aus flugschreiber/*.csv (Aufzeichnung ~1/min je offene Position)."""
+    repo = Path(repo or REPO)
+    rows = []
+    for datei in sorted((repo / core.FLUG_DIR).glob("*.csv")):
+        rows += lade_csv(datei)
+    return rows
+
+
+def flug_coins(rows, repo=None):
+    """Je (Konto, Coin): Symbol, Anzahl Messpunkte, erste/letzte Zeit, Verkaufsgrund und Ergebnis aus dem Journal."""
+    repo = Path(repo or REPO)
+    coins = {}
+    for r in rows:
+        c = coins.setdefault((r["konto"], r["mint"]), {"konto": r["konto"], "mint": r["mint"],
+                                                      "symbol": r.get("symbol", "?"), "punkte": 0, "von": r["zeit"],
+                                                      "bis": r["zeit"]})
+        c["punkte"] += 1
+        c["von"], c["bis"] = min(c["von"], r["zeit"]), max(c["bis"], r["zeit"])
+    for konto in {k for k, _ in coins}:
+        je_mint = {}
+        for j in lade_csv(_journal_pfad(repo, konto)):
+            if j.get("aktion") == "VERKAUF":
+                je_mint.setdefault(j.get("mint"), []).append(j)
+        for (k, mint), c in coins.items():
+            if k == konto and mint in je_mint:
+                c["verkauf_grund"] = je_mint[mint][-1].get("grund", "")
+                c["pnl_sol"] = sum(as_float(j.get("pnl_sol")) for j in je_mint[mint])
+    return sorted(coins.values(), key=lambda c: c["bis"], reverse=True)
+
+
+def flug_verlauf(rows, konto, mint):
+    """Messpunkte eines Coins mit Zahlen (leere Felder = None), nach Zeit sortiert."""
+    out = []
+    for r in sorted((r for r in rows if r["konto"] == konto and r["mint"] == mint), key=lambda r: r["zeit"]):
+        d = {"zeit": r["zeit"]}
+        for k in FLUG_ZAHLEN:
+            d[k] = as_float(r.get(k), None)
+        out.append(d)
+    return out
+
+
+def flug_verkaeufe(konto, mint, repo=None):
+    """Verkaeufe eines Coins aus dem Journal mit Minuten seit dem ersten Kauf: [{minuten, grund, pnl_pct}]."""
+    rows = [j for j in lade_csv(_journal_pfad(repo or REPO, konto)) if j.get("mint") == mint]
+    kaeufe = [zeitpunkt(j["zeit"]) for j in rows if j.get("aktion") == "KAUF" and zeitpunkt(j.get("zeit"))]
+    if not kaeufe:
+        return []
+    start = min(kaeufe)
+    out = []
+    for j in rows:
+        t = zeitpunkt(j.get("zeit"))
+        if j.get("aktion") == "VERKAUF" and t:
+            out.append({"minuten": (t - start).total_seconds() / 60, "grund": j.get("grund", ""),
+                        "pnl_pct": as_float(j.get("pnl_pct"), None)})
+    return out
+
+
+# ================================================================ Was ist neu
+
+DATEN_COMMITS = ("NARRATIV", "COPY", "SCOUT")
+ADRESSE_TEXT = r"[1-9A-HJ-NP-Za-km-z]{32,44}"
+
+
+def _git_text(repo, *args):
+    try:
+        return subprocess.run(["git", *args], cwd=repo, capture_output=True, text=True, timeout=60,
+                              encoding="utf-8", errors="replace").stdout
+    except (OSError, subprocess.SubprocessError):
+        return ""
+
+
+def wallet_aenderungen(ab, repo=None):
+    """Aus der Git-Historie seit ab (Unix): aufgenommene und entfernte Copy-Wallets, neue Adressen in der Pruefliste."""
+    import re
+    repo = repo or REPO
+    out = {"aufgenommen": [], "entfernt": [], "geprueft_neu": 0}
+    text = _git_text(repo, "log", f"--since=@{int(ab)}", "-p", "--format=", "--", "copy_wallets.txt")
+    for zeile in text.splitlines():
+        if zeile.startswith("+++") or not zeile.startswith("+"):
+            continue
+        z = zeile[1:].strip()
+        if z.startswith("#"):
+            m = re.match(rf"#\s*([^:]{{1,40}}):\s*{ADRESSE_TEXT}\s*<-\s*(.*)", z)
+            if m:
+                out["entfernt"].append(f"{m.group(1).strip()}: {m.group(2).strip()}")
+        else:
+            m = re.match(rf"^([^:#]{{1,40}}):\s*{ADRESSE_TEXT}", z)
+            if m:
+                out["aufgenommen"].append(m.group(1).strip())
+    liste = _git_text(repo, "log", f"--since=@{int(ab)}", "-p", "--format=", "--", "scout/pruefen.txt")
+    out["geprueft_neu"] = sum(1 for z in liste.splitlines() if z.startswith("+") and not z.startswith("+++")
+                              and re.search(ADRESSE_TEXT, z))
+    return out
+
+
+def projekt_commits(ab, repo=None):
+    """Commits seit ab, die keine Daten-Updates der Bots sind: [(Zeit Unix, Text)] neueste zuerst."""
+    out = _git_text(repo or REPO, "log", f"--since=@{int(ab)}", "--format=%ct\t%s")
+    erg = []
+    for z in out.splitlines():
+        ts, _, msg = z.partition("\t")
+        if ts.isdigit() and not msg.startswith(DATEN_COMMITS):
+            erg.append((int(ts), msg))
+    return erg
+
+
+def neu_seit(ab, strategie_konten, copy_zeilen, copy_konten_liste, jetzt, repo=None):
+    """Was ist seit ab (Unix, UTC) passiert? Rein lesend, aus schon geladenen Konten, Journal und Git-Historie."""
+    trades = []
+    for k in strategie_konten:
+        neue = [c for c in k["closed"]
+                if (zeitpunkt(c.get("closed_at")) or datetime.fromtimestamp(0, timezone.utc)).timestamp() >= ab]
+        if neue:
+            trades.append({"konto": k["label"], "trades": len(neue),
+                           "summe": sum(as_float(c.get("pnl_sol")) for c in neue)})
+    je_trader = {}
+    for r in copy_zeilen:
+        t = zeitpunkt(r.get("zeit"))
+        if t and t.timestamp() >= ab and r.get("aktion") in ("KAUF", "VERKAUF"):
+            d = je_trader.setdefault(r.get("trader", "?"), {"KAUF": 0, "VERKAUF": 0})
+            d[r["aktion"]] += 1
+    auffaellig = []
+    for c in copy_konten_liste:
+        if not c["aktiv"]:
+            continue
+        if not c.get("letzter_trade"):
+            auffaellig.append(f"Copy {c['name']}: noch nie ein Trade")
+        elif jetzt - as_float(c["letzter_trade"]) > 72 * 3600:
+            auffaellig.append(f"Copy {c['name']}: seit über 72 h kein Trade")
+    beendet = []
+    for name, datum in getattr(core, "EXP_BEENDET", {}).items():       # Datum als "04.10." (Jahr = aktuelles)
+        try:
+            tag = datetime.strptime(f"{datum.strip().rstrip('.')}.{datetime.fromtimestamp(jetzt, timezone.utc).year}",
+                                    "%d.%m.%Y").replace(tzinfo=timezone.utc)
+        except ValueError:
+            continue
+        if tag.timestamp() + 86400 > ab:
+            beendet.append((name, datum))
+    return {"trades": trades, "copy": je_trader, "beendete_experimente": beendet,
+            "wallets": wallet_aenderungen(ab, repo), "commits": projekt_commits(ab, repo), "auffaellig": auffaellig}

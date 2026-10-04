@@ -28,6 +28,45 @@ if kaputt:
 a.status_leiste([(s, f"{b} · Daten {a.vor(letzte[b])}") for b, s in status.items()]
                 + [(scout_status, f"Scout · {a.vor(scout_lauf)}")])
 
+# ---------------------------------------------------------------- 1b. Was ist neu
+ZEITRAEUME = {"24 Stunden": 24, "48 Stunden": 48, "7 Tage": 168}
+with st.container(border=True):
+    st.markdown("**Was ist neu?**")
+    wahl_zeit = st.segmented_control("Zeitraum", list(ZEITRAEUME), default="24 Stunden", key="neu_zeitraum",
+                                     required=True, label_visibility="collapsed")
+    neu = daten.neu_seit(head, ZEITRAEUME[wahl_zeit or "24 Stunden"])
+    zeilen = []
+    if neu["trades"]:
+        gesamt = sum(t["trades"] for t in neu["trades"])
+        zeilen.append(("Trades", f"{gesamt} neue Trades der Strategien: " + ", ".join(
+            f"{a.e(t['konto'])} {t['trades']} ({a.pm_html(t['summe'], 2)})" for t in neu["trades"])))
+    if neu["copy"]:
+        k = sum(v["KAUF"] for v in neu["copy"].values())
+        vk = sum(v["VERKAUF"] for v in neu["copy"].values())
+        top = sorted(neu["copy"].items(), key=lambda x: -(x[1]["KAUF"] + x[1]["VERKAUF"]))[:3]
+        zeilen.append(("Copy", f"{k} Käufe und {vk} Verkäufe bei {len(neu['copy'])} Tradern; am aktivsten: "
+                       + ", ".join(f"{a.e(n)} ({v['KAUF']}/{v['VERKAUF']})" for n, v in top)))
+    w = neu["wallets"]
+    if w["aufgenommen"]:
+        zeilen.append(("Wallets", "Neu im Copy Trading: " + a.e(", ".join(w["aufgenommen"]))))
+    for text in w["entfernt"]:
+        zeilen.append(("Wallets", "Entfernt: " + a.e(text)))
+    if w["geprueft_neu"]:
+        zeilen.append(("Prüfliste", f"{w['geprueft_neu']} neue Adresse(n) zur Prüfung"))
+    heute = neu["beendete_experimente"]
+    if heute:
+        zeilen.append(("Experimente beendet", ", ".join(f"{a.e(n)} ({a.e(d)})" for n, d in heute)))
+    for text in neu["auffaellig"]:
+        zeilen.append(("Auffällig", a.e(text)))
+    for ts, text in neu["commits"][:8]:
+        zeilen.append((rechnung.zeit_text(ts, mit_datum=True).split(" UTC")[0] + " UTC", a.e(text)))
+    if zeilen:
+        a.ereignisse(zeilen)
+    else:
+        st.caption("Nichts Neues in diesem Zeitraum.")
+    st.caption("Die Zeilen mit Uhrzeit sind Änderungen am Projekt (Code, Regeln, Doku), nicht die Daten-Updates "
+               "der Bots.")
+
 # ---------------------------------------------------------------- 2. Grosse Zahlen
 haupt = next(k for k in konten if k["key"] == "hauptstrategie")
 kontrolle = next(k for k in konten if k["key"] == rechnung.KONTROLLE)

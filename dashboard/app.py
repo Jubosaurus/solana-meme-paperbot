@@ -1,7 +1,8 @@
 """Dashboard Solana-Paperbot - nur zum Anschauen.
 
 Liest die Daten im Repository, holt alle 5 min neue Daten (git pull) und rechnet mit rechnung.py.
-Schreibt nie Daten, startet keine Bots, braucht keine Schluessel. Start: dashboard/start.bat
+Schreibt nie Daten, startet keine Bots, braucht keine Schluessel. EINZIGE Ausnahme: die Seite "Wallets pruefen"
+(wallets.py) haengt Adressen an scout/pruefen.txt an und stoesst den Scout an. Start: dashboard/start.bat
 """
 import time
 
@@ -41,6 +42,8 @@ seiten = st.navigation([
     st.Page("app_pages/strategie.py", title="Strategie & Experimente", icon=":material/science:"),
     st.Page("app_pages/copy_trading.py", title="Copy Trading", icon=":material/group:"),
     st.Page("app_pages/scout.py", title="Scout", icon=":material/travel_explore:"),
+    st.Page("app_pages/flugschreiber.py", title="Flugschreiber", icon=":material/flight:"),
+    st.Page("app_pages/wallets_pruefen.py", title="Wallets prüfen", icon=":material/playlist_add_check:"),
     st.Page("app_pages/betrieb.py", title="Betrieb", icon=":material/build:"),
 ], position="top")
 

@@ -48,3 +48,25 @@ def scout(head):
 @st.cache_data(ttl=600, max_entries=4, show_spinner=False)
 def betrieb(head):
     return rechnung.commit_zeiten(), rechnung.messung(), len(rechnung.korrekturen())
+
+
+@st.cache_data(ttl=600, max_entries=4, show_spinner="Flugschreiber wird gelesen …")
+def flugschreiber(head):
+    rows = rechnung.flug_zeilen()
+    return rows, rechnung.flug_coins(rows)
+
+
+@st.cache_data(ttl=600, max_entries=4, show_spinner=False)
+def messung_detail(head):
+    return rechnung.messung_detail()
+
+
+@st.cache_data(ttl=600, max_entries=6, show_spinner=False)
+def neu_seit(head, stunden):
+    """Was ist neu seit N Stunden? (gleicher Stand head = gleiche Antwort)"""
+    jetzt = time.time()
+    konten = strategie_konten(head)
+    copy, _, _ = copy_konten(head)
+    korr = rechnung.korrekturen()
+    zeilen = rechnung.journal_bereinigen(rechnung.lade_csv(rechnung.pfad(rechnung.cb.JOURNAL_FILE)), korr)
+    return rechnung.neu_seit(jetzt - stunden * 3600, konten, zeilen, copy, jetzt)
