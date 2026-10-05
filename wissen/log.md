@@ -18,6 +18,7 @@ Tabelle aller Aktionen am Wiki. Neueste unten.
 | 2026-10-04 | Nicht verarbeitet | auswertungen/README.md, skill-observations/, skill-updates/ | enthalten keine Aussagen |
 | 2026-10-04 | Nicht verarbeitet | wissen/notizen/ | leer |
 | 2026-10-04 | Überarbeitung | Anweisungen des Betreibers | Markierungen getrennt (⚠️ Widerspruch / 🕒 überholt / ✅ geklärt) und bestehende umgestellt; Regressionsprobe als geklärt; 52 %/24 % und ~40 % Graduation übernommen; Listing-Studien (Ante 2019, binance-listing-study) in STRATEGIE.md und Wiki; 7 Adress-Seiten aus scout/kandidaten.csv; copy_wallets.txt offizielle Rohquelle |
+| 2026-10-05 | Einspeisen | wissen/notizen/2026-10-05_video-erkenntnisse.md | Neue Seiten: rasmr, TJR, Video-Ideen-offen, Q-2026-10-05-Video-Erkenntnisse. Ergänzt: Tools-aus-Videos (J7-Tracker-Warnung), Tag 2/3 (Bestätigung, Tag 2 jetzt 3 Trader), Tag 4/7 (Abweichung), Verkaufsregeln, Notbremse-25, Drittel-Leiter, Listing-Welle, Bündel, Kopieren, Exit-Liquidität, Zu-früh-verkauft, PIGEON, Wallet-Scout, Werbung, OrangieWEB3 (🕒 „ein einziger Trader“ überholt). Transkripte nicht gelesen, nur die vorsortierte Notiz |
 
 ## Rückfragen
 
@@ -28,6 +29,7 @@ Erledigt am 04.10.2026 (Antworten des Betreibers):
 4. `copy_wallets.txt` ist offizielle Rohquelle.
 
 Noch offen:
+0. Notiz 05.10.: Links zu R1 (rasmr 02.10.) und T1 (TJR 04.10.) fehlen im Transkript; `jup_fees` ist leer (siehe [[Video-Ideen-offen]]).
 1. Coins ohne volle Mint-Adresse (PIGEON, WARP, cum, MASHUP): Quellen nennen nur Kurznamen.
 2. Wallet-Signal-Nachrechnung: Abgrenzung von „Signal“ unklar (⚠️ auf [[Wallet-Signal-Nachrechnung]]); Skripte lagen nur im Scratchpad und sind nicht mehr vorhanden.
 3. Videos: Die Transkripte (nur lokal) wurden nicht gelesen; alle Aussagen stammen aus `videos/regeln.md` und der Video-Auswertung.

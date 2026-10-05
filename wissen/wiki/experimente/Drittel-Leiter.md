@@ -7,3 +7,4 @@
 - Der Median ist bei allen Varianten gleich (−0,081): Der typische Coin erreicht nie 1,5x und endet bei der Notbremse (53 von 96). [[Q-2026-10-04-Video-Nachrechnung]]
 - 48 h statt 24 h Halten ist nicht messbar: Der längste Verlauf reicht nur 9,7 h ab Kauf. [[Q-2026-10-04-Video-Nachrechnung]]
 - Siehe [[Tag-02-Teilverkauf]].
+- Video-Hinweis (05.10.2026, Eigenangabe rasmr): Große Positionen in Stufen in steigende Kurse verkaufen – bestätigt die Idee. [[Q-2026-10-05-Video-Erkenntnisse]]

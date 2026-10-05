@@ -7,3 +7,4 @@
 - Seit 30.09. startet das Hoch einer Position beim Kaufpreis statt beim Signalkurs; Anlass war cum (Kauf 62 % unter Signal, Hoch sonst bei 2,65x), 1 von 122 Trades betroffen. [[Q-STRATEGIE]]
 - Zeitstopp (nach 60 min unter Einstand raus, H3) bestand am 03.10. nicht. [[Q-2026-10-03-Ueberpruefung]]
 - Variante Notbremse −25 %: siehe [[Notbremse-25]]; Variante Dritte-Stufen: [[Drittel-Leiter]].
+- Bestätigung (05.10.2026): rasmr verkauft sofort alles, wenn der Auslöser wegfällt (These gebrochen) – entspricht unserem Thesenbruch-Ausstieg ([[rasmr]]). [[Q-2026-10-05-Video-Erkenntnisse]]

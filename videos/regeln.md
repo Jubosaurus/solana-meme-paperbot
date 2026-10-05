@@ -1,8 +1,10 @@
-# Regeln und Aussagen aus Videos – OrangieWEB3
+# Regeln und Aussagen aus Videos – OrangieWEB3, rasmr, TJR
 
 **Quelle:** YouTube-Kanal OrangieWEB3 (Memecoin-Trader „Orangie“), 14 Videos vom 22.07.2025 bis 27.09.2026.
 
-**Hinweis zum Umfang:** Geplant waren vier Kanäle (OrangieWEB3, leensx100, TJRTrades, rasmrr). YouTube hat nach diesen 14 Videos weitere Abrufe gesperrt. Deshalb kommt alles hier von **einem einzigen Trader**. Die Transkripte liegen nur lokal in `videos/transkripte/` und sind **nicht im Repository**.
+**Nachtrag 05.10.2026 (Runde 2):** Video 15–18 stammen von Orangie (2024), rasmr und TJR; damit gibt es erstmals Aussagen von mehr als einem Trader. Quelle ist die vorsortierte Notiz `wissen/notizen/2026-10-05_video-erkenntnisse.md`.
+
+**Hinweis zum Umfang (Stand 04.10., für Video 1–14):** Geplant waren vier Kanäle (OrangieWEB3, leensx100, TJRTrades, rasmrr). YouTube hat nach diesen 14 Videos weitere Abrufe gesperrt. Deshalb kommt alles hier von **einem einzigen Trader**. Die Transkripte liegen nur lokal in `videos/transkripte/` und sind **nicht im Repository**.
 
 **Lesehilfe:** Alle Aussagen sind in eigenen Worten zusammengefasst. Gewinn- und Verlustzahlen sind Eigenangaben des Traders und nicht überprüft. „MC“ = Marktwert (Market Cap), „k“ = Tausend, „Mio.“ = Millionen US-Dollar. „Round-Trip“ = ein Gewinn wird gehalten, bis er wieder weg ist.
 
@@ -147,6 +149,8 @@
 - Bei starker Überzeugung hält er Stunden bis über einen Tag.
 - **Werbung:** Ja, deutlich. Bezahlte Gruppe „Kaizen“ mit Empfehlungslink in der Beschreibung (whop.com), FOMO-Code „orangie“, Verlosung von 5 × 100 $ auf FOMO, Empfehlung bezahlter Gruppen (Pastel, Prosperity).
 
+- **Hinweis (05.10.):** Dieses Video gibt es ein zweites Mal, mit anderem Link (https://www.youtube.com/watch?v=kYI2K4x0ZqA) und Datum (2026-09-01), gleicher Inhalt; vermutlich zweite Veröffentlichung. Eine zusätzliche Aussage: Ein Trader hielt eine Position trotz Rückgang von +50k $ auf +10k $ und verkaufte nach einem zweiten Auslöser (Beiträge großer Accounts) in Stücken. Außerdem: Der erste Coin auf einem neuen Launchpad läuft oft mit dem Launchpad mit („Launchpad-Beta“, ohne Zahl zur Häufigkeit).
+
 ## 13. How I Lost $50,000 Trading Memecoins (Avoid These Mistakes)
 - Link: https://www.youtube.com/watch?v=SuiC6c6H_OM
 - Datum: 2026-09-11
@@ -170,3 +174,45 @@
 - Orangie selbst hat nach eigener Aussage noch nie aus 1.000 $ 100.000 $ gemacht. So etwas sei selten.
 - Nie blind kopieren. Man muss bereit sein, den Coin auch zu halten, wenn der kopierte Trader schon raus ist.
 - **Werbung:** FOMO-Code „orangie“, Verlosung von 500 $ auf FOMO bei 10.000 Likes, FOMO-Referral.
+
+## 15. How To Make $500/Day Trading Memecoins (Beginners Guide)
+- Link: https://www.youtube.com/watch?v=XKrDD5CG2ao
+- Datum: 2024-11-23
+- Älteres Video (Markt von 2024, Werkzeuge teils veraltet), Anfängerleitfaden von Orangie.
+- Bündel: Eine Partei kauft 20–80 % des Angebots über mehrere Wallets im selben Block und verkauft später immer an die Nachkäufer.
+- Bei den größten Haltern realisierte und unrealisierte Gewinne vergleichen: Hohe unrealisierte Gewinne bedeuten noch ausstehenden Verkaufsdruck.
+- Wallets nur zur Bestätigung beobachten, nicht blind kopieren.
+- Er nennt Einstellungen für echten Handel (MEV-Schutz, Jito-Tip, Slippage 25–50 %) und Cielo Finance zur Wallet-Auswertung.
+- **Werbung:** nicht erfasst (Videobeschreibung lag nicht vor).
+
+## 16. 5 Years of Memecoin Knowledge in 12 Minutes (rasmr)
+- Link: fehlt (Platzhalter im Transkript)
+- Datum: 2026-10-02
+- Wird der Auslöser, auf dem die Idee beruht, hinfällig, sofort alles verkaufen.
+- Bei 2-facher Kurssteigerung den Einsatz herausnehmen, den Rest laufen lassen; große Positionen stufenweise in steigende Kurse verkaufen.
+- Große Positionen in dünner Liquidität in kleinen Stücken verkaufen, sonst drückt man den Kurs selbst.
+- Die Positionsgröße soll mit der Überzeugung wachsen: unwahrscheinliche Ereignisse klein, starke Thesen groß.
+- Nach mehreren Verlusten in Folge sofort kleiner setzen, nie verdoppeln und nie versuchen, Verluste zurückzuholen.
+- Verlierer früh schließen; die Trefferquote ist zweitrangig, entscheidend ist, wie tief einzelne Verluste werden.
+- **Werbung:** unbekannt (Videobeschreibung lag nicht vor).
+
+## 17. How I Predict $1M+ Memecoin Trades (rasmr)
+- Link: https://www.youtube.com/watch?v=L86wnSCaGjk
+- Datum: 2026-09-24
+- Jeder Trade braucht vor dem Kauf ein benanntes erwartetes Ereignis (Auslöser), das sich in einem Satz sagen lässt; ohne Auslöser kein Kauf.
+- Tritt der Auslöser ein, sofort verkaufen, auch bei guter Stimmung, denn frühe Halter verkaufen genau in diesen Anstieg.
+- Erwartete Auslöser (angekündigte Auftritte, bekannte Börsen-Listings) werden vorab gekauft; beim Ereignis folgt oft ein Ausverkauf. Unerwartete Auslöser (spontane Reaktion einer bekannten Person) tragen länger.
+- Die Größe richtet sich nach der Wahrscheinlichkeit des Auslösers.
+- Beispiel: ein Maskottchen-Coin, Auslöser ist die öffentliche Erwähnung durch die bekannte Person.
+- **Werbung:** unbekannt (Videobeschreibung lag nicht vor).
+
+## 18. How To Start Trading Memecoins As A Beginner In 2026 (TJR, Gast „Inentos“)
+- Link: fehlt (Platzhalter im Transkript)
+- Datum: 2026-10-04
+- Filter für migrierte Coins: Liquidität mindestens 1.000 $, MC mindestens 35.000 $, insgesamt gezahlte Gebühren mindestens 1,5 SOL; die Gebühren-Schwelle soll rund 99 % der Bündel- und Schein-Volumen-Coins ausblenden (Eigenangabe).
+- Neue Coins: ein Mindestvolumen von 50 $ blendet über 90 % aus; kurz vor der Graduation MC mindestens 15.000 $.
+- Bei 2-facher Kurssteigerung die Hälfte verkaufen, den Rest laufen lassen.
+- Jeden Trade so eingehen, als könnten 99 % verloren gehen; nie alles in einen Coin; lieber 10 bis 20 gut geprüfte Trades am Tag.
+- Wallets nur zur Bestätigung beobachten; gute Top-Trader haben typischerweise 30 bis 40 % Trefferquote. Kandidaten findet man über Trader, die Gewinne auf X posten, und deren 30-Tage-Werte in der Top-Trade-Liste des Coins.
+- Vier Arten von Geschichten: Tiere/Maskottchen, Tweet-Auslöser, Produkt/Protokoll (Software, KI-Agenten), Promi-Coins. Launchpads auf Solana: vor allem Pump.fun und Stonk.fun.
+- **Werbung:** Videobeschreibung lag nicht vor; im Video werden FOMO, Axiom und **J7 Tracker** ausdrücklich empfohlen. **J7 Tracker gilt laut Projekt als Malware und wird nie installiert.**

@@ -6,3 +6,4 @@
 - Kosten von H1 auf den Hauptstrategie-Verläufen: 3 spätere Gewinner wären vorher verkauft worden (PUNCH 3,4x, CASHED, AGENTS); Ersparnis: 46 Notbremsen-Trades verlieren je 0,01–0,08 SOL weniger. [[Q-2026-10-03-Ueberpruefung]]
 - Stand 04.10. ~02:43 UTC: 4 Käufe, 3 abgeschlossen (2 Notbremse, 1 Gewinn gesichert). [[Q-2026-10-04-Nachtlauf]]
 - Stand 04.10. ~05:45 UTC: Kontowert 9,96 SOL, 3 Trades – viel zu früh für ein Urteil. [[Q-Zusammenfassung-Chat]]
+- Video-Hinweis (05.10.2026, Eigenangabe rasmr): Verlierer früh schließen; die Trefferquote ist zweitrangig, entscheidend ist, wie tief einzelne Verluste werden – das ist die Frage, die dieses Experiment prüft. [[Q-2026-10-05-Video-Erkenntnisse]]

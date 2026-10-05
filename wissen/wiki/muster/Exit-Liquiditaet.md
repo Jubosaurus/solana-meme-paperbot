@@ -6,3 +6,4 @@
 - [[C7bF]]: bei 4 von 4 Käufen verkaufte der Trader binnen 5 s. [[Q-2026-10-04-Nachtlauf]]
 - Aus den Videos (Eigenangabe): Der Trader war selbst „Exit-Liquidität“ – er kaufte, weil gute Trader drin waren, und die verkauften an ihn (−10k $). [[Q-Videos-Regeln]]
 - Aus den Videos: Bekannte Trader verkaufen gezielt an ihre Kopierer; Gruppen nutzen die Käufe der Mitglieder als Ausstieg. [[Q-Videos-Regeln]]
+- Video (05.10.2026, Eigenangabe rasmr): Bei Auslöser-Coins verkaufen frühe Halter in den Anstieg; wer beim Ereignis kauft, kauft deren Ware. [[rasmr]] [[Q-2026-10-05-Video-Erkenntnisse]]

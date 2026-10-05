@@ -10,6 +10,9 @@ Das Wiki sammelt Wissen und beschließt nichts. Verbindlich bleiben `STRATEGIE.m
 - [[Hauptstrategie-NARRATIV]] – Hauptstrategie NARRATIV
 - [[Lehren-aus-Fehlern]] – Lehren aus Fehlern
 - [[OrangieWEB3]] – Kanal OrangieWEB3 (Videoquelle)
+- [[rasmr]] – Kanal rasmr (Videoquelle, seit 05.10.)
+- [[TJR]] – Kanal TJR (Videoquelle, seit 05.10.)
+- [[Video-Ideen-offen]] – Video-Ideen: offen und vorgemerkt (05.10.)
 - [[Wallet-Scout]] – Wallet-Scout und Automatik
 - [[Wallet-Signal-Nachrechnung]] – Wallet-Signal nachgerechnet (04.10.)
 - [[Werbung-Markierung]] – Werbung in den Videos (nur Markierung, kein Wissen)
@@ -130,6 +133,7 @@ Das Wiki sammelt Wissen und beschließt nichts. Verbindlich bleiben `STRATEGIE.m
 - [[Q-2026-10-04-Nachtlauf]] – Quelle: Nachtlauf 03./04.10.2026
 - [[Q-2026-10-04-Tokenverbrauch]] – Quelle: Token-Verbrauch 04.10.2026
 - [[Q-2026-10-04-Video-Nachrechnung]] – Quelle: Video-Ideen nachgerechnet 04.10.2026
+- [[Q-2026-10-05-Video-Erkenntnisse]] – Quelle: Video-Erkenntnisse Runde 2 (Notiz 05.10.2026)
 - [[Q-2026-10-04-Videos]] – Quelle: Video-Auswertung 04.10.2026
 - [[Q-CLAUDE]] – Quelle: CLAUDE.md
 - [[Q-Copy-Wallets]] – Quelle: copy_wallets.txt
@@ -141,4 +145,4 @@ Das Wiki sammelt Wissen und beschließt nichts. Verbindlich bleiben `STRATEGIE.m
 
 ## Eigene Notizen
 
-Liegen in `notizen/` (Rohquelle, wird nie verändert). Stand erster Durchlauf 04.10.2026: keine Notizen vorhanden.
+Liegen in `notizen/` (Rohquelle, wird nie verändert). Stand 05.10.2026: `2026-10-05_video-erkenntnisse.md` (eingespeist, siehe [[Q-2026-10-05-Video-Erkenntnisse]]).

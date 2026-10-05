@@ -18,3 +18,4 @@
 - Erste automatische Aufnahme: [[7Cn1]] am 04.10.; [[Loopierr]] wurde am 04.10. automatisch als Bot entfernt. [[Q-Copy-Wallets]]
 - Tx-Prüf-Modus (04.10.): Ergebnis für [[2FPk]]/[[54cb]]: alle Trades erkannt, nichts verpasst. [[Q-2026-10-04-Nachtlauf]]
 - Siehe [[Kleinstkaeufer-in-Ranglisten]], [[Birdeye]], [[Helius]].
+- Video (05.10.2026, TJR-Gast): Kandidaten finden, indem man Trader, die Gewinne auf X posten, in der Top-Trade-Liste des Coins sucht und deren 30-Tage-Werte (Gewinn, Haltezeit, Trefferquote) prüft – deckt sich mit unserem Weg über die Prüfliste. [[Q-2026-10-05-Video-Erkenntnisse]]
