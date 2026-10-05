@@ -1,7 +1,7 @@
 {
   "strategy": "EXPERIMENT_offene_tuer",
   "started": "2026-10-04T00:34:10.471054+00:00",
-  "bankroll_sol": 0.316667,
+  "bankroll_sol": 0.115167,
   "positions": {
     "DcepWD76wbirhHaHv4ouRAhxKRftmJioFRSfSi8rpump": {
       "mint": "DcepWD76wbirhHaHv4ouRAhxKRftmJioFRSfSi8rpump",
@@ -67,7 +67,7 @@
       "solana_tracker": null,
       "graduated": false,
       "liq_low_checks": 0,
-      "flug_last": 1791216169.0263183
+      "flug_last": 1791216237.529064
     },
     "6qMKq15iZDKpCbowAnkNPXToZucGcAQrq5CLGsdrTxtM": {
       "mint": "6qMKq15iZDKpCbowAnkNPXToZucGcAQrq5CLGsdrTxtM",
@@ -133,7 +133,73 @@
       "solana_tracker": null,
       "graduated": false,
       "liq_low_checks": 0,
-      "flug_last": 1791216169.0263183
+      "flug_last": 1791216237.529064
+    },
+    "EWZzCki1igp2y73UyUM4RCG4QUVMQAtnrQUVNaDHzDxJ": {
+      "mint": "EWZzCki1igp2y73UyUM4RCG4QUVMQAtnrQUVNaDHzDxJ",
+      "symbol": "EWZ",
+      "opened": 1791216248.6022937,
+      "invested_sol": 0.2,
+      "fees_sol": 0.0015,
+      "entry_signal_usd": 43.21117719803986,
+      "entry_fill_usd": 43.234877064530004,
+      "entry_slippage_pct": 0.05,
+      "roundtrip_cost_pct": 0.09,
+      "tokens_initial": 0.551448,
+      "tokens_left": 0.551448,
+      "decimals": 6,
+      "proceeds_sol": 0.0,
+      "peak_usd": 43.97638016638304,
+      "tp1_done": false,
+      "thesis_breaks": 0,
+      "missing_loops": 0,
+      "entry_liquidity": 561672.4526002711,
+      "entry_view": {
+        "age_h": 0.5690358510944579,
+        "mcap": 225169.4557280633,
+        "liquidity": 561672.4526002711,
+        "holders": 1411,
+        "holder_growth_1h": 141000.0,
+        "holder_growth_5m": 15.277777777777779,
+        "net_buyers_5m": 88,
+        "organic_buyers_5m": 11,
+        "organic_score": 63.38714489071834,
+        "price_change_1h": -12.640973929173043,
+        "price_change_5m": -0.3449896695321076,
+        "buys_5m": 2442,
+        "sells_5m": 2216,
+        "traders_5m": 955,
+        "traders_1h": 3557,
+        "buy_vol_5m": 137988.09839314639,
+        "sell_vol_5m": 136081.12262462432,
+        "buy_vol_1h": 1447369.3134435362,
+        "sell_vol_1h": 2298403.2218860057,
+        "organic_buy_vol_1h": 42433.517261201865,
+        "top_holders_pct": 11.772994898880663,
+        "dev_balance_pct": 0.0,
+        "dev_mints": 1144,
+        "launchpad": null,
+        "graduated": false,
+        "social": false,
+        "quelle": "organic1h+organic5m+traded1h+traded5m+trend5m",
+        "trades_24h": 33902,
+        "organic_label": "medium",
+        "buy_organic_vol_5m": 4434.162046348815,
+        "jup_fees": null,
+        "hour_utc": 16
+      },
+      "bundle": {
+        "quelle": "experiment",
+        "text": "Offene Tuer: ohne Sicherheits-, Bundle- und Dev-Pruefung"
+      },
+      "phase": "heiss",
+      "thesis": "Story verbreitet sich: Holder +141000%/h, 88 Netto-Kaeufer 5m, 11 organisch; Offene Tuer: ohne Sicherheits-, Bundle- und Dev-Pruefung; Dev-Coins 1144",
+      "exit_rule": "Haelfte bei 2x; Rest raus, wenn Holder schrumpfen und Netto-Verkaeufer 2x in Folge, Liquiditaet -30%, -40%, nach 1,5x nicht unter Einstand, nach 2x 30 % vom Hoch (ab 10x 25 %)",
+      "mitlaeufer": null,
+      "solana_tracker": null,
+      "graduated": false,
+      "liq_low_checks": 0,
+      "flug_last": 1791216261.9359882
     }
   },
   "closed": [
@@ -14189,18 +14255,10 @@
     "6PyR2XcdKqfvmxwTCscftNwtSTp7Crph6jGXTY8upump": 1791214276.094202,
     "6qMKq15iZDKpCbowAnkNPXToZucGcAQrq5CLGsdrTxtM": 1791214590.3266797,
     "3D9sZ95dZVYJHvZwEYdBu6AbdPP2qA4Du4tHoTeMpump": 1791215235.301317,
-    "26ZixeXtGBQe3DBrN4448oZaY5rnhwPrZNhAjZPopump": 1791215684.2359886
+    "26ZixeXtGBQe3DBrN4448oZaY5rnhwPrZNhAjZPopump": 1791215684.2359886,
+    "EWZzCki1igp2y73UyUM4RCG4QUVMQAtnrQUVNaDHzDxJ": 1791216248.6029403
   },
   "watch": {
-    "9m4wLakNBU4f2Vi1cMKVdmfY5bWafa9EqugmCGhipump": {
-      "symbol": "FO",
-      "entry_fill_usd": 4.7570764577654424e-05,
-      "opened": 1791194453.6026058,
-      "peak_usd": 4.7570764577654424e-05,
-      "exit_usd": 2.8290911028605997e-05,
-      "exit_reason": "NOTBREMSE (-41%)",
-      "until": 1791216203.0581388
-    },
     "5QUVJLxHh3LifU654zdJiWHLfiAJqedTkTn9SqSX5KEG": {
       "symbol": "super",
       "entry_fill_usd": 0.00010342301594813581,
@@ -14537,5 +14595,5 @@
   },
   "runde": 1,
   "shadow": {},
-  "saved_at": 1791216187.8149216
+  "saved_at": 1791216278.5726862
 }
