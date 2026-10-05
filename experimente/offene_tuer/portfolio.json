@@ -1,7 +1,7 @@
 {
   "strategy": "EXPERIMENT_offene_tuer",
   "started": "2026-10-04T00:34:10.471054+00:00",
-  "bankroll_sol": 0.229362,
+  "bankroll_sol": 0.027862,
   "positions": {
     "DcepWD76wbirhHaHv4ouRAhxKRftmJioFRSfSi8rpump": {
       "mint": "DcepWD76wbirhHaHv4ouRAhxKRftmJioFRSfSi8rpump",
@@ -67,7 +67,7 @@
       "solana_tracker": null,
       "graduated": false,
       "liq_low_checks": 0,
-      "flug_last": 1791216703.674919
+      "flug_last": 1791216771.6116977
     },
     "EWZzCki1igp2y73UyUM4RCG4QUVMQAtnrQUVNaDHzDxJ": {
       "mint": "EWZzCki1igp2y73UyUM4RCG4QUVMQAtnrQUVNaDHzDxJ",
@@ -133,7 +133,73 @@
       "solana_tracker": null,
       "graduated": false,
       "liq_low_checks": 0,
-      "flug_last": 1791216682.659783
+      "flug_last": 1791216825.771665
+    },
+    "ATTZADCbPYaKTbTW8yo1DbPqM1QdNTtxzetPBtVGpump": {
+      "mint": "ATTZADCbPYaKTbTW8yo1DbPqM1QdNTtxzetPBtVGpump",
+      "symbol": "HOMIO",
+      "opened": 1791216798.0870092,
+      "invested_sol": 0.2,
+      "fees_sol": 0.0015,
+      "entry_signal_usd": 3.144704857123396e-05,
+      "entry_fill_usd": 3.1330544432467757e-05,
+      "entry_slippage_pct": -0.37,
+      "roundtrip_cost_pct": 3.04,
+      "tokens_initial": 762733.950698,
+      "tokens_left": 762733.950698,
+      "decimals": 6,
+      "proceeds_sol": 0.0,
+      "peak_usd": 3.1330544432467757e-05,
+      "tp1_done": false,
+      "thesis_breaks": 0,
+      "missing_loops": 0,
+      "entry_liquidity": 6067.154446823817,
+      "entry_view": {
+        "age_h": 0.8811168930927913,
+        "mcap": 29419.66436276498,
+        "liquidity": 6067.154446823817,
+        "holders": 302,
+        "holder_growth_1h": 1338.095238095238,
+        "holder_growth_5m": 10.622710622710622,
+        "net_buyers_5m": 51,
+        "organic_buyers_5m": 6,
+        "organic_score": 36.796211061604616,
+        "price_change_1h": 356.98510004409957,
+        "price_change_5m": -53.272140606867005,
+        "buys_5m": 238,
+        "sells_5m": 216,
+        "traders_5m": 143,
+        "traders_1h": 970,
+        "buy_vol_5m": 13043.605893637243,
+        "sell_vol_5m": 15709.579123419673,
+        "buy_vol_1h": 115469.05889614449,
+        "sell_vol_1h": 108812.89982452874,
+        "organic_buy_vol_1h": 3056.9219098230824,
+        "top_holders_pct": 25.840549819575916,
+        "dev_balance_pct": 1.0689125539798796e-13,
+        "dev_mints": 1,
+        "launchpad": "pump.fun",
+        "graduated": true,
+        "social": false,
+        "quelle": "organic1h+organic5m+traded1h+traded5m+trend1h",
+        "trades_24h": 4050,
+        "organic_label": "medium",
+        "buy_organic_vol_5m": 909.5095074273345,
+        "jup_fees": null,
+        "hour_utc": 16
+      },
+      "bundle": {
+        "quelle": "experiment",
+        "text": "Offene Tuer: ohne Sicherheits-, Bundle- und Dev-Pruefung"
+      },
+      "phase": "heiss",
+      "thesis": "Story verbreitet sich: Holder +1338%/h, 51 Netto-Kaeufer 5m, 6 organisch; Offene Tuer: ohne Sicherheits-, Bundle- und Dev-Pruefung; Dev-Coins 1",
+      "exit_rule": "Haelfte bei 2x; Rest raus, wenn Holder schrumpfen und Netto-Verkaeufer 2x in Folge, Liquiditaet -30%, -40%, nach 1,5x nicht unter Einstand, nach 2x 30 % vom Hoch (ab 10x 25 %)",
+      "mitlaeufer": null,
+      "solana_tracker": null,
+      "graduated": true,
+      "liq_low_checks": 0,
+      "flug_last": 1791216811.4649432
     }
   },
   "closed": [
@@ -14251,7 +14317,8 @@
     "6qMKq15iZDKpCbowAnkNPXToZucGcAQrq5CLGsdrTxtM": 1791214590.3266797,
     "3D9sZ95dZVYJHvZwEYdBu6AbdPP2qA4Du4tHoTeMpump": 1791215235.301317,
     "26ZixeXtGBQe3DBrN4448oZaY5rnhwPrZNhAjZPopump": 1791215684.2359886,
-    "EWZzCki1igp2y73UyUM4RCG4QUVMQAtnrQUVNaDHzDxJ": 1791216248.6029403
+    "EWZzCki1igp2y73UyUM4RCG4QUVMQAtnrQUVNaDHzDxJ": 1791216248.6029403,
+    "ATTZADCbPYaKTbTW8yo1DbPqM1QdNTtxzetPBtVGpump": 1791216798.0876462
   },
   "watch": {
     "DFSUu3aM5VT6cGi9xBGkJSxpWdeVMD1kp4o9N1ipump": {
@@ -14590,5 +14657,5 @@
   },
   "runde": 1,
   "shadow": {},
-  "saved_at": 1791216736.9279501
+  "saved_at": 1791216828.0923264
 }
