@@ -1,7 +1,7 @@
 {
   "strategy": "EXPERIMENT_offene_tuer",
   "started": "2026-10-04T00:34:10.471054+00:00",
-  "bankroll_sol": 1.251294,
+  "bankroll_sol": 1.516462,
   "positions": {
     "HbPDWSqu8hpVMX6gMjwMDGe5rVgicWo3Qh3Jaojypump": {
       "mint": "HbPDWSqu8hpVMX6gMjwMDGe5rVgicWo3Qh3Jaojypump",
@@ -67,7 +67,7 @@
       "solana_tracker": null,
       "graduated": true,
       "liq_low_checks": 0,
-      "flug_last": 1791189515.6332386
+      "flug_last": 1791189644.843392
     },
     "8qfyGBXhN43m8nWcLeTVZVdCVyH554F5gpEWFBAYpump": {
       "mint": "8qfyGBXhN43m8nWcLeTVZVdCVyH554F5gpEWFBAYpump",
@@ -133,73 +133,7 @@
       "solana_tracker": null,
       "graduated": true,
       "liq_low_checks": 0,
-      "flug_last": 1791189515.6332386
-    },
-    "CgqZdiSMUu6XLTRxQugtqPXbSx7sp8Mq8ptG12GJpump": {
-      "mint": "CgqZdiSMUu6XLTRxQugtqPXbSx7sp8Mq8ptG12GJpump",
-      "symbol": "Auton",
-      "opened": 1791188875.5277479,
-      "invested_sol": 0.2,
-      "fees_sol": 0.003,
-      "entry_signal_usd": 4.667499524035924e-05,
-      "entry_fill_usd": 4.7506564025385745e-05,
-      "entry_slippage_pct": 1.78,
-      "roundtrip_cost_pct": 2.93,
-      "tokens_initial": 512005.888209,
-      "tokens_left": 256002.9441045,
-      "decimals": 6,
-      "proceeds_sol": 0.277598528,
-      "peak_usd": 0.00020194372294373206,
-      "tp1_done": true,
-      "thesis_breaks": 0,
-      "missing_loops": 0,
-      "entry_liquidity": 7814.693429039058,
-      "entry_view": {
-        "age_h": 0.885762108431922,
-        "mcap": 44240.4562161479,
-        "liquidity": 7814.693429039058,
-        "holders": 299,
-        "holder_growth_1h": 321.1267605633803,
-        "holder_growth_5m": 3.103448275862069,
-        "net_buyers_5m": 25,
-        "organic_buyers_5m": 6,
-        "organic_score": 50.87833986288746,
-        "price_change_1h": 621.7593469689779,
-        "price_change_5m": 24.049832031156935,
-        "buys_5m": 37,
-        "sells_5m": 36,
-        "traders_5m": 47,
-        "traders_1h": 1132,
-        "buy_vol_5m": 2750.684196130059,
-        "sell_vol_5m": 1881.8841705436143,
-        "buy_vol_1h": 145834.7875058794,
-        "sell_vol_1h": 136560.04824927196,
-        "organic_buy_vol_1h": 6750.615504726389,
-        "top_holders_pct": 25.606649784920922,
-        "dev_balance_pct": 0.0,
-        "dev_mints": 1,
-        "launchpad": "pump.fun",
-        "graduated": true,
-        "social": false,
-        "quelle": "organic1h+organic5m+traded1h+traded5m+trend1h+trend5m",
-        "trades_24h": 5557,
-        "organic_label": "medium",
-        "buy_organic_vol_5m": 192.36644359995077,
-        "jup_fees": null,
-        "hour_utc": 8
-      },
-      "bundle": {
-        "quelle": "experiment",
-        "text": "Offene Tuer: ohne Sicherheits-, Bundle- und Dev-Pruefung"
-      },
-      "phase": "normal",
-      "thesis": "Story verbreitet sich: Holder +321%/h, 25 Netto-Kaeufer 5m, 6 organisch; Offene Tuer: ohne Sicherheits-, Bundle- und Dev-Pruefung; Dev-Coins 1",
-      "exit_rule": "Haelfte bei 2x; Rest raus, wenn Holder schrumpfen und Netto-Verkaeufer 2x in Folge, Liquiditaet -30%, -40%, nach 1,5x nicht unter Einstand, nach 2x 30 % vom Hoch (ab 10x 25 %)",
-      "mitlaeufer": null,
-      "solana_tracker": null,
-      "graduated": true,
-      "liq_low_checks": 0,
-      "flug_last": 1791189494.3728988
+      "flug_last": 1791189644.843392
     }
   },
   "closed": [
@@ -11279,6 +11213,67 @@
       "hold_h": 1.3,
       "closed_at": "2026-10-05T08:39:14.671798+00:00",
       "runde": 1
+    },
+    {
+      "symbol": "Auton",
+      "mint": "CgqZdiSMUu6XLTRxQugtqPXbSx7sp8Mq8ptG12GJpump",
+      "invested_sol": 0.2,
+      "entry_fill_usd": 4.7506564025385745e-05,
+      "entry_slippage_pct": 1.78,
+      "roundtrip_cost_pct": 2.93,
+      "tp1_done": true,
+      "entry_view": {
+        "age_h": 0.885762108431922,
+        "mcap": 44240.4562161479,
+        "liquidity": 7814.693429039058,
+        "holders": 299,
+        "holder_growth_1h": 321.1267605633803,
+        "holder_growth_5m": 3.103448275862069,
+        "net_buyers_5m": 25,
+        "organic_buyers_5m": 6,
+        "organic_score": 50.87833986288746,
+        "price_change_1h": 621.7593469689779,
+        "price_change_5m": 24.049832031156935,
+        "buys_5m": 37,
+        "sells_5m": 36,
+        "traders_5m": 47,
+        "traders_1h": 1132,
+        "buy_vol_5m": 2750.684196130059,
+        "sell_vol_5m": 1881.8841705436143,
+        "buy_vol_1h": 145834.7875058794,
+        "sell_vol_1h": 136560.04824927196,
+        "organic_buy_vol_1h": 6750.615504726389,
+        "top_holders_pct": 25.606649784920922,
+        "dev_balance_pct": 0.0,
+        "dev_mints": 1,
+        "launchpad": "pump.fun",
+        "graduated": true,
+        "social": false,
+        "quelle": "organic1h+organic5m+traded1h+traded5m+trend1h+trend5m",
+        "trades_24h": 5557,
+        "organic_label": "medium",
+        "buy_organic_vol_5m": 192.36644359995077,
+        "jup_fees": null,
+        "hour_utc": 8
+      },
+      "bundle": {
+        "quelle": "experiment",
+        "text": "Offene Tuer: ohne Sicherheits-, Bundle- und Dev-Pruefung"
+      },
+      "phase": "normal",
+      "thesis": "Story verbreitet sich: Holder +321%/h, 25 Netto-Kaeufer 5m, 6 organisch; Offene Tuer: ohne Sicherheits-, Bundle- und Dev-Pruefung; Dev-Coins 1",
+      "mitlaeufer": null,
+      "solana_tracker": null,
+      "graduated_waehrend": false,
+      "proceeds_sol": 0.542767,
+      "pnl_sol": 0.341267,
+      "pnl_pct": 170.63,
+      "peak_multiple": 4.25,
+      "exit_usd": 0.00013056269311550667,
+      "exit_reason": "STORY_ABGEKUEHLT (30% unter dem Hoch von 4.3x)",
+      "hold_h": 0.2,
+      "closed_at": "2026-10-05T08:39:56.016478+00:00",
+      "runde": 1
     }
   ],
   "cooldown": {
@@ -11729,9 +11724,18 @@
       "exit_usd": 0.0012244665123549278,
       "exit_reason": "STORY_ABGEKUEHLT (30% unter dem Hoch von 6.1x)",
       "until": 1791211154.6718085
+    },
+    "CgqZdiSMUu6XLTRxQugtqPXbSx7sp8Mq8ptG12GJpump": {
+      "symbol": "Auton",
+      "entry_fill_usd": 4.7506564025385745e-05,
+      "opened": 1791188875.5277479,
+      "peak_usd": 0.00020194372294373206,
+      "exit_usd": 0.00013056269311550667,
+      "exit_reason": "STORY_ABGEKUEHLT (30% unter dem Hoch von 4.3x)",
+      "until": 1791211196.0164876
     }
   },
   "runde": 1,
   "shadow": {},
-  "saved_at": 1791189555.3111277
+  "saved_at": 1791189647.2944107
 }
