@@ -1,7 +1,7 @@
 {
   "strategy": "EXPERIMENT_offene_tuer",
   "started": "2026-10-04T00:34:10.471054+00:00",
-  "bankroll_sol": 1.469964,
+  "bankroll_sol": 1.268464,
   "positions": {
     "HbPDWSqu8hpVMX6gMjwMDGe5rVgicWo3Qh3Jaojypump": {
       "mint": "HbPDWSqu8hpVMX6gMjwMDGe5rVgicWo3Qh3Jaojypump",
@@ -67,7 +67,7 @@
       "solana_tracker": null,
       "graduated": true,
       "liq_low_checks": 0,
-      "flug_last": 1791193157.116158
+      "flug_last": 1791193224.5185041
     },
     "AzXvL7SUiV2pggfyzYuZRRhzqtDzwB9iFpaYNQmydW3c": {
       "mint": "AzXvL7SUiV2pggfyzYuZRRhzqtDzwB9iFpaYNQmydW3c",
@@ -133,7 +133,73 @@
       "solana_tracker": null,
       "graduated": false,
       "liq_low_checks": 0,
-      "flug_last": 1791193157.116158
+      "flug_last": 1791193224.5185041
+    },
+    "EJ8qTrW6rAu5W7p6xWYNSADeEcjNHGNBx8cMKQrhpump": {
+      "mint": "EJ8qTrW6rAu5W7p6xWYNSADeEcjNHGNBx8cMKQrhpump",
+      "symbol": "MOCHI",
+      "opened": 1791193253.243906,
+      "invested_sol": 0.2,
+      "fees_sol": 0.0015,
+      "entry_signal_usd": 5.830193204035562e-05,
+      "entry_fill_usd": 5.8052114685925896e-05,
+      "entry_slippage_pct": -0.43,
+      "roundtrip_cost_pct": 2.78,
+      "tokens_initial": 415837.206402,
+      "tokens_left": 415837.206402,
+      "decimals": 6,
+      "proceeds_sol": 0.0,
+      "peak_usd": 6.167095282005054e-05,
+      "tp1_done": false,
+      "thesis_breaks": 0,
+      "missing_loops": 0,
+      "entry_liquidity": 9238.649470891152,
+      "entry_view": {
+        "age_h": 0.7269661090771358,
+        "mcap": 55620.604589071765,
+        "liquidity": 9238.649470891152,
+        "holders": 897,
+        "holder_growth_1h": 2391.666666666667,
+        "holder_growth_5m": 3.4602076124567476,
+        "net_buyers_5m": 101,
+        "organic_buyers_5m": 39,
+        "organic_score": 54.583552683801244,
+        "price_change_1h": 784.6868716710907,
+        "price_change_5m": 19.853335923081445,
+        "buys_5m": 220,
+        "sells_5m": 157,
+        "traders_5m": 199,
+        "traders_1h": 2055,
+        "buy_vol_5m": 8556.411259053357,
+        "sell_vol_5m": 7805.650084971501,
+        "buy_vol_1h": 216563.67104186423,
+        "sell_vol_1h": 204935.573933846,
+        "organic_buy_vol_1h": 13265.270619821173,
+        "top_holders_pct": 17.39970316428,
+        "dev_balance_pct": 0.0,
+        "dev_mints": 8838,
+        "launchpad": "pump.fun",
+        "graduated": true,
+        "social": true,
+        "quelle": "organic1h+organic5m+traded1h+traded5m+trend1h+trend5m",
+        "trades_24h": 9880,
+        "organic_label": "medium",
+        "buy_organic_vol_5m": 267.6791676337957,
+        "jup_fees": null,
+        "hour_utc": 9
+      },
+      "bundle": {
+        "quelle": "experiment",
+        "text": "Offene Tuer: ohne Sicherheits-, Bundle- und Dev-Pruefung"
+      },
+      "phase": "ruhig",
+      "thesis": "Story verbreitet sich: Holder +2392%/h, 101 Netto-Kaeufer 5m, 39 organisch; Offene Tuer: ohne Sicherheits-, Bundle- und Dev-Pruefung; Dev-Coins 8838",
+      "exit_rule": "Haelfte bei 2x; Rest raus, wenn Holder schrumpfen und Netto-Verkaeufer 2x in Folge, Liquiditaet -30%, -40%, nach 1,5x nicht unter Einstand, nach 2x 30 % vom Hoch (ab 10x 25 %)",
+      "mitlaeufer": null,
+      "solana_tracker": null,
+      "graduated": true,
+      "liq_low_checks": 0,
+      "flug_last": 1791193266.7032514
     }
   },
   "closed": [
@@ -11709,7 +11775,8 @@
     "AzXvL7SUiV2pggfyzYuZRRhzqtDzwB9iFpaYNQmydW3c": 1791189829.4867556,
     "3rZ97af6e85vNCqZPMLUSui5SmwNYhjpdRJ7RTTnG2Ff": 1791189943.6360142,
     "EdAVcqLPg5gwDqjuPBghFbLr4q7SzrrSGHYq7nyfdQwP": 1791190042.692082,
-    "Gip8QuXDsNeKCWTysazDT1eMhV5n9af5biBwvFujpump": 1791190239.9767823
+    "Gip8QuXDsNeKCWTysazDT1eMhV5n9af5biBwvFujpump": 1791190239.9767823,
+    "EJ8qTrW6rAu5W7p6xWYNSADeEcjNHGNBx8cMKQrhpump": 1791193253.244607
   },
   "watch": {
     "GxVPwRGETbsGLghr5itqt6Y9SAmownMMt5EX3RZLpump": {
@@ -11976,5 +12043,5 @@
   },
   "runde": 1,
   "shadow": {},
-  "saved_at": 1791193190.4331632
+  "saved_at": 1791193285.72834
 }
