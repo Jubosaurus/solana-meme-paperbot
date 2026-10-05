@@ -1,7 +1,7 @@
 {
   "strategy": "EXPERIMENT_kontrollgruppe",
   "started": "2026-09-29T08:33:20.747785+00:00",
-  "bankroll_sol": 1.979972,
+  "bankroll_sol": 1.778472,
   "positions": {
     "8qfyGBXhN43m8nWcLeTVZVdCVyH554F5gpEWFBAYpump": {
       "mint": "8qfyGBXhN43m8nWcLeTVZVdCVyH554F5gpEWFBAYpump",
@@ -67,7 +67,7 @@
       "solana_tracker": null,
       "graduated": true,
       "liq_low_checks": 0,
-      "flug_last": 1791213234.1449494
+      "flug_last": 1791213370.9126775
     },
     "FiJ4gnd4dhqNeBKfS4E8wnERMEpjMPdUfJhu8foipump": {
       "mint": "FiJ4gnd4dhqNeBKfS4E8wnERMEpjMPdUfJhu8foipump",
@@ -133,7 +133,73 @@
       "solana_tracker": null,
       "graduated": true,
       "liq_low_checks": 0,
-      "flug_last": 1791213234.1449494
+      "flug_last": 1791213370.9126775
+    },
+    "GwMdHJ35z7ypC9hfWvmsuACcU2wvoeXoikqXcQ61pump": {
+      "mint": "GwMdHJ35z7ypC9hfWvmsuACcU2wvoeXoikqXcQ61pump",
+      "symbol": "QLE",
+      "opened": 1791213312.092263,
+      "invested_sol": 0.2,
+      "fees_sol": 0.0015,
+      "entry_signal_usd": 0.00010874818499868863,
+      "entry_fill_usd": 0.0001085670020552518,
+      "entry_slippage_pct": -0.17,
+      "roundtrip_cost_pct": 2.67,
+      "tokens_initial": 220369.028961,
+      "tokens_left": 220369.028961,
+      "decimals": 6,
+      "proceeds_sol": 0.0,
+      "peak_usd": 0.0001085670020552518,
+      "tp1_done": false,
+      "thesis_breaks": 0,
+      "missing_loops": 0,
+      "entry_liquidity": 13313.515782508965,
+      "entry_view": {
+        "age_h": 1.647127180231942,
+        "mcap": 104267.12118266753,
+        "liquidity": 13313.515782508965,
+        "holders": 328,
+        "holder_growth_1h": 56.19047619047619,
+        "holder_growth_5m": -7.344632768361582,
+        "net_buyers_5m": 34,
+        "organic_buyers_5m": 3,
+        "organic_score": 46.736014805704514,
+        "price_change_1h": 784.8609436028656,
+        "price_change_5m": -11.305548830798543,
+        "buys_5m": 78,
+        "sells_5m": 62,
+        "traders_5m": 73,
+        "traders_1h": 477,
+        "buy_vol_5m": 5980.575439759021,
+        "sell_vol_5m": 8032.014264173925,
+        "buy_vol_1h": 80323.46799981338,
+        "sell_vol_1h": 69246.16200231586,
+        "organic_buy_vol_1h": 4393.012925027406,
+        "top_holders_pct": 23.00393508235527,
+        "dev_balance_pct": 0.8035391545507573,
+        "dev_mints": 1,
+        "launchpad": "pump.fun",
+        "graduated": true,
+        "social": false,
+        "quelle": "organic1h+organic5m+traded1h+traded5m+trend1h",
+        "trades_24h": 5967,
+        "organic_label": "medium",
+        "buy_organic_vol_5m": 652.9521419687658,
+        "jup_fees": null,
+        "hour_utc": 15
+      },
+      "bundle": {
+        "quelle": "experiment",
+        "text": "Kontrollgruppe: zufaellig aus 13 sicheren jungen Coins"
+      },
+      "phase": "normal",
+      "thesis": "Story verbreitet sich: Holder +56%/h, 34 Netto-Kaeufer 5m, 3 organisch; Kontrollgruppe: zufaellig aus 13 sicheren jungen Coins; Dev-Coins 1",
+      "exit_rule": "Haelfte bei 2x; Rest raus, wenn Holder schrumpfen und Netto-Verkaeufer 2x in Folge, Liquiditaet -30%, -40%, nach 1,5x nicht unter Einstand, nach 2x 30 % vom Hoch (ab 10x 25 %)",
+      "mitlaeufer": null,
+      "solana_tracker": null,
+      "graduated": true,
+      "liq_low_checks": 0,
+      "flug_last": 1791213338.9918437
     }
   },
   "closed": [
@@ -17920,11 +17986,12 @@
     "3K1U9rwWVFhSXoVJqJfLoujKpkn85Cve3T8mZuq4pump": 1791205913.3037457,
     "6oGmydhzHunmq64UPeX8pxA21cPXpAzvBhfS4BLcpump": 1791207746.5925999,
     "6YuVyHbjdwxiH1CLCSusP9yjXmsVvQfcTbSSPcFuXDew": 1791209629.1635003,
-    "FiJ4gnd4dhqNeBKfS4E8wnERMEpjMPdUfJhu8foipump": 1791211498.5350673
+    "FiJ4gnd4dhqNeBKfS4E8wnERMEpjMPdUfJhu8foipump": 1791211498.5350673,
+    "GwMdHJ35z7ypC9hfWvmsuACcU2wvoeXoikqXcQ61pump": 1791213312.0934274
   },
   "watch": {},
   "runde": 1,
   "shadow": {},
-  "saved_at": 1791213278.3184037,
-  "next_pick": 1791213287.466118
+  "saved_at": 1791213391.4873831,
+  "next_pick": 1791215096.6578488
 }
