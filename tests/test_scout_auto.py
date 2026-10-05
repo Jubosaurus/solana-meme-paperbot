@@ -187,7 +187,7 @@ def test_name_kollidiert_nicht_mit_altem_konto(sandbox, no_bots):
     k = addr("Kand")
     write_accounts({"Kand": acct(addr("Alt"))})                          # altes Konto mit diesem Namen
     scout.auto_wallets(scout.load_state(), NOW, 100.0, [good_row(k)])
-    assert f"{k[:6]}: {k}" in active_lines()
+    assert f"Kand-{k[:4]}: {k}" in active_lines()          # vergebener Name: Adressanfang dazu
 
 
 def test_ersetzen_reihenfolge_bot_dann_still_dann_verlust(sandbox, no_bots):

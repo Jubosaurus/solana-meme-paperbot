@@ -681,10 +681,12 @@ def wallet_file_names(text):
 
 def unique_name(base, addr, taken):
     """Name ohne ':'/'#', der weder in copy_wallets.txt noch in copy/konten.json vorkommt (sonst erbt die neue
-    Wallet ein altes Konto)."""
+    Wallet ein altes Konto). Ist der Name vergeben, kommt der Adressanfang dazu (Croco -> Croco-AXfw)."""
     base = re.sub(r"[^0-9A-Za-z_.\-]", "", base or "")[:20]
-    for cand in (base, addr[:4], addr[:6], addr[:8], addr):
-        if cand and cand not in taken:
+    taken_low = {t.lower() for t in taken}
+    suffixe = [f"{base}-{addr[:4]}", f"{base}-{addr[:6]}"] if base else []
+    for cand in [base] + suffixe + [addr[:4], addr[:6], addr[:8], addr]:
+        if cand and cand.lower() not in taken_low:
             return cand
     return addr
 

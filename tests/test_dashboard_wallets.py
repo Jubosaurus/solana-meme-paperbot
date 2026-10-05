@@ -287,3 +287,25 @@ def test_seite_zeigt_am_handy_keine_knoepfe(monkeypatch):
         assert not at.exception, at.exception
         assert bool(at.text_area) == lokal and bool(at.button) == lokal
         assert any("Absenden nur am PC" in i.value for i in at.info) == (not lokal)
+
+
+# ---------------------------------------------------------------- Namen muessen eindeutig sein
+def test_vergebener_name_wird_abgelehnt():
+    ok, nein = w.eingabe_pruefen(f"Croco: {A1}\ncroco: {A2}\nAnders: {A3}", bekannt=NIX, namen={"hippo"})
+    assert [n for n, _ in ok] == ["Croco", "Anders"]            # zweiter Croco in derselben Eingabe abgelehnt
+    assert grund_von(nein, "schon vergeben")
+    ok, nein = w.eingabe_pruefen(f"Hippo: {A1}", bekannt=NIX, namen={"hippo"})
+    assert ok == [] and grund_von(nein, "schon vergeben")
+
+
+def test_namen_aus_allen_drei_dateien(tmp_path):
+    (tmp_path / "scout").mkdir()
+    (tmp_path / "copy_wallets.txt").write_text(f"# Alt: {A1}   <- entfernt\nAktiv: {A2}\n", encoding="utf-8")
+    (tmp_path / "scout" / "pruefen.txt").write_text(f"# Kopf: kein Name\nListe: {A3}\n", encoding="utf-8")
+    (tmp_path / "scout" / "warteliste.csv").write_text("seit,wallet,name\n1,x,Warte\n", encoding="utf-8")
+    assert w.bekannte_namen(tmp_path) == {"alt", "aktiv", "liste", "warte"}
+    for name in ("alt", "AKTIV", "Liste", "warte"):
+        ok, nein = w.eingabe_pruefen(f"{name}: {A4}", tmp_path)
+        assert ok == [] and grund_von(nein, "schon vergeben")
+    ok, _ = w.eingabe_pruefen(f"Neu: {A4}", tmp_path)
+    assert ok == [("Neu", A4)]

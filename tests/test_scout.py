@@ -249,3 +249,11 @@ def test_tx_pruefung_ohne_datei_und_kaputte_transaktion(chain, monkeypatch):
     monkeypatch.setattr(cb, "fetch_tx", lambda sig: chain["txs"].get(sig))
     lines = scout.check_transactions({}, NOW, 100.0)
     assert "Fehler" in lines[0] or "Fehler" in open(scout.TX_RESULT_FILE, encoding="utf-8").read()
+
+
+def test_unique_name_haengt_adressanfang_an():
+    a = "AXfwQKxGAbePFDrmzoXdPdCrX4EK3fNoWKDNoBLqS3eT"
+    assert scout.unique_name("Croco", a, set()) == "Croco"
+    assert scout.unique_name("Croco", a, {"Croco"}) == "Croco-AXfw"
+    assert scout.unique_name("Croco", a, {"croco", "Croco-AXfw"}) == "Croco-AXfwQK"     # auch Gross/Klein
+    assert scout.unique_name("", a, set()) == "AXfw"

@@ -82,10 +82,32 @@ def bekannte_adressen(repo=None):
     return (set(ADRESSE.findall(_lies(repo, COPY_LISTE))), set(ADRESSE.findall(_lies(repo, PRUEFLISTE))))
 
 
-def eingabe_pruefen(text, repo=None, bekannt=None):
+def bekannte_namen(repo=None):
+    """Alle Namen aus copy_wallets.txt (auch auskommentierte), scout/pruefen.txt und scout/warteliste.csv,
+    kleingeschrieben. Der Copy-Bot fuehrt Konten nach Namen: ein doppelter Name wuerde zwei Wallets vermischen."""
+    repo = repo or rechnung.REPO
+    namen = set()
+    for datei in (COPY_LISTE, PRUEFLISTE):
+        for zeile in _lies(repo, datei).splitlines():
+            name, trenner, rest = zeile.strip().lstrip("#").strip().partition(":")
+            if trenner and ADRESSE.match(rest.strip()):
+                namen.add(name.strip().lower())
+    try:
+        with open(Path(repo) / WARTELISTE, newline="", encoding="utf-8") as f:
+            namen |= {(r.get("name") or "").strip().lower() for r in csv.DictReader(f)}
+    except OSError:
+        pass
+    namen.discard("")
+    return namen
+
+
+def eingabe_pruefen(text, repo=None, bekannt=None, namen=None):
     """Zerlegt die Eingabe (eine Zeile je Wallet, 'Name: Adresse' oder nur 'Adresse').
     Rueckgabe: (gueltig [(name, adresse)], abgelehnt [(zeile, grund)]). Es wird nichts geschrieben."""
     in_copy, in_liste = bekannt if bekannt is not None else bekannte_adressen(repo)
+    if namen is None:
+        namen = bekannte_namen(repo) if bekannt is None else set()
+    namen = set(namen)
     gueltig, abgelehnt, gesehen = [], [], set()
     for roh in (text or "").splitlines():
         zeile = roh.strip()
@@ -107,10 +129,15 @@ def eingabe_pruefen(text, repo=None, bekannt=None):
             abgelehnt.append((anzeige, "Steht schon in copy_wallets.txt (aktiv oder früher entfernt)"))
         elif adresse in in_liste:
             abgelehnt.append((anzeige, "Steht schon in der Prüfliste"))
+        elif name and name.lower() in namen:
+            abgelehnt.append((anzeige, f"Der Name „{name}“ ist schon vergeben (copy_wallets.txt, Prüfliste oder "
+                                       "Warteliste). Bitte einen anderen Namen wählen, z. B. mit Adressanfang"))
         elif len(gueltig) >= MAX_ADRESSEN:
             abgelehnt.append((anzeige, f"Mehr als {MAX_ADRESSEN} Adressen auf einmal – bitte später noch einmal"))
         else:
             gesehen.add(adresse)
+            if name:
+                namen.add(name.lower())
             gueltig.append((name or kurzname(adresse), adresse))
     return gueltig, abgelehnt
 
