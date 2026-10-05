@@ -1,8 +1,83 @@
 {
   "strategy": "EXPERIMENT_serien_devs",
   "started": "2026-10-04T00:34:10.471102+00:00",
-  "bankroll_sol": 9.406561,
-  "positions": {},
+  "bankroll_sol": 9.205061,
+  "positions": {
+    "EWZzCki1igp2y73UyUM4RCG4QUVMQAtnrQUVNaDHzDxJ": {
+      "mint": "EWZzCki1igp2y73UyUM4RCG4QUVMQAtnrQUVNaDHzDxJ",
+      "symbol": "EWZ",
+      "opened": 1791215129.136461,
+      "invested_sol": 0.2,
+      "fees_sol": 0.0015,
+      "entry_signal_usd": 43.34352442936051,
+      "entry_fill_usd": 43.19249613930379,
+      "entry_slippage_pct": -0.35,
+      "roundtrip_cost_pct": 0.14,
+      "tokens_initial": 0.552795,
+      "tokens_left": 0.552795,
+      "decimals": 6,
+      "proceeds_sol": 0.0,
+      "peak_usd": 43.19249613930379,
+      "tp1_done": false,
+      "thesis_breaks": 0,
+      "missing_loops": 0,
+      "entry_liquidity": 946434.252442628,
+      "entry_view": {
+        "age_h": 0.2571555542945862,
+        "mcap": 1010748.1290175973,
+        "liquidity": 946434.252442628,
+        "holders": 711,
+        "holder_growth_1h": 71000.0,
+        "holder_growth_5m": 26.063829787234045,
+        "net_buyers_5m": 58,
+        "organic_buyers_5m": 0,
+        "organic_score": 0.0,
+        "price_change_1h": -12.373410627706999,
+        "price_change_5m": -0.23523622738310726,
+        "buys_5m": 3194,
+        "sells_5m": 3339,
+        "traders_5m": 1075,
+        "traders_1h": 2278,
+        "buy_vol_5m": 232978.57788651547,
+        "sell_vol_5m": 433902.1987202779,
+        "buy_vol_1h": 1059104.2971712113,
+        "sell_vol_1h": 1913570.7296199524,
+        "organic_buy_vol_1h": 27035.473604225263,
+        "top_holders_pct": 22.043477529646374,
+        "dev_balance_pct": 0.0,
+        "dev_mints": 1144,
+        "launchpad": null,
+        "graduated": false,
+        "social": false,
+        "quelle": "traded1h+traded5m",
+        "trades_24h": 19882,
+        "organic_label": "low",
+        "buy_organic_vol_5m": 4701.292908045178,
+        "jup_fees": null,
+        "hour_utc": 15
+      },
+      "bundle": {
+        "quelle": "experiment",
+        "text": "Serien-Dev: frueherer Coin DJT bis 1,146,931 $"
+      },
+      "phase": "heiss",
+      "thesis": "Story verbreitet sich: Holder +71000%/h, 58 Netto-Kaeufer 5m, 0 organisch; Serien-Dev: frueherer Coin DJT bis 1,146,931 $; Dev-Coins 1144",
+      "exit_rule": "Haelfte bei 2x; Rest raus, wenn Holder schrumpfen und Netto-Verkaeufer 2x in Folge, Liquiditaet -30%, -40%, nach 1,5x nicht unter Einstand, nach 2x 30 % vom Hoch (ab 10x 25 %)",
+      "mitlaeufer": null,
+      "solana_tracker": null,
+      "graduated": false,
+      "liq_low_checks": 0,
+      "dev_exit": true,
+      "dev_pct_kauf": 0.0,
+      "serien_vorgaenger": {
+        "symbol": "DJT",
+        "peak": 1146931,
+        "zuerst": 1791074049,
+        "mint": "DJTu7vi8norVzdVAffgvb39VP7wjKeTsgaMBJrzfxvoF"
+      },
+      "flug_last": 1791215142.5797274
+    }
+  },
   "closed": [
     {
       "symbol": "GWC",
@@ -2727,7 +2802,8 @@
     "6b6JcomxazCnhCv6Azag8XaDm9fKAN4gD3pauKHkpump": 1791207031.765783,
     "2AxC4pN9tiomRPD7EMfWe8o8yx5sTwpoPS81zRxytT2T": 1791211075.1748421,
     "6CuP5Rw9HSgLn96R4rVJYKy1oripUm2Vn9Sn2aBcT3EP": 1791213755.8342726,
-    "EyN4Y8Z3BMexKQShivgz3cvKpcpXmg5zmVeYQB9sn1CE": 1791214701.5755641
+    "EyN4Y8Z3BMexKQShivgz3cvKpcpXmg5zmVeYQB9sn1CE": 1791214701.5755641,
+    "EWZzCki1igp2y73UyUM4RCG4QUVMQAtnrQUVNaDHzDxJ": 1791215129.136996
   },
   "watch": {
     "4yZr4A3M9XCJCuCvbQLiqo3BtZ8EFQp7St7SdQ7iaZDM": {
@@ -2778,5 +2854,5 @@
   },
   "runde": 1,
   "shadow": {},
-  "saved_at": 1791215062.6943011
+  "saved_at": 1791215160.2576234
 }
