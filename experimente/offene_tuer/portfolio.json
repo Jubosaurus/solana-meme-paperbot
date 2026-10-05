@@ -1,7 +1,7 @@
 {
   "strategy": "EXPERIMENT_offene_tuer",
   "started": "2026-10-04T00:34:10.471054+00:00",
-  "bankroll_sol": 0.017175,
+  "bankroll_sol": 0.156904,
   "positions": {
     "4P5d3d1YFaVPQ1VJWE2S1Z4sd6At7ua5WHCwPsZ3STNK": {
       "mint": "4P5d3d1YFaVPQ1VJWE2S1Z4sd6At7ua5WHCwPsZ3STNK",
@@ -67,73 +67,7 @@
       "solana_tracker": null,
       "graduated": true,
       "liq_low_checks": 0,
-      "flug_last": 1791222235.6355896
-    },
-    "4P74mvci1rGVyyh8cZ4ZQebH9yd4mKm7JiBCGNNMpump": {
-      "mint": "4P74mvci1rGVyyh8cZ4ZQebH9yd4mKm7JiBCGNNMpump",
-      "symbol": "HentSI",
-      "opened": 1791220953.0182984,
-      "invested_sol": 0.2,
-      "fees_sol": 0.0015,
-      "entry_signal_usd": 8.845377358491223e-06,
-      "entry_fill_usd": 9.017875677023965e-06,
-      "entry_slippage_pct": 1.95,
-      "roundtrip_cost_pct": 3.25,
-      "tokens_initial": 2654491.905625,
-      "tokens_left": 2654491.905625,
-      "decimals": 6,
-      "proceeds_sol": 0.0,
-      "peak_usd": 1.0643394660872165e-05,
-      "tp1_done": false,
-      "thesis_breaks": 1,
-      "missing_loops": 0,
-      "entry_liquidity": 5865.993462341112,
-      "entry_view": {
-        "age_h": 0.8900229999754163,
-        "mcap": 8840.793086650252,
-        "liquidity": 5865.993462341112,
-        "holders": 175,
-        "holder_growth_1h": 733.3333333333333,
-        "holder_growth_5m": 1.744186046511628,
-        "net_buyers_5m": 16,
-        "organic_buyers_5m": 7,
-        "organic_score": 50.1999662526506,
-        "price_change_1h": 99.74765053128105,
-        "price_change_5m": -7.975422196181466,
-        "buys_5m": 51,
-        "sells_5m": 33,
-        "traders_5m": 37,
-        "traders_1h": 838,
-        "buy_vol_5m": 2014.0930835036079,
-        "sell_vol_5m": 2185.2412826726713,
-        "buy_vol_1h": 76839.99241777534,
-        "sell_vol_1h": 74530.31841758189,
-        "organic_buy_vol_1h": 4375.818869171612,
-        "top_holders_pct": 21.131874818249226,
-        "dev_balance_pct": 0.8919989815819646,
-        "dev_mints": 1077,
-        "launchpad": "pump.fun",
-        "graduated": false,
-        "social": false,
-        "quelle": "organic1h+organic5m+traded1h+traded5m",
-        "trades_24h": 3572,
-        "organic_label": "medium",
-        "buy_organic_vol_5m": 219.25337149959435,
-        "jup_fees": null,
-        "hour_utc": 17
-      },
-      "bundle": {
-        "quelle": "experiment",
-        "text": "Offene Tuer: ohne Sicherheits-, Bundle- und Dev-Pruefung"
-      },
-      "phase": "normal",
-      "thesis": "Story verbreitet sich: Holder +733%/h, 16 Netto-Kaeufer 5m, 7 organisch; Offene Tuer: ohne Sicherheits-, Bundle- und Dev-Pruefung; Dev-Coins 1077",
-      "exit_rule": "Haelfte bei 2x; Rest raus, wenn Holder schrumpfen und Netto-Verkaeufer 2x in Folge, Liquiditaet -30%, -40%, nach 1,5x nicht unter Einstand, nach 2x 30 % vom Hoch (ab 10x 25 %)",
-      "mitlaeufer": null,
-      "solana_tracker": null,
-      "graduated": false,
-      "liq_low_checks": 0,
-      "flug_last": 1791222235.6355896
+      "flug_last": 1791222313.0841792
     }
   },
   "closed": [
@@ -14385,6 +14319,67 @@
       "hold_h": 1.96,
       "closed_at": "2026-10-05T17:20:10.225109+00:00",
       "runde": 1
+    },
+    {
+      "symbol": "HentSI",
+      "mint": "4P74mvci1rGVyyh8cZ4ZQebH9yd4mKm7JiBCGNNMpump",
+      "invested_sol": 0.2,
+      "entry_fill_usd": 9.017875677023965e-06,
+      "entry_slippage_pct": 1.95,
+      "roundtrip_cost_pct": 3.25,
+      "tp1_done": false,
+      "entry_view": {
+        "age_h": 0.8900229999754163,
+        "mcap": 8840.793086650252,
+        "liquidity": 5865.993462341112,
+        "holders": 175,
+        "holder_growth_1h": 733.3333333333333,
+        "holder_growth_5m": 1.744186046511628,
+        "net_buyers_5m": 16,
+        "organic_buyers_5m": 7,
+        "organic_score": 50.1999662526506,
+        "price_change_1h": 99.74765053128105,
+        "price_change_5m": -7.975422196181466,
+        "buys_5m": 51,
+        "sells_5m": 33,
+        "traders_5m": 37,
+        "traders_1h": 838,
+        "buy_vol_5m": 2014.0930835036079,
+        "sell_vol_5m": 2185.2412826726713,
+        "buy_vol_1h": 76839.99241777534,
+        "sell_vol_1h": 74530.31841758189,
+        "organic_buy_vol_1h": 4375.818869171612,
+        "top_holders_pct": 21.131874818249226,
+        "dev_balance_pct": 0.8919989815819646,
+        "dev_mints": 1077,
+        "launchpad": "pump.fun",
+        "graduated": false,
+        "social": false,
+        "quelle": "organic1h+organic5m+traded1h+traded5m",
+        "trades_24h": 3572,
+        "organic_label": "medium",
+        "buy_organic_vol_5m": 219.25337149959435,
+        "jup_fees": null,
+        "hour_utc": 17
+      },
+      "bundle": {
+        "quelle": "experiment",
+        "text": "Offene Tuer: ohne Sicherheits-, Bundle- und Dev-Pruefung"
+      },
+      "phase": "normal",
+      "thesis": "Story verbreitet sich: Holder +733%/h, 16 Netto-Kaeufer 5m, 7 organisch; Offene Tuer: ohne Sicherheits-, Bundle- und Dev-Pruefung; Dev-Coins 1077",
+      "mitlaeufer": null,
+      "solana_tracker": null,
+      "graduated_waehrend": false,
+      "proceeds_sol": 0.139729,
+      "pnl_sol": -0.061771,
+      "pnl_pct": -30.89,
+      "peak_multiple": 1.18,
+      "exit_usd": 6.483800625403436e-06,
+      "exit_reason": "THESE_GEBROCHEN (Holder schrumpfen, Netto-Verkaeufer)",
+      "hold_h": 0.37,
+      "closed_at": "2026-10-05T17:44:37.807819+00:00",
+      "runde": 1
     }
   ],
   "cooldown": {
@@ -14626,15 +14621,6 @@
     "4P74mvci1rGVyyh8cZ4ZQebH9yd4mKm7JiBCGNNMpump": 1791220953.0191555
   },
   "watch": {
-    "4XCn2KXLB9QGxaj1o4b1FfB5GjTLwxHQFsYMsbb5pump": {
-      "symbol": "PIT",
-      "entry_fill_usd": 2.0798405327366502e-05,
-      "opened": 1791199993.4710155,
-      "peak_usd": 2.2167145406585884e-05,
-      "exit_usd": 1.2062185605067915e-05,
-      "exit_reason": "NOTBREMSE (-42%)",
-      "until": 1791222297.2054808
-    },
     "4yZr4A3M9XCJCuCvbQLiqo3BtZ8EFQp7St7SdQ7iaZDM": {
       "symbol": "DSI",
       "entry_fill_usd": 5.6744164521205054e-05,
@@ -14931,9 +14917,18 @@
       "exit_usd": 1.5719051046400017e-05,
       "exit_reason": "THESE_GEBROCHEN (Holder schrumpfen, Netto-Verkaeufer)",
       "until": 1791242410.2251174
+    },
+    "4P74mvci1rGVyyh8cZ4ZQebH9yd4mKm7JiBCGNNMpump": {
+      "symbol": "HentSI",
+      "entry_fill_usd": 9.017875677023965e-06,
+      "opened": 1791220953.0182984,
+      "peak_usd": 1.0643394660872165e-05,
+      "exit_usd": 6.483800625403436e-06,
+      "exit_reason": "THESE_GEBROCHEN (Holder schrumpfen, Netto-Verkaeufer)",
+      "until": 1791243877.8078265
     }
   },
   "runde": 1,
   "shadow": {},
-  "saved_at": 1791222237.9343987
+  "saved_at": 1791222331.9413998
 }
