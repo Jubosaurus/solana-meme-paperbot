@@ -29,7 +29,7 @@ import copy_bot as cb
 
 # ================================================================ Schalter (Entscheidung des Betreibers 04.10.)
 AUTO_AUFNAHME = True                # True: Scout nimmt Copy-Wallets selbst auf und ersetzt sie. False: nur melden
-AUTO_MAX_WALLETS = 22               # hoechstens so viele aktive Wallets in copy_wallets.txt
+AUTO_MAX_WALLETS = 30               # hoechstens so viele aktive Wallets in copy_wallets.txt
 AUTO_MAX_PRO_TAG = 3                # hoechstens so viele Aenderungen (Aufnahme oder Ersetzen) pro Tag (UTC)
 FLOOD_HINT_DAYS = 7                 # Flutschutz-Abmeldung im Copy-Bot zaehlt so lange als Bot-Hinweis beim Ersetzen
 

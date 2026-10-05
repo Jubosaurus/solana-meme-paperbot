@@ -14,7 +14,7 @@ import scout_bot as scout
 from helpers import addr
 
 NOW = time.time()
-LETTERS = "abcdefghijkmnopqrstuvwxyz"                    # Base58 ohne 0, O, I, l
+LETTERS = "abcdefghijkmnopqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ"   # Base58 ohne 0, O, I, l
 
 
 def kand(i):
@@ -191,7 +191,7 @@ def test_name_kollidiert_nicht_mit_altem_konto(sandbox, no_bots):
 
 
 def test_ersetzen_reihenfolge_bot_dann_still_dann_verlust(sandbox, no_bots):
-    names = write_wallets(22)
+    names = write_wallets(scout.AUTO_MAX_WALLETS)
     accts = {n: acct(a) for n, a in names}
     accts["W3"] = acct(names[3][1], closed=40, pnl_each=-0.1)          # -4 SOL
     accts["W4"] = acct(names[4][1], closed=35, pnl_each=-0.05)         # -1,75 SOL
@@ -206,14 +206,14 @@ def test_ersetzen_reihenfolge_bot_dann_still_dann_verlust(sandbox, no_bots):
     raus = [e["raus"]["name"] for e in state["auto_aenderungen"]]
     assert raus == ["W9", "W6", "W5"]                                    # Bot, dann laengste Pause, dann still
     assert f"# W9: {names[9][1]}   <- entfernt" in text and "automatisch: Bot" in text
-    assert len(cb.load_wallets()) == 22 and sum(l.startswith("🔁") for l in lines) == 3
+    assert len(cb.load_wallets()) == scout.AUTO_MAX_WALLETS and sum(l.startswith("🔁") for l in lines) == 3
     # Tageslimit erreicht: der Verlust-Kandidat bleibt, ein weiterer Kandidat wartet
     lines = scout.auto_wallets(state, NOW + 60, 100.0, [good_row(kand(9))])
     assert "W3: " + names[3][1] in active_lines() and kand(9) in open(scout.WAIT_FILE, encoding="utf-8").read()
 
 
 def test_verlust_reihenfolge_und_schonfrist(sandbox, no_bots):
-    names = write_wallets(22)
+    names = write_wallets(scout.AUTO_MAX_WALLETS)
     accts = {n: acct(a) for n, a in names}
     accts["W3"] = acct(names[3][1], closed=40, pnl_each=-0.05)         # -2 SOL
     accts["W4"] = acct(names[4][1], closed=40, pnl_each=-0.1)          # -4 SOL: zuerst
@@ -228,7 +228,7 @@ def test_verlust_reihenfolge_und_schonfrist(sandbox, no_bots):
 
 
 def test_schonfrist_gilt_nicht_fuer_bot_und_stille(sandbox, no_bots):
-    names = write_wallets(22)
+    names = write_wallets(scout.AUTO_MAX_WALLETS)
     accts = {n: acct(a) for n, a in names}
     accts["W1"] = acct(names[1][1], days=3.5, idle_h=None)              # neu, nie getradet, 84 h dabei
     write_accounts(accts)
@@ -253,12 +253,12 @@ def test_tageslimit_drei_aenderungen(sandbox, no_bots):
 
 
 def test_warteliste_und_spaetere_neupruefung(sandbox, monkeypatch, no_bots):
-    names = write_wallets(22)
+    names = write_wallets(scout.AUTO_MAX_WALLETS)
     write_accounts({n: acct(a) for n, a in names})                     # niemand ersetzbar
     k = addr("Kand")
     state = scout.load_state()
     lines = scout.auto_wallets(state, NOW, 100.0, [good_row(k, quelle="liste", coin="Haru")])
-    assert lines == [] and len(cb.load_wallets()) == 22 and git_adds(sandbox["git"]) == []
+    assert lines == [] and len(cb.load_wallets()) == scout.AUTO_MAX_WALLETS and git_adds(sandbox["git"]) == []
     wait = list(csv.DictReader(open(scout.WAIT_FILE, encoding="utf-8")))
     assert [(r["wallet"], r["name"]) for r in wait] == [(k, "Haru")]
     # Einen Tag spaeter ist W0 still -> Platz. Bewertung ist alt -> vorher frisch pruefen
@@ -293,7 +293,7 @@ def test_warteliste_neupruefung_faellt_durch(sandbox, monkeypatch, no_bots):
 
 
 def test_frische_ablehnung_streicht_von_der_warteliste(sandbox, no_bots):
-    names = write_wallets(22)
+    names = write_wallets(scout.AUTO_MAX_WALLETS)
     write_accounts({n: acct(a) for n, a in names})
     k = addr("Kand")
     state = scout.load_state()
@@ -334,7 +334,7 @@ def test_push_fehlgeschlagen_kandidat_bleibt_wartend(sandbox, monkeypatch, no_bo
 
 
 def test_zu_ersetzende_wallet_inzwischen_von_hand_entfernt(sandbox):
-    names = write_wallets(22)
+    names = write_wallets(scout.AUTO_MAX_WALLETS)
     plan = {"name": "Kand", "adresse": addr("Kand"), "grund": "g",
             "raus": {"name": "W0", "adresse": names[0][1], "grund": "still"}}
     with open(cb.WALLET_FILE, encoding="utf-8") as f:
@@ -373,7 +373,7 @@ def test_zu_wenig_transaktionen_wird_nicht_gemerkt(monkeypatch):
 # ================================================================ Lockerung 05.10.
 
 def test_stille_wallets_ohne_ersatz_entfernt_hoechstens_drei(sandbox, no_bots):
-    names = write_wallets(22)
+    names = write_wallets(scout.AUTO_MAX_WALLETS)
     accts = {n: acct(a) for n, a in names}
     for i, h in ((2, 80), (3, 100), (4, 75), (5, 90)):
         accts[f"W{i}"] = acct(names[i][1], idle_h=h)
@@ -384,13 +384,13 @@ def test_stille_wallets_ohne_ersatz_entfernt_hoechstens_drei(sandbox, no_bots):
     assert [e["raus"]["name"] for e in state["auto_aenderungen"]] == ["W3", "W5", "W2"]   # laengste Pause zuerst
     text = open(cb.WALLET_FILE, encoding="utf-8").read()
     assert f"# W3: {names[3][1]}   <- entfernt" in text and "ohne Ersatz" in text
-    assert len(cb.load_wallets()) == 19 and "W4: " + names[4][1] in active_lines()
+    assert len(cb.load_wallets()) == scout.AUTO_MAX_WALLETS - 3 and "W4: " + names[4][1] in active_lines()
     assert sum(l.startswith("➖") and "ohne Ersatz" in l for l in lines) == 3
     assert no_bots["calls"] == [] and git_adds(sandbox["git"]) == [(cb.WALLET_FILE,)]   # keine Helius-Abfrage
 
 
 def test_kandidat_ersetzt_stille_wallet_statt_zwei_aenderungen(sandbox, no_bots):
-    names = write_wallets(22)
+    names = write_wallets(scout.AUTO_MAX_WALLETS)
     accts = {n: acct(a) for n, a in names}
     accts["W2"] = acct(names[2][1], idle_h=80)
     accts["W3"] = acct(names[3][1], idle_h=90)
@@ -399,7 +399,7 @@ def test_kandidat_ersetzt_stille_wallet_statt_zwei_aenderungen(sandbox, no_bots)
     scout.auto_wallets(state, NOW, 100.0, [good_row(kand(0))])
     log = state["auto_aenderungen"]
     assert [(e["adresse"], e["raus"]["name"]) for e in log] == [(kand(0), "W3"), (None, "W2")]
-    assert len(cb.load_wallets()) == 21
+    assert len(cb.load_wallets()) == scout.AUTO_MAX_WALLETS - 1
 
 
 def write_candidates(rows):
@@ -442,7 +442,7 @@ def test_gespeicherte_bewertungen_ohne_neue_abfrage(sandbox, monkeypatch, no_bot
 
 
 def test_gespeicherte_bewertung_wartet_ohne_platz(sandbox, no_bots, monkeypatch):
-    names = write_wallets(22)
+    names = write_wallets(scout.AUTO_MAX_WALLETS)
     write_accounts({n: acct(a) for n, a in names})
     write_candidates([good_row(kand(0), zeit="2026-10-03 22:00:00")])
     monkeypatch.setattr(scout, "recheck", lambda *a: pytest.fail("ohne Platz keine Neupruefung"))
@@ -465,12 +465,12 @@ def test_gespeicherte_zeilen_nach_laenge_wie_im_dashboard(sandbox, no_bots):
 
 
 def test_kaputte_kandidaten_datei_und_fehlende_konten_stoppen_nichts(sandbox, no_bots):
-    write_wallets(22)                                                    # kein copy/konten.json
+    write_wallets(scout.AUTO_MAX_WALLETS)                                                    # kein copy/konten.json
     os.makedirs("scout", exist_ok=True)
     open(scout.CANDIDATES_FILE, "wb").write(b"zeit,wallet\n\xff\xfe kaputt\x00\n")
     state = scout.load_state()
     assert scout.auto_wallets(state, NOW, 100.0, []) == []
-    assert len(cb.load_wallets()) == 22 and scout.STATS["fehler"] == 1
+    assert len(cb.load_wallets()) == scout.AUTO_MAX_WALLETS and scout.STATS["fehler"] == 1
 
 
 def test_hoechstens_fuenf_neupruefungen_je_lauf(sandbox, monkeypatch, no_bots):
@@ -497,7 +497,7 @@ def flood_entry(name, hours_ago):
 
 
 def test_flutschutz_im_copy_bot_zaehlt_als_bot(sandbox, no_bots):
-    names = write_wallets(22)
+    names = write_wallets(scout.AUTO_MAX_WALLETS)
     write_accounts({n: acct(a) for n, a in names})
     write_flood({names[7][1]: flood_entry("W7", 20), names[8][1]: flood_entry("W8", 8 * 24 + 1)})  # W8 zu alt
     state = scout.load_state()

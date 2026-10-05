@@ -11,7 +11,7 @@
 - Scout-Zeitplan seit 04.10. stündlich, aber nur ein Lauf je 6-h-Fenster; Grund: seit 03.10. hatte GitHub 2 von 8 geplanten Läufen ausgelassen, die übrigen kamen bis zu 6 h zu spät. [[Q-STRATEGIE]]
 - **Automatik (Entscheidung des Betreibers 04.10.; Schalter `AUTO_AUFNAHME`):**
 - Aufnahme-Kriterien: kein Bot, aktiv < 24 h, mindestens 3 Coins (bis 04.10. 5), erwartete Rendite nach Reibung > 0 und ohne besten Coin > 0, höchstens 200 Trades pro Tag, Kauf-Median ≥ 0,1 SOL. [[Q-STRATEGIE]] [[Q-CLAUDE]]
-- Limit 22 aktive Wallets; bei vollem Limit ersetzen in der Reihenfolge Bot, still (72 h), größter Verlust (≥ 30 Positionen, > 1 SOL); sonst Warteliste (7 Tage). [[Q-STRATEGIE]]
+- Limit 30 aktive Wallets (seit 05.10., vorher 22; Grund: Helius-Verbrauch ohne 922M nur ca. 20.000 Credits/Tag); bei vollem Limit ersetzen in der Reihenfolge Bot, still (72 h), größter Verlust (≥ 30 Positionen, > 1 SOL); sonst Warteliste (7 Tage). [[Q-STRATEGIE]]
 - Höchstens 3 Änderungen pro Tag (UTC); Schonfrist 7 Tage/30 Positionen nur für das Ergebnis; stille Wallets werden auch ohne Ersatz entfernt. [[Q-STRATEGIE]]
 - 🕒 Überholt (alter Stand, die Entscheidung vom 04.10. gilt): Vorher galt „Bot entscheidet nichts selbst“, der Scout lieferte nur Ranglisten; seit 04.10. ändert die Automatik `copy_wallets.txt` selbst. [[Q-CLAUDE]] [[Q-Zusammenfassung-Chat]]
 - Die vorgemerkte Entfernung von 43Nu und 42wu übernimmt die Automatik (72-h-Regel). [[Q-STRATEGIE]]

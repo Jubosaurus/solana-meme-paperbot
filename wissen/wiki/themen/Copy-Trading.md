@@ -7,7 +7,7 @@
 - Wallet-Regeln: Bot (Flutschutz: > 30 Meldungen/min und ≥ 80 % fehlgeschlagen, oder > 300/min) → ersetzen; 72 h ohne Trade → ersetzen; nach 30 Positionen und > 1 SOL Verlust → ersetzen. [[Q-CLAUDE]]
 - Flutschutz nur nach Menge meldete am 01.10. den echten Vieltrader [[922M]] ab; seither gilt Menge und Fehleranteil. [[Q-STRATEGIE]] [[Q-CLAUDE]]
 - Neue Runde mit 10 SOL, sobald das Geld für keinen Kauf reicht, auch bei offenen Positionen (seit 02.10.), weil 922M mit 0,19 SOL stehen blieb und 291 Käufe ausgelassen wurden. [[Q-STRATEGIE]]
-- Seit 04.10. Obergrenze 22 aktive Wallets; die Scout-Automatik nimmt auf und ersetzt (siehe [[Wallet-Scout]]). [[Q-STRATEGIE]]
+- Seit 04.10. Obergrenze 22 aktive Wallets, seit 05.10. 30; die Scout-Automatik nimmt auf und ersetzt (siehe [[Wallet-Scout]]). [[Q-STRATEGIE]]
 - Stand 03.10. 20:20 UTC: Alle 36 Wallets seit Start, mit entfernten: −42,21 SOL; die 21 aktiven +0,67 SOL; davon fast alles [[HEBO]] und dort ein einziger Coin ([[PIGEON]]). [[Q-2026-10-03-Ueberpruefung]]
 - Stand 04.10. ~05:45 UTC: seit Start −44,0 SOL über alle Wallets; die 22 aktiven zusammen +21,7 SOL, ohne PIGEON −10,3 SOL. [[Q-Zusammenfassung-Chat]]
 - Die Summe der Aktiven beschönigt: Durch das Entfernen von Zrool, Putrick und Cooker sind deren Verluste daraus verschwunden; mit ihnen standen die Aktiven am Vorabend bei etwa +0,7 SOL. [[Q-Zusammenfassung-Chat]]

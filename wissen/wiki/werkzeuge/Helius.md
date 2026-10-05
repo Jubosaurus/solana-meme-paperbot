@@ -7,3 +7,4 @@
 - Tempo: Hauptbot `HELIUS_INTERVAL = 0.15`, Copy 0.33, Scout 0.5; bei 429 bis zu drei Wiederholungen. [[Q-CLAUDE]]
 - `getTransaction` braucht `maxSupportedTransactionVersion: 1`. [[Q-CLAUDE]]
 - Am 01.10. trieben sich Hauptbot und Copy-Bot gegenseitig ins Limit, Bundle-Checks fielen öfter aus. [[Q-STRATEGIE]]
+- Stand 05.10.: ohne 922M ca. 20.000 Credits/Tag (Dashboard-Zähler 127.221); daraufhin Wallet-Limit der Scout-Automatik von 22 auf 30 erhöht. [[Q-STRATEGIE]]
