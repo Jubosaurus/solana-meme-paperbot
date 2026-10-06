@@ -49,7 +49,7 @@ netsh advfirewall firewall show rule name=Paperbot-Dashboard-8501 >nul 2>nul
 if errorlevel 1 (
   echo.
   echo Einmalig: Windows fragt gleich, ob "netsh" etwas aendern darf. Bitte mit JA bestaetigen.
-  echo Es wird nur der Port 8501 und nur fuer PRIVATE Netzwerke (Heimnetz) freigegeben.
+  echo Es wird nur der Port 8501 und nur fuer PRIVATE Netzwerke, also das Heimnetz, freigegeben.
   echo.
   powershell -NoProfile -Command "Start-Process netsh -Verb RunAs -Wait -ArgumentList 'advfirewall','firewall','add','rule','name=Paperbot-Dashboard-8501','dir=in','action=allow','protocol=TCP','localport=8501','profile=private'"
   netsh advfirewall firewall show rule name=Paperbot-Dashboard-8501 >nul 2>nul
