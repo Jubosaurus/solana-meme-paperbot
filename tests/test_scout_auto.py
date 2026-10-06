@@ -42,9 +42,9 @@ def write_wallets(n, extra=""):
     return names
 
 
-def write_accounts(accts):
+def write_accounts(accts, saved_at=None):
     os.makedirs("copy", exist_ok=True)
-    json.dump({"wallets": accts}, open(cb.ACCOUNTS_FILE, "w", encoding="utf-8"))
+    json.dump({"saved_at": NOW - 60 if saved_at is None else saved_at, "wallets": accts}, open(cb.ACCOUNTS_FILE, "w", encoding="utf-8"))
 
 
 def acct(a, days=10, idle_h=1.0, closed=0, pnl_each=0.0):
@@ -264,7 +264,7 @@ def test_warteliste_und_spaetere_neupruefung(sandbox, monkeypatch, no_bots):
     # Einen Tag spaeter ist W0 still -> Platz. Bewertung ist alt -> vorher frisch pruefen
     accts = {n: acct(a) for n, a in names}
     accts["W0"] = acct(names[0][1], idle_h=100)
-    write_accounts(accts)
+    write_accounts(accts, saved_at=NOW + 86400 - 60)
     rechecked = []
 
     def recheck(e, now, sol_usd):
@@ -381,11 +381,12 @@ def test_stille_wallets_ohne_ersatz_entfernt_ohne_tageslimit(sandbox, no_bots):
     write_accounts(accts)
     state = scout.load_state()
     lines = scout.auto_wallets(state, NOW, 100.0, [])
-    assert [e["raus"]["name"] for e in state["auto_aenderungen"]] == ["W3", "W5", "W2", "W4"]   # laengste Pause zuerst, kein Tageslimit (seit 06.10.)
+    assert [e["raus"]["name"] for e in state["auto_aenderungen"]] == ["W3", "W5"]   # laengste Pause zuerst, kein Tageslimit, aber hoechstens 2 pro Lauf (seit 06.10.)
+    assert any("naechsten Lauf" in l for l in lines)
     text = open(cb.WALLET_FILE, encoding="utf-8").read()
     assert f"# W3: {names[3][1]}   <- entfernt" in text and "ohne Ersatz" in text
-    assert len(cb.load_wallets()) == scout.AUTO_MAX_WALLETS - 4 and "W6: " + names[6][1] in active_lines()
-    assert sum(l.startswith("➖") and "ohne Ersatz" in l for l in lines) == 4
+    assert len(cb.load_wallets()) == scout.AUTO_MAX_WALLETS - 2 and "W6: " + names[6][1] in active_lines()
+    assert sum(l.startswith("➖") and "ohne Ersatz" in l for l in lines) == 2
     assert no_bots["calls"] == [] and git_adds(sandbox["git"]) == [(cb.WALLET_FILE,)]   # keine Helius-Abfrage
 
 

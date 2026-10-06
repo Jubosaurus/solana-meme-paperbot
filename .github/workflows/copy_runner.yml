@@ -11,7 +11,7 @@ on:
         options:
           - normal
           - probe
-  # Sicherheitsnetz wie beim Hauptbot, versetzt auf Minute 47, seit 07.10. stuendlich (vorher alle 6 h). Normalerweise startet jede Schicht selbst die naechste.
+  # Sicherheitsnetz wie beim Hauptbot, versetzt auf Minute 47, seit 06.10. stuendlich (vorher alle 6 h). Normalerweise startet jede Schicht selbst die naechste.
   schedule:
     - cron: '47 * * * *'
 

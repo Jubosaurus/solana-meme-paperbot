@@ -10,4 +10,4 @@
 - Verlierer früh schließen; die Trefferquote ist zweitrangig, entscheidend ist die Tiefe einzelner Verluste ([[Notbremse-25]]). [[Q-2026-10-05-Video-Erkenntnisse]]
 - Abweichung zu [[Tag-04-Gewinner-halten]] (Details dort).
 - Werbung: Videobeschreibungen lagen nicht vor, Empfehlungslinks unbekannt. [[Q-2026-10-05-Video-Erkenntnisse]] [[Werbung-Markierung]]
-- „Nach Verlustserie kleiner setzen“: geprüft und verworfen (Rückrechnung 05.10., Entscheidung 07.10.): kein Serien-Effekt (Mehrwert gegen gemischte Reihenfolge nur +0,7 SOL, p = 0,25), die Ersparnis kommt aus weniger Einsatz bei Verlust-Strategien; im Copy Trading schadet die Regel (HEBO-Ausreißer, Treffer der Trader gehen verloren). [[Q-2026-10-05-Verlustserie]] [[Q-2026-10-07-Entscheidungen]]
+- „Nach Verlustserie kleiner setzen“: geprüft und verworfen (Rückrechnung 05.10., Entscheidung 06.10.): kein Serien-Effekt (Mehrwert gegen gemischte Reihenfolge nur +0,7 SOL, p = 0,25), die Ersparnis kommt aus weniger Einsatz bei Verlust-Strategien; im Copy Trading schadet die Regel (HEBO-Ausreißer, Treffer der Trader gehen verloren). [[Q-2026-10-05-Verlustserie]] [[Q-2026-10-06-Entscheidungen]]

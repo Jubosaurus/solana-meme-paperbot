@@ -34,7 +34,7 @@ START_SOL = core.START_BANKROLL_SOL
 ZIEL_TRADES = 200            # Urteil ueber ein Experiment fruehestens nach 200 Trades
 BESTE_WEGLASSEN = 3          # Ergebnis muss auch ohne die 3 besten Trades halten
 KONTROLLE = "kontrollgruppe"
-# Kostenaufschlag (Entscheidung 07.10.): Rundlauf = Kauf + Verkauf, in Prozent vom Einsatz. Messung 2 s spaeter und
+# Kostenaufschlag (Entscheidung 06.10.): Rundlauf = Kauf + Verkauf, in Prozent vom Einsatz. Messung 2 s spaeter und
 # Schaetzung 06.10.: Standard 2 %, Endspurt-Konten 4 % (Graduation/Kurve-zurueck rutschen oefter). Immer roh UND mit Kosten zeigen.
 KOSTEN_PCT = 2.0
 KOSTEN_ENDSPURT_PCT = 4.0

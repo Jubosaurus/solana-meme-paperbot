@@ -667,7 +667,7 @@ def token_view(tok, now):
         "trades_24h": int(as_float(s24.get("numBuys")) + as_float(s24.get("numSells"))),
         "organic_label": str(tok.get("organicScoreLabel") or ""),
         "buy_organic_vol_5m": as_float(s5.get("buyOrganicVolume")),
-        # jup_fees (Jupiter-Feld "fees", seit 04.10. aufgezeichnet) war in allen Daten leer: seit 07.10. nicht mehr befuellt.
+        # jup_fees (Jupiter-Feld "fees", seit 04.10. aufgezeichnet) war in allen Daten leer: seit 06.10. nicht mehr befuellt.
         # Die Spalte bleibt (CSV-Spalten nie loeschen), alte Daten bleiben unveraendert.
         "jup_fees": None,
     }

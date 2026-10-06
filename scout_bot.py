@@ -16,6 +16,7 @@ import csv
 import glob
 import hashlib
 import json
+import math
 import os
 import re
 import time
@@ -30,6 +31,8 @@ import copy_bot as cb
 # ================================================================ Schalter (Entscheidung des Betreibers 04.10.)
 AUTO_AUFNAHME = True                # True: Scout nimmt Copy-Wallets selbst auf und ersetzt sie. False: nur melden
 AUTO_MAX_WALLETS = 30               # hoechstens so viele aktive Wallets in copy_wallets.txt
+AUTO_STILL_MAX_PRO_LAUF = 2         # hoechstens so viele Entfernungen wegen Stille pro Scout-Lauf (seit 06.10.)
+AUTO_KONTEN_MAX_ALTER_H = 2         # copy/konten.json aelter -> Copy-Bot vermutlich ausgefallen: keine Entfernung wegen Stille
 AUTO_MAX_PRO_TAG = 3                # hoechstens so viele Aenderungen (Aufnahme oder Ersetzen) pro Tag (UTC)
 FLOOD_HINT_DAYS = 7                 # Flutschutz-Abmeldung im Copy-Bot zaehlt so lange als Bot-Hinweis beim Ersetzen
 
@@ -385,7 +388,7 @@ CANDIDATES_HEADER = ["zeit", "wallet", "quelle", "coin", "ergebnis", "grund", "p
                      "rendite_median_pct", "rendite_ohne_beste_pct", "haltedauer_median_min",
                      "mini_verkaeufe_anteil", "bot_gebuehr_anteil", "coins", "coins_gehalten", "rendite_pct",
                      "rendite_ohne_besten_pct", "reibung_pp", "schnelle_verkaeufe_anteil"]
-OLD_ROW_LEN = len(CANDIDATES_HEADER) - 1            # Zeilen vor 07.10. ohne schnelle_verkaeufe_anteil
+OLD_ROW_LEN = len(CANDIDATES_HEADER) - 1            # Zeilen vor 06.10. ohne schnelle_verkaeufe_anteil
 
 
 def write_csv(rows):
@@ -708,6 +711,21 @@ def load_copy_accounts():
         return {}
 
 
+def copy_accounts_age_h(now):
+    """Alter von copy/konten.json in Stunden (Feld saved_at des Copy-Bots), gemessen an der spaeteren von now und
+    der aktuellen Uhrzeit (ein Scout-Lauf dauert lange). Fehlt das Feld oder ist es kein endlicher, nicht in der
+    Zukunft liegender Zeitstempel (NaN, Infinity), gilt die Datei als veraltet (inf)."""
+    try:
+        with open(cb.ACCOUNTS_FILE, encoding="utf-8") as f:
+            saved = float(json.load(f).get("saved_at"))
+    except (OSError, ValueError, TypeError, AttributeError):
+        return float("inf")
+    ref = max(now, time.time())
+    if not math.isfinite(saved) or saved > ref + 300:
+        return float("inf")
+    return (ref - saved) / 3600
+
+
 def load_flood_hints(now):
     """Vom Copy-Bot per Flutschutz abgemeldete Wallets der letzten FLOOD_HINT_DAYS Tage: {Adresse: Datum}."""
     try:
@@ -726,9 +744,10 @@ def load_flood_hints(now):
     return out
 
 
-def replaceable_wallets(active, accounts, now, check_bots=True):
+def replaceable_wallets(active, accounts, now, check_bots=True, still_pruefen=True):
     """Aktive Wallets, die eine Wallet-Regel erfuellen, in der Reihenfolge Bot, still (laengste Pause zuerst),
     groesster Verlust. [(Name, Adresse, Grund)]. check_bots=False: ohne Helius-Abfrage (nur still/Verlust).
+    still_pruefen=False: Stille wird nicht als Grund gewertet (Copy-Konten veraltet).
     Bot-Hinweis auch aus dem Flutschutz des Copy-Bots (copy/flutschutz.json, ohne Abfrage)."""
     flood = load_flood_hints(now)
     out = []
@@ -753,7 +772,7 @@ def replaceable_wallets(active, accounts, now, check_bots=True):
         except (KeyError, TypeError, ValueError):
             start = now
         idle_h = (now - (a.get("letzter_trade") or start)) / 3600
-        if idle_h >= cb.WALLET_SILENT_H:
+        if still_pruefen and idle_h >= cb.WALLET_SILENT_H:
             out.append((1, -idle_h, name, addr, f"still, seit {idle_h:.0f} h kein eigener Trade"))
             continue
         closed = a.get("geschlossen") or []
@@ -932,13 +951,16 @@ def auto_wallets(state, now, sol_usd, rows):
     active = cb.load_wallets() if os.path.exists(cb.WALLET_FILE) else []
     free = AUTO_MAX_WALLETS - len(active)
     accounts = load_copy_accounts()
+    konten_h = copy_accounts_age_h(now)
+    still_ok = konten_h <= AUTO_KONTEN_MAX_ALTER_H     # sonst Copy-Bot ausgefallen: Stille sagt nichts
+    still_n = 0                                      # Entfernungen wegen Stille in diesem Lauf
     repl = None                                      # erst abfragen, wenn ein Kandidat auf einen vollen Platz trifft
     plans, lines, rechecks = [], [], 0
     for e in sorted(wait.values(), key=lambda e: -core.as_float(e.get("punkte"))):
         if budget <= 0:
             break
         if free <= 0 and repl is None:
-            repl = replaceable_wallets(active, accounts, now)
+            repl = replaceable_wallets(active, accounts, now, still_pruefen=still_ok)
         if free <= 0 and not repl:
             break
         if now - core.as_float(e.get("bewertet")) > WAIT_RECHECK_H * 3600:
@@ -962,17 +984,35 @@ def auto_wallets(state, now, sol_usd, rows):
         if free > 0:
             free -= 1
         else:
-            name, addr, why = repl.pop(0)
+            i = next((k for k, r in enumerate(repl) if not r[2].startswith("still")
+                      or still_n < AUTO_STILL_MAX_PRO_LAUF), None)
+            if i is None:
+                break
+            name, addr, why = repl.pop(i)
+            still_n += why.startswith("still")
             plan["raus"] = {"name": name, "adresse": addr, "grund": why}
         plans.append(plan)
         budget -= 1
     # Stille Wallets (72 h ohne eigenen Trade) auch ohne Ersatz entfernen, ohne Tageslimit (seit 06.10.)
     planned = {p["raus"]["adresse"] for p in plans if p.get("raus")}
-    pool = repl if repl is not None else replaceable_wallets(active, accounts, now, check_bots=False)
+    pool = repl if repl is not None else replaceable_wallets(active, accounts, now, check_bots=False,
+                                                              still_pruefen=still_ok)
+    if not still_ok and os.path.exists(cb.ACCOUNTS_FILE):
+        lines.append(f"⚠️ Keine Entfernung wegen Stille: copy/konten.json ist "
+                     f"{'nicht lesbar' if konten_h == float('inf') else f'{konten_h:.1f} h alt'} (Copy-Bot ausgefallen?)")
     for name, addr, why in pool:
         if why.startswith("still") and addr not in planned:
+            if still_n >= AUTO_STILL_MAX_PRO_LAUF:
+                lines.append(f"ℹ️ Weitere stille Wallets warten auf den naechsten Lauf (Grenze {AUTO_STILL_MAX_PRO_LAUF} pro Lauf)")
+                break
+            still_n += 1
             plans.append({"name": name, "adresse": None, "grund": why,
                           "raus": {"name": name, "adresse": addr, "grund": why}})
+    if plans and copy_accounts_age_h(now) > AUTO_KONTEN_MAX_ALTER_H:      # waehrend des Laufs veraltet?
+        n = len(plans)
+        plans = [p for p in plans if not (p.get("raus") or {}).get("grund", "").startswith("still")]
+        if len(plans) < n:
+            lines.append("⚠️ Stille-Entfernungen zurueckgestellt: copy/konten.json ist waehrend des Laufs veraltet")
     done = push_wallet_changes(plans, now, accounts) if plans else []
     for p in done or []:
         if p.get("adresse"):

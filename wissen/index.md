@@ -135,7 +135,7 @@ Das Wiki sammelt Wissen und beschließt nichts. Verbindlich bleiben `STRATEGIE.m
 - [[Q-2026-10-04-Nachtlauf]] – Quelle: Nachtlauf 03./04.10.2026
 - [[Q-2026-10-04-Tokenverbrauch]] – Quelle: Token-Verbrauch 04.10.2026
 - [[Q-2026-10-04-Video-Nachrechnung]] – Quelle: Video-Ideen nachgerechnet 04.10.2026
-- [[Q-2026-10-07-Entscheidungen]] – Quelle: Entscheidungen 07.10.2026
+- [[Q-2026-10-06-Entscheidungen]] – Quelle: Entscheidungen 06.10.2026
 - [[Q-2026-10-05-Verlustserie]] – Quelle: Rückrechnung Verlustserie 05.10.2026
 - [[Q-2026-10-06-Tagesauswertung]] – Quelle: Tagesauswertung 06.10.2026
 - [[Q-2026-10-05-Video-Erkenntnisse]] – Quelle: Video-Erkenntnisse Runde 2 (Notiz 05.10.2026)

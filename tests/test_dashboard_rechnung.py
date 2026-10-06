@@ -370,7 +370,7 @@ def test_filter_trichter_zaehlt_coins_je_grund_und_kaeufe(tmp_path):
 
 
 def test_kostenaufschlag_roh_und_mit_kosten():
-    """Entscheidung 07.10.: 2 % je Rundlauf (Endspurt 4 %) vom Einsatz, immer roh und mit Kosten."""
+    """Entscheidung 06.10.: 2 % je Rundlauf (Endspurt 4 %) vom Einsatz, immer roh und mit Kosten."""
     k = r.trade_kennzahlen([closed(0.1), closed(0.0), closed(-0.1)], 2.0)
     assert k["pro_trade"] == pytest.approx(0.0) and k["pro_trade_kosten"] == pytest.approx(-0.004)   # 0,2 SOL * 2 %
     assert k["summe_kosten"] == pytest.approx(-0.012)

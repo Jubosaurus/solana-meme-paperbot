@@ -147,7 +147,7 @@ def test_schnelle_verkaeufe_anteil(chain):
 
 
 def test_alte_zeilen_ohne_neue_spalte_bleiben_lesbar(monkeypatch):
-    """Zeilen mit 32 Spalten (vor 07.10.) werden weiter zugeordnet."""
+    """Zeilen mit 32 Spalten (vor 06.10.) werden weiter zugeordnet."""
     zeile = ["2026-10-05 10:00:00", WALLET, "liste", "x", "bewertet", "", "5"] + [""] * 25
     assert len(zeile) == len(scout.CANDIDATES_HEADER) - 1
     os.makedirs(scout.SCOUT_DIR, exist_ok=True)
@@ -290,7 +290,7 @@ def test_stille_wallet_wird_auch_bei_vollem_tageslimit_entfernt(monkeypatch):
     start = NOW - 200 * 3600
     os.makedirs(os.path.dirname(cb.ACCOUNTS_FILE) or ".", exist_ok=True)
     with open(cb.ACCOUNTS_FILE, "w", encoding="utf-8") as f:
-        json.dump({"wallets": {
+        json.dump({"saved_at": NOW - 60, "wallets": {
             "Stille": {"gestartet": time.strftime("%Y-%m-%dT%H:%M:%S+00:00", time.gmtime(start)),
                        "letzter_trade": None, "geschlossen": []},
             "Aktive": {"gestartet": time.strftime("%Y-%m-%dT%H:%M:%S+00:00", time.gmtime(start)),
@@ -304,3 +304,58 @@ def test_stille_wallet_wird_auch_bei_vollem_tageslimit_entfernt(monkeypatch):
     # die stille Entfernung steht im Protokoll, zaehlt aber nicht als Aenderung des Tages
     assert scout.STATS["auto_heute"] == 3
     assert state["auto_aenderungen"][-1]["adresse"] is None
+
+
+def _stille_konten(n, saved_at):
+    """n stille Wallets + copy/konten.json mit gegebenem saved_at (None = Feld fehlt)."""
+    start = NOW - 200 * 3600
+    names = [f"S{i}" for i in range(n)]
+    with open(cb.WALLET_FILE, "w", encoding="utf-8") as f:
+        f.write("".join(f"{nm}: {addr(nm)}\n" for nm in names))
+    os.makedirs(os.path.dirname(cb.ACCOUNTS_FILE) or ".", exist_ok=True)
+    data = {"wallets": {nm: {"gestartet": time.strftime("%Y-%m-%dT%H:%M:%S+00:00", time.gmtime(start)),
+                             "letzter_trade": None, "geschlossen": []} for nm in names}}
+    if saved_at is not None:
+        data["saved_at"] = saved_at
+    with open(cb.ACCOUNTS_FILE, "w", encoding="utf-8") as f:
+        json.dump(data, f)
+
+
+def test_veraltete_konten_json_entfernt_keine_stille_wallet(monkeypatch):
+    """Copy-Bot ausgefallen (konten.json > 2 h alt oder ohne saved_at): 0 Entfernungen, Hinweis in der Meldung."""
+    for saved in (NOW - 3 * 3600, None):
+        _stille_konten(3, saved)
+        gesehen = []
+        monkeypatch.setattr(scout, "push_wallet_changes", lambda plans, now, acc: gesehen.extend(plans) or plans)
+        lines = scout.auto_wallets({}, NOW, 150.0, [])
+        assert gesehen == []
+        assert any("Keine Entfernung wegen Stille" in z for z in lines)
+
+
+def test_hoechstens_zwei_stille_entfernungen_pro_lauf(monkeypatch):
+    _stille_konten(5, NOW - 60)
+    gesehen = []
+    monkeypatch.setattr(scout, "push_wallet_changes", lambda plans, now, acc: gesehen.extend(plans) or plans)
+    lines = scout.auto_wallets({}, NOW, 150.0, [])
+    assert len(gesehen) == scout.AUTO_STILL_MAX_PRO_LAUF == 2
+    assert any("naechsten Lauf" in z for z in lines)
+
+
+def test_ungueltiger_zeitstempel_gilt_als_veraltet():
+    for saved in ("NaN", "Infinity", NOW + 86400, "abc"):
+        _stille_konten(2, saved)
+        assert scout.copy_accounts_age_h(NOW) == float("inf")
+    _stille_konten(2, NOW - 60)
+    assert scout.copy_accounts_age_h(NOW) < 0.1
+
+
+def test_konten_im_lauf_veraltet_stoppt_stille_entfernung(monkeypatch):
+    """Beim Start 1 h 50 min alt, beim Anwenden 2 h 10 min: nichts wird entfernt."""
+    _stille_konten(2, NOW - 6600)
+    spaet = iter([NOW, NOW + 1200])
+    real = scout.copy_accounts_age_h
+    monkeypatch.setattr(scout, "copy_accounts_age_h", lambda now: real(next(spaet)))
+    gesehen = []
+    monkeypatch.setattr(scout, "push_wallet_changes", lambda plans, now, acc: gesehen.extend(plans) or plans)
+    lines = scout.auto_wallets({}, NOW, 150.0, [])
+    assert gesehen == [] and any("zurueckgestellt" in z for z in lines)

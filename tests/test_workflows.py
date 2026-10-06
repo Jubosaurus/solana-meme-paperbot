@@ -34,6 +34,6 @@ def test_scout_stuendlich_mit_faelligkeitspruefung():
 
 @pytest.mark.parametrize("datei, minute", [("bot_runner.yml", "17"), ("copy_runner.yml", "47")])
 def test_sicherheitsnetz_stuendlich(datei, minute):
-    """07.10.: Am 05.10. bekam ein Hauptbot-Lauf keinen Runner, die Kette riss 4 h. Stuendliches Sicherheitsnetz."""
+    """06.10.: Am 05.10. bekam ein Hauptbot-Lauf keinen Runner, die Kette riss 4 h. Stuendliches Sicherheitsnetz."""
     text = (WF / datei).read_text(encoding="utf-8")
     assert f"- cron: '{minute} * * * *'" in text
