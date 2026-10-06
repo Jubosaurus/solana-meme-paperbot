@@ -1,7 +1,7 @@
 {
   "strategy": "EXPERIMENT_endspurt",
   "started": "2026-09-30T09:53:19.214630+00:00",
-  "bankroll_sol": 7.590547,
+  "bankroll_sol": 7.389047,
   "positions": {
     "DmST7JayW46G1z8Xa4hQNUy932m6nto87n2YGCjSpump": {
       "mint": "DmST7JayW46G1z8Xa4hQNUy932m6nto87n2YGCjSpump",
@@ -17,7 +17,7 @@
       "tokens_left": 713779.786196,
       "decimals": 6,
       "proceeds_sol": 0.0,
-      "peak_usd": 4.084713999941634e-05,
+      "peak_usd": 4.6205957600835245e-05,
       "tp1_done": false,
       "thesis_breaks": 0,
       "missing_loops": 0,
@@ -69,7 +69,75 @@
       "liq_low_checks": 0,
       "exit_mode": "endspurt",
       "entry_vsol": 95.37,
-      "flug_last": 1791327209.3155131
+      "flug_last": 1791327283.0171633
+    },
+    "BTQ1RdUxu5LakcJGgpv2oJVWGz1sXR5z2iXcWJGQyX3F": {
+      "mint": "BTQ1RdUxu5LakcJGgpv2oJVWGz1sXR5z2iXcWJGQyX3F",
+      "symbol": "KKK",
+      "opened": 1791327296.3282747,
+      "invested_sol": 0.2,
+      "fees_sol": 0.0015,
+      "entry_signal_usd": 3.396681846881256e-05,
+      "entry_fill_usd": 3.123321103570462e-05,
+      "entry_slippage_pct": -8.05,
+      "roundtrip_cost_pct": 3.35,
+      "tokens_initial": 774439.96075,
+      "tokens_left": 774439.96075,
+      "decimals": 6,
+      "proceeds_sol": 0.0,
+      "peak_usd": 3.123321103570462e-05,
+      "tp1_done": false,
+      "thesis_breaks": 0,
+      "missing_loops": 0,
+      "entry_liquidity": 11506.579608925429,
+      "entry_view": {
+        "age_h": 0.7813936564657423,
+        "mcap": 33966.818468812526,
+        "liquidity": 11506.579608925429,
+        "holders": 320,
+        "holder_growth_1h": 7900.0,
+        "holder_growth_5m": 9.965635738831615,
+        "net_buyers_5m": 51,
+        "organic_buyers_5m": 14,
+        "organic_score": 38.642117296122244,
+        "price_change_1h": 438.87325367686884,
+        "price_change_5m": 34.74300992395515,
+        "buys_5m": 101,
+        "sells_5m": 66,
+        "traders_5m": 83,
+        "traders_1h": 703,
+        "buy_vol_5m": 4409.340528825616,
+        "sell_vol_5m": 2986.194547187884,
+        "buy_vol_1h": 80812.38870602938,
+        "sell_vol_1h": 72918.4126927566,
+        "organic_buy_vol_1h": 3997.078876195355,
+        "top_holders_pct": 23.613555548555123,
+        "dev_balance_pct": 0.0,
+        "dev_mints": 918,
+        "launchpad": "pump.fun",
+        "graduated": false,
+        "social": true,
+        "quelle": "organic1h+traded5m+trend1h+trend5m",
+        "trades_24h": 3148,
+        "organic_label": "medium",
+        "buy_organic_vol_5m": 249.16546412879165,
+        "jup_fees": null,
+        "hour_utc": 22
+      },
+      "bundle": {
+        "quelle": "experiment",
+        "text": "Endspurt: Kurve bei 95 von 115 vSol (77% Fortschritt), 3148 Trades, organisch medium"
+      },
+      "phase": "normal",
+      "thesis": "Story verbreitet sich: Holder +7900%/h, 51 Netto-Kaeufer 5m, 14 organisch; Endspurt: Kurve bei 95 von 115 vSol (77% Fortschritt), 3148 Trades, organisch medium; Dev-Coins 918",
+      "exit_rule": "Haelfte bei 2x; Rest raus, wenn Holder schrumpfen und Netto-Verkaeufer 2x in Folge, Liquiditaet -30%, -40%, nach 1,5x nicht unter Einstand, nach 2x 30 % vom Hoch (ab 10x 25 %)",
+      "mitlaeufer": null,
+      "solana_tracker": null,
+      "graduated": false,
+      "liq_low_checks": 0,
+      "exit_mode": "endspurt",
+      "entry_vsol": 95.08,
+      "flug_last": 1791327309.756777
     }
   },
   "closed": [
@@ -15251,12 +15319,13 @@
     "8V4AfQj6fRpT7E8yf1zdN9eetbB4azbSb88F7Xqppump": 1791322799.716672,
     "DqFd8HWP9PMdfLh44CyRkrpijWShwXXbTqB12F8xCtgf": 1791324360.3720093,
     "24vWkfSdkSSwXN2EjUMfRhmJE4gvG4XCbvhqB1D7P7C5": 1791326597.294914,
-    "DmST7JayW46G1z8Xa4hQNUy932m6nto87n2YGCjSpump": 1791327064.3424037
+    "DmST7JayW46G1z8Xa4hQNUy932m6nto87n2YGCjSpump": 1791327064.3424037,
+    "BTQ1RdUxu5LakcJGgpv2oJVWGz1sXR5z2iXcWJGQyX3F": 1791327296.3300593
   },
   "watch": {},
   "runde": 1,
   "shadow": {},
-  "saved_at": 1791327211.638428,
+  "saved_at": 1791327312.1337483,
   "dev_day": {
     "date": "2026-10-06",
     "devs": [
@@ -15297,7 +15366,8 @@
       "Fb4a3AfAJmyyboyDsWRiyVkiuja82Ay18BNGL6z1RG8Z",
       "7jQwHdK771P286Vsn44v7dFVfCH8CzZcL3PZGidbShch",
       "CJ87QLnsQEYaBkYj28PWS68d2sdPbaApZgxTnhtTgkQz",
-      "7iwXkkxkji7h7CzKWPSDyBPHvuPgSsMeDGcH4dLRhmFE"
+      "7iwXkkxkji7h7CzKWPSDyBPHvuPgSsMeDGcH4dLRhmFE",
+      "9jwfZT1V4rvG8ZRdfR8gQfu9yYKSmZeejBEhmpPgYtPv"
     ]
   }
 }
