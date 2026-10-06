@@ -131,6 +131,29 @@ def test_reibung_nach_haltedauer(chain, monkeypatch):
                                         block_time=t0 + i * 600 + 120)
     r = scout.stage2(WALLET, list(chain["txs"]), 100.0)
     assert r["reibung_pp"] == 10.0
+    assert r["schnelle_verkaeufe_anteil"] == 0.0                    # 2 min Haltedauer, nicht unter 60 s
+
+
+def test_schnelle_verkaeufe_anteil(chain):
+    """Kauf bis letzter Verkauf unter 60 s zaehlt als schneller Verkauf (nur Anzeige)."""
+    t0 = int(NOW - 86400)
+    for i, dauer in enumerate((10, 30, 300, 900)):
+        chain["txs"][f"k{i}"] = buy_tx(mint=addr(f"F{i}"), sol=0.5, block_time=t0 + i * 3600)
+        chain["txs"][f"v{i}"] = sell_tx(mint=addr(f"F{i}"), sol=0.6, tokens=1_000_000, pre=1_000_000,
+                                        block_time=t0 + i * 3600 + dauer)
+    r = scout.stage2(WALLET, list(chain["txs"]), 100.0)
+    assert r["schnelle_verkaeufe_anteil"] == 0.5
+    assert scout._fast_text(r).endswith("50%") and scout._fast_text({}).endswith("-")
+
+
+def test_alte_zeilen_ohne_neue_spalte_bleiben_lesbar(monkeypatch):
+    """Zeilen mit 32 Spalten (vor 07.10.) werden weiter zugeordnet."""
+    zeile = ["2026-10-05 10:00:00", WALLET, "liste", "x", "bewertet", "", "5"] + [""] * 25
+    assert len(zeile) == len(scout.CANDIDATES_HEADER) - 1
+    os.makedirs(scout.SCOUT_DIR, exist_ok=True)
+    with open(scout.CANDIDATES_FILE, "w", newline="", encoding="utf-8") as f:
+        csv.writer(f).writerows([scout.CANDIDATES_HEADER[:25], zeile])
+    assert scout.stored_rows({})[0]["wallet"] == WALLET
 
 
 # ================================================================ Pruefliste
@@ -257,3 +280,27 @@ def test_unique_name_haengt_adressanfang_an():
     assert scout.unique_name("Croco", a, {"Croco"}) == "Croco-AXfw"
     assert scout.unique_name("Croco", a, {"croco", "Croco-AXfw"}) == "Croco-AXfwQK"     # auch Gross/Klein
     assert scout.unique_name("", a, set()) == "AXfw"
+
+
+def test_stille_wallet_wird_auch_bei_vollem_tageslimit_entfernt(monkeypatch):
+    """Seit 06.10.: Entfernen wegen 72 h Stille ohne Ersatz zaehlt nicht zum Tageslimit (3 Aenderungen/Tag)."""
+    stille, aktive = addr("S"), addr("A")
+    with open(cb.WALLET_FILE, "w", encoding="utf-8") as f:
+        f.write(f"Stille: {stille}\nAktive: {aktive}\n")
+    start = NOW - 200 * 3600
+    os.makedirs(os.path.dirname(cb.ACCOUNTS_FILE) or ".", exist_ok=True)
+    with open(cb.ACCOUNTS_FILE, "w", encoding="utf-8") as f:
+        json.dump({"wallets": {
+            "Stille": {"gestartet": time.strftime("%Y-%m-%dT%H:%M:%S+00:00", time.gmtime(start)),
+                       "letzter_trade": None, "geschlossen": []},
+            "Aktive": {"gestartet": time.strftime("%Y-%m-%dT%H:%M:%S+00:00", time.gmtime(start)),
+                       "letzter_trade": NOW - 3600, "geschlossen": []}}}, f)
+    heute = [{"zeit": NOW, "name": f"X{i}", "adresse": addr("X" + str(i)), "grund": "t", "raus": None} for i in range(3)]
+    gesehen = []
+    monkeypatch.setattr(scout, "push_wallet_changes", lambda plans, now, acc: gesehen.extend(plans) or plans)
+    state = {"auto_aenderungen": heute}
+    scout.auto_wallets(state, NOW, 150.0, [])
+    assert [p["raus"]["name"] for p in gesehen] == ["Stille"] and gesehen[0]["adresse"] is None
+    # die stille Entfernung steht im Protokoll, zaehlt aber nicht als Aenderung des Tages
+    assert scout.STATS["auto_heute"] == 3
+    assert state["auto_aenderungen"][-1]["adresse"] is None

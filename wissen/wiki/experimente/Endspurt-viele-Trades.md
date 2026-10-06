@@ -6,3 +6,5 @@
 - Gleiche Idee wie [[Endspurt-ohne-Filter]].
 - Stand 06.10.: 240 Trades, −2,289 SOL, Ø −0,0095 (ohne 3 beste −0,0125) gegen Kontrollgruppe im gleichen Zeitraum Ø −0,0296 (291 Trades, ohne 3 beste −0,0345); Unterschied +0,020 je Trade (Bereich +0,004 bis +0,035). Urteil: besser als Zufall, aber im Minus. [[Q-2026-10-06-Tagesauswertung]]
 - GRADUIERT 99 Trades (41 %), +6,04 SOL; KURVE_ZURUECK 114 Trades, −6,37 SOL; NOTBREMSE 18, −1,98 SOL. Gegen die Hauptstrategie kein Vorteil (−0,007 je Trade, Bereich −0,036 bis +0,019). Empfehlung der Auswertung: weiterführen; Entscheidung des Betreibers offen. [[Q-2026-10-06-Tagesauswertung]]
+- Entscheidung 07.10.: weiterführen. Neuer Prüfpunkt bei 400 Trades: erneut urteilen, bei Minus beenden. [[Q-2026-10-07-Entscheidungen]]
+- Bewertung zeigt seit 07.10. roh und mit Kostenaufschlag (Endspurt 4 % je Rundlauf statt 2 %), siehe [[Ausfuehrungskosten]]. [[Q-2026-10-07-Entscheidungen]]

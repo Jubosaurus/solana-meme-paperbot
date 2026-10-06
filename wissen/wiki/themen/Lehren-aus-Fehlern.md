@@ -12,3 +12,4 @@
 - Ein Jupiter-Ausfall darf nie als „Coin wertlos“ gelten (03.10., siehe [[Jupiter]]). [[Q-STRATEGIE]]
 - Die frühere Regressions-Angabe „+0,068 SOL auf 28 Verläufen“ war nicht nachvollziehbar (siehe [[Hauptstrategie-NARRATIV]]). [[Q-STRATEGIE]]
 - Siehe auch [[Copy-Fehlbuchungen-bis-03-10]], [[Bot-Wallets]].
+- 05./06.10.: Hauptbot-Lücke von 4,2 h, weil GitHub einem Lauf keinen Runner gab („not acquired by Runner“, 0 Schritte) und deshalb die nächste Schicht nicht startete; seit 07.10. stündliches Sicherheitsnetz bei Hauptbot und Copy-Bot statt alle 6 h. [[Q-2026-10-07-Entscheidungen]]

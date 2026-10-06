@@ -1,7 +1,9 @@
 """Claude-Code-Hook (PreToolUse auf Bash/PowerShell): schuetzt git commit und git push.
 
 - git commit: abbrechen, wenn Daten-Dateien gestaged sind (Goldene Regel 2).
-- git push: vorher python -m pytest -q, bei Fehler abbrechen.
+- git push: vorher python -m pytest -q, bei Fehler abbrechen. Betrifft der Push Dashboard-Dateien, zusaetzlich
+  tests/test_dashboard_wallets.py mit der Dashboard-Umgebung (dashboard/.venv, dort ist streamlit installiert;
+  im normalen Python wird dieser Test uebersprungen). Dauert ca. 18 s, deshalb nur dann.
 
 Gilt nur fuer Befehle, die Claude Code ausfuehrt. Die Bots auf GitHub, die
 Scout-Automatik und das Dashboard (Seite "Wallets pruefen") committen ueber
@@ -76,6 +78,27 @@ def pruefe_push(cwd):
         sys.exit(2)
 
 
+def dashboard_betroffen(cwd):
+    """True, wenn der Push Dateien aus dashboard/ oder den Dashboard-Test enthaelt (Commits seit origin/main + Arbeitsbaum)."""
+    dateien = git("diff", "--name-only", "@{u}..HEAD", cwd=cwd) + git("diff", "--name-only", "HEAD", cwd=cwd)
+    return any(d.startswith("dashboard/") or d.endswith("test_dashboard_wallets.py") for d in dateien)
+
+
+def pruefe_dashboard_test(cwd):
+    venv = os.path.join(cwd, "dashboard", ".venv", "Scripts", "python.exe")
+    if not os.path.exists(venv):
+        venv = os.path.join(cwd, "dashboard", ".venv", "bin", "python")
+    if not os.path.exists(venv) or not dashboard_betroffen(cwd):
+        return
+    r = subprocess.run([venv, "-m", "pytest", "-q", "-x", "-p", "no:cacheprovider", "tests/test_dashboard_wallets.py"],
+                       cwd=cwd, capture_output=True, text=True)
+    if r.returncode != 0:
+        ende = "\n".join((r.stdout + r.stderr).splitlines()[-25:])
+        print("PUSH BLOCKIERT (Hook git_schutz): Dashboard-Test (dashboard/.venv) nicht gruen.\n" + ende,
+              file=sys.stderr)
+        sys.exit(2)
+
+
 def main():
     try:
         daten = json.load(sys.stdin)
@@ -87,6 +110,7 @@ def main():
         pruefe_commit(befehl, cwd)
     if re.search(GIT_RE.format("push"), befehl):
         pruefe_push(cwd)
+        pruefe_dashboard_test(cwd)
 
 
 if __name__ == "__main__":

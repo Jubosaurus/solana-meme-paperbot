@@ -51,7 +51,7 @@ def vor(ts):
 
 
 def urteil_text(v):
-    return f"{AMPEL_ZEICHEN[v['ampel']]} {rechnung.urteil_kurz(v)}"
+    return f"{AMPEL_ZEICHEN[v['ampel']]} {rechnung.urteil_beide(v)}"
 
 
 def urteil_chip(v):

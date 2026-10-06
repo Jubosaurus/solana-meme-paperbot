@@ -372,7 +372,7 @@ def test_zu_wenig_transaktionen_wird_nicht_gemerkt(monkeypatch):
 
 # ================================================================ Lockerung 05.10.
 
-def test_stille_wallets_ohne_ersatz_entfernt_hoechstens_drei(sandbox, no_bots):
+def test_stille_wallets_ohne_ersatz_entfernt_ohne_tageslimit(sandbox, no_bots):
     names = write_wallets(scout.AUTO_MAX_WALLETS)
     accts = {n: acct(a) for n, a in names}
     for i, h in ((2, 80), (3, 100), (4, 75), (5, 90)):
@@ -381,11 +381,11 @@ def test_stille_wallets_ohne_ersatz_entfernt_hoechstens_drei(sandbox, no_bots):
     write_accounts(accts)
     state = scout.load_state()
     lines = scout.auto_wallets(state, NOW, 100.0, [])
-    assert [e["raus"]["name"] for e in state["auto_aenderungen"]] == ["W3", "W5", "W2"]   # laengste Pause zuerst
+    assert [e["raus"]["name"] for e in state["auto_aenderungen"]] == ["W3", "W5", "W2", "W4"]   # laengste Pause zuerst, kein Tageslimit (seit 06.10.)
     text = open(cb.WALLET_FILE, encoding="utf-8").read()
     assert f"# W3: {names[3][1]}   <- entfernt" in text and "ohne Ersatz" in text
-    assert len(cb.load_wallets()) == scout.AUTO_MAX_WALLETS - 3 and "W4: " + names[4][1] in active_lines()
-    assert sum(l.startswith("➖") and "ohne Ersatz" in l for l in lines) == 3
+    assert len(cb.load_wallets()) == scout.AUTO_MAX_WALLETS - 4 and "W6: " + names[6][1] in active_lines()
+    assert sum(l.startswith("➖") and "ohne Ersatz" in l for l in lines) == 4
     assert no_bots["calls"] == [] and git_adds(sandbox["git"]) == [(cb.WALLET_FILE,)]   # keine Helius-Abfrage
 
 

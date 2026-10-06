@@ -39,6 +39,7 @@ st.dataframe(pd.DataFrame([{
     "Rendite ohne besten %": ansicht.txt(zahl(r["rendite_ohne_besten_pct"]), 1, True),
     "Reibung pp": ansicht.txt(zahl(r["reibung_pp"]), 1),
     "Haltedauer min": ansicht.txt(zahl(r["haltedauer_median_min"]), 1),
+    "Verkäufe < 60 s": ansicht.txt(pct(r.get("schnelle_verkaeufe_anteil")), 0, einheit=" %"),
     "Kauf median SOL": ansicht.txt(zahl(r["kauf_median_sol"]), 3),
     "Bot-Gebühr-Anteil": ansicht.txt(pct(r["bot_gebuehr_anteil"]), 0, einheit=" %"),
     "im Copy": "ja" if r["wallet"] in in_copy else "", "bewertet": rechnung.zeit_text(r["zeit"]),

@@ -387,10 +387,10 @@ def test_grosse_coins_sonst_alle_pruefungen_wie_hauptstrategie(scan_env, monkeyp
     assert exps["grosse_coins"]["positions"] == {}
 
 
-def test_gebuehren_feld_wird_nur_aufgezeichnet(scan_env, monkeypatch):
+def test_gebuehren_feld_bleibt_als_leere_spalte(scan_env, monkeypatch):
     assert core.ENTRY_FEATURES[-1] == "jup_fees" and core.NEAR_MISS_HEADER[-1] == "jup_fees"
-    assert core.token_view({"id": MINT, "fees": "2.5"}, time.time())["jup_fees"] == 2.5
-    assert core.token_view({"id": MINT}, time.time())["jup_fees"] is None     # Feld fehlt: leer, kein Fehler
+    assert core.token_view({"id": MINT, "fees": "2.5"}, time.time())["jup_fees"] is None   # seit 07.10. nicht mehr befuellt
+    assert core.token_view({"id": MINT}, time.time())["jup_fees"] is None
     bundle_ok(monkeypatch)
     scan_env(MINT)
     p = core.load_portfolio()

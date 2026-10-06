@@ -26,9 +26,13 @@ a.raster([
             fuss=a.sparkline([p["kontostand"] for p in k["verlauf"]][-80:]), leuchten=True),
     a.karte("Fortschritt bis zum Urteil", f"{k['trades']}", f"von {rechnung.ZIEL_TRADES} Trades",
             a.ring(k["fortschritt"], f"{k['fortschritt']:.0%}")),
-    a.karte("SOL je Trade", rechnung.zahl(k["pro_trade"], 4, vorzeichen=True) if k["trades"] else "–",
+    a.karte("SOL je Trade (roh)", rechnung.zahl(k["pro_trade"], 4, vorzeichen=True) if k["trades"] else "–",
             "ohne die 3 besten: " + (rechnung.zahl(k["ohne_beste_pro_trade"], 4, vorzeichen=True)
                                      if k["ohne_beste_pro_trade"] is not None else "–")),
+    a.karte(f"SOL je Trade mit Kosten ({k['kosten_pct']:.0f} %)",
+            rechnung.zahl(k["pro_trade_kosten"], 4, vorzeichen=True) if k["trades"] else "–",
+            "ohne die 3 besten: " + (rechnung.zahl(k["ohne_beste_pro_trade_kosten"], 4, vorzeichen=True)
+                                     if k["ohne_beste_pro_trade_kosten"] is not None else "–")),
     a.karte("Gewinner", f"{k['gewinner']} von {k['trades']}" if k["trades"] else "–",
             f"Trefferquote {k['gewinner'] / k['trades']:.0%}" if k["trades"] else ""),
 ], gross=True)
@@ -42,13 +46,22 @@ with st.container(border=True):
         e, kg = v["eigen"], v["kontrolle"]
         st.dataframe(pd.DataFrame([
             {"": k["label"], "Trades": e["trades"], "SOL je Trade": e["pro_trade"],
-             "ohne 3 beste": e["ohne_beste_pro_trade"], "Summe": a.plusminus(e["summe"])},
+             "ohne 3 beste": e["ohne_beste_pro_trade"], "Summe": a.plusminus(e["summe"]),
+             "je Trade mit Kosten": e["pro_trade_kosten"], "ohne 3 beste mit Kosten": e["ohne_beste_pro_trade_kosten"],
+             "Summe mit Kosten": a.plusminus(e["summe_kosten"])},
             {"": "Kontrollgruppe (Zufall)", "Trades": kg["trades"], "SOL je Trade": kg["pro_trade"],
-             "ohne 3 beste": kg["ohne_beste_pro_trade"], "Summe": a.plusminus(kg["summe"])},
-        ]), hide_index=True, alt="Vergleich mit der Kontrollgruppe", column_config={
+             "ohne 3 beste": kg["ohne_beste_pro_trade"], "Summe": a.plusminus(kg["summe"]),
+             "je Trade mit Kosten": kg["pro_trade_kosten"], "ohne 3 beste mit Kosten": kg["ohne_beste_pro_trade_kosten"],
+             "Summe mit Kosten": a.plusminus(kg["summe_kosten"])},
+        ]), hide_index=True, alt="Vergleich mit der Kontrollgruppe, roh und mit Kosten", column_config={
             "SOL je Trade": st.column_config.NumberColumn(format="%+.4f"),
             "ohne 3 beste": st.column_config.NumberColumn(format="%+.4f"),
+            "je Trade mit Kosten": st.column_config.NumberColumn(format="%+.4f"),
+            "ohne 3 beste mit Kosten": st.column_config.NumberColumn(format="%+.4f"),
         })
+        st.caption(f"Kostenaufschlag: {rechnung.KOSTEN_PCT:.0f} % vom Einsatz je Rundlauf, Endspurt-Konten "
+                   f"{rechnung.KOSTEN_ENDSPURT_PCT:.0f} % (Schätzung aus der Messung, nicht gemessen: Sandwich-Angriffe, "
+                   "gescheiterte Transaktionen).")
         st.caption("„Besser als Zufall“ heißt: mehr SOL je Trade als die Kontrollgruppe im selben Zeitraum, mit und "
                    "ohne die 3 besten Trades. „Im Plus/Minus“ ist die Summe dieser Trades – beides kann auseinanderfallen.")
     elif v["ampel"] == "basis":

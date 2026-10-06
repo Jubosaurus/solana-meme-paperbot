@@ -34,6 +34,12 @@ START_SOL = core.START_BANKROLL_SOL
 ZIEL_TRADES = 200            # Urteil ueber ein Experiment fruehestens nach 200 Trades
 BESTE_WEGLASSEN = 3          # Ergebnis muss auch ohne die 3 besten Trades halten
 KONTROLLE = "kontrollgruppe"
+# Kostenaufschlag (Entscheidung 07.10.): Rundlauf = Kauf + Verkauf, in Prozent vom Einsatz. Messung 2 s spaeter und
+# Schaetzung 06.10.: Standard 2 %, Endspurt-Konten 4 % (Graduation/Kurve-zurueck rutschen oefter). Immer roh UND mit Kosten zeigen.
+KOSTEN_PCT = 2.0
+KOSTEN_ENDSPURT_PCT = 4.0
+ENDSPURT_KONTEN = {"endspurt", "endspurt_ohne_filter"}
+EINSATZ_STANDARD = 0.2
 KONTEN = [("hauptstrategie", "Hauptstrategie")] + list(core.EXPERIMENTS.items())
 BOT_COMMITS = {"Hauptbot": "NARRATIV", "Copy-Bot": "COPY"}
 SCOUT_HEADER = ["zeit", "wallet", "quelle", "coin", "ergebnis", "grund", "punkte", "tx", "fehlgeschlagen",
@@ -41,7 +47,8 @@ SCOUT_HEADER = ["zeit", "wallet", "quelle", "coin", "ergebnis", "grund", "punkte
                 "anteil_kaeufe_ab_0_1", "coins_abgeschlossen", "trefferquote", "gewinn_sol",
                 "gewinn_ohne_beste_sol", "beste_abgezogen", "rendite_median_pct", "rendite_ohne_beste_pct",
                 "haltedauer_median_min", "mini_verkaeufe_anteil", "bot_gebuehr_anteil", "coins",
-                "coins_gehalten", "rendite_pct", "rendite_ohne_besten_pct", "reibung_pp"]
+                "coins_gehalten", "rendite_pct", "rendite_ohne_besten_pct", "reibung_pp",
+                "schnelle_verkaeufe_anteil"]
 
 
 # ================================================================ Lesen
@@ -164,14 +171,26 @@ def position_pnl(pos, wert):
     return as_float(pos.get("proceeds_sol")) + wert - as_float(pos.get("invested_sol")) - core.TX_FEE_SOL
 
 
-def trade_kennzahlen(closed):
-    """Trades, Summe, SOL je Trade, Gewinner, und dasselbe ohne die 3 besten Trades."""
+def kosten_pct(key):
+    """Kostenaufschlag je Rundlauf in Prozent vom Einsatz fuer ein Konto."""
+    return KOSTEN_ENDSPURT_PCT if key in ENDSPURT_KONTEN else KOSTEN_PCT
+
+
+def trade_kennzahlen(closed, kosten=None):
+    """Trades, Summe, SOL je Trade, Gewinner, und dasselbe ohne die 3 besten Trades. Zusaetzlich dieselben Zahlen
+    mit Kostenaufschlag (kosten = Prozent vom Einsatz je Rundlauf, Standard KOSTEN_PCT): Felder *_kosten."""
+    kosten = KOSTEN_PCT if kosten is None else kosten
     pnls = sorted((as_float(c.get("pnl_sol")) for c in closed), reverse=True)
+    netto = sorted((as_float(c.get("pnl_sol")) - as_float(c.get("invested_sol"), EINSATZ_STANDARD) * kosten / 100
+                    for c in closed), reverse=True)
     n = len(pnls)
-    rest = pnls[BESTE_WEGLASSEN:]
+    rest, rest_k = pnls[BESTE_WEGLASSEN:], netto[BESTE_WEGLASSEN:]
     return {"trades": n, "summe": sum(pnls), "pro_trade": sum(pnls) / n if n else None,
             "gewinner": sum(1 for x in pnls if x > 0),
             "ohne_beste_summe": sum(rest), "ohne_beste_pro_trade": sum(rest) / len(rest) if rest else None,
+            "kosten_pct": kosten, "summe_kosten": sum(netto), "pro_trade_kosten": sum(netto) / n if n else None,
+            "ohne_beste_summe_kosten": sum(rest_k),
+            "ohne_beste_pro_trade_kosten": sum(rest_k) / len(rest_k) if rest_k else None,
             "fortschritt": min(1.0, n / ZIEL_TRADES)}
 
 
@@ -201,7 +220,7 @@ def konto_strategie(key, label, p, kurse, sol_usd=None):
     return {"key": key, "label": label + (f" (beendet {beendet})" if beendet else ""), "beendet": beendet,
             "frei": frei, "markt": markt, "kontowert": kontowert,
             "ergebnis": kontowert - START_SOL, "runde": p.get("runde"), "gestartet": p.get("started"),
-            "gespeichert": p.get("saved_at"), "offen": offen, "closed": closed, **trade_kennzahlen(closed)}
+            "gespeichert": p.get("saved_at"), "offen": offen, "closed": closed, **trade_kennzahlen(closed, kosten_pct(key))}
 
 
 def alle_strategie_konten(repo=None):
@@ -223,22 +242,29 @@ def vergleich_mit_kontrolle(konto, kontrolle):
                  default=None)
     eigene = [c for c in konto["closed"] if beginn is None or (zeitpunkt(c.get("closed_at")) or beginn) >= beginn]
     kg = [c for c in kontrolle["closed"] if beginn is None or (zeitpunkt(c.get("closed_at")) or beginn) >= beginn]
-    a, b = trade_kennzahlen(eigene), trade_kennzahlen(kg)
+    a, b = trade_kennzahlen(eigene, kosten_pct(konto["key"])), trade_kennzahlen(kg, kosten_pct(kontrolle["key"]))
     # "im Plus" bezieht sich auf dieselben Trades wie das Urteil (Vergleichszeitraum), nicht auf den Kontowert
     res = {"beginn": beginn, "eigen": a, "kontrolle": b, "im_plus": a["summe"] > 0}
     if not a["trades"] or not b["trades"]:
         return {**res, "ampel": "keine_daten", "text": "noch keine Trades zum Vergleichen"}
-    besser = a["pro_trade"] > b["pro_trade"]
-    besser_ohne = (a["ohne_beste_pro_trade"] or 0) > (b["ohne_beste_pro_trade"] or 0)
+    roh = _urteil(a, b, "")
+    kosten = _urteil(a, b, "_kosten")
+    return {**res, **roh, "kosten": {**kosten, "im_plus": a["summe_kosten"] > 0}}
+
+
+def _urteil(a, b, suffix):
+    """Ampel und Text fuer eine Zahlenart (suffix '' = roh, '_kosten' = mit Kostenaufschlag)."""
+    besser = a["pro_trade" + suffix] > b["pro_trade" + suffix]
+    besser_ohne = (a["ohne_beste_pro_trade" + suffix] or 0) > (b["ohne_beste_pro_trade" + suffix] or 0)
     if a["trades"] < ZIEL_TRADES:
         tendenz = "besser" if besser and besser_ohne else "schlechter" if not besser and not besser_ohne else "gemischt"
-        return {**res, "ampel": "zu_frueh", "tendenz": tendenz,
+        return {"ampel": "zu_frueh", "tendenz": tendenz,
                 "text": f"zu früh: {a['trades']} von {ZIEL_TRADES} Trades im Vergleichszeitraum, Tendenz {tendenz}"}
     if besser and besser_ohne:
-        return {**res, "ampel": "besser", "text": "besser als die Kontrollgruppe, auch ohne die 3 besten"}
+        return {"ampel": "besser", "text": "besser als die Kontrollgruppe, auch ohne die 3 besten"}
     if not besser and not besser_ohne:
-        return {**res, "ampel": "schlechter", "text": "schlechter als die Kontrollgruppe"}
-    return {**res, "ampel": "gemischt", "text": "nur mit den 3 besten Trades besser – hält nicht"
+        return {"ampel": "schlechter", "text": "schlechter als die Kontrollgruppe"}
+    return {"ampel": "gemischt", "text": "nur mit den 3 besten Trades besser – hält nicht"
             if besser else "ohne die 3 besten besser, mit ihnen schlechter"}
 
 
@@ -290,6 +316,15 @@ def urteil_kurz(v):
     if a == "schlechter":
         return "schlechter als Zufall, aber im Plus" if plus else "schlechter als Zufall, im Minus"
     return "hält nicht (nur dank der 3 besten), " + ("im Plus" if plus else "im Minus")
+
+
+def urteil_beide(v):
+    """Urteil roh und mit Kostenaufschlag nebeneinander: 'roh: ... | mit Kosten: ...'."""
+    roh = urteil_kurz(v)
+    k = v.get("kosten")
+    if not k:
+        return roh
+    return f"roh: {roh} | mit Kosten: {urteil_kurz({**v, **k})}"
 
 
 def ausreisser(beitraege, anteil=0.5):
@@ -447,7 +482,7 @@ def scout_rangliste(repo=None):
         return []
     neueste = {}
     for r in rows[1:]:
-        if len(r) != len(SCOUT_HEADER):
+        if len(r) not in (len(SCOUT_HEADER), len(SCOUT_HEADER) - 1):   # 33 Spalten, aeltere Zeilen 32
             continue
         d = dict(zip(SCOUT_HEADER, r))
         if d["wallet"] and d["zeit"] >= neueste.get(d["wallet"], {}).get("zeit", ""):

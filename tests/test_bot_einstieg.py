@@ -11,7 +11,7 @@ from helpers import tok, view, addr, MINT, MINT2
 def test_tok_liefert_alle_felder_fuer_token_view():
     v = core.token_view(tok(), time.time())
     for key in core.ENTRY_FEATURES:
-        if key == "quelle":                       # wird erst im Scan gesetzt
+        if key in ("quelle", "jup_fees"):         # quelle: erst im Scan gesetzt; jup_fees: seit 07.10. bewusst leer
             continue
         assert v.get(key) is not None, key
     assert v["age_h"] == pytest.approx(1.0, abs=0.01)

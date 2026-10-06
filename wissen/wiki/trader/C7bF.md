@@ -9,3 +9,4 @@ Adresse: `C7bFqgUrJ1EE4fNAmuSeqvU6VnaCEYnPg2agAWUVV2fF` (aus [[Q-Copy-Wallets]])
 - Entscheidung 04.10.: beobachten bis 20 Käufe; bleibt das Muster, wird die Wallet ersetzt. [[Q-Zusammenfassung-Chat]]
 - Nachrechnung 06.10. (✅ geklärt zu ⚠️ oben): 11 Positionen, Haltedauer Mittel 6.795 s, Median 148 s, 36 % der Positionen unter 60 s; der Mittelwert versteckt die Flips. Wir Ø −4,2 %, Median −15,1 % je Position. Stichprobe klein. [[Q-2026-10-06-Tagesauswertung]]
 - Anteil Haltedauer unter 60 s: Cooker 69 %, Zrool 66 %, 6ANG 63 %, Putrick 44 %, C7bF 36 %, HEBO 22 %, ruhige Trader 0–10 %. Vorschlag: Scout-Kennzahl „Anteil schnelle Verkäufe“ (offen). [[Q-2026-10-06-Tagesauswertung]]
+- Scout zeigt seit 07.10. den Anteil Verkäufe unter 60 s (nur Anzeige). [[Q-2026-10-07-Entscheidungen]]

@@ -145,11 +145,14 @@ with st.expander("Alle Kennzahlen als Tabelle", icon=":material/table_chart:"):
     st.dataframe(pd.DataFrame([{
         "Konto": k["label"], "Plus/Minus": a.plusminus(k["ergebnis"]), "Urteil": a.urteil_text(k["vergleich"]),
         "Kontowert": k["kontowert"], "Trades": k["trades"], "SOL je Trade": k["pro_trade"],
-        "ohne 3 beste": k["ohne_beste_pro_trade"], "offen": len(k["offen"]),
+        "ohne 3 beste": k["ohne_beste_pro_trade"], "je Trade mit Kosten": k["pro_trade_kosten"],
+        "ohne 3 beste mit Kosten": k["ohne_beste_pro_trade_kosten"], "offen": len(k["offen"]),
     } for k in konten]), hide_index=True, alt="Alle Konten mit Kennzahlen", column_config={
         "Kontowert": st.column_config.NumberColumn(format="%.2f SOL"),
         "SOL je Trade": st.column_config.NumberColumn(format="%+.4f"),
         "ohne 3 beste": st.column_config.NumberColumn(format="%+.4f"),
+        "je Trade mit Kosten": st.column_config.NumberColumn(format="%+.4f"),
+        "ohne 3 beste mit Kosten": st.column_config.NumberColumn(format="%+.4f"),
     })
 
 with st.container(border=True):

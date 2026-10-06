@@ -67,6 +67,7 @@ if zeilen:
     st.dataframe(pd.DataFrame([{
         "Name": z["name"], "Status": z["status"], "Ergebnis": ergebnis_text(z),
         "Punkte": z["punkte"], "Haltedauer min": ansicht.txt(z["haltedauer_min"], 1),
+        "Verkäufe < 60 s": "" if z["schnell_anteil"] is None else f"{z['schnell_anteil']:.0%}",
         "Rendite ohne besten Coin %": ansicht.txt(z["rendite_ohne_besten"], 1, True),
         "abgeschl. Coins": z["coins"],
         "Copy": z["copy"], "geprüft": rechnung.zeit_text(z["zeit"]) if z["zeit"] else "",

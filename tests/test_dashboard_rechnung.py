@@ -367,3 +367,24 @@ def test_filter_trichter_zaehlt_coins_je_grund_und_kaeufe(tmp_path):
     heute = r.filter_trichter(tmp_path, tage=1, jetzt=jetzt)               # 1 = nur heute (UTC)
     assert heute["pruefungen"] == 3 and heute["kaeufe"] == 1 and [d["tag"] for d in heute["je_tag"]] == ["2026-10-04"]
     assert r.filter_trichter(tmp_path / "leer", jetzt=jetzt)["pruefungen"] == 0
+
+
+def test_kostenaufschlag_roh_und_mit_kosten():
+    """Entscheidung 07.10.: 2 % je Rundlauf (Endspurt 4 %) vom Einsatz, immer roh und mit Kosten."""
+    k = r.trade_kennzahlen([closed(0.1), closed(0.0), closed(-0.1)], 2.0)
+    assert k["pro_trade"] == pytest.approx(0.0) and k["pro_trade_kosten"] == pytest.approx(-0.004)   # 0,2 SOL * 2 %
+    assert k["summe_kosten"] == pytest.approx(-0.012)
+    assert r.kosten_pct("endspurt") == 4.0 and r.kosten_pct("endspurt_ohne_filter") == 4.0
+    assert r.kosten_pct("hauptstrategie") == 2.0 and r.kosten_pct("kontrollgruppe") == 2.0
+    p = {"bankroll_sol": 10.0, "positions": {}, "closed": [{"pnl_sol": 0.0, "invested_sol": 0.2}]}
+    assert r.konto_strategie("endspurt", "E", p, {})["pro_trade_kosten"] == pytest.approx(-0.008)   # 4 %
+    assert r.konto_strategie("heisse_coins", "H", p, {})["pro_trade_kosten"] == pytest.approx(-0.004)
+
+
+def test_urteil_mit_kosten_kann_vom_rohurteil_abweichen():
+    kg = {"key": "kontrollgruppe", "gestartet": "2026-10-01T00:00:00+00:00", "closed": [closed(-0.02) for _ in range(200)]}
+    e = konto("endspurt", [-0.019] * 200)           # roh knapp besser; Endspurt zahlt 4 % statt 2 %: mit Kosten schlechter
+    v = r.vergleich_mit_kontrolle(e, kg)
+    assert v["ampel"] == "besser" and v["kosten"]["ampel"] == "schlechter"
+    text = r.urteil_beide(v)
+    assert text.startswith("roh: besser als Zufall") and "| mit Kosten: schlechter als Zufall" in text

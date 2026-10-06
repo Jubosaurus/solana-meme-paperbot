@@ -12,9 +12,11 @@ on:
           - normal
           - probe
   # Sicherheitsnetz: normalerweise startet jede Schicht am Ende selbst die naechste (letzter Schritt).
+  # Seit 07.10. stuendlich (vorher alle 6 h): Am 05.10. bekam ein Lauf von GitHub keinen Runner, die Kette riss 4 h.
+  # Laeuft eine Schicht, wartet hoechstens ein Lauf in der Warteschlange (der neueste ersetzt den aelteren).
   # Minute 17 statt zur vollen Stunde, weil GitHub dort bei hoher Last Laeufe verzoegert oder verwirft.
   schedule:
-    - cron: '17 */6 * * *'
+    - cron: '17 * * * *'
 
 concurrency:
   group: solana-bot-repo

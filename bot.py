@@ -667,9 +667,9 @@ def token_view(tok, now):
         "trades_24h": int(as_float(s24.get("numBuys")) + as_float(s24.get("numSells"))),
         "organic_label": str(tok.get("organicScoreLabel") or ""),
         "buy_organic_vol_5m": as_float(s5.get("buyOrganicVolume")),
-        # seit 04.10. nur Aufzeichnung: Feld "fees" der Jupiter-Antwort (gezahlte Gebuehren, Video-Idee gegen Buendel);
-        # nicht dokumentiert, daher leer, wenn Jupiter es nicht liefert
-        "jup_fees": as_float(tok["fees"]) if tok.get("fees") is not None else None,
+        # jup_fees (Jupiter-Feld "fees", seit 04.10. aufgezeichnet) war in allen Daten leer: seit 07.10. nicht mehr befuellt.
+        # Die Spalte bleibt (CSV-Spalten nie loeschen), alte Daten bleiben unveraendert.
+        "jup_fees": None,
     }
 
 

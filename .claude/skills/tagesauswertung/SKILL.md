@@ -44,6 +44,7 @@ In der Auswertung kurz nennen, wie viele Zeilen herausgerechnet wurden. Kommen n
 ## 3. Hauptstrategie und Experimente
 
 Tabelle für den Zeitraum **und** seit Start: Konto | Trades | Gewinner | Summe SOL | Ø je Trade.
+- **Immer beide Zahlen zeigen (Entscheidung 07.10.): roh und mit Kostenaufschlag** (2 % vom Einsatz je Rundlauf, Endspurt-Konten 4 %). `rechnung.py` liefert beide (`pro_trade`, `pro_trade_kosten`, `ohne_beste_pro_trade_kosten`, Urteil in `v['kosten']`, Text `rechnung.urteil_beide(v)`).
 - Hauptstrategie gegen die **Kontrollgruppe** (Ø je Trade).
 - Experimente mit mindestens 200 Trades ausdrücklich bewerten (gegen Kontrollgruppe, ohne die 3 besten Trades) und Beenden oder Weiterführen vorschlagen.
 - **Paar-Experimente** (Notbremse 25, Drittel-Leiter: kaufen genau mit der Hauptstrategie) zusätzlich **Coin für Coin** gegen die Hauptstrategie: `rechnung.paarvergleich(exp_closed, haupt_closed)` (Anzahl Paare, besser/schlechter/gleich, Unterschied gesamt und ohne die 3 besten, größte Einzelunterschiede mit Verkaufsgrund). Dasselbe zeigt das Dashboard auf der Seite Strategie.

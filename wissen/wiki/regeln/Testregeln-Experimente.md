@@ -4,3 +4,4 @@
 - Jedes Experiment hat ein eigenes 10-SOL-Konto; ist es aufgebraucht, startet es neu mit 10 SOL (Rundennummer wird gespeichert). [[Q-STRATEGIE]]
 - Beendete Experimente kaufen nichts mehr; offene Positionen laufen aus, die Daten bleiben (Liste `EXP_BEENDET` in `bot.py`). [[Q-STRATEGIE]]
 - Messgenauigkeit: Unterschiede unter etwa 0,01 SOL je Trade sind vom Zufall der Ausführung kaum zu trennen (siehe [[Ausfuehrungsrauschen]]). [[Q-2026-10-03-Ueberpruefung]]
+- Seit 07.10. zusätzlich: Kostenaufschlag 2 % je Rundlauf (Endspurt 4 %), Urteil immer roh und mit Kosten; die 200-Trades-Regel, die Kontrollgruppe aus demselben Zeitraum und „ohne die 3 besten“ bleiben. [[Q-2026-10-07-Entscheidungen]]

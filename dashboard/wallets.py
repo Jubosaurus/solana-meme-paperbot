@@ -266,7 +266,7 @@ def _scout_zeilen(repo):
     kopf = rows[0]
     out = []
     for r in rows[1:]:
-        if len(r) == len(rechnung.SCOUT_HEADER):
+        if len(r) in (len(rechnung.SCOUT_HEADER), len(rechnung.SCOUT_HEADER) - 1):
             out.append(dict(zip(rechnung.SCOUT_HEADER, r)))
         elif len(r) == len(kopf):
             out.append(dict(zip(kopf, r)))
@@ -304,6 +304,7 @@ def pruefliste_status(repo=None):
                 "grund": (d.get("grund") or "") if d else "",
                 "punkte": rechnung.as_float(d.get("punkte"), None) if d else None,
                 "haltedauer_min": rechnung.as_float(d.get("haltedauer_median_min"), None) if d else None,
+                "schnell_anteil": rechnung.as_float(d.get("schnelle_verkaeufe_anteil"), None) if d else None,
                 "rendite_ohne_besten": rechnung.as_float(d.get("rendite_ohne_besten_pct") or
                                                          d.get("rendite_ohne_beste_pct"), None) if d else None,
                 "coins": rechnung.as_float(d.get("coins_abgeschlossen"), None) if d else None,

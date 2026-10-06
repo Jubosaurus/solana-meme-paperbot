@@ -37,3 +37,6 @@ Noch offen:
 
 ## 06.10.2026
 - Eingespeist: [[Q-2026-10-06-Tagesauswertung]] (Endspurt-Urteil, Scout-Automatik, Ausführungskosten, Gewinnschutz, C7bF, Helius). Rückfrage 4 (C7bF) geklärt: Haltedauer-Mittel versteckt Flips, Median 148 s, 36 % unter 60 s.
+
+## 07.10.2026
+- Entscheidungen A1–A8, B1–B3 nachgeführt: [[Q-2026-10-07-Entscheidungen]], [[Q-2026-10-05-Verlustserie]], neue Seite [[Anstieg-vor-Kauf-Spur]]; Seiten Endspurt-viele-Trades, Ausfuehrungskosten, Testregeln-Experimente, Wallet-Scout, C7bF, Verkaufsregeln-Hauptstrategie, rasmr, Video-Ideen-offen, Entscheidungen, Kontrollgruppe, Lehren-aus-Fehlern, Jupiter, Dashboard, Regressionsprobe-und-Tests.

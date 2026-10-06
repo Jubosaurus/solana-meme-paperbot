@@ -30,3 +30,10 @@ def test_scout_stuendlich_mit_faelligkeitspruefung():
     text = (WF / "scout_runner.yml").read_text(encoding="utf-8")
     assert "- cron: '29 * * * *'" in text
     assert re.search(r'event_name }}" = "schedule" \]; then\s+python scout_bot.py --wenn-faellig', text)
+
+
+@pytest.mark.parametrize("datei, minute", [("bot_runner.yml", "17"), ("copy_runner.yml", "47")])
+def test_sicherheitsnetz_stuendlich(datei, minute):
+    """07.10.: Am 05.10. bekam ein Hauptbot-Lauf keinen Runner, die Kette riss 4 h. Stuendliches Sicherheitsnetz."""
+    text = (WF / datei).read_text(encoding="utf-8")
+    assert f"- cron: '{minute} * * * *'" in text

@@ -325,6 +325,7 @@ def stage2(wallet, sigs, sol_usd):
     rest_spent = spent - best[1]
     closed = [p for m, p in coins.items() if m not in held]
     hold_closed = median((p["t1"] - p["t0"]) / 60 for p in closed) if closed else None
+    fast = [p for p in closed if p["t1"] - p["t0"] < 60]          # Kauf bis letzter Verkauf unter 60 s (Flip)
     held_share = len(held) / len(coins) if coins else 0
     if held_share >= 0.5 or (hold_closed is not None and hold_closed >= 60):
         friction = FRICTION_LONG
@@ -346,6 +347,7 @@ def stage2(wallet, sigs, sol_usd):
         "rendite_pct": round(total_gain / spent * 100, 1) if spent else None,
         "rendite_ohne_besten_pct": round((total_gain - best[0]) / rest_spent * 100, 1) if rest_spent > 0 else None,
         "haltedauer_median_min": round(hold_closed, 1) if hold_closed is not None else None,
+        "schnelle_verkaeufe_anteil": round(len(fast) / len(closed), 2) if closed else None,   # nur Anzeige, kein Kriterium
         "reibung_pp": friction,
         "mini_verkaeufe_anteil": round(len(micro) / len(sells), 2) if sells else None,
         "bot_gebuehr_anteil": round(sum(t["other"] > 0.003 * t["sol"] for t in trades) / len(trades), 2) if trades else None,
@@ -382,7 +384,8 @@ CANDIDATES_HEADER = ["zeit", "wallet", "quelle", "coin", "ergebnis", "grund", "p
                      "coins_abgeschlossen", "trefferquote", "gewinn_sol", "gewinn_ohne_beste_sol", "beste_abgezogen",
                      "rendite_median_pct", "rendite_ohne_beste_pct", "haltedauer_median_min",
                      "mini_verkaeufe_anteil", "bot_gebuehr_anteil", "coins", "coins_gehalten", "rendite_pct",
-                     "rendite_ohne_besten_pct", "reibung_pp"]
+                     "rendite_ohne_besten_pct", "reibung_pp", "schnelle_verkaeufe_anteil"]
+OLD_ROW_LEN = len(CANDIDATES_HEADER) - 1            # Zeilen vor 07.10. ohne schnelle_verkaeufe_anteil
 
 
 def write_csv(rows):
@@ -445,13 +448,19 @@ def load_list():
     return entries
 
 
+def _fast_text(s2):
+    """Anteil abgeschlossener Coins mit Haltedauer unter 60 s (nur Anzeige, kein Aufnahmekriterium)."""
+    v = s2.get("schnelle_verkaeufe_anteil")
+    return "Verkaeufe unter 60 s: " + ("-" if v in (None, "") else f"{core.as_float(v):.0%}")
+
+
 def _rating_line(name, w, s2, pts):
     """(Sortierwert, Discord-Zeile) fuer eine bewertete Wallet."""
     detail = (f"7 Tage: {s2['coins']} Coins ({s2['coins_gehalten']} noch gehalten), Trader {s2.get('rendite_pct')} % "
               f"auf den Einsatz, ohne besten Coin {s2.get('rendite_ohne_besten_pct')} %, Treffer "
               f"{(s2.get('trefferquote') or 0):.0%}, Kauf-Median {s2.get('kauf_median_sol')} SOL, "
               f"{s2.get('trades_pro_tag')} Trades/Tag, Haltedauer {s2.get('haltedauer_median_min')} min, "
-              f"Reibung {s2['reibung_pp']:.0f} Punkte")
+              f"{_fast_text(s2)}, Reibung {s2['reibung_pp']:.0f} Punkte")
     if pts is None:
         return -500, f"❔ **{name}** `{w}`\n   {not_rated_reason(s2)} | {detail}"
     return pts, f"{'✅' if pts > 0 else '➖'} **{name}** `{w}`\n   fuer uns {pts:+.0f} % | {detail}"
@@ -874,7 +883,7 @@ def stored_rows(state):
             rd = csv.reader(f)
             header = next(rd, [])
             for row in rd:
-                if len(row) == len(CANDIDATES_HEADER):      # (Spalte rendite_ohne_besten_pct doppelt: die hintere zaehlt)
+                if len(row) in (len(CANDIDATES_HEADER), OLD_ROW_LEN):      # (Spalte rendite_ohne_besten_pct doppelt: die hintere zaehlt)
                     r = dict(zip(CANDIDATES_HEADER, row))
                 elif len(row) == len(header):
                     r = dict(zip(header, row))
@@ -917,7 +926,8 @@ def auto_wallets(state, now, sol_usd, rows):
             wait.pop(w, None)                        # frische Bewertung sagt nein
     log = [e for e in state.get("auto_aenderungen", []) if now - e.get("zeit", 0) < 30 * 86400]
     today = datetime.fromtimestamp(now, timezone.utc).strftime("%Y-%m-%d")
-    budget = AUTO_MAX_PRO_TAG - sum(1 for e in log if datetime.fromtimestamp(e["zeit"], timezone.utc)
+    # Entfernen wegen Stille ohne Ersatz (adresse leer) zaehlt seit 06.10. nicht zum Tageslimit
+    budget = AUTO_MAX_PRO_TAG - sum(1 for e in log if e.get("adresse") and datetime.fromtimestamp(e["zeit"], timezone.utc)
                                     .strftime("%Y-%m-%d") == today)
     active = cb.load_wallets() if os.path.exists(cb.WALLET_FILE) else []
     free = AUTO_MAX_WALLETS - len(active)
@@ -956,17 +966,13 @@ def auto_wallets(state, now, sol_usd, rows):
             plan["raus"] = {"name": name, "adresse": addr, "grund": why}
         plans.append(plan)
         budget -= 1
-    # Stille Wallets (72 h ohne eigenen Trade) auch ohne Ersatz entfernen, im Rahmen des Tageslimits
+    # Stille Wallets (72 h ohne eigenen Trade) auch ohne Ersatz entfernen, ohne Tageslimit (seit 06.10.)
     planned = {p["raus"]["adresse"] for p in plans if p.get("raus")}
-    if budget > 0:
-        pool = repl if repl is not None else replaceable_wallets(active, accounts, now, check_bots=False)
-        for name, addr, why in pool:
-            if budget <= 0:
-                break
-            if why.startswith("still") and addr not in planned:
-                plans.append({"name": name, "adresse": None, "grund": why,
-                              "raus": {"name": name, "adresse": addr, "grund": why}})
-                budget -= 1
+    pool = repl if repl is not None else replaceable_wallets(active, accounts, now, check_bots=False)
+    for name, addr, why in pool:
+        if why.startswith("still") and addr not in planned:
+            plans.append({"name": name, "adresse": None, "grund": why,
+                          "raus": {"name": name, "adresse": addr, "grund": why}})
     done = push_wallet_changes(plans, now, accounts) if plans else []
     for p in done or []:
         if p.get("adresse"):
@@ -989,7 +995,7 @@ def auto_wallets(state, now, sol_usd, rows):
     for r in stored:
         seen[r["wallet"]] = r.get("zeit")
     STATS["warteliste"] = len(wait)
-    STATS["auto_heute"] = sum(1 for e in log if datetime.fromtimestamp(e["zeit"], timezone.utc)
+    STATS["auto_heute"] = sum(1 for e in log if e.get("adresse") and datetime.fromtimestamp(e["zeit"], timezone.utc)
                               .strftime("%Y-%m-%d") == today)
     if done:
         lines.append("Der Copy-Bot uebernimmt die Aenderung beim naechsten Schichtwechsel.")
@@ -1131,12 +1137,12 @@ def run(nur_liste=False):
         lines.append(f"**Kleinstkaeufe, nicht bewertet:** {tiny}")
     if top:
         lines.append("**Rangliste** (fuer uns erwartete Rendite nach Reibung | Treffer | Coins | "
-                     "Kauf-Median | Trades/Tag | Haltedauer):")
+                     "Kauf-Median | Trades/Tag | Haltedauer | Verkaeufe unter 60 s):")
         for i, r in enumerate(top, 1):
             lines.append(f"{i}. `{r['wallet']}` ({r['quelle']}, {r['coin']})\n"
                          f"   {r['punkte']:+.0f} % (Trader {r['rendite_pct']:+.0f} %, ohne besten {r['rendite_ohne_besten_pct']:+.0f} %) | "
                          f"{(r['trefferquote'] or 0):.0%} | {r['coins']} | {r['kauf_median_sol']} SOL | "
-                         f"{r['trades_pro_tag']} | {r['haltedauer_median_min']} min")
+                         f"{r['trades_pro_tag']} | {r['haltedauer_median_min']} min | {_fast_text(r)}")
         lines.append("Aufnahme entscheidet die Automatik (Kriterien siehe STRATEGIE.md)." if AUTO_AUFNAHME
                      else "Eintragen in copy_wallets.txt als `Name: Adresse`.")
     else:
