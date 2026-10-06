@@ -8,3 +8,4 @@
 - Zeitstopp (nach 60 min unter Einstand raus, H3) bestand am 03.10. nicht. [[Q-2026-10-03-Ueberpruefung]]
 - Variante Notbremse −25 %: siehe [[Notbremse-25]]; Variante Dritte-Stufen: [[Drittel-Leiter]].
 - Bestätigung (05.10.2026): rasmr verkauft sofort alles, wenn der Auslöser wegfällt (These gebrochen) – entspricht unserem Thesenbruch-Ausstieg ([[rasmr]]). [[Q-2026-10-05-Video-Erkenntnisse]]
+- Gewinnschutz ab 1,5x gilt in allen Konten (gemeinsame Funktion); Nachbau 06.10. auf 687 Trades: +1,84 SOL gegenüber ohne Regel, frühere/spätere Auslöser nicht besser; „Verlierer mit Hoch ≥ 1,5x“: 151 Trades, davon 138 von der Regel selbst verkauft (Ø −10 % durch Durchrutschen). Näherung, Sicherheit mittel. [[Q-2026-10-06-Tagesauswertung]]

@@ -8,3 +8,4 @@
 - `getTransaction` braucht `maxSupportedTransactionVersion: 1`. [[Q-CLAUDE]]
 - Am 01.10. trieben sich Hauptbot und Copy-Bot gegenseitig ins Limit, Bundle-Checks fielen öfter aus. [[Q-STRATEGIE]]
 - Stand 05.10.: ohne 922M ca. 20.000 Credits/Tag (Dashboard-Zähler 127.221); daraufhin Wallet-Limit der Scout-Automatik von 22 auf 30 erhöht. [[Q-STRATEGIE]]
+- Stand 06.10.: Dashboard 145.870 Credits, 05.10. 127.221, also ca. 18.600/Tag; Hochrechnung 560.000–750.000/Monat je nach Abrechnungsbeginn (unbekannt). [[Q-2026-10-06-Tagesauswertung]]

@@ -19,3 +19,5 @@
 - Tx-Prüf-Modus (04.10.): Ergebnis für [[2FPk]]/[[54cb]]: alle Trades erkannt, nichts verpasst. [[Q-2026-10-04-Nachtlauf]]
 - Siehe [[Kleinstkaeufer-in-Ranglisten]], [[Birdeye]], [[Helius]].
 - Video (05.10.2026, TJR-Gast): Kandidaten finden, indem man Trader, die Gewinne auf X posten, in der Top-Trade-Liste des Coins sucht und deren 30-Tage-Werte (Gewinn, Haltezeit, Trefferquote) prüft – deckt sich mit unserem Weg über die Prüfliste. [[Q-2026-10-05-Video-Erkenntnisse]]
+- Automatik 05.–06.10.: aufgenommen Croco-AC7K, HoneyBadger-6kfX, 8K7Z (05.10.), FKJE, 2z7o, BlueMoon (06.10.); nichts ersetzt oder entfernt; 28 von 30 Plätzen belegt; Warteliste 9; Prüfliste (45 Adressen) vollständig bewertet. [[Q-2026-10-06-Tagesauswertung]]
+- 42wu (seit Start kein Trade, 103 h) wurde nicht entfernt; vermutete Ursache: Tageslimit 3 Änderungen durch Aufnahmen verbraucht (aus dem Code gelesen, nicht im Lauf bestätigt). [[Q-2026-10-06-Tagesauswertung]]

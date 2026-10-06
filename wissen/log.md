@@ -34,3 +34,6 @@ Noch offen:
 2. Wallet-Signal-Nachrechnung: Abgrenzung von „Signal“ unklar (⚠️ auf [[Wallet-Signal-Nachrechnung]]); Skripte lagen nur im Scratchpad und sind nicht mehr vorhanden.
 3. Videos: Die Transkripte (nur lokal) wurden nicht gelesen; alle Aussagen stammen aus `videos/regeln.md` und der Video-Auswertung.
 4. Zu prüfen in der Tagesauswertung am 06.10.: C7bF – Scout-Haltedauer 124 min gegen 4 von 4 Verkäufen binnen 5 s (⚠️ auf [[C7bF]]). Versteckt die Scout-Haltedauer schnelle Flips (Median statt Mittel? Anteil Verkäufe unter 60 s als eigene Kennzahl?).
+
+## 06.10.2026
+- Eingespeist: [[Q-2026-10-06-Tagesauswertung]] (Endspurt-Urteil, Scout-Automatik, Ausführungskosten, Gewinnschutz, C7bF, Helius). Rückfrage 4 (C7bF) geklärt: Haltedauer-Mittel versteckt Flips, Median 148 s, 36 % unter 60 s.

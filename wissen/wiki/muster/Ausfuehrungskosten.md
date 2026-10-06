@@ -7,3 +7,5 @@
 - Neue Prüfung mit echten Kosten ab etwa 10.10. geplant. [[Q-2026-10-03-Ueberpruefung]]
 - In der Nachrechnung zum gestaffelten Verkauf: „mit Kosten“ = 3 % auf 0,2 SOL plus 0,0015 SOL je Transaktion; mit Kosten bleiben alle Varianten im Minus. [[Q-2026-10-04-Video-Nachrechnung]]
 - Aus den Videos: Trading-Terminals nehmen etwa 1 % Gebühr je Kauf und Verkauf. [[Q-Videos-Regeln]]
+- Stand 06.10. (Messung seit 03.10.): Median Abweichung 0 bei Kauf und Verkauf (Hauptbot und Copy); 90 %-Wert Hauptbot Kauf 3,8 %, Verkauf 5,6 %, Copy Kauf 6,2 %, Verkauf 4,4 %. [[Q-2026-10-06-Tagesauswertung]]
+- NOTBREMSE-Verkäufe (451): Median 0, 90 %-Wert 4,4 %, gewichtet −0,12 SOL (kein Aufschlag im Mittel); Endspurt-Verkäufe Mittel +0,97 %, 90 %-Wert 11,3 %. Vorschlag (offen): 2 % je Rundlauf, Endspurt 4 %. [[Q-2026-10-06-Tagesauswertung]]
