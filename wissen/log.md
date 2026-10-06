@@ -40,3 +40,6 @@ Noch offen:
 
 ## 07.10.2026
 - Entscheidungen A1–A8, B1–B3 nachgeführt: [[Q-2026-10-07-Entscheidungen]], [[Q-2026-10-05-Verlustserie]], neue Seite [[Anstieg-vor-Kauf-Spur]]; Seiten Endspurt-viele-Trades, Ausfuehrungskosten, Testregeln-Experimente, Wallet-Scout, C7bF, Verkaufsregeln-Hauptstrategie, rasmr, Video-Ideen-offen, Entscheidungen, Kontrollgruppe, Lehren-aus-Fehlern, Jupiter, Dashboard, Regressionsprobe-und-Tests.
+
+## 06.10.2026 (abends)
+- Neue Seite [[Codex]] (Team Claude + Codex, Quelle [[Q-CLAUDE]]).

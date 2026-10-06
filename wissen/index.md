@@ -110,6 +110,7 @@ Das Wiki sammelt Wissen und beschließt nichts. Verbindlich bleiben `STRATEGIE.m
 ## Werkzeuge und Datenquellen
 
 - [[Birdeye]] – Birdeye
+- [[Codex]] – Codex (OpenAI) als Prüfer und Helfer, Team mit Claude
 - [[Dashboard]] – Dashboard (Streamlit)
 - [[DexScreener]] – DexScreener
 - [[Flugschreiber]] – Flugschreiber (Aufzeichnung)

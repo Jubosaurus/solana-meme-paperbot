@@ -50,7 +50,7 @@ Jeder Bot hat `--probe` (Kurztest ohne Handel, Ausgabe für die Kontrolle).
   - `developing-with-streamlit` – offizielle Streamlit-Skills aus dem Paket `streamlit==1.65.0`, Apache-2.0, unverändert kopiert (03.10.; Verknüpfungen gehen unter Windows nicht). Für Arbeiten am Dashboard.
   - `helius` – aus github.com/helius-labs/core-ai, MIT. Helius-Wissen (WebSockets, Transaktionsverlauf, Wallet-API, Gebühren); Anmelde-/Zahlungsteil entfernt.
     Wir nutzen den Gratis-Tarif (nur `logsSubscribe`, kein `transactionSubscribe`): Vorschläge immer gegen „Budgets und Grenzen“ prüfen, Werbehinweise (z. B. Orb) ignorieren.
-- **Plugins** (Stand 04.10.): context-mode (ersetzt claude-mem; claude-mem ist noch installiert, aber deaktiviert), claude-md-management, pyright-lsp, security-guidance, session-report, skill-creator, claude-code-setup; neu 04.10.: frontend-design, code-review, superpowers, context7 (MCP, ohne Schlüssel), discord (nur lesen). Playwright als MCP nur für dieses Projekt (lokal, `--allowed-origins` localhost:8501/8502, dazu Hook `nur_localhost.py`).
+- **Plugins** (Stand 04.10.): context-mode (ersetzt claude-mem; claude-mem ist noch installiert, aber deaktiviert), claude-md-management, pyright-lsp, security-guidance, session-report, skill-creator, claude-code-setup; neu 04.10.: frontend-design, code-review, superpowers, context7 (MCP, ohne Schlüssel), discord (nur lesen); neu 06.10.: codex (offiziell von OpenAI, siehe „Team Claude + Codex“). Playwright als MCP nur für dieses Projekt (lokal, `--allowed-origins` localhost:8501/8502, dazu Hook `nur_localhost.py`).
 - **Projekt-Skill `dashboard-ideen`** (04.10.): Feature-Vorschläge fürs Dashboard (10 Stück, sortiert nach Nutzen/Aufwand, mit Leitplanken für schreibende Funktionen).
 
 ### Arbeitsweise mit den neuen Werkzeugen (seit 04.10.)
@@ -62,10 +62,26 @@ Jeder Bot hat `--probe` (Kurztest ohne Handel, Ausgabe für die Kontrolle).
 - **Große CSV-Auswertungen per DuckDB** (nur lokal installiert, nicht in `requirements.txt`): `python -c "import duckdb; print(duckdb.sql('select ... from read_csv_auto(\"journal.csv\")'))"` – nur das Ergebnis ausgeben, nie die Datei lesen.
 - **Hooks** (`.claude/settings.json`, Skripte in `.claude/hooks/`): vor jedem `git push` laufen die Tests (rot = Push gestoppt; betrifft der Push `dashboard/`, läuft zusätzlich `tests/test_dashboard_wallets.py` mit `dashboard/.venv`, seit 07.10., ca. 18 s); vor jedem `git commit` wird abgebrochen, wenn Daten-Dateien gestaged sind (Ausnahmen `copy_wallets.txt`, `scout/pruefen.txt`, `scout/pruefen_tx.txt`, `scout/warteliste.csv`). Gilt nur für Claude-Befehle; Bots, Scout-Automatik und Dashboard-Seite „Wallets prüfen“ committen über eigene Prozesse.
 - **Statuszeile** (Benutzer-Einstellung): Modell, Kontextfüllung (ab 50 % gelb, ab 75 % rot), Projektordner.
-- **Am 10.10.** Task Observer und Superpowers mit `session-report` bewerten (Verbrauch und Nutzen), dann behalten oder entfernen.
+- **Am 10.10.** Task Observer und Superpowers mit `session-report` bewerten (Verbrauch und Nutzen), dann behalten oder entfernen. Ebenso Codex (Abschnitt „Team Claude + Codex“): Hat Codex etwas gefunden, das `code-pruefer` übersehen hat (Tabelle „Einsätze“ in `.claude/codex-status.md`)? Verbrauch beider Seiten (Claude: `session-report`; Codex: `/status` bzw. Usage-Dashboard).
 - **Abgelehnt** (nicht erneut vorschlagen): OmniRoute (endgültig), Ruflo, Trading-/Sniper-Skills mit Wallet (u. a. helius-jupiter, helius-dflow, helius-okx, helius-phantom). Aus ECC bewusst nicht übernommen: Plugin, Hooks, Memory, search-first, security-scan (lädt fremdes Programm per `npx`), python-review; von Helius kein MCP-Server und kein `svm` (braucht MCP).
 - **Sparsam arbeiten:** eine Aufgabe pro Sitzung (der Betreiber startet neue Aufgaben mit `/clear`), Auswertungen per Skript statt große Dateien zu lesen, Subagenten nur einsetzen, wenn sie einen klaren Zweck haben.
   **Große Dateien (`journal.csv`, `verlauf/`, `copy/`, `flugschreiber/`) nie direkt lesen, sondern per Python-Skript auswerten und nur das Ergebnis ausgeben. Subagenten bekommen nur die nötigen Zahlen, nicht ganze Dateien.**
+
+## Team Claude + Codex (seit 06.10.)
+
+Codex (OpenAI, über ChatGPT Pro) ergänzt Claude. Offizielles Plugin `openai/codex-plugin-cc` (Befehle `/codex:…`), Codex CLI, Konfiguration in `~/.codex/`. Bedienung, Modellwahl und Kontingent: `.claude/codex-anleitung.md`. Regeln für Codex selbst: `AGENTS.md`. **Review-Schranke (review gate) bleibt aus.**
+
+- **Rollen:** Claude (Opus) plant, verantwortet Bot-Logik, Copy-Wallets und Scout-Automatik, prüft, testet und **spielt als Einziger ein**. Codex prüft und erledigt klar abgegrenzte Aufgaben: Tests, Dashboard, Auswertungsskripte, Doku, Wiki.
+- **Codex arbeitet nur im eigenen Worktree `../paperbot-codex`** (losgelöst auf `origin/main`), committet und pusht nie, ändert nie Daten-Dateien, sieht keine Schlüssel. Claude holt Ergebnisse per `git -C ../paperbot-codex diff` ab, prüft und spielt selbst ein. Aufträge immer als Auftragskarte (Vorlage `.claude/codex-auftrag.md`: Ziel, Dateien, Grenzen, fertig wenn, Tests, Modell).
+- **Modell-Leiter** (nächste Stufe, wenn das Kontingent aufgebraucht ist; IDs in der Anleitung):
+  - Kritische Prüfung: Sol → Terra → warten. Muss trotzdem eingespielt werden: im Commit „ohne Codex-Prüfung“ vermerken, in `.claude/codex-status.md` eintragen und nachholen.
+  - Astra nur für die heikelsten Fälle: Bot-Logik, Wallet-Automatik oder wenn Claude und Sol uneinig sind. Ist Astra aufgebraucht, reicht dort Sol.
+  - Arbeitsaufgaben: Sol → Terra → Luna oder Claude Sonnet. Einfaches: Luna → Terra → Claude Sonnet.
+  - Claude: Opus für Planung und Bot-Logik, sonst Sonnet. Subagenten bleiben Sonnet.
+- **Kritische Prüfung `/codex:adversarial-review` ist Pflicht** vor Änderungen an Bot-Logik (`bot.py`, `copy_bot.py`, `scout_bot.py`), Copy-Wallet-Liste, Scout-Automatik und schreibenden Dashboard-Funktionen – zusätzlich zu `code-pruefer` (und `code-review` bei großen Änderungen).
+- **Funde getrennt nennen:** „Codex fand …“ und „code-pruefer fand …“ nie vermischen. Uneinigkeit: technisch entscheidet Claude, strategisch der Betreiber.
+- **Status:** `.claude/codex-status.md` (nicht committet): verfügbare Modelle, Rücksetzzeiten, nachzuholende Prüfungen, Einsätze für die Bewertung am 10.10.
+- **Nachtbetrieb** nur vorbereitet, nicht aktiv: `.claude/codex-nachtbetrieb.md`, Skript `.claude/codex-nachtlauf.ps1` (ohne `-Los` nur Probe). Start nur nach Freigabe des Betreibers.
 
 ## Goldene Regeln
 
