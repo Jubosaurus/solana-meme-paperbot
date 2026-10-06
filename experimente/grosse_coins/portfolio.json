@@ -1,27 +1,17 @@
 {
   "strategy": "EXPERIMENT_grosse_coins",
   "started": "2026-10-04T06:19:45.237650+00:00",
-  "bankroll_sol": 9.7985,
-  "positions": {
-    "39ahtL8ynzE4amH26J29C93PA5172V3ft9UuUcqQS8fz": {
-      "mint": "39ahtL8ynzE4amH26J29C93PA5172V3ft9UuUcqQS8fz",
+  "bankroll_sol": 10.039838,
+  "positions": {},
+  "closed": [
+    {
       "symbol": "AUTON",
-      "opened": 1791324483.5743449,
+      "mint": "39ahtL8ynzE4amH26J29C93PA5172V3ft9UuUcqQS8fz",
       "invested_sol": 0.2,
-      "fees_sol": 0.0015,
-      "entry_signal_usd": 0.005403411162687773,
       "entry_fill_usd": 0.00553440771868869,
       "entry_slippage_pct": 2.42,
       "roundtrip_cost_pct": 0.08,
-      "tokens_initial": 4384.429908,
-      "tokens_left": 4384.429908,
-      "decimals": 6,
-      "proceeds_sol": 0.0,
-      "peak_usd": 0.008711788461859332,
       "tp1_done": false,
-      "thesis_breaks": 0,
-      "missing_loops": 0,
-      "entry_liquidity": 506330.3352518404,
       "entry_view": {
         "age_h": 3.4208248736461004,
         "mcap": 5333512.88051811,
@@ -70,26 +60,35 @@
       },
       "phase": "heiss",
       "thesis": "Story verbreitet sich: Holder +87%/h, 321 Netto-Kaeufer 5m, 73 organisch; Block 0: 1 Kaeufer, 3.2% gekauft, 0.1% noch gehalten; Dev-Coins 1",
-      "exit_rule": "Haelfte bei 2x; Rest raus, wenn Holder schrumpfen und Netto-Verkaeufer 2x in Folge, Liquiditaet -30%, -40%, nach 1,5x nicht unter Einstand, nach 2x 30 % vom Hoch (ab 10x 25 %)",
       "mitlaeufer": null,
       "solana_tracker": null,
-      "graduated": true,
-      "liq_low_checks": 0,
-      "block0_flug": {
-        "supply": 992282343340370.0,
-        "bought": {
-          "ANppuXB58vHobrRo3A1zohwG4Gx6TcsNfp4JxqkuQ18E": 31438793605717.0
-        }
-      },
-      "flug_last": 1791326210.7707539
+      "graduated_waehrend": false,
+      "proceeds_sol": 0.241338,
+      "pnl_sol": 0.039838,
+      "pnl_pct": 19.92,
+      "peak_multiple": 1.57,
+      "exit_usd": 0.005431020792571541,
+      "exit_reason": "GEWINN_GESCHUETZT (Hoch 1.6x, zurueck auf Einstand)",
+      "hold_h": 0.51,
+      "closed_at": "2026-10-06T22:38:47.807211+00:00",
+      "runde": 1
     }
-  },
-  "closed": [],
+  ],
   "cooldown": {
     "39ahtL8ynzE4amH26J29C93PA5172V3ft9UuUcqQS8fz": 1791324483.574996
   },
-  "watch": {},
+  "watch": {
+    "39ahtL8ynzE4amH26J29C93PA5172V3ft9UuUcqQS8fz": {
+      "symbol": "AUTON",
+      "entry_fill_usd": 0.00553440771868869,
+      "opened": 1791324483.5743449,
+      "peak_usd": 0.008711788461859332,
+      "exit_usd": 0.005431020792571541,
+      "exit_reason": "GEWINN_GESCHUETZT (Hoch 1.6x, zurueck auf Einstand)",
+      "until": 1791347927.8072205
+    }
+  },
   "runde": 1,
   "shadow": {},
-  "saved_at": 1791326255.2732368
+  "saved_at": 1791326344.8805842
 }
