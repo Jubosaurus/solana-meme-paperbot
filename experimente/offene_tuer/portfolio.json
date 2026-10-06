@@ -1,7 +1,7 @@
 {
   "strategy": "EXPERIMENT_offene_tuer",
   "started": "2026-10-04T00:34:10.471054+00:00",
-  "bankroll_sol": 8.320251,
+  "bankroll_sol": 8.118751,
   "positions": {
     "3Hpjq8qGcswo5cvfcqomefe4dF7hsJ7nLuipehZ2pump": {
       "mint": "3Hpjq8qGcswo5cvfcqomefe4dF7hsJ7nLuipehZ2pump",
@@ -67,7 +67,73 @@
       "solana_tracker": null,
       "graduated": true,
       "liq_low_checks": 0,
-      "flug_last": 1791257058.9561718
+      "flug_last": 1791257134.81977
+    },
+    "2mFdrsefQmmPSiULZ7g55LoT6HwHMeA2dqyHfWLGpump": {
+      "mint": "2mFdrsefQmmPSiULZ7g55LoT6HwHMeA2dqyHfWLGpump",
+      "symbol": "ANTAGENT",
+      "opened": 1791257103.771097,
+      "invested_sol": 0.2,
+      "fees_sol": 0.0015,
+      "entry_signal_usd": 6.886741616993754e-06,
+      "entry_fill_usd": 7.0027485340419535e-06,
+      "entry_slippage_pct": 1.68,
+      "roundtrip_cost_pct": 3.36,
+      "tokens_initial": 3434129.023081,
+      "tokens_left": 3434129.023081,
+      "decimals": 6,
+      "proceeds_sol": 0.0,
+      "peak_usd": 7.0027485340419535e-06,
+      "tp1_done": false,
+      "thesis_breaks": 0,
+      "missing_loops": 0,
+      "entry_liquidity": 5160.247137429733,
+      "entry_view": {
+        "age_h": 0.9930038299825457,
+        "mcap": 6886.74161698686,
+        "liquidity": 5160.247137429733,
+        "holders": 72,
+        "holder_growth_1h": 60.0,
+        "holder_growth_5m": 1.4084507042253522,
+        "net_buyers_5m": 13,
+        "organic_buyers_5m": 4,
+        "organic_score": 36.80514958494983,
+        "price_change_1h": -7.289994055302204,
+        "price_change_5m": 24.582680516376477,
+        "buys_5m": 14,
+        "sells_5m": 10,
+        "traders_5m": 18,
+        "traders_1h": 529,
+        "buy_vol_5m": 862.8040439789894,
+        "sell_vol_5m": 319.05419914122723,
+        "buy_vol_1h": 60949.10399504477,
+        "sell_vol_1h": 59383.36396259078,
+        "organic_buy_vol_1h": 1239.4162737908036,
+        "top_holders_pct": 20.80824882044923,
+        "dev_balance_pct": 0.4897235510174902,
+        "dev_mints": 33,
+        "launchpad": "pump.fun",
+        "graduated": false,
+        "social": false,
+        "quelle": "organic1h+organic5m",
+        "trades_24h": 2248,
+        "organic_label": "medium",
+        "buy_organic_vol_5m": 9.497665019054425,
+        "jup_fees": null,
+        "hour_utc": 3
+      },
+      "bundle": {
+        "quelle": "experiment",
+        "text": "Offene Tuer: ohne Sicherheits-, Bundle- und Dev-Pruefung"
+      },
+      "phase": "heiss",
+      "thesis": "Story verbreitet sich: Holder +60%/h, 13 Netto-Kaeufer 5m, 4 organisch; Offene Tuer: ohne Sicherheits-, Bundle- und Dev-Pruefung; Dev-Coins 33",
+      "exit_rule": "Haelfte bei 2x; Rest raus, wenn Holder schrumpfen und Netto-Verkaeufer 2x in Folge, Liquiditaet -30%, -40%, nach 1,5x nicht unter Einstand, nach 2x 30 % vom Hoch (ab 10x 25 %)",
+      "mitlaeufer": null,
+      "solana_tracker": null,
+      "graduated": false,
+      "liq_low_checks": 0,
+      "flug_last": 1791257117.256479
     }
   },
   "closed": [
@@ -16602,7 +16668,8 @@
     "2Dg61W1PHZJhxBKPvbvKgMZNu1wVm9Prr6ViDi6bpump": 1791252264.4299674,
     "CzC3Kqz9Gm4sdbkC8371VXCme7AJxHVaLjBB7QGbiTTd": 1791252920.7916982,
     "E2ye1pnGQTJS2QfkiyiDLofranvL74vJr2MCX2wwpump": 1791255619.8696945,
-    "3Hpjq8qGcswo5cvfcqomefe4dF7hsJ7nLuipehZ2pump": 1791256887.3813307
+    "3Hpjq8qGcswo5cvfcqomefe4dF7hsJ7nLuipehZ2pump": 1791256887.3813307,
+    "2mFdrsefQmmPSiULZ7g55LoT6HwHMeA2dqyHfWLGpump": 1791257103.7714024
   },
   "watch": {
     "6z9CyV366aYeJDDHRwJmWdddFMqFXfuoZegMHo6CSnt9": {
@@ -16717,7 +16784,7 @@
       "symbol": "GRAIN",
       "entry_fill_usd": 8.459370877700358e-05,
       "opened": 1791249981.8917942,
-      "peak_usd": 0.00011822509330262934,
+      "peak_usd": 0.00012951609510108866,
       "exit_usd": 4.645501467045328e-05,
       "exit_reason": "NOTBREMSE (-45%)",
       "until": 1791271955.7322075
@@ -16779,5 +16846,5 @@
   },
   "runde": 2,
   "shadow": {},
-  "saved_at": 1791257060.1951602
+  "saved_at": 1791257152.5164301
 }
