@@ -1,8 +1,75 @@
 {
   "strategy": "EXPERIMENT_offene_tuer",
   "started": "2026-10-04T00:34:10.471054+00:00",
-  "bankroll_sol": 6.565605,
-  "positions": {},
+  "bankroll_sol": 6.364105,
+  "positions": {
+    "AKJxxB9MLarQGpHwTKNRW3PTpP621g2A7dCHKy7qpump": {
+      "mint": "AKJxxB9MLarQGpHwTKNRW3PTpP621g2A7dCHKy7qpump",
+      "symbol": "MUNK",
+      "opened": 1791300422.3721082,
+      "invested_sol": 0.2,
+      "fees_sol": 0.0015,
+      "entry_signal_usd": 4.415076129084398e-05,
+      "entry_fill_usd": 4.388400432071999e-05,
+      "entry_slippage_pct": -0.6,
+      "roundtrip_cost_pct": 2.95,
+      "tokens_initial": 553391.309342,
+      "tokens_left": 553391.309342,
+      "decimals": 6,
+      "proceeds_sol": 0.0,
+      "peak_usd": 4.388400432071999e-05,
+      "tp1_done": false,
+      "thesis_breaks": 0,
+      "missing_loops": 0,
+      "entry_liquidity": 7719.6461824609005,
+      "entry_view": {
+        "age_h": 1.7512219355503718,
+        "mcap": 42288.138540160006,
+        "liquidity": 7719.6461824609005,
+        "holders": 918,
+        "holder_growth_1h": 45.94594594594595,
+        "holder_growth_5m": 0.32786885245901637,
+        "net_buyers_5m": 28,
+        "organic_buyers_5m": 9,
+        "organic_score": 52.37040172264462,
+        "price_change_1h": 380.79714290466984,
+        "price_change_5m": 27.379725798014626,
+        "buys_5m": 118,
+        "sells_5m": 62,
+        "traders_5m": 46,
+        "traders_1h": 645,
+        "buy_vol_5m": 2358.137136039553,
+        "sell_vol_5m": 1985.6797828654974,
+        "buy_vol_1h": 56632.87052112166,
+        "sell_vol_1h": 50716.46230550961,
+        "organic_buy_vol_1h": 971.996600633603,
+        "top_holders_pct": 24.806682184226705,
+        "dev_balance_pct": 0.0,
+        "dev_mints": 1,
+        "launchpad": "pump.fun",
+        "graduated": true,
+        "social": false,
+        "quelle": "organic1h+organic5m+traded1h+traded5m+trend1h",
+        "trades_24h": 8399,
+        "organic_label": "medium",
+        "buy_organic_vol_5m": 19.577347643831445,
+        "jup_fees": null,
+        "hour_utc": 15
+      },
+      "bundle": {
+        "quelle": "experiment",
+        "text": "Offene Tuer: ohne Sicherheits-, Bundle- und Dev-Pruefung"
+      },
+      "phase": "ruhig",
+      "thesis": "Story verbreitet sich: Holder +46%/h, 28 Netto-Kaeufer 5m, 9 organisch; Offene Tuer: ohne Sicherheits-, Bundle- und Dev-Pruefung; Dev-Coins 1",
+      "exit_rule": "Haelfte bei 2x; Rest raus, wenn Holder schrumpfen und Netto-Verkaeufer 2x in Folge, Liquiditaet -30%, -40%, nach 1,5x nicht unter Einstand, nach 2x 30 % vom Hoch (ab 10x 25 %)",
+      "mitlaeufer": null,
+      "solana_tracker": null,
+      "graduated": true,
+      "liq_low_checks": 0,
+      "flug_last": 1791300449.8910794
+    }
+  },
   "closed": [
     {
       "symbol": "BATTLEPAD",
@@ -20068,7 +20135,8 @@
     "HT2RDdvVMvCwnBaP9keGmXQ5jBgTSbByiWqnuUzkTqvm": 1791296408.96534,
     "21fX473LMyHnCYb4kvAUG4z4bGYpqTbp9vyakDPgs9Hm": 1791297154.8614426,
     "D8GWC95Nd3XN4wWzMH5aT4CoAPnafoQQ1sPKNZ42R2Lb": 1791297961.6480467,
-    "3Z6XwJ4HLebFgujpyNJZUaEMceQyYE8d5qpSMALbpump": 1791299189.2196357
+    "3Z6XwJ4HLebFgujpyNJZUaEMceQyYE8d5qpSMALbpump": 1791299189.2196357,
+    "AKJxxB9MLarQGpHwTKNRW3PTpP621g2A7dCHKy7qpump": 1791300422.3727362
   },
   "watch": {
     "G5xsthPnLuSasgodT5mFFcpKWbwz5BXDBNX6U5D9TzcZ": {
@@ -20129,7 +20197,7 @@
       "symbol": "AGENCYBOOK",
       "entry_fill_usd": 3.39094778036827e-05,
       "opened": 1791283959.6762247,
-      "peak_usd": 4.976762775347252e-05,
+      "peak_usd": 6.25079556169973e-05,
       "exit_usd": 2.0594314552259036e-05,
       "exit_reason": "LIQUIDITAET_ABGEZOGEN",
       "until": 1791305965.6056852
@@ -20381,7 +20449,7 @@
       "symbol": "ser",
       "entry_fill_usd": 3.482886865341011e-05,
       "opened": 1791297961.647053,
-      "peak_usd": 4.3380386957817204e-05,
+      "peak_usd": 4.873574674818506e-05,
       "exit_usd": 1.92230335731842e-05,
       "exit_reason": "NOTBREMSE (-45%)",
       "until": 1791320070.0095038
@@ -20398,5 +20466,5 @@
   },
   "runde": 2,
   "shadow": {},
-  "saved_at": 1791300360.3136592
+  "saved_at": 1791300466.5421443
 }

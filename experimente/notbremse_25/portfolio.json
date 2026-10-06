@@ -1,8 +1,100 @@
 {
   "strategy": "EXPERIMENT_notbremse_25",
   "started": "2026-10-04T00:34:10.470983+00:00",
-  "bankroll_sol": 9.752514,
-  "positions": {},
+  "bankroll_sol": 9.551014,
+  "positions": {
+    "AKJxxB9MLarQGpHwTKNRW3PTpP621g2A7dCHKy7qpump": {
+      "mint": "AKJxxB9MLarQGpHwTKNRW3PTpP621g2A7dCHKy7qpump",
+      "symbol": "MUNK",
+      "opened": 1791300433.0942345,
+      "invested_sol": 0.2,
+      "fees_sol": 0.0015,
+      "entry_signal_usd": 4.415076129084398e-05,
+      "entry_fill_usd": 4.385536449787083e-05,
+      "entry_slippage_pct": -0.67,
+      "roundtrip_cost_pct": 2.84,
+      "tokens_initial": 553752.702509,
+      "tokens_left": 553752.702509,
+      "decimals": 6,
+      "proceeds_sol": 0.0,
+      "peak_usd": 4.385536449787083e-05,
+      "tp1_done": false,
+      "thesis_breaks": 0,
+      "missing_loops": 0,
+      "entry_liquidity": 7719.6461824609005,
+      "entry_view": {
+        "age_h": 1.7512219355503718,
+        "mcap": 42288.138540160006,
+        "liquidity": 7719.6461824609005,
+        "holders": 918,
+        "holder_growth_1h": 45.94594594594595,
+        "holder_growth_5m": 0.32786885245901637,
+        "net_buyers_5m": 28,
+        "organic_buyers_5m": 9,
+        "organic_score": 52.37040172264462,
+        "price_change_1h": 380.79714290466984,
+        "price_change_5m": 27.379725798014626,
+        "buys_5m": 118,
+        "sells_5m": 62,
+        "traders_5m": 46,
+        "traders_1h": 645,
+        "buy_vol_5m": 2358.137136039553,
+        "sell_vol_5m": 1985.6797828654974,
+        "buy_vol_1h": 56632.87052112166,
+        "sell_vol_1h": 50716.46230550961,
+        "organic_buy_vol_1h": 971.996600633603,
+        "top_holders_pct": 24.806682184226705,
+        "dev_balance_pct": 0.0,
+        "dev_mints": 1,
+        "launchpad": "pump.fun",
+        "graduated": true,
+        "social": false,
+        "quelle": "organic1h+organic5m+traded1h+traded5m+trend1h",
+        "trades_24h": 8399,
+        "organic_label": "medium",
+        "buy_organic_vol_5m": 19.577347643831445,
+        "jup_fees": null,
+        "hour_utc": 15
+      },
+      "bundle": {
+        "quelle": "block0",
+        "slot": 453918127,
+        "block0_wallets": 1,
+        "block0_supply_pct": 0.26,
+        "block0_still_held_pct": 0.0,
+        "block0_exited": 1,
+        "early_tx_slot1_2": 0,
+        "bundle_holding_pct": 0.0,
+        "gebuendelt": false,
+        "rugcheck_insider_pct": 0
+      },
+      "phase": "ruhig",
+      "thesis": "Story verbreitet sich: Holder +46%/h, 28 Netto-Kaeufer 5m, 9 organisch; Block 0: 1 Kaeufer, 0.3% gekauft, 0.0% noch gehalten; Dev-Coins 1",
+      "exit_rule": "Haelfte bei 2x; Rest raus, wenn Holder schrumpfen und Netto-Verkaeufer 2x in Folge, Liquiditaet -30%, -25%, nach 1,5x nicht unter Einstand, nach 2x 30 % vom Hoch (ab 10x 25 %)",
+      "mitlaeufer": null,
+      "solana_tracker": {
+        "score": 4,
+        "rugged": false,
+        "snipers_pct": 0,
+        "insiders_pct": 0,
+        "bundlers_pct": 2.469,
+        "top10_pct": 23.760199999999998,
+        "risiken": [
+          "Top 10 Holders"
+        ]
+      },
+      "graduated": true,
+      "liq_low_checks": 0,
+      "stop_pct": -25.0,
+      "block0_flug": {
+        "supply": 957812216681522.0,
+        "bought": {
+          "Ga8RkpJY7vEtgwnrx5597Au4FMbcqzapS8xLY5Yoa5yo": 2467071716458.0
+        }
+      },
+      "flug_last": 1791300449.8910794
+    }
+  },
   "closed": [
     {
       "symbol": "TUX",
@@ -4138,7 +4230,8 @@
     "FKVyaQMZsxwSEn1VMoZjFBhFieQdM4jXYkbQkj5Xpump": 1791277249.992035,
     "2KC3f1xVRjjQL2RpfeYaBKhjf9XqmcCFpajLzVLdhpos": 1791283194.3908358,
     "EhLyndhdN7K1VQokfGifFeedMztb73k57WS7Xq9mxsad": 1791283969.2815652,
-    "Bk3CZNE6iURpSqaTwPqwMNQda5EDgUyKFc6Bm2LSpump": 1791289352.006054
+    "Bk3CZNE6iURpSqaTwPqwMNQda5EDgUyKFc6Bm2LSpump": 1791289352.006054,
+    "AKJxxB9MLarQGpHwTKNRW3PTpP621g2A7dCHKy7qpump": 1791300433.0946844
   },
   "watch": {
     "2KC3f1xVRjjQL2RpfeYaBKhjf9XqmcCFpajLzVLdhpos": {
@@ -4154,7 +4247,7 @@
       "symbol": "AGENCYBOOK",
       "entry_fill_usd": 2.9180368887468445e-05,
       "opened": 1791283969.2810123,
-      "peak_usd": 4.976762775347252e-05,
+      "peak_usd": 6.25079556169973e-05,
       "exit_usd": 2.104416358050237e-05,
       "exit_reason": "NOTBREMSE (-28%)",
       "until": 1791305846.4590259
@@ -4171,5 +4264,5 @@
   },
   "runde": 1,
   "shadow": {},
-  "saved_at": 1791300360.3097725
+  "saved_at": 1791300465.4803789
 }
