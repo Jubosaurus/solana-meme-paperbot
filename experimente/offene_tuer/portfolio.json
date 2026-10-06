@@ -1,7 +1,7 @@
 {
   "strategy": "EXPERIMENT_offene_tuer",
   "started": "2026-10-04T00:34:10.471054+00:00",
-  "bankroll_sol": 8.311278,
+  "bankroll_sol": 8.109778,
   "positions": {
     "4Jx5uNbjCr9fSnqkVL6rahTgYezcEty8bL6fhfsEFie4": {
       "mint": "4Jx5uNbjCr9fSnqkVL6rahTgYezcEty8bL6fhfsEFie4",
@@ -67,7 +67,7 @@
       "solana_tracker": null,
       "graduated": false,
       "liq_low_checks": 0,
-      "flug_last": 1791280173.663351
+      "flug_last": 1791280311.1540163
     },
     "6mzzVeGWiH8zkVyr2Sytp2HzxGAnWVM8mYzqTjnEpump": {
       "mint": "6mzzVeGWiH8zkVyr2Sytp2HzxGAnWVM8mYzqTjnEpump",
@@ -133,7 +133,73 @@
       "solana_tracker": null,
       "graduated": true,
       "liq_low_checks": 0,
-      "flug_last": 1791280173.663351
+      "flug_last": 1791280311.1540163
+    },
+    "5ajpbjbjhmEvhTPrNqGhqy5A78vu7M6epbijSbe8TFXJ": {
+      "mint": "5ajpbjbjhmEvhTPrNqGhqy5A78vu7M6epbijSbe8TFXJ",
+      "symbol": "Fox",
+      "opened": 1791280284.5008712,
+      "invested_sol": 0.2,
+      "fees_sol": 0.0015,
+      "entry_signal_usd": 2.302423857939221e-05,
+      "entry_fill_usd": 2.4476872375431812e-05,
+      "entry_slippage_pct": 6.31,
+      "roundtrip_cost_pct": 3.08,
+      "tokens_initial": 977189.868342,
+      "tokens_left": 977189.868342,
+      "decimals": 6,
+      "proceeds_sol": 0.0,
+      "peak_usd": 2.4476872375431812e-05,
+      "tp1_done": false,
+      "thesis_breaks": 0,
+      "missing_loops": 0,
+      "entry_liquidity": 5071.505749773038,
+      "entry_view": {
+        "age_h": 0.3994925053252114,
+        "mcap": 22214.468090725244,
+        "liquidity": 5071.505749773038,
+        "holders": 550,
+        "holder_growth_1h": 1566.6666666666665,
+        "holder_growth_5m": 2.6119402985074625,
+        "net_buyers_5m": 86,
+        "organic_buyers_5m": 23,
+        "organic_score": 38.14667524705072,
+        "price_change_1h": 345.530827075658,
+        "price_change_5m": -11.566044170183808,
+        "buys_5m": 199,
+        "sells_5m": 142,
+        "traders_5m": 171,
+        "traders_1h": 1546,
+        "buy_vol_5m": 6852.048550802242,
+        "sell_vol_5m": 6790.438822532187,
+        "buy_vol_1h": 165319.7825668044,
+        "sell_vol_1h": 158774.2495813948,
+        "organic_buy_vol_1h": 3875.2157564856516,
+        "top_holders_pct": 22.070000701540867,
+        "dev_balance_pct": 0.0,
+        "dev_mints": 2071,
+        "launchpad": "pump.fun",
+        "graduated": true,
+        "social": true,
+        "quelle": "organic1h+organic5m+traded1h+traded5m+trend1h+trend5m",
+        "trades_24h": 6790,
+        "organic_label": "medium",
+        "buy_organic_vol_5m": 168.86275261383147,
+        "jup_fees": null,
+        "hour_utc": 9
+      },
+      "bundle": {
+        "quelle": "experiment",
+        "text": "Offene Tuer: ohne Sicherheits-, Bundle- und Dev-Pruefung"
+      },
+      "phase": "ruhig",
+      "thesis": "Story verbreitet sich: Holder +1567%/h, 86 Netto-Kaeufer 5m, 23 organisch; Offene Tuer: ohne Sicherheits-, Bundle- und Dev-Pruefung; Dev-Coins 2071",
+      "exit_rule": "Haelfte bei 2x; Rest raus, wenn Holder schrumpfen und Netto-Verkaeufer 2x in Folge, Liquiditaet -30%, -40%, nach 1,5x nicht unter Einstand, nach 2x 30 % vom Hoch (ab 10x 25 %)",
+      "mitlaeufer": null,
+      "solana_tracker": null,
+      "graduated": true,
+      "liq_low_checks": 0,
+      "flug_last": 1791280297.9051635
     }
   },
   "closed": [
@@ -18033,7 +18099,8 @@
     "2coPLYtPnAFmeUJCUbqJcveG1REUew6623A3xPhypump": 1791277974.0781617,
     "G5xsthPnLuSasgodT5mFFcpKWbwz5BXDBNX6U5D9TzcZ": 1791278196.818375,
     "4Jx5uNbjCr9fSnqkVL6rahTgYezcEty8bL6fhfsEFie4": 1791278419.4310107,
-    "6mzzVeGWiH8zkVyr2Sytp2HzxGAnWVM8mYzqTjnEpump": 1791280087.2693005
+    "6mzzVeGWiH8zkVyr2Sytp2HzxGAnWVM8mYzqTjnEpump": 1791280087.2693005,
+    "5ajpbjbjhmEvhTPrNqGhqy5A78vu7M6epbijSbe8TFXJ": 1791280284.5015202
   },
   "watch": {
     "CcbbD5mKejqgegKrqWzqeeKhLX53wbB3F4vsGtscpump": {
@@ -18228,5 +18295,5 @@
   },
   "runde": 2,
   "shadow": {},
-  "saved_at": 1791280224.0438359
+  "saved_at": 1791280313.4647982
 }
