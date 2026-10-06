@@ -1,7 +1,7 @@
 {
   "strategy": "EXPERIMENT_offene_tuer",
   "started": "2026-10-04T00:34:10.471054+00:00",
-  "bankroll_sol": 5.640247,
+  "bankroll_sol": 5.438747,
   "positions": {
     "BbtXWZdiM237Jzfz2MjAKeRjUGc314qUYiMJ3zuDFZ9u": {
       "mint": "BbtXWZdiM237Jzfz2MjAKeRjUGc314qUYiMJ3zuDFZ9u",
@@ -67,7 +67,73 @@
       "solana_tracker": null,
       "graduated": false,
       "liq_low_checks": 0,
-      "flug_last": 1791305967.0670376
+      "flug_last": 1791306111.4936535
+    },
+    "HrK6mamxc2anu1isSPYLzWAbx6UmWqJwhbAtDy6Xu4An": {
+      "mint": "HrK6mamxc2anu1isSPYLzWAbx6UmWqJwhbAtDy6Xu4An",
+      "symbol": "onkey",
+      "opened": 1791306097.495748,
+      "invested_sol": 0.2,
+      "fees_sol": 0.0015,
+      "entry_signal_usd": 3.9993835519724555e-05,
+      "entry_fill_usd": 3.9919291439023056e-05,
+      "entry_slippage_pct": -0.19,
+      "roundtrip_cost_pct": 2.77,
+      "tokens_initial": 603233.792208,
+      "tokens_left": 603233.792208,
+      "decimals": 6,
+      "proceeds_sol": 0.0,
+      "peak_usd": 3.9919291439023056e-05,
+      "tp1_done": false,
+      "thesis_breaks": 0,
+      "missing_loops": 0,
+      "entry_liquidity": 12550.766380020486,
+      "entry_view": {
+        "age_h": 0.49678128666347926,
+        "mcap": 39993.835519724555,
+        "liquidity": 12550.766380020486,
+        "holders": 369,
+        "holder_growth_1h": 583.3333333333333,
+        "holder_growth_5m": 20.983606557377048,
+        "net_buyers_5m": 98,
+        "organic_buyers_5m": 16,
+        "organic_score": 44.04034226929576,
+        "price_change_1h": 224.89634066195813,
+        "price_change_5m": 19.13815023407615,
+        "buys_5m": 247,
+        "sells_5m": 311,
+        "traders_5m": 199,
+        "traders_1h": 843,
+        "buy_vol_5m": 7484.434504028736,
+        "sell_vol_5m": 7153.742710400855,
+        "buy_vol_1h": 87297.06566374958,
+        "sell_vol_1h": 78435.19259955392,
+        "organic_buy_vol_1h": 4318.554846446521,
+        "top_holders_pct": 26.1973662382828,
+        "dev_balance_pct": 0.0,
+        "dev_mints": 998,
+        "launchpad": "pump.fun",
+        "graduated": false,
+        "social": true,
+        "quelle": "organic1h+organic5m+traded1h+traded5m+trend1h+trend5m",
+        "trades_24h": 3372,
+        "organic_label": "medium",
+        "buy_organic_vol_5m": 241.27396708025563,
+        "jup_fees": null,
+        "hour_utc": 17
+      },
+      "bundle": {
+        "quelle": "experiment",
+        "text": "Offene Tuer: ohne Sicherheits-, Bundle- und Dev-Pruefung"
+      },
+      "phase": "normal",
+      "thesis": "Story verbreitet sich: Holder +583%/h, 98 Netto-Kaeufer 5m, 16 organisch; Offene Tuer: ohne Sicherheits-, Bundle- und Dev-Pruefung; Dev-Coins 998",
+      "exit_rule": "Haelfte bei 2x; Rest raus, wenn Holder schrumpfen und Netto-Verkaeufer 2x in Folge, Liquiditaet -30%, -40%, nach 1,5x nicht unter Einstand, nach 2x 30 % vom Hoch (ab 10x 25 %)",
+      "mitlaeufer": null,
+      "solana_tracker": null,
+      "graduated": false,
+      "liq_low_checks": 0,
+      "flug_last": 1791306111.4936535
     }
   },
   "closed": [
@@ -20880,7 +20946,8 @@
     "oPtRQNELaoMDRsyHVS9i1qGqpX66CDSowBAqw8xpump": 1791303700.8258326,
     "CyJ4cWzi5dUD6gq8SxGW67k5bRMKzPTL5yGE7ARgT2RY": 1791304374.4568288,
     "uwBoM1HVxtggwBZYoKbxzrpTYypHUB1McrW9ou6pump": 1791305111.7992325,
-    "BbtXWZdiM237Jzfz2MjAKeRjUGc314qUYiMJ3zuDFZ9u": 1791305454.8852804
+    "BbtXWZdiM237Jzfz2MjAKeRjUGc314qUYiMJ3zuDFZ9u": 1791305454.8852804,
+    "HrK6mamxc2anu1isSPYLzWAbx6UmWqJwhbAtDy6Xu4An": 1791306097.4974787
   },
   "watch": {
     "AL7JRqg4dmfYnEN7LDEibH9m2kX2gUQZPji1rNECQAQn": {
@@ -21112,7 +21179,7 @@
       "symbol": "CHONK",
       "entry_fill_usd": 0.00023009648091407194,
       "opened": 1791293865.0900471,
-      "peak_usd": 0.0007409850770910891,
+      "peak_usd": 0.0007951864032536972,
       "exit_usd": 0.00045241452871518106,
       "exit_reason": "STORY_ABGEKUEHLT (30% unter dem Hoch von 2.9x)",
       "until": 1791318518.0404193
@@ -21255,5 +21322,5 @@
   },
   "runde": 2,
   "shadow": {},
-  "saved_at": 1791306020.2616224
+  "saved_at": 1791306112.8344865
 }
