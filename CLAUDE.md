@@ -69,7 +69,7 @@ Jeder Bot hat `--probe` (Kurztest ohne Handel, Ausgabe für die Kontrolle).
 
 ## Team Claude + Codex (seit 06.10.)
 
-Codex (OpenAI, über ChatGPT Pro) ergänzt Claude. Offizielles Plugin `openai/codex-plugin-cc` (Befehle `/codex:…`), Codex CLI, Konfiguration in `~/.codex/`. Bedienung, Modellwahl und Kontingent: `.claude/codex-anleitung.md`. Regeln für Codex selbst: `AGENTS.md`. **Review-Schranke (review gate) bleibt aus.**
+Codex (OpenAI, über ChatGPT Pro) ergänzt Claude. Offizielles Plugin `openai/codex-plugin-cc` (Befehle `/codex:…`), Codex CLI, Konfiguration in `~/.codex/`. Bedienung, Modellwahl und Kontingent: `.claude/codex-anleitung.md` (dort auch der Aufruf von Claude aus: `/codex:adversarial-review` geht nicht über das Skill-Werkzeug, sondern direkt über das Plugin-Skript). Regeln für Codex selbst: `AGENTS.md`. **Review-Schranke (review gate) bleibt aus.**
 
 - **Rollen:** Claude (Opus) plant, verantwortet Bot-Logik, Copy-Wallets und Scout-Automatik, prüft, testet und **spielt als Einziger ein**. Codex prüft und erledigt klar abgegrenzte Aufgaben: Tests, Dashboard, Auswertungsskripte, Doku, Wiki.
 - **Codex arbeitet nur im eigenen Worktree `../paperbot-codex`** (losgelöst auf `origin/main`), committet und pusht nie, ändert nie Daten-Dateien, sieht keine Schlüssel. Claude holt Ergebnisse per `git -C ../paperbot-codex diff` ab, prüft und spielt selbst ein. Aufträge immer als Auftragskarte (Vorlage `.claude/codex-auftrag.md`: Ziel, Dateien, Grenzen, fertig wenn, Tests, Modell).
@@ -79,6 +79,7 @@ Codex (OpenAI, über ChatGPT Pro) ergänzt Claude. Offizielles Plugin `openai/co
   - Arbeitsaufgaben: Sol → Terra → Luna oder Claude Sonnet. Einfaches: Luna → Terra → Claude Sonnet.
   - Claude: Opus für Planung und Bot-Logik, sonst Sonnet. Subagenten bleiben Sonnet.
 - **Kritische Prüfung `/codex:adversarial-review` ist Pflicht** vor Änderungen an Bot-Logik (`bot.py`, `copy_bot.py`, `scout_bot.py`), Copy-Wallet-Liste, Scout-Automatik und schreibenden Dashboard-Funktionen – zusätzlich zu `code-pruefer` (und `code-review` bei großen Änderungen).
+- **Nachprüfung:** Ändert sich der Code nach einer Prüfung (z. B. durch Codex-Nachbesserungen), prüft `code-pruefer` die Endfassung erneut, bevor eingespielt wird.
 - **Funde getrennt nennen:** „Codex fand …“ und „code-pruefer fand …“ nie vermischen. Uneinigkeit: technisch entscheidet Claude, strategisch der Betreiber.
 - **Status:** `.claude/codex-status.md` (nicht committet): verfügbare Modelle, Rücksetzzeiten, nachzuholende Prüfungen, Einsätze für die Bewertung am 10.10.
 - **Nachtbetrieb** nur vorbereitet, nicht aktiv: `.claude/codex-nachtbetrieb.md`, Skript `.claude/codex-nachtlauf.ps1` (ohne `-Los` nur Probe). Start nur nach Freigabe des Betreibers.
