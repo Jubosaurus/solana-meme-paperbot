@@ -79,11 +79,12 @@ Für Prüfungen in einem anderen Ordner (Worktree) nimmt das Plugin intern `--cw
 `/codex:review` und `/codex:adversarial-review` sind im Plugin mit `disable-model-invocation: true` markiert. Das heißt: **Claude kann sie nicht über das Skill-Werkzeug starten** (das war der Grund für den Fehlschlag am 06.10.); sie funktionieren nur, wenn der Betreiber den Befehl selbst eintippt. Der Aufruf von Claude aus geht direkt über das Plugin-Skript (Bash, im Hauptordner oder mit `--cwd <Ordner>`):
 
 ```
-node "C:/Users/admin/.claude/plugins/cache/openai-codex/codex/1.0.6/scripts/codex-companion.mjs" adversarial-review --wait --model gpt-6.1-sol --base HEAD~1 "Fokus: ..."
+CODEX_DIR=$(ls -d ~/.claude/plugins/cache/openai-codex/codex/*/ | sort -V | tail -1)
+node "${CODEX_DIR}scripts/codex-companion.mjs" adversarial-review --wait --model gpt-6.1-sol --base HEAD~1 "Fokus: ..."
 ```
 
 - `--wait` = im Vordergrund; für längere Läufe stattdessen `run_in_background` im Bash-Werkzeug nutzen und mit `... status` / `... result` abholen.
 - Unterstützt: `--base <ref>`, `--scope auto|working-tree|branch`, `--model`, `--cwd`; Fokustext am Ende.
-- Der Pfad enthält die Plugin-Version (1.0.6); nach einem Plugin-Update anpassen. Probe ohne Verbrauch: dasselbe Skript mit `setup` (zeigt „Status: ready“).
+- Die erste Zeile findet die neueste installierte Plugin-Version automatisch (Stand 06.10.: 1.0.6); nach einem Plugin-Update ist nichts anzupassen. Probe ohne Verbrauch: dasselbe Skript mit `setup` (zeigt „Status: ready“).
 - Die Warnung „DEP0190“ ist harmlos.
 
