@@ -1,4 +1,6 @@
 """Wallet-Waechter: ausschliesslich lokale Daten anzeigen, keine Aktionen."""
+import re
+
 import streamlit as st
 
 import ansicht as a
@@ -6,9 +8,21 @@ import daten
 import rechnung
 
 
-def details(paare):
+def automatische_entfernung(ereignis):
+    """Nur der ausdrueckliche Scout-Vermerk belegt die Herkunft einer Entfernung.
+
+    Das Feld 'automatisch' der Rechnung dient der Tageslimit-Zaehlung, nicht dieser Plakette.
+    """
+    return (ereignis.get("art") == "Entfernung"
+            and re.match(r"^\s*entfernt\s+\d{2}\.\d{2}\.\s+automatisch\s*:",
+                         str(ereignis.get("grund", "")), re.IGNORECASE) is not None)
+
+
+def details(paare, automatisch=False):
     """Nexus-Zeilen umbrechen auch bei langen Adressen auf 390 px."""
-    a.ereignisse([(a.e(angabe), a.e(wert)) for angabe, wert in paare])
+    a.ereignisse([(a.e(angabe), a.e(wert) + (" " + a.chip("automatisch")
+                                          if automatisch and angabe == "Änderung" else ""))
+                 for angabe, wert in paare])
 
 
 a.seitenkopf("Wallet-Wächter", "Scout-Automatik im Blick · nur Vorschau, keine Änderungen.")
@@ -52,26 +66,25 @@ st.subheader("Aktive Wallets", anchor=False)
 if not u["wallets"]:
     a.leer("Keine aktiven Wallets gefunden")
 else:
-    a.raster([a.karte(z["name"], {"rot": "✗ Rot", "gelb": "▲ Gelb", "gruen": "✓ Grün"}[z["ampel"]],
-                      oben_rechts=a.chip("Vorschau", {"rot": "schlecht", "gelb": "achtung", "gruen": "gut"}[z["ampel"]]),
-                      unter=a.e(" · ".join(z["gruende"] or (["Schonfrist"] if z["schonfrist"] else
-                                            ["Datenlücke"] if z["luecken"] else ["Keine Regel greift"]))), klein=True)
-              for z in u["wallets"]])
-    for z in u["wallets"]:
-        with st.expander(z["name"]):
-            details([
-                ("Adresse", z["wallet"]),
-                ("Start", rechnung.zeit_text(z["gestartet"])),
-                ("Letzter eigener Trade", rechnung.zeit_text(z["letzter_trade"])),
-                ("Pause (ohne Trade seit Start)", a.txt(z["pause_h"], 1, einheit=" h")),
-                ("Geschlossene Positionen", a.txt(z["geschlossen"], 0)),
-                ("Ergebnis geschlossen roh, alle Runden (Wallet-Regel)", a.plusminus(z["ergebnis"])),
-                ("Ergebnis roh einschließlich offener Positionen", a.plusminus(z["ergebnis_seit_start"])),
-                ("Schonfrist für Ergebnis", "Ja · unter 7 Tagen und 30 Positionen" if z["schonfrist"] else "Nein / nicht belegt"),
-                ("Scout-Bewertung", rechnung.zeit_text(z["scout_zeit"])),
-                ("Flutschutz-Abmeldung", rechnung.zeit_text(z["flutschutz_zeit"])),
-            ])
-            for h in z["luecken"]:
+    a.wallet_liste(u["wallets"])
+    with st.expander("Wallet-Details", icon=":material/info:"):
+        wallets = sorted(u["wallets"], key=lambda z: {"rot": 0, "gelb": 1, "gruen": 2}[z["ampel"]])
+        name = st.selectbox("Wallet", [z["name"] for z in wallets], key="waechter_wallet")
+        z = next(z for z in wallets if z["name"] == name)
+        details([
+            ("Adresse", z["wallet"]),
+            ("Start", rechnung.zeit_text(z["gestartet"])),
+            ("Letzter eigener Trade", rechnung.zeit_text(z["letzter_trade"])),
+            ("Pause (ohne Trade seit Start)", a.txt(z["pause_h"], 1, einheit=" h")),
+            ("Geschlossene Positionen", a.txt(z["geschlossen"], 0)),
+            ("Ergebnis geschlossen roh, alle Runden (Wallet-Regel)", a.plusminus(z["ergebnis"])),
+            ("Ergebnis roh einschließlich offener Positionen", a.plusminus(z["ergebnis_seit_start"])),
+            ("Schonfrist für Ergebnis", "Ja · unter 7 Tagen und 30 Positionen" if z["schonfrist"] else "Nein / nicht belegt"),
+            ("Scout-Bewertung", rechnung.zeit_text(z["scout_zeit"])),
+            ("Flutschutz-Abmeldung", rechnung.zeit_text(z["flutschutz_zeit"])),
+        ])
+        for h in z["luecken"]:
+            if h != a.SCOUT_LUECKE:
                 a.hinweis(h)
     st.caption("Verlustregel: mindestens 30 geschlossene Positionen und mehr als 1 SOL Verlust roh über alle Runden, "
                "aus geschlossenen Positionen. Die Vorschau nutzt die gemeinsame Copy-Rechnung.")
@@ -107,4 +120,4 @@ with st.expander("Heutige Änderungen aus der lokalen Git-Historie", icon=":mate
             ("Zeit", rechnung.zeit_text(e["zeit"])),
             ("Änderung", e["art"]),
             ("Grund", e["grund"]),
-        ])
+        ], automatisch=automatische_entfernung(e))

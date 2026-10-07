@@ -42,6 +42,11 @@ for z in zeilen:
         f"{a.e(rechnung.zeit_text(z['letzte']))}<br>{n} {'Lücke' if n == 1 else 'Lücken'} über {GRENZE_MIN} min "
         f"in 48 h" + (f", zusammen {rechnung.dauer_text(dauer)}" if n else ""),
         oben_rechts=status_chip(z["status"]), klein=True))
+# Fehlende Historie sichtbar machen, ohne Dateizeiten als Bot-Lauf zu deuten.
+for bot in rechnung.BOT_COMMITS:
+    if bot not in commits:
+        karten.append(a.karte(bot, "Datenstand fehlt", "Die Git-Historie ist nicht verfügbar.",
+                              oben_rechts=a.chip("nicht prüfbar"), klein=True))
 karten.append(a.karte("Scout", f"Lauf {a.vor(scout_lauf)}",
                             f"{a.e(rechnung.zeit_text(scout_lauf))}<br>läuft alle 6 Stunden",
                             oben_rechts=status_chip(scout_status), klein=True))
@@ -55,6 +60,8 @@ luecken = [{"Bot": z["bot"], "von": rechnung.zeit_text(a), "bis": rechnung.zeit_
 if luecken:
     df = pd.DataFrame(sorted(luecken, key=lambda x: -x["_start"])).drop(columns="_start")
     a.datentabelle(df, alt_text="Lücken je Bot")
+elif not all(commits.get(bot) for bot in rechnung.BOT_COMMITS):
+    a.leer("Lücken nicht prüfbar", "Für mindestens einen Bot fehlen Zeitpunkte aus der Git-Historie.")
 else:
     a.leer("Keine Lücken über 20 min", "In den letzten 48 Stunden kamen die Bot-Daten ohne größere Unterbrechung an.")
 
@@ -88,7 +95,7 @@ a.raster(karten)
 
 detail = daten.messung_detail(head)
 st.subheader("Ausführungskosten genauer: typisch und im schlechten Fall", anchor=False)
-a.tabelle(pd.DataFrame([{
+a.datentabelle(pd.DataFrame([{
     "Bot": m["quelle"], "Aktion": "Kauf" if m["aktion"] == "KAUF" else "Verkauf", "Messungen": m["anzahl"],
     "Median": m["median"], "schlechteste 10 % im Mittel": m["schlechteste_10"],
     "jede zehnte schlechter als": m["schwelle_10"],
@@ -99,6 +106,11 @@ a.tabelle(pd.DataFrame([{
     "schlechteste 10 % im Mittel": (1, True, " %"), "jede zehnte schlechter als": (1, True, " %"),
     "über 5 % schlechter": (0, False, " %"), "Abstand der 2. Quote, Median": (1, False, " s"),
     "Abstand, längster": (1, False, " s"),
+}, alt_text="Ausführungskosten genauer", hauptspalten=[
+    "Bot", "Aktion", "Messungen", "Median", "schlechteste 10 % im Mittel",
+    "jede zehnte schlechter als", "über 5 % schlechter",
+], detail_gruppen={
+    "Abstand der beiden Quotes": ["Bot", "Aktion", "Abstand der 2. Quote, Median", "Abstand, längster"],
 })
 st.caption("Plus = 2 Sekunden später hätten wir weniger bekommen (Kauf: weniger Token, Verkauf: weniger SOL). "
            "Der Median liegt meist bei 0; die Kosten stecken im schlechten Zehntel, vor allem bei schnellen "

@@ -53,3 +53,6 @@ Noch offen:
 
 ## 07.10.2026 (Tag 17)
 - Eingespeist: [[Q-2026-10-07-Tag17]] (Zwischenstand FOMO_SPRUNG, Regel bleibt) in [[Tag-17-FOMO]].
+
+## 07.10.2026 (Nexus Core Teil 3)
+- Eingespeist: [[Q-2026-10-07-Nexus-Core-Teil3]] in [[Nexus-Core]] (neues Logo als PNG, Leitsatz, Wächter-Plakette „automatisch“, fünf Fotorunden, Kontowerte unverändert, Codex-Sandbox ohne Browser).

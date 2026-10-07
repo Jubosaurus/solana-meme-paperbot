@@ -1,5 +1,6 @@
 """Rennbahn: gemeinsame Zahlen, Kosten, Runden, Datenluecken und Seitenauswahl."""
 import copy
+import json
 import sys
 from pathlib import Path
 
@@ -209,3 +210,40 @@ def test_seite_leere_daten_und_ladefehler(seite, monkeypatch):
     app.run()
     assert not app.exception
     assert any("Konten konnten nicht geladen" in e.value for e in app.get("html"))
+
+
+@pytest.mark.parametrize("mit_kosten", [False, True])
+def test_seite_legende_und_getrennte_rangwerte(seite, mit_kosten):
+    import ansicht as a
+    import stil
+    app, rennen = seite
+    vorher = copy.deepcopy(rennen)
+    app.run()
+    # Alle Konten einschliesslich beendeter Experimente muessen zuordenbar sein.
+    app.multiselect[0].set_value([k["key"] for k in rennen["rangliste"] + rennen["beendet"]]).run()
+    if mit_kosten:
+        app.button_group[0].set_value("mit Kosten").run()
+    assert not app.exception
+    spec = json.loads(app.get("vega_lite_chart")[0].proto.spec)
+    linien = spec["layer"][1]["encoding"]
+    farbe = linien["color"]
+    assert farbe["legend"]["orient"] == "bottom"
+    assert farbe["legend"]["columns"] == 1 and farbe["legend"]["labelLimit"] == 0
+    konten = rennen["rangliste"] + rennen["beendet"]
+    assert set(farbe["scale"]["domain"]) == {k["label"] for k in konten}
+    zuordnung = dict(zip(farbe["scale"]["domain"], farbe["scale"]["range"]))
+    assert zuordnung[zeile(rennen, r.KONTROLLE)["label"]] == stil.KONTROLLE
+    assert zuordnung[zeile(rennen, "ohne_limit")["label"]] == stil.NEUTRAL
+    assert linien["y"]["field"] == ("mit_kosten" if mit_kosten else "roh")
+    tabellen = [e.value for e in app.get("html") if '<div class="nx-tabelle"' in e.value]
+    rangtabellen = [t for t in tabellen if '>Konto</th>' in t]
+    assert len(rangtabellen) == 2
+    for t in rangtabellen:
+        assert t.count("<th ") == 3
+        assert '>roh</th>' in t and '>mit Kosten</th>' in t
+        assert "Roh / mit Kosten" not in t
+    for k in konten:
+        t = rangtabellen[1] if k["beendet"] else rangtabellen[0]
+        assert a.plusminus(k["ergebnis"]) in t
+        assert a.plusminus(k["ergebnis_kosten"]) in t
+    assert rennen == vorher

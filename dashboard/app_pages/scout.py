@@ -55,7 +55,14 @@ a.datentabelle(pd.DataFrame([{
     "Punkte": "Bewertung des Scouts (höher = besser)",
     "abgeschl. Coins": "Abgeschlossene Coins im 7-Tage-Fenster. Wenige = unsichere Punktzahl",
     "Reibung pp": "Geschätzte Kosten fürs Kopieren (Prozentpunkte)",
-}, leer_text="Noch keine bewerteten Wallets.")
+}, leer_text="Noch keine bewerteten Wallets.", einzeilig={"Wallet"}, hauptspalten=[
+    "Rang", "Wallet", "Punkte", "abgeschl. Coins", "Trefferquote", "Rendite ohne besten %", "im Copy",
+], detail_gruppen={
+    "Handel und Kosten": ["Wallet", "Trades je Tag", "Reibung pp", "Haltedauer min", "Verkäufe < 60 s",
+                         "Kauf median SOL", "Bot-Gebühr-Anteil"],
+    "Quelle und Prüfstand": ["Wallet", "Quelle", "bewertet", "Adresse"],
+})
+st.caption(f"{len(bewertet)} bewertete Wallets, alle Zeilen enthalten.")
 st.caption("Vorsicht bei sehr hohen Punkten mit wenigen abgeschlossenen Coins: Dann bläht oft ein einzelner "
            "Treffer die Rendite stark auf.")
 

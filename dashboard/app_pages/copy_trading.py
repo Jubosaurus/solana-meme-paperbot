@@ -58,7 +58,7 @@ a.raster([
             f"{sum(1 for k in liste if k['aktiv'])} im Plus"),
     a.karte("Verzögerung beim Kauf", f"{rechnung.zahl(statistics.median(verz), 1)} s" if verz else "–",
             "Median nach dem Trader"),
-], gross=True)
+], vierer=True)
 
 for name, wert, anteil in rechnung.ausreisser([(k["name"], k["ergebnis_seit_start"]) for k in liste]):
     a.hinweis(a.ausreisser_text(name, wert, anteil, gesamt, "im Copy Trading"))
@@ -112,7 +112,12 @@ a.datentabelle(pd.DataFrame([{
                           "schon wieder verkauft (Exit-Liquiditaet)",
     "raus vor uns": "Anteil, bei dem der Trader schon verkauft hatte, bevor unser Kauf ausgefuehrt war "
                     "– dann kaufen wir seine Ware",
-})
+}, hauptspalten=["Trader", "seit Start", "laufende Runde", "Runde", "Kontowert", "offen", "geschlossen"],
+   detail_gruppen={
+       "Vergleich mit dem Trader": ["Trader", "vorsichtig", "wir %", "Trader %", "Verzögerung s", "Preisabstand %"],
+       "Nicht gekauft und frühe Verkäufe": ["Trader", "Schatten", "Schatten SOL", "Trader raus ≤ 60 s", "raus vor uns"],
+       "Letzter Trade und Hinweise": ["Trader", "letzter Trade", "Hinweise"],
+   })
 st.caption("Wallet-Regeln: 72 h ohne Trade → ersetzen; nach 30 Positionen und mehr als 1 SOL Verlust → prüfen. "
            "Der Bot entscheidet nichts selbst, die Entscheidung triffst du.")
 

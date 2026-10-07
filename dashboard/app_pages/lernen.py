@@ -48,7 +48,8 @@ if kalender:
         "Tempo je Tag": round(z["tempo_pro_tag"], 1), "Urteil": wann(z),
         "voraussichtlich": rechnung.zeit_text(z["eta"]) if z["eta"] and z["rest"] else "",
         "Stand heute": z["urteil"],
-    } for z in kalender]), zahlen={"Fortschritt": (0, False, " %"), "Tempo je Tag": (1, False, "")})
+    } for z in kalender]), zahlen={"Fortschritt": (0, False, " %"), "Tempo je Tag": (1, False, "")},
+        einzeilig={"Trades", "Urteil", "voraussichtlich"}, layout="urteilskalender")
     st.caption("Tempo je Tag: abgeschlossene Trades je Tag, Schnitt der letzten 3 Tage.")
     st.caption("Gezählt wie im Testurteil: nur Trades, die im selben Zeitraum wie die Kontrollgruppe geschlossen "
                "wurden. Das Datum ist eine Schätzung aus dem Tempo der letzten 3 Tage.")

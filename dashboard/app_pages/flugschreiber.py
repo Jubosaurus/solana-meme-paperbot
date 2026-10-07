@@ -97,7 +97,8 @@ for i, (feld, titel, referenz) in enumerate(vorhanden):
     x = alt.X("minuten_seit_kauf:Q", title="Minuten seit Kauf" if letzte else None, axis=alt.Axis(tickCount=8),
               scale=alt.Scale(domain=x_bereich))
     linie = alt.Chart(d).mark_line(color=stil.VIOLETT, strokeWidth=2, interpolate="step-after").encode(
-        x=x, y=alt.Y(f"{feld}:Q", title=titel, scale=alt.Scale(zero=False)),
+        x=x, y=alt.Y(f"{feld}:Q", title=titel, scale=alt.Scale(zero=False),
+                       axis=alt.Axis(minExtent=72, maxExtent=72, titlePadding=10)),
         tooltip=[alt.Tooltip("minuten_seit_kauf:Q", title="Minute", format=".1f"),
                  alt.Tooltip(f"{feld}:Q", title=titel, format=",.2f")])
     teile = [linie]

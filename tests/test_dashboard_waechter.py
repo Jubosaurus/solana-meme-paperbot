@@ -1,6 +1,7 @@
 """Wallet-Waechter: synthetische lokale Daten, Grenzwerte und reine Vorschau."""
 import csv
 import json
+import re
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
@@ -237,6 +238,47 @@ def test_git_fehler_ist_unbekannt_statt_null(monkeypatch, tmp_path):
     assert u["heute"]["anzahl"] is None and u["heute"]["rest"] is None
 
 
+def test_seite_plakette_nur_fuer_belegte_automatische_entfernungen(tmp_path, monkeypatch):
+    pytest.importorskip("streamlit")
+    import threading
+    import time
+    from streamlit.testing.v1 import AppTest
+    import ansicht
+    import daten
+
+    monkeypatch.setattr(time, "sleep", lambda s: threading.Event().wait(s))
+    gruende = {
+        "haru": "entfernt 07.10. automatisch: still, seit 74 h kein eigener Trade; ohne Ersatz",
+        "koko": "entfernt 07.10. automatisch: still, seit 81 h kein eigener Trade; ohne Ersatz",
+        "Tausch": "entfernt 07.10. automatisch: 80 h still; ersetzt durch Neu",
+        "Hand": "entfernt 07.10.: still, seit 80 h kein eigener Trade; von Hand",
+        "Unklar": "entfernt 07.10.: 72 h still",
+        "Erwaehnung": "entfernt 07.10.: von Hand; automatisch vorgeschlagen",
+    }
+    ab = datetime(2026, 10, 7, tzinfo=timezone.utc).timestamp()
+    log = f"WAECHTER:{int(ab)}\n" + "".join(
+        f"-{name}: {addr(name)}\n+# {name}: {addr(name)} <- {grund}\n"
+        for name, grund in gruende.items())
+    log += f"+# 07.10. automatisch aufgenommen: geeignet\n+Neu: {addr('Neu')}\n"
+    monkeypatch.setattr(r.subprocess, "run", lambda *args, **kw: SimpleNamespace(returncode=0, stdout=log))
+    repo = repository(tmp_path, {})
+    u = r.waechter_uebersicht(repo, JETZT)
+    assert u["heute"]["anzahl"] == 1 and u["heute"]["rest"] == 2
+    # Reine Entfernungen behalten das Zaehler-Feld False, auch mit sichtbarer Plakette.
+    assert all(not e["automatisch"] for e in u["heute"]["ereignisse"] if e["art"] == "Entfernung")
+    monkeypatch.setattr(daten, "waechter", lambda head: u)
+    monkeypatch.setattr(ansicht, "bot_status_eintraege", lambda: [])
+    app = AppTest.from_file(str(DASHBOARD / "app_pages/waechter.py"), default_timeout=15).run()
+    assert not app.exception
+    html = [e.value for e in app.get("html")]
+    plakette = r'<span class="pb-chip\s*">automatisch</span>'
+    for name in gruende:
+        eintrag = next(h for h in html if f">{name}</" in h and "Entfernung" in h)
+        assert (re.search(plakette, eintrag) is not None) == (name in {"haru", "koko", "Tausch"})
+    assert not any(re.search(plakette, h) for h in html if "Aufnahme / Ersetzen" in h)
+    assert u["heute"]["anzahl"] == 1 and u["heute"]["rest"] == 2
+
+
 def test_cache_vermeidet_neues_lesen(monkeypatch):
     pytest.importorskip("streamlit")
     import daten
@@ -247,6 +289,38 @@ def test_cache_vermeidet_neues_lesen(monkeypatch):
     daten.waechter("waechter-test")
     assert calls == [1]
     daten.waechter.clear()
+
+
+def test_kompakte_liste_und_wallet_details_wechsel(tmp_path, monkeypatch, keine_historie):
+    pytest.importorskip("streamlit")
+    import threading
+    import time
+    from streamlit.testing.v1 import AppTest
+    import ansicht
+    import daten
+    monkeypatch.setattr(time, "sleep", lambda s: threading.Event().wait(s))
+    repo = repository(tmp_path, {"Jung": konto("Jung", alter=1),
+                                "Verlust": konto("Verlust", n=30, pnl=-2)})
+    u = r.waechter_uebersicht(repo, JETZT)
+    monkeypatch.setattr(daten, "waechter", lambda head: u)
+    monkeypatch.setattr(ansicht, "bot_status_eintraege", lambda: [])
+    app = AppTest.from_file(str(DASHBOARD / "app_pages/waechter.py"), default_timeout=15).run()
+    assert not app.exception
+    liste = next(e.value for e in app.get("html") if "nx-waechter-zeile" in e.value)
+    assert liste.index(">Verlust</") < liste.index(">Jung</")
+    assert "pb-chip" not in liste
+    assert "Aktuelle Scout-Prüfung fehlt" not in liste and "<span>Hinweis</span>" not in liste
+    html = "".join(e.value for e in app.get("html"))
+    assert html.count("Aktuelle Scout-Prüfung fehlt") == 1
+    assert any("1 Gelb · 1 Rot · 0 Grün" in e.value for e in app.caption)
+    assert len([e for e in app.expander if e.label == "Wallet-Details"]) == 1
+    assert app.selectbox[0].value == "Verlust"
+    details = next(e.value for e in app.get("html") if ">Adresse</" in e.value)
+    assert addr("Verlust") in details and addr("Jung") not in details
+    app.selectbox[0].select("Jung").run()
+    assert not app.exception
+    details = next(e.value for e in app.get("html") if ">Adresse</" in e.value)
+    assert addr("Jung") in details and addr("Verlust") not in details
 
 
 def test_seite_vorschau_details_leer_und_ladefehler(tmp_path, monkeypatch, keine_historie):

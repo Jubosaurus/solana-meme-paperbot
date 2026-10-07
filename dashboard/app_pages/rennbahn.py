@@ -26,7 +26,10 @@ def diagramm(punkte, mit_kosten):
         x=alt.X("zeit:T", title="Zeit (UTC)", scale=alt.Scale(type="utc"),
                 axis=alt.Axis(format="%d.%m.", tickCount=4, labelAngle=0, grid=False)),
         y=alt.Y(f"{wert}:Q", title="Gewinn / Verlust (SOL)", scale=alt.Scale(zero=True)),
-        color=alt.Color("konto:N", scale=alt.Scale(domain=namen, range=skala), legend=None),
+        color=alt.Color("konto:N", scale=alt.Scale(domain=namen, range=skala),
+                        legend=alt.Legend(title="Konten", orient="bottom", direction="vertical",
+                                          columns=1, labelLimit=0, symbolType="stroke",
+                                          symbolStrokeWidth=3)),
         detail="key:N", order="folge:Q",
         tooltip=[alt.Tooltip("konto:N", title="Konto"), alt.Tooltip("zeit_text:N", title="Zeit"),
                  alt.Tooltip("wert_text:N", title="Mit Kosten" if mit_kosten else "Roh")])
@@ -46,7 +49,8 @@ def rangtabelle(zeilen):
         return
     a.tabelle(pd.DataFrame([{
         "Konto": f"{k['rang']}. {k['label']}",
-        "Roh / mit Kosten": a.plusminus(k["ergebnis"]) + " / " + a.plusminus(k["ergebnis_kosten"]),
+        "roh": a.plusminus(k["ergebnis"]),
+        "mit Kosten": a.plusminus(k["ergebnis_kosten"]),
     } for k in zeilen]))
     for k in zeilen:
         with st.expander(f"{k['rang']}. {k['label']} · {k['trades']} Trades"):

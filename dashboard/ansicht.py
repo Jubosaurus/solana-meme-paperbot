@@ -17,7 +17,7 @@ import stil
 
 AMPEL_KLASSE = {"besser": "gut", "schlechter": "schlecht", "gemischt": "achtung", "zu_frueh": "",
                 "basis": "", "keine_daten": ""}
-AMPEL_ZEICHEN = {"besser": "✓", "schlechter": "✗", "gemischt": "≈", "zu_frueh": "…", "basis": "–", "keine_daten": "–"}
+AMPEL_ZEICHEN = {"besser": "✓", "schlechter": "✗", "gemischt": "≈", "zu_frueh": "⌛", "basis": "–", "keine_daten": "–"}
 STATUS = {"ok": ("gut", "läuft"), "achtung": ("achtung", "verzögert"), "kaputt": ("schlecht", "steht")}
 
 
@@ -65,6 +65,12 @@ def urteil_mit_kosten(v):
     return rechnung.urteil_kurz({**v, **k}) if k else rechnung.urteil_kurz(v)
 
 
+def _urteil_zeichen(ampel):
+    if ampel == "zu_frueh":
+        return f'<img class="nx-urteil-symbol" src="{stil.icon_uri("zeit")}" alt="" aria-hidden="true"/>'
+    return e(AMPEL_ZEICHEN[ampel])
+
+
 def urteil_chip(v):
     """Urteil roh und mit Kosten untereinander (umbrechend, nie abgeschnitten)."""
     zeilen = [("roh", rechnung.urteil_kurz(v), v["ampel"])]
@@ -72,7 +78,7 @@ def urteil_chip(v):
     if k:
         zeilen.append(("mit Kosten", rechnung.urteil_kurz({**v, **k}), k["ampel"]))
     return '<div class="nx-urteil">' + "".join(
-        f'<span class="pb-chip {AMPEL_KLASSE[ampel]}">{e(AMPEL_ZEICHEN[ampel])} <b>{e(art)}:</b> {e(text)}</span>'
+        f'<span class="pb-chip {AMPEL_KLASSE[ampel]}">{_urteil_zeichen(ampel)} <b>{e(art)}:</b> {e(text)}</span>'
         for art, text, ampel in zeilen) + "</div>"
 
 
@@ -133,18 +139,29 @@ def ring(anteil, mitte, unten=""):
 
 # ================================================================ Karten
 
-def karte(titel, zahl, unter="", rechts="", oben_rechts="", fuss="", leuchten=False, klein=False):
+def karte(titel, zahl, unter="", rechts="", oben_rechts="", fuss="", leuchten=False, klein=False, zahl_einzeilig=False):
     """Karte: kleine Beschriftung, grosse Zahl, darunter Plus/Minus; rechts ein Ring, unten (fuss) eine
-    Mini-Kurve oder ein Urteil ueber die ganze Breite. titel/zahl werden maskiert, der Rest ist fertiges HTML."""
+    Mini-Kurve oder ein Urteil ueber die ganze Breite. titel/zahl werden maskiert, der Rest ist fertiges HTML. zahl_einzeilig haelt Zahl und Einheit zusammen."""
     return (f'<div class="pb-karte{" leuchten" if leuchten else ""}">'
             f'<div class="pb-titel"><span>{e(titel)}</span>{oben_rechts}</div>'
-            f'<div class="pb-zeile"><div class="pb-text"><div class="pb-zahl{" klein" if klein else ""}">{e(zahl)}</div>'
+            f'<div class="pb-zeile"><div class="pb-text"><div class="pb-zahl{" klein" if klein else ""}{" einzeilig" if zahl_einzeilig else ""}">{e(zahl)}</div>'
             f'<div class="pb-unter">{unter}</div></div>{rechts}</div>'
             + (f'<div class="pb-fuss">{fuss}</div>' if fuss else "") + "</div>")
 
 
-def raster(karten, gross=False, breit=False):
-    st.html(f'<div class="pb-raster{" gross" if gross else ""}{" breit" if breit else ""}">{"".join(karten)}</div>')
+def raster(karten, gross=False, breit=False, vierer=False, experimente=False, handy_einspaltig=False):
+    """Roh/Kosten-Karten in maximal zwei Spalten, einfache Kennzahlen nach Kartenanzahl."""
+    karten = list(karten)
+    anzahl = len(karten)
+    reich = experimente or any('class="nx-duo"' in karte for karte in karten)
+    spalten = min(anzahl, 2) if reich or anzahl < 3 else 4 if anzahl == 4 else 3
+    ausgleich = not reich and anzahl > 4 and anzahl % 3 == 1
+    handy_paar = anzahl >= 4
+    st.html(f'<div class="pb-raster spalten-{spalten or 1}{" gross" if gross else ""}{" breit" if breit else ""}'
+            f'{" vierer" if anzahl == 4 and not reich else ""}{" ausgleich" if ausgleich else ""}'
+            f'{" handy-paar" if handy_paar else ""}{" ungerade" if anzahl % 2 else ""}'
+            f'{" handy-einspaltig" if handy_einspaltig else ""}'
+            f'{" nx-konten" if reich else ""}{" nx-experimente" if experimente else ""}">{"".join(karten)}</div>')
 
 
 def pille(status, text):
@@ -209,24 +226,75 @@ def _zelle(wert, spalte, zahlen, pm_spalten):
     return e(wert)
 
 
-def tabelle(df, zahlen=None, pm_spalten=None, hoehe=560, leer_text="Noch keine Daten."):
+def tabelle(df, zahlen=None, pm_spalten=None, hoehe=560, leer_text="Noch keine Daten.", einzeilig=None, layout=""):
     """Tabelle, die sich dem Inhalt anpasst: Text bricht um, Zahlen stehen rechts in Monospace, Kopfzeile und erste
     Spalte bleiben beim Scrollen stehen. Nichts wird abgeschnitten (bei schmalem Bildschirm: seitlich wischen).
     zahlen: {Spalte: (Nachkommastellen, mit_Vorzeichen, Einheit)}; pm_spalten: {Spalte: (Stellen, Einheit) oder None}
-    fuer Gewinn/Verlust mit Pfeil und Farbe. Alle anderen Werte werden als Text eingefuegt (maskiert)."""
+    fuer Gewinn/Verlust mit Pfeil und Farbe. Alle anderen Werte werden als Text eingefuegt (maskiert).
+    Lange Tabellen bleiben auf allen Bildschirmgroessen begrenzt, auch mit hoehe=None.
+    einzeilig nennt Textspalten ohne Umbruch; layout waehlt eine eigene Tabellen-Darstellung."""
     zahlen, pm_spalten = zahlen or {}, pm_spalten or {}
+    einzeilig = set(einzeilig or ())
     if df is None or len(df) == 0:
         return leer(leer_text)
-    numerisch = set(zahlen) | set(pm_spalten)
-    wisch = '<div class="pb-detail pb-frei">↔ Bei schmalem Bildschirm seitlich wischen, um alle Spalten zu sehen.</div>'         if len(df.columns) > 5 else ""
+    numerisch = set(zahlen) | set(pm_spalten) | {
+        c for c in df.columns if pd.api.types.is_numeric_dtype(df[c])}
+    breit = len(df.columns) > 5
+    wisch = ('<div class="nx-wischhinweis"><span>Weitere Spalten: seitlich wischen oder scrollen</span>'
+             '<b aria-hidden="true">→</b></div>') if breit else ""
     kopf = "".join(f'<th class="{"num" if c in numerisch else ""}">{e(c)}</th>' for c in df.columns)
     zeilen = []
     for _, r in df.iterrows():
-        zellen = "".join(f'<td class="{"num" if c in numerisch else "text"}">{_zelle(r[c], c, zahlen, pm_spalten)}</td>'
+        zellen = "".join(f'<td class="{"num" if c in numerisch else "text"}'
+                         f'{" einzeilig" if c in einzeilig else ""}">{_zelle(r[c], c, zahlen, pm_spalten)}</td>'
                          for c in df.columns)
         zeilen.append(f"<tr>{zellen}</tr>")
-    st.html(f'<div class="nx-tabelle" style="max-height:{int(hoehe)}px"><table><thead><tr>{kopf}</tr></thead>'
-            f'<tbody>{"".join(zeilen)}</tbody></table></div>{wisch}')
+    lang = len(df) > 12
+    limit = min(int(hoehe or 560), 560)
+    grenze = f' style="--nx-tabellenhoehe:{limit}px"' if lang or hoehe is not None else ' style="max-height:none"'
+    scrollhinweis = f'<div class="nx-scrollhinweis">{len(df)} Zeilen – in der Tabelle scrollen</div>' if lang else ""
+    st.html(f'{scrollhinweis}{wisch}<div class="nx-tabellenrahmen{" wischen" if breit else ""}{" " + e(layout) if layout else ""}">'
+            f'<div class="nx-tabelle"{grenze}><table><thead><tr>{kopf}</tr></thead>'
+            f'<tbody>{"".join(zeilen)}</tbody></table></div></div>')
+
+
+SCOUT_LUECKE = "Aktuelle Scout-Prüfung fehlt"
+
+
+def wallet_liste(wallets):
+    """Kompakte Vorschau: gemeinsame Scout-Luecke einmal, sonst Hinweise je Wallet."""
+    ampel = {"rot": "✗ Rot", "gelb": "▲ Gelb", "gruen": "✓ Grün"}
+    reihenfolge = {"rot": 0, "gelb": 1, "gruen": 2}
+    zaehler = " · ".join(f"{sum(z['ampel'] == k for z in wallets)} {wort}" for k, wort in
+                         (("gelb", "Gelb"), ("rot", "Rot"), ("gruen", "Grün")))
+    st.caption(zaehler + " · Vorschau nach gespeicherten Daten; keine Änderungen.")
+    ohne_scout = [z["name"] for z in wallets if SCOUT_LUECKE in z["luecken"]]
+    if ohne_scout:
+        umfang = "bei allen angezeigten Wallets." if len(ohne_scout) == len(wallets) else "bei: " + ", ".join(ohne_scout)
+        hinweis(SCOUT_LUECKE + " – " + umfang)
+    zeilen_hinweise = {
+        z["name"]: (["Schonfrist"] if z["schonfrist"] and z["gruende"] else [])
+                   + [h for h in z["luecken"] if h != SCOUT_LUECKE]
+        for z in wallets
+    }
+    mit_hinweis = any(zeilen_hinweise.values())
+    zeilen = []
+    for z in sorted(wallets, key=lambda z: reihenfolge[z["ampel"]]):
+        grund = " · ".join(z["gruende"] or (["Schonfrist"] if z["schonfrist"] else
+                                            ["Datenlücke"] if z["luecken"] else ["Keine Regel greift"]))
+        hinweise = zeilen_hinweise[z["name"]]
+        zusatz = f'<span class="nx-waechter-hinweis">{e(" · ".join(hinweise) or "–")}</span>' if mit_hinweis else ""
+        zeilen.append(f'<div class="nx-waechter-zeile" role="listitem">'
+                      f'<span class="nx-waechter-name">{e(z["name"])}</span>'
+                      f'<span class="nx-waechter-ampel {z["ampel"]}">{ampel[z["ampel"]]}</span>'
+                      f'<span class="nx-waechter-grund">{e(grund)}</span>{zusatz}</div>')
+    lang = len(wallets) > 12
+    scrollhinweis = f'<div class="nx-scrollhinweis">{len(wallets)} Zeilen – in der Tabelle scrollen</div>' if lang else ""
+    st.html(f'{scrollhinweis}<div class="nx-waechter{"" if mit_hinweis else " ohne-hinweise"}">'
+            '<div class="nx-waechter-kopf" aria-hidden="true">'
+            '<span>Wallet</span><span>Ampel</span><span>Grund</span>'
+            + ('<span>Hinweis</span>' if mit_hinweis else "") + '</div>'
+            f'<div class="{"nx-waechter-scroll" if lang else ""}" role="list">{"".join(zeilen)}</div></div>')
 
 
 def roh_kosten_karte(titel, roh, kosten, unter_roh="", unter_kosten="", kosten_pct=None, fuss="", leuchten=False,
@@ -262,7 +330,7 @@ def hinweis(text):
     st.html(f'<div class="pb-hinweis"><span>▲</span><span>{e(text)}</span></div>')
 
 
-def protokoll(eintraege, scroll=True):
+def protokoll(eintraege, scroll=True, kompakt=False):
     """Aktivitaetsprotokoll. eintraege: dicts mit name, detail, wert (Zahl, SOL), optional rechts_unten."""
     zeilen = []
     for x in eintraege:
@@ -274,7 +342,7 @@ def protokoll(eintraege, scroll=True):
                       f'<div class="pb-detail">{e(x.get("detail", ""))}</div></div>'
                       f'<div class="pb-wert">{pm_html(w) if w is not None else ""}'
                       f'<div class="pb-detail">{e(x.get("rechts_unten", ""))}</div></div></div>')
-    inhalt = f'<div class="pb-liste">{"".join(zeilen)}</div>'
+    inhalt = f'<div class="pb-liste{" nx-kurzprotokoll" if kompakt else ""}">{"".join(zeilen)}</div>'
     st.html(f'<div class="pb-karte">' + (f'<div class="pb-scroll">{inhalt}</div>' if scroll else inhalt) + "</div>")
 
 
@@ -308,15 +376,20 @@ def news_liste(items, scroll=True):
     st.html('<div class="pb-karte">' + (f'<div class="pb-scroll">{inhalt}</div>' if scroll else inhalt) + "</div>")
 
 
-def datentabelle(df, zahlen=None, pm_spalten=None, hilfen=None, alt_text="Datentabelle", leer_text="Noch keine Daten."):
+def datentabelle(df, zahlen=None, pm_spalten=None, hilfen=None, alt_text="Datentabelle", leer_text="Noch keine Daten.",
+                hoehe=560, einzeilig=None, hauptspalten=None, detail_gruppen=None, layout=""):
     """Bis 200 Zeilen Nexus-Tabelle, darueber native Tabelle mit breiten Textspalten.
 
     Eingaben bleiben numerisch; nur die Anzeige von Leistungswerten bekommt Pfeil und Vorzeichen.
     Spalten-Erklaerungen bleiben auch bei der HTML-Tabelle ueber einen aufklappbaren Hinweis erreichbar.
+    hauptspalten und detail_gruppen ordnen dieselben Daten in schmale Haupt- und Detailtabellen.
     """
     zahlen, pm_spalten, hilfen = zahlen or {}, pm_spalten or {}, hilfen or {}
+    gesamt = df
+    if hauptspalten and df is not None and len(df):
+        df = df[hauptspalten]
     if df is None or len(df) <= 200:
-        tabelle(df, zahlen=zahlen, pm_spalten=pm_spalten, leer_text=leer_text)
+        tabelle(df, zahlen=zahlen, pm_spalten=pm_spalten, leer_text=leer_text, hoehe=hoehe, einzeilig=einzeilig, layout=layout)
     else:
         anzeige = df.copy()
         config = {}
@@ -334,10 +407,18 @@ def datentabelle(df, zahlen=None, pm_spalten=None, hilfen=None, alt_text="Datent
                 config[spalte] = st.column_config.NumberColumn(width="medium", help=hilfe)
             else:
                 config[spalte] = st.column_config.TextColumn(width="large", help=hilfe)
-        st.dataframe(anzeige, hide_index=True, column_config=config, row_height=96, alt=alt_text)
+        st.dataframe(anzeige, hide_index=True, column_config=config, row_height=48, alt=alt_text, width="stretch",
+                     height=min(int(hoehe or 560), 560))
+        st.caption(f"{len(df)} Zeilen – in der Tabelle scrollen · weitere Spalten durch seitliches Wischen erreichbar.")
     if hilfen and df is not None and len(df):
         with st.expander("Spalten erklärt", icon=":material/info:"):
             tabelle(pd.DataFrame([{"Spalte": s, "Erklärung": h} for s, h in hilfen.items()]))
+    if detail_gruppen and gesamt is not None and len(gesamt):
+        with st.expander("Weitere Kennzahlen und Hinweise", icon=":material/table_rows:"):
+            for titel, spalten in detail_gruppen.items():
+                st.caption(titel)
+                datentabelle(gesamt[spalten], zahlen=zahlen, pm_spalten=pm_spalten,
+                             alt_text=f"{alt_text}: {titel}", hoehe=hoehe, einzeilig=einzeilig)
 
 
 # ================================================================ Diagramme

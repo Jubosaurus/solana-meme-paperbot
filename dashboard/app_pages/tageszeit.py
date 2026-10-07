@@ -36,14 +36,18 @@ def waermekarte(raster):
 
 
 def gruppen_anzeigen(gruppen, mit_zeiten=True):
-    """Je Gruppe eine Karte und aufklappbare Details statt einer breiten Tabelle."""
+    """Kennzahlen gemeinsam im Raster, unveraenderte Details je Gruppe darunter."""
+    gruppen = list(gruppen)
+    karten = []
     for gruppe in gruppen:
         genug = gruppe["ausreichend"]
         unter = f"{gruppe['trades']} Trades · " + ("SOL je Trade" if genug else "zu wenig Daten")
-        a.raster([a.karte(gruppe["name"], a.plusminus(gruppe["pro_trade"]) if genug else "–",
-                          unter=a.e(unter), klein=True)])
-        if mit_zeiten:
-            st.caption(gruppe["zeit_text"])
+        karten.append(a.karte(gruppe["name"], a.plusminus(gruppe["pro_trade"]) if genug else "–",
+                              unter=a.e(unter), klein=True, zahl_einzeilig=True,
+                              fuss=f'<div class="pb-unter">{a.e(gruppe["zeit_text"])}</div>' if mit_zeiten else ""))
+    a.raster(karten, handy_einspaltig=True)
+    for gruppe in gruppen:
+        genug = gruppe["ausreichend"]
         with st.expander(f"{gruppe['name']} · Ergebnis und Ausreißer"):
             if not genug:
                 st.caption("zu wenig Daten: mindestens 10 abgeschlossene Trades nötig.")
@@ -90,7 +94,7 @@ if not gesamt["trades"]:
 else:
     a.raster([
         a.karte("SOL je Trade", a.plusminus(gesamt["pro_trade"]) if gesamt["ausreichend"] else "–",
-                unter=a.e(gesamt["status"]), klein=True),
+                unter=a.e(gesamt["status"]), klein=True, zahl_einzeilig=True),
         a.karte("Geschlossene Trades", str(gesamt["trades"]), unter="mit auswertbarer Kaufzeit", klein=True),
     ], gross=True)
     st.subheader("Wochentag und Stunde", anchor=False)

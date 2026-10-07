@@ -23,14 +23,14 @@ v = k["vergleich"]
 # ---------------------------------------------------------------- Kopf: grosse Zahlen
 a.raster([
     a.konto_karte(k, fuss=a.sparkline([p["kontostand"] for p in k["verlauf"]][-80:]), leuchten=True),
-    a.karte("Fortschritt bis zum Urteil", f"{k['trades']}", f"von {rechnung.ZIEL_TRADES} Trades",
-            a.ring(k["fortschritt"], f"{k['fortschritt']:.0%}")),
     a.roh_kosten_karte("SOL je Trade",
                       a.plusminus(k["pro_trade"], 4, "") if k["trades"] else "–",
                       a.plusminus(k["pro_trade_kosten"], 4, "") if k["trades"] else "–",
                       "ohne die 3 besten: " + a.pm_html(k["ohne_beste_pro_trade"], 4, ""),
                       "ohne die 3 besten: " + a.pm_html(k["ohne_beste_pro_trade_kosten"], 4, ""),
                       kosten_pct=k["kosten_pct"]),
+    a.karte("Fortschritt bis zum Urteil", f"{k['trades']}", f"von {rechnung.ZIEL_TRADES} Trades",
+            a.ring(k["fortschritt"], f"{k['fortschritt']:.0%}")),
     a.karte("Gewinner", f"{k['gewinner']} von {k['trades']}" if k["trades"] else "–",
             f"Trefferquote {k['gewinner'] / k['trades']:.0%}" if k["trades"] else ""),
 ], gross=True)
@@ -43,7 +43,7 @@ with st.container():
     st.html(a.urteil_chip(v))
     if v["ampel"] not in ("basis", "keine_daten"):
         e, kg = v["eigen"], v["kontrolle"]
-        a.tabelle(pd.DataFrame([
+        urteil = pd.DataFrame([
             {"": k["label"], "Trades": e["trades"], "SOL je Trade": e["pro_trade"],
              "je Trade mit Kosten": e["pro_trade_kosten"],
              "ohne 3 beste": e["ohne_beste_pro_trade"], "ohne 3 beste mit Kosten": e["ohne_beste_pro_trade_kosten"],
@@ -52,10 +52,15 @@ with st.container():
              "je Trade mit Kosten": kg["pro_trade_kosten"],
              "ohne 3 beste": kg["ohne_beste_pro_trade"], "ohne 3 beste mit Kosten": kg["ohne_beste_pro_trade_kosten"],
              "Summe": kg["summe"], "Summe mit Kosten": kg["summe_kosten"]},
-        ]), zahlen={"Trades": (0, False, "")}, pm_spalten={
-            **{c: (4, "") for c in ("SOL je Trade", "je Trade mit Kosten", "ohne 3 beste", "ohne 3 beste mit Kosten")},
-            "Summe": (3, " SOL"), "Summe mit Kosten": (3, " SOL"),
-        })
+        ])
+        a.tabelle(urteil[["", "Trades", "SOL je Trade", "je Trade mit Kosten"]],
+                  zahlen={"Trades": (0, False, "")},
+                  pm_spalten={c: (4, "") for c in ("SOL je Trade", "je Trade mit Kosten")})
+        a.tabelle(urteil[["", "ohne 3 beste", "ohne 3 beste mit Kosten", "Summe", "Summe mit Kosten"]],
+                  pm_spalten={
+                      **{c: (4, "") for c in ("ohne 3 beste", "ohne 3 beste mit Kosten")},
+                      "Summe": (3, " SOL"), "Summe mit Kosten": (3, " SOL"),
+                  })
         st.caption(f"Kostenaufschlag: {rechnung.KOSTEN_PCT:.0f} % vom Einsatz je Rundlauf, Endspurt-Konten "
                    f"{rechnung.KOSTEN_ENDSPURT_PCT:.0f} % (Schätzung aus der Messung, nicht gemessen: Sandwich-Angriffe, "
                    "gescheiterte Transaktionen).")

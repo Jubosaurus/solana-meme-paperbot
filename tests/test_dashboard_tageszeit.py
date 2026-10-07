@@ -225,3 +225,49 @@ def test_seite_leere_trades_konten_und_ladefehler(seite, monkeypatch):
     app.run()
     assert not app.exception
     assert "Trades konnten nicht geladen" in html(app)
+
+
+@pytest.mark.parametrize("modus", ["roh", "mit Kosten"])
+def test_gruppenkarten_im_vierer_und_dreier_raster_werte_zeiten_details_erhalten(seite, modus):
+    import ansicht as a
+    import stil
+    app, quelle = seite
+    app.run()
+    if modus == "mit Kosten":
+        app.button_group[0].set_value(modus).run()
+    assert not app.exception
+    werte = r.tageszeit_auswertung(quelle["konten"][0]["closed"],
+                                  r.kosten_pct("hauptstrategie") if modus == "mit Kosten" else 0,
+                                  marktphasen=quelle["marktphasen"])
+    raster = [e.value for e in app.get("html") if " handy-einspaltig" in e.value]
+    assert len(raster) == 2
+    for text, gruppen, spalten in zip(raster, (werte["gruppen"], werte["phasen"]), (4, 3)):
+        assert f"spalten-{spalten}" in text
+        assert text.count('class="pb-karte') == len(gruppen)
+        assert text.count('class="pb-zahl klein einzeilig"') == len(gruppen)
+        for gruppe in gruppen:
+            assert a.e(gruppe["name"]) in text
+            assert (a.e(a.plusminus(gruppe["pro_trade"])) if gruppe["ausreichend"] else "–") in text
+            assert str(gruppe["trades"]) + " Trades" in text
+    for gruppe in werte["gruppen"]:
+        assert a.e(gruppe["zeit_text"]) in raster[0]
+    labels = [e.label for e in app.expander]
+    assert all(f"{g['name']} · Ergebnis und Ausreißer" in labels for g in werte["gruppen"] + werte["phasen"])
+    assert "Ohne die 3 besten:" in html(app)
+    css = stil._css()
+    assert ".pb-raster.nx-konten, .pb-raster.handy-einspaltig { grid-template-columns: 1fr; }" in css
+    assert "@media (min-width: 641px) and (max-width: 1000px)" in css
+    assert ".pb-raster.handy-einspaltig.spalten-3, .pb-raster.handy-einspaltig.spalten-4" in css
+
+
+def test_tageszeit_zahl_und_einheit_bleiben_zusammen(seite):
+    import re
+    import stil
+    app, quelle = seite
+    quelle["konten"][0]["closed"] = [trade(-0.004)] * 10
+    app.run()
+    assert not app.exception
+    assert '<div class="pb-zahl klein einzeilig">▼ −0,004 SOL</div>' in html(app)
+    regel = re.search(r'\.pb-zahl\.klein\.einzeilig\s*\{([^}]+)\}', stil._css()).group(1)
+    assert "white-space: nowrap" in regel and "overflow-wrap: normal" in regel
+    assert "font-size:" in regel

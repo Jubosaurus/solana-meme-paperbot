@@ -26,62 +26,6 @@ kaputt = [b for b, s in status.items() if s == "kaputt"] + (["Scout"] if scout_s
 if kaputt:
     a.fehler(f"{', '.join(kaputt)}: keine neuen Daten.", "Details unter System → Betrieb.")
 
-# ---------------------------------------------------------------- 1a. Fuer dich wichtig (News)
-with st.container():
-    st.subheader("Für dich wichtig", anchor=False)
-    try:
-        news = daten.news(head)
-        wichtig = [i for i in news["liste"] if set(i["marken"]) & {"position", "listing", "rug"}
-                   and jetzt - i["zeit"] <= 48 * 3600][:5]
-    except Exception:
-        news, wichtig = None, []
-    if wichtig:
-        a.news_liste(wichtig, scroll=False)
-    elif news is None or len(news["fehler"]) >= news["feeds"]:
-        st.caption("Nachrichten gerade nicht erreichbar.")
-    else:
-        st.caption("Nichts Wichtiges zu deinen Coins, Listings oder Hacks in den letzten 48 Stunden.")
-    st.page_link("app_pages/news.py", label="Alle News", icon=":material/newspaper:")
-
-# ---------------------------------------------------------------- 1b. Was ist neu
-ZEITRAEUME = {"24 Stunden": 24, "48 Stunden": 48, "7 Tage": 168}
-with st.container():
-    st.subheader("Was ist neu?", anchor=False)
-    wahl_zeit = st.segmented_control("Zeitraum", list(ZEITRAEUME), default="24 Stunden", key="neu_zeitraum",
-                                     required=True, label_visibility="collapsed")
-    neu = daten.neu_seit(head, ZEITRAEUME[wahl_zeit or "24 Stunden"])
-    zeilen = []
-    if neu["trades"]:
-        gesamt = sum(t["trades"] for t in neu["trades"])
-        zeilen.append(("Trades", f"{gesamt} neue Trades der Strategien: " + ", ".join(
-            f"{a.e(t['konto'])} {t['trades']} ({a.pm_html(t['summe'], 2)})" for t in neu["trades"])))
-    if neu["copy"]:
-        k = sum(v["KAUF"] for v in neu["copy"].values())
-        vk = sum(v["VERKAUF"] for v in neu["copy"].values())
-        top = sorted(neu["copy"].items(), key=lambda x: -(x[1]["KAUF"] + x[1]["VERKAUF"]))[:3]
-        zeilen.append(("Copy", f"{k} Käufe und {vk} Verkäufe bei {len(neu['copy'])} Tradern; am aktivsten: "
-                       + ", ".join(f"{a.e(n)} ({v['KAUF']}/{v['VERKAUF']})" for n, v in top)))
-    w = neu["wallets"]
-    if w["aufgenommen"]:
-        zeilen.append(("Wallets", "Neu im Copy Trading: " + a.e(", ".join(w["aufgenommen"]))))
-    for text in w["entfernt"]:
-        zeilen.append(("Wallets", "Entfernt: " + a.e(text)))
-    if w["geprueft_neu"]:
-        zeilen.append(("Prüfliste", f"{w['geprueft_neu']} neue Adresse(n) zur Prüfung"))
-    heute = neu["beendete_experimente"]
-    if heute:
-        zeilen.append(("Experimente beendet", ", ".join(f"{a.e(n)} ({a.e(d)})" for n, d in heute)))
-    for text in neu["auffaellig"]:
-        zeilen.append(("Auffällig", a.e(text)))
-    for ts, text in neu["commits"][:8]:
-        zeilen.append((rechnung.zeit_text(ts, mit_datum=True).split(" UTC")[0] + " UTC", a.e(text)))
-    if zeilen:
-        a.ereignisse(zeilen)
-    else:
-        st.caption("Nichts Neues in diesem Zeitraum.")
-    st.caption("Die Zeilen mit Uhrzeit sind Änderungen am Projekt (Code, Regeln, Doku), nicht die Daten-Updates "
-               "der Bots.")
-
 # ---------------------------------------------------------------- 2. Grosse Zahlen
 haupt = next(k for k in konten if k["key"] == "hauptstrategie")
 kontrolle = next(k for k in konten if k["key"] == rechnung.KONTROLLE)
@@ -124,11 +68,11 @@ gut, schlecht = st.columns(2)
 with gut:
     st.markdown("**Läuft gut**")
     a.protokoll([{"name": n, "detail": art, "wert": w} for n, w, art in alle if w > 0][:4] or
-                [{"name": "noch nichts im Plus", "detail": "", "wert": None}], scroll=False)
+                [{"name": "noch nichts im Plus", "detail": "", "wert": None}], scroll=False, kompakt=True)
 with schlecht:
     st.markdown("**Läuft schlecht**")
     a.protokoll([{"name": n, "detail": art, "wert": w} for n, w, art in reversed(alle) if w < 0][:4] or
-                [{"name": "nichts im Minus", "detail": "", "wert": None}], scroll=False)
+                [{"name": "nichts im Minus", "detail": "", "wert": None}], scroll=False, kompakt=True)
 
 # ---------------------------------------------------------------- 5. Konten mit Testurteil
 st.subheader("Hauptstrategie und Experimente", anchor=False)
@@ -137,9 +81,9 @@ st.caption("Urteil: verglichen mit der Kontrollgruppe (kauft zufällig) aus dems
 a.raster([a.roh_kosten_karte(
     k["label"], rechnung.sol_text(k["kontowert"], 2, False), rechnung.sol_text(rechnung.kontowert_mit_kosten(k), 2, False),
     a.pm_html(k["ergebnis"]), a.pm_html(rechnung.ergebnis_mit_kosten(k)), kosten_pct=k["kosten_pct"],
-    fuss='<div class="pb-zeile"><div>' + a.urteil_chip(k["vergleich"]) + f'<div class="pb-unter">{k["trades"]}/200 Trades</div></div>'
+    fuss='<div class="nx-experiment-fuss">' + a.urteil_chip(k["vergleich"]) + f'<div class="pb-unter">{k["trades"]}/200 Trades</div>'
          + a.ring(k["fortschritt"], f"{k['fortschritt']:.0%}", f"{k['trades']}/200") + "</div>" + a.sparkline([p["kontostand"] for p in k["verlauf"]][-60:]))
-          for k in konten], breit=True)
+          for k in konten], breit=True, experimente=True)
 
 st.write("")
 with st.expander("Alle Kennzahlen als Tabelle", icon=":material/table_chart:", expanded=True):
@@ -167,3 +111,60 @@ with st.container(border=True):
                              referenz_text="Kontrollgruppe"), "SOL je Trade je Konto, Kontrollgruppe als Linie")
     else:
         a.leer("Noch keine geschlossenen Trades", "Sobald die ersten Trades geschlossen sind, erscheint hier der Vergleich.")
+
+# ---------------------------------------------------------------- 6. Was ist neu
+ZEITRAEUME = {"24 Stunden": 24, "48 Stunden": 48, "7 Tage": 168}
+with st.container():
+    st.subheader("Was ist neu?", anchor=False)
+    wahl_zeit = st.segmented_control("Zeitraum", list(ZEITRAEUME), default="24 Stunden", key="neu_zeitraum",
+                                     required=True, label_visibility="collapsed")
+    neu = daten.neu_seit(head, ZEITRAEUME[wahl_zeit or "24 Stunden"])
+    zeilen = []
+    if neu["trades"]:
+        gesamt = sum(t["trades"] for t in neu["trades"])
+        zeilen.append(("Trades", f"{gesamt} neue Trades der Strategien: " + ", ".join(
+            f"{a.e(t['konto'])} {t['trades']} ({a.pm_html(t['summe'], 2)})" for t in neu["trades"])))
+    if neu["copy"]:
+        k = sum(v["KAUF"] for v in neu["copy"].values())
+        vk = sum(v["VERKAUF"] for v in neu["copy"].values())
+        top = sorted(neu["copy"].items(), key=lambda x: -(x[1]["KAUF"] + x[1]["VERKAUF"]))[:3]
+        zeilen.append(("Copy", f"{k} Käufe und {vk} Verkäufe bei {len(neu['copy'])} Tradern; am aktivsten: "
+                       + ", ".join(f"{a.e(n)} ({v['KAUF']}/{v['VERKAUF']})" for n, v in top)))
+    w = neu["wallets"]
+    if w["aufgenommen"]:
+        zeilen.append(("Wallets", "Neu im Copy Trading: " + a.e(", ".join(w["aufgenommen"]))))
+    for text in w["entfernt"]:
+        zeilen.append(("Wallets", "Entfernt: " + a.e(text)))
+    if w["geprueft_neu"]:
+        zeilen.append(("Prüfliste", f"{w['geprueft_neu']} neue Adresse(n) zur Prüfung"))
+    heute = neu["beendete_experimente"]
+    if heute:
+        zeilen.append(("Experimente beendet", ", ".join(f"{a.e(n)} ({a.e(d)})" for n, d in heute)))
+    for text in neu["auffaellig"]:
+        zeilen.append(("Auffällig", a.e(text)))
+    for ts, text in neu["commits"][:8]:
+        zeilen.append((rechnung.zeit_text(ts, mit_datum=True).split(" UTC")[0] + " UTC", a.e(text)))
+    if zeilen:
+        a.ereignisse(zeilen)
+    else:
+        st.caption("Nichts Neues in diesem Zeitraum.")
+    st.caption("Die Zeilen mit Uhrzeit sind Änderungen am Projekt (Code, Regeln, Doku), nicht die Daten-Updates "
+               "der Bots.")
+
+
+# ---------------------------------------------------------------- 7. Fuer dich wichtig (News)
+with st.container():
+    st.subheader("Für dich wichtig", anchor=False)
+    try:
+        news = daten.news(head)
+        wichtig = [i for i in news["liste"] if set(i["marken"]) & {"position", "listing", "rug"}
+                   and jetzt - i["zeit"] <= 48 * 3600][:5]
+    except Exception:
+        news, wichtig = None, []
+    if wichtig:
+        a.news_liste(wichtig, scroll=False)
+    elif news is None or len(news["fehler"]) >= news["feeds"]:
+        st.caption("Nachrichten gerade nicht erreichbar.")
+    else:
+        st.caption("Nichts Wichtiges zu deinen Coins, Listings oder Hacks in den letzten 48 Stunden.")
+    st.page_link("app_pages/news.py", label="Alle News", icon=":material/newspaper:")

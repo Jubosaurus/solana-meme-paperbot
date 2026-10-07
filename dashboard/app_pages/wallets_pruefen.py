@@ -64,7 +64,7 @@ def ergebnis_text(z):
 
 
 if zeilen:
-    ansicht.tabelle(pd.DataFrame([{
+    ansicht.datentabelle(pd.DataFrame([{
         "Name": z["name"], "Status": z["status"], "Ergebnis": ergebnis_text(z),
         "Punkte": z["punkte"], "Haltedauer min": ansicht.txt(z["haltedauer_min"], 1),
         "Verkäufe < 60 s": "" if z["schnell_anteil"] is None else f"{z['schnell_anteil']:.0%}",
@@ -75,7 +75,14 @@ if zeilen:
     } for z in zeilen]), zahlen={
         "Punkte": (1, False, ""),
         "abgeschl. Coins": (0, False, ""),
-    })
+    }, einzeilig={"geprüft", "Haltedauer min", "Verkäufe < 60 s", "Rendite ohne besten Coin %"},
+        layout="pruefliste", hauptspalten=[
+            "Name", "Status", "Ergebnis", "Punkte", "abgeschl. Coins", "Copy", "geprüft",
+        ], detail_gruppen={
+            "Haltedauer min / Verkäufe < 60 s / Rendite ohne besten Coin %": [
+                "Name", "Haltedauer min", "Verkäufe < 60 s", "Rendite ohne besten Coin %"],
+            "Adresse": ["Name", "Adresse"],
+        })
     st.caption("Die Punkte kommen vom Scout (höher = besser) und sind nur eine Hilfe. Vorsicht bei wenigen abgeschlossenen Coins. "
                "Jede Adresse wird nur einmal bewertet; neu erst, wenn sich die Bewertungsmethode ändert.")
 else:

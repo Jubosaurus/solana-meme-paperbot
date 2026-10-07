@@ -49,6 +49,7 @@ MENUE = {
 aktuell = st.navigation(list(SEITEN.values()), position="hidden")
 
 with st.sidebar:
+    st.html('<div class="nx-sidebar-leitsatz">Centralized Intelligence · Algorithmic Precision</div>')
     st.page_link(SEITEN["uebersicht"])
     for gruppe, schluessel in MENUE.items():
         offen = any(SEITEN[s].title == aktuell.title for s in schluessel)
@@ -69,7 +70,9 @@ def fusszeile():
     else:
         stand = f"<b>Aktualisieren fehlgeschlagen</b>, zeige letzten Stand ({html.escape(info['meldung'][:100])})"
     st.html(f'<div class="nx-fuss"><span class="nx-fuss-marke"><img src="{stil.marke_uri()}" alt=""/>'
-            f'<b>Nexus Core</b></span><span>nur Anschauen, kein echtes Geld</span><span>{stand}</span>'
+            f'<span class="nx-leitsatz"><span class="nx-leitsatz-name">Nexus Core – </span>'
+            f'Centralized Intelligence · Algorithmic Precision</span></span>'
+            f'<span>nur Anschauen, kein echtes Geld</span><span>{stand}</span>'
             f'<span>Jetzt: {html.escape(rechnung.zeit_text(time.time()))}</span></div>')
     if st.button("Jetzt aktualisieren", icon=":material/refresh:", type="tertiary"):
         daten.neueste_daten.clear()
