@@ -1,7 +1,7 @@
 {
   "strategy": "EXPERIMENT_offene_tuer",
   "started": "2026-10-04T00:34:10.471054+00:00",
-  "bankroll_sol": 1.80214,
+  "bankroll_sol": 1.60064,
   "positions": {
     "3v8dpQtLdG2zLjACHGLwNLo5pqCobeonxPqYRKSppump": {
       "mint": "3v8dpQtLdG2zLjACHGLwNLo5pqCobeonxPqYRKSppump",
@@ -67,7 +67,7 @@
       "solana_tracker": null,
       "graduated": true,
       "liq_low_checks": 0,
-      "flug_last": 1791390825.8935566
+      "flug_last": 1791390970.524934
     },
     "9Bgjx6N4g38ERqKzA3THJxHWKFTVY1FKaeftGryGpump": {
       "mint": "9Bgjx6N4g38ERqKzA3THJxHWKFTVY1FKaeftGryGpump",
@@ -133,7 +133,73 @@
       "solana_tracker": null,
       "graduated": true,
       "liq_low_checks": 0,
-      "flug_last": 1791390825.8935566
+      "flug_last": 1791390970.524934
+    },
+    "8YRg8bjiePg43dbYK5Q2KfKfyLKxeN1r2W8jFGFGpump": {
+      "mint": "8YRg8bjiePg43dbYK5Q2KfKfyLKxeN1r2W8jFGFGpump",
+      "symbol": "DARKSWAP",
+      "opened": 1791390909.653073,
+      "invested_sol": 0.2,
+      "fees_sol": 0.0015,
+      "entry_signal_usd": 3.5205853595220805e-05,
+      "entry_fill_usd": 3.669293094919803e-05,
+      "entry_slippage_pct": 4.22,
+      "roundtrip_cost_pct": 2.85,
+      "tokens_initial": 637678.2291,
+      "tokens_left": 637678.2291,
+      "decimals": 6,
+      "proceeds_sol": 0.0,
+      "peak_usd": 3.9692602865281e-05,
+      "tp1_done": false,
+      "thesis_breaks": 0,
+      "missing_loops": 0,
+      "entry_liquidity": 11625.465672024286,
+      "entry_view": {
+        "age_h": 0.9225884143511455,
+        "mcap": 35205.853595220775,
+        "liquidity": 11625.465672024286,
+        "holders": 295,
+        "holder_growth_1h": 14650.0,
+        "holder_growth_5m": 16.600790513833992,
+        "net_buyers_5m": 69,
+        "organic_buyers_5m": 5,
+        "organic_score": 39.40423099109079,
+        "price_change_1h": 779.2624634222093,
+        "price_change_5m": 0.8140502067468911,
+        "buys_5m": 122,
+        "sells_5m": 74,
+        "traders_5m": 109,
+        "traders_1h": 634,
+        "buy_vol_5m": 7263.296984970066,
+        "sell_vol_5m": 5402.857970363304,
+        "buy_vol_1h": 64577.60038174151,
+        "sell_vol_1h": 56479.84726272729,
+        "organic_buy_vol_1h": 2417.7311110778774,
+        "top_holders_pct": 24.988301571606723,
+        "dev_balance_pct": 0.004864267852500005,
+        "dev_mints": 1,
+        "launchpad": "pump.fun",
+        "graduated": false,
+        "social": false,
+        "quelle": "organic1h+organic5m+traded1h+traded5m+trend1h+trend5m",
+        "trades_24h": 2277,
+        "organic_label": "medium",
+        "buy_organic_vol_5m": 716.1795974708559,
+        "jup_fees": null,
+        "hour_utc": 16
+      },
+      "bundle": {
+        "quelle": "experiment",
+        "text": "Offene Tuer: ohne Sicherheits-, Bundle- und Dev-Pruefung"
+      },
+      "phase": "normal",
+      "thesis": "Story verbreitet sich: Holder +14650%/h, 69 Netto-Kaeufer 5m, 5 organisch; Offene Tuer: ohne Sicherheits-, Bundle- und Dev-Pruefung; Dev-Coins 1",
+      "exit_rule": "Haelfte bei 2x; Rest raus, wenn Holder schrumpfen und Netto-Verkaeufer 2x in Folge, Liquiditaet -30%, -40%, nach 1,5x nicht unter Einstand, nach 2x 30 % vom Hoch (ab 10x 25 %)",
+      "mitlaeufer": null,
+      "solana_tracker": null,
+      "graduated": false,
+      "liq_low_checks": 0,
+      "flug_last": 1791390923.116471
     }
   },
   "closed": [
@@ -29255,7 +29321,8 @@
     "41QF43mQKs1Qm51xK7uQWjxRA9oZ6S5mBVYveR4wLfzx": 1791387620.699024,
     "CexVTRd7TZ5FszgeGFduMm5Yx4VAnJEmj8kkwBiypump": 1791388516.213538,
     "AH8wDcahiZWhCr7wtpALoJGFkyVDSX3ga7hwSVdsUg6Q": 1791389657.9137492,
-    "9Bgjx6N4g38ERqKzA3THJxHWKFTVY1FKaeftGryGpump": 1791390663.9299393
+    "9Bgjx6N4g38ERqKzA3THJxHWKFTVY1FKaeftGryGpump": 1791390663.9299393,
+    "8YRg8bjiePg43dbYK5Q2KfKfyLKxeN1r2W8jFGFGpump": 1791390909.6538625
   },
   "watch": {
     "J1tjLHnNFZQX3JccUxX4etq8sgtZ53rAWQZDCcNpump": {
@@ -29576,5 +29643,5 @@
   },
   "runde": 2,
   "shadow": {},
-  "saved_at": 1791390876.7319129
+  "saved_at": 1791390972.858214
 }
