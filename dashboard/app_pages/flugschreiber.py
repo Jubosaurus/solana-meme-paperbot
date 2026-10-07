@@ -83,15 +83,19 @@ a.raster([
 ])
 
 # ---------------------------------------------------------------- Diagramme
-PANELS = [("vielfaches", "Kurs (Vielfaches vom Kaufpreis)", 1.0), ("dev_pct", "Dev-Bestand %", None),
+PANELS = [("vielfaches", "Kurs (x Kauf)", 1.0), ("dev_pct", "Dev-Bestand %", None),
           ("top10_pct", "Top-10-Anteil %", None), ("holder", "Holder", None), ("liquiditaet", "Liquidität $", None),
           ("block0_gehalten_pct", "Block-0-Käufer halten %", None), ("netto_kaeufer_5m", "Netto-Käufer 5 min", 0.0)]
 lagen = []
+# gemeinsame Zeitachse fuer alle Felder (jedes Feld ist ein eigenes Diagramm: nur so passt sich die Breite an)
+minuten = list(verlauf["minuten_seit_kauf"].dropna()) + list(verkaeufe["minuten"].dropna())
+x_bereich = [min(minuten), max(minuten) if max(minuten) > min(minuten) else min(minuten) + 1] if minuten else [0, 1]
 vorhanden = [p for p in PANELS if verlauf[p[0]].notna().any()]
 for i, (feld, titel, referenz) in enumerate(vorhanden):
     d = verlauf.dropna(subset=[feld])
     letzte = i == len(vorhanden) - 1
-    x = alt.X("minuten_seit_kauf:Q", title="Minuten seit Kauf" if letzte else None, axis=alt.Axis(tickCount=8))
+    x = alt.X("minuten_seit_kauf:Q", title="Minuten seit Kauf" if letzte else None, axis=alt.Axis(tickCount=8),
+              scale=alt.Scale(domain=x_bereich))
     linie = alt.Chart(d).mark_line(color=stil.VIOLETT, strokeWidth=2, interpolate="step-after").encode(
         x=x, y=alt.Y(f"{feld}:Q", title=titel, scale=alt.Scale(zero=False)),
         tooltip=[alt.Tooltip("minuten_seit_kauf:Q", title="Minute", format=".1f"),
@@ -108,9 +112,10 @@ for i, (feld, titel, referenz) in enumerate(vorhanden):
             teile.append(alt.Chart(verkaeufe).mark_text(align="right", dx=-5, baseline="top", color=stil.WARN,
                                                         fontSize=12).encode(
                 x="minuten:Q", y=alt.value(4), text="kurz:N"))
-    lagen.append(alt.layer(*teile).properties(height=110, width="container"))
+    lagen.append((titel, alt.layer(*teile).properties(height=110)))
 if lagen:
-    stil.zeigen(alt.vconcat(*lagen).resolve_scale(x="shared"), f"Flugschreiber von {c['symbol']}")
+    for titel, diagramm in lagen:
+        stil.zeigen(diagramm, f"Flugschreiber von {c['symbol']}: {titel}")
 else:
     a.leer("Keine Messwerte für die Diagramme", "Der Coin ist aufgezeichnet, aber die angezeigten Merkmale fehlen noch.")
 st.caption("Bernsteinfarbene gestrichelte Linie = Verkauf (Grund oben, Details beim Darüberfahren). Teilverkäufe haben je eine Linie. "

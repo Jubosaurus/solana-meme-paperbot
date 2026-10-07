@@ -87,6 +87,8 @@ h1, h2, h3 { letter-spacing: -0.01em; }
   position: relative; border-radius: 14px; padding: 16px 18px 14px; background: __KARTE__;
   border: 1px solid __LINIE__; min-width: 0;
 }
+.pb-raster.gross > .pb-karte:has(.nx-duo) { grid-column: span 2; }
+.nx-duo .pb-zahl { white-space: nowrap; }
 .pb-karte.leuchten { border-color: rgba(99, 102, 241, 0.55); box-shadow: 0 0 0 1px rgba(99, 102, 241, 0.18), 0 8px 28px rgba(99, 102, 241, 0.12); }
 .pb-titel { min-height: 24px; display: flex; justify-content: space-between; align-items: center; gap: 8px; font-size: 0.78rem;
             color: __TEXT_LEISE__; letter-spacing: 0.02em; }
