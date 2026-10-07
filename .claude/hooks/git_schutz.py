@@ -19,7 +19,7 @@ import sys
 
 # Daten-Dateien: exakte Pfade und Ordner (Pfade relativ zum Repo, mit /)
 DATEN_DATEIEN = {
-    "portfolio.json", "journal.csv", "abgelehnt.csv", "knapp_abgelehnt.csv",
+    "portfolio.json", "journal.csv", "abgelehnt.csv", "knapp_abgelehnt.csv", "namenswellen.csv",
     "marktphase.json", "messung.csv", "dexscreener.csv",
     "scout/status.json", "scout/kandidaten.csv", "scout/tx_pruefung.csv",
 }

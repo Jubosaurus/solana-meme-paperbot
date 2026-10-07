@@ -21,8 +21,13 @@ Papier gehandelt.
 | 13 | Marktsignale prüfen | Marktphase aus Anzahl frischer Coins über 1 Mio. USD und deren Volumen, verglichen mit dem eigenen Verlauf |
 | 16 | Würde ich heute zu diesem Preis neu kaufen? | Sinngemäß über die Thesen-Regel und die Höchstdauer umgesetzt; strengere Fassung an den Verläufen geprüft und verworfen (hätte die großen Gewinner zu früh verkauft) |
 | 17 | Nicht aus FOMO kaufen, wenn der Preis schon gelaufen ist | Seit 02.10.: kein Kauf nach mehr als 30 % Anstieg in den letzten 5 Minuten (FOMO_SPRUNG). Alle so abgelehnten Coins werden als knapp abgelehnt weiterverfolgt. Grundlage: in Hauptstrategie und Kontrollgruppe deutlich schlechtere Ergebnisse nach solchen Sprüngen |
+| 18 | Knappheits-Denken: wenige gute Gelegenheiten, nicht alles kaufen | Keine neue Regel nötig: abgedeckt durch die feste Größe (0,2 SOL, Tag 7) und die festen Ausstiege (Teilverkauf bei 2x, Thesenbruch, Notbremse). Der Bot setzt nie mehr ein, nur weil etwas knapp wirkt |
+| 19 | KI-Agenten als Helfer | Marktmeinung, keine Regel. Nichts zu bauen; der Bot entscheidet weiter nach festen Regeln, keine KI-Entscheidung beim Handel |
+| 20 | News vor dem Chart | Der Bot sieht nur den Chart (Kandidatenlisten von Jupiter), keine Nachrichten. Tag 17 (FOMO-Sprung) ist die Folge davon: Wer erst den Chart sieht, kommt spät. Die On-Chain-Spur einer Nachricht ist die **Namenswelle** (mehrere neue Coins mit gleichem Namenswort in kurzer Zeit): seit 07.10. **nur Beobachtung**, kein Kauf (`namenswellen.csv`) |
 
 **Mitläufer-Verdacht (nur Beobachtung, seit Tag 15):** Teilt ein gekaufter Coin einen Namensteil mit einem mindestens zehnmal größeren Trending-Coin ab 5 Mio. USD (z. B. „K/ACC" und „e/acc"), wird das beim Kauf vermerkt. Das beeinflusst den Kauf nicht, sondern dient der späteren Auswertung.
+
+**Namenswelle (nur Beobachtung, seit 07.10., Tag 20):** Entstehen innerhalb von 30 Minuten mindestens 3 verschiedene neue Coins (höchstens 6 h alt) mit einem gemeinsamen Namenswort (Füllwörter wie „coin“, „the“, „inu“ ausgeschlossen), wird eine Welle in `namenswellen.csv` aufgezeichnet: Wort, Zeit, beteiligte Coins, größter Coin nach Holdern (Tag 12), ob und warum die Hauptstrategie ihn gekauft oder abgelehnt hat, und sein Kursverlauf über 6 h (wie bei knapp abgelehnten Coins). Das beeinflusst keinen Kauf und keinen Verkauf; es gibt keine neuen Abrufe (nur die vorhandenen Kandidatenlisten). Schwellen oben in `bot.py` (`WELLE_*`).
 
 Nicht automatisierbar: Tag 10 und 11 (Netzwerk, Community). Die Verbreitung
 auf X oder TikTok (Tag 5) kann der Bot nicht direkt lesen. Er misst die
@@ -47,6 +52,7 @@ On-Chain-Spur, die eine Story hinterlässt.
 | `journal.csv` | Jeder Kauf mit These, jeder Verkauf mit Grund |
 | `abgelehnt.csv` | Geprüfte Coins und warum sie nicht gekauft wurden |
 | `marktphase.json` | Verlauf der Marktphase |
+| `namenswellen.csv` | Namenswellen (nur Beobachtung, seit 07.10.) |
 
 Alle Schwellen stehen oben in `bot.py` und lassen sich dort ändern.
 
@@ -220,3 +226,4 @@ Grenzen: Vergangene Gewinne garantieren keine künftigen; frühe Käufer können
 | 07.10. | Arbeitsweise (keine Strategie-Änderung): Kontingent-Ausgleich Claude/Codex – Ziel ca. 30 % Claude, 70 % Codex; Aufgaben zuerst per Auftragskarte an Codex prüfen, Claude plant, prüft Lieferung und spielt ein; Pflicht-Prüfungen unverändert (`CLAUDE.md`, `.claude/codex-status.md`) | Claude ist der Engpass (Claude Code und Chat teilen sich das Kontingent), Codex hat viel freies Kontingent. Entscheidung des Betreibers 07.10. |
 | 07.10. | Dashboard (keine Strategie-Änderung): neues Aussehen „Nexus Core“ Teil 1 – Marke, Farben, Schriften (`dashboard/DESIGN.md`), Menü mit Gruppen, Fusszeile, Bausteine, Übersicht mit Kontowert roh und mit Kosten nebeneinander; Rechnung unverändert (nur Hilfsfunktionen `kosten_abzug`, `kontowert_mit_kosten`, `ergebnis_mit_kosten` in `rechnung.py`) | Wunsch des Betreibers; Kennzahlen der Übersicht vor und nach dem Umbau gleich geprüft |
 | 07.10. | Dashboard (keine Strategie-Änderung): Nexus Core Teil 2 – fünf neue Seiten nur zum Anschauen (Rennbahn, Wallet-Wächter, Verpasste Chancen, Tageszeit, Wissen); neue Rechnungen nur angehängt in `rechnung.py`, keine neuen Abrufe, nichts Schreibendes | Wunsch des Betreibers; gebaut von Codex, geprüft von Claude und `code-pruefer`; Ideenliste `auswertungen/dashboard/ideen_2026-10-07.md` |
+| 07.10. | Videos Tag 18–20 in die Regeltabelle (18 und 19 ohne Umsetzung, 20 als Beobachtung); **Namenswelle** als reine Beobachtung (`namenswellen.csv`, Schwellen `WELLE_*` in `bot.py`), Hauptstrategie unverändert, keine neuen Abrufe | Betreiber stimmte am 07.10. zu; Tag 20: der Bot sieht nur den Chart, die Namenswelle ist die On-Chain-Spur einer Nachricht. Urteil erst, wenn genug Wellen aufgezeichnet sind |

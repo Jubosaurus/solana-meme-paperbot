@@ -246,6 +246,22 @@ NARRATIVE_MIN_PART_LEN = 3
 NARRATIVE_STOPWORDS = {"THE", "COIN", "TOKEN", "SOL", "SOLANA", "MEME", "AND", "FOR",
                        "OFFICIAL", "WITH", "FROM", "THIS", "THAT"}
 
+WELLE_FENSTER_MIN = 30
+WELLE_MIN_COINS = 3
+WELLE_MAX_ALTER_H = MAX_AGE_H
+WELLE_BEOBACHTUNG_H = 6
+WELLE_COOLDOWN_H = 6
+WELLE_MAX_OFFEN = 20
+WELLEN_FILE = "namenswellen.csv"
+WELLE_STOPWORDS = NARRATIVE_STOPWORDS | {"INU", "COINS", "MEMES", "CASH", "ONE", "NEW", "BABY"}
+WELLEN_HEADER = ["zeit", "welle", "art", "wort", "anzahl_coins", "coins", "groesster_symbol",
+                 "groesster_mint", "holder", "entscheidung", "grund", "preis_usd", "vielfaches",
+                 "hoch_vielfaches"]
+_welle_index = {}                        # Wort -> Mint -> (entstanden, holders, symbol)
+_welle_preise = {}                       # Letzter bereits geladener Kurs je Mint
+_welle_letzte_views = {}                  # Mint -> (Scan-Zeit, bereits geladene View)
+_welle_kontext = [None, None]             # Hauptportfolio und zugehoerige Schichtstatistik
+
 SESSION = requests.Session()
 SESSION.headers.update({"User-Agent": "narrativ-paperbot/1.0"})
 
@@ -255,7 +271,8 @@ def fresh_stats():
             "rugcheck_ok": 0, "rugcheck_fail": 0, "helius_ok": 0, "helius_fail": 0,
             "git_ok": 0, "git_fail": 0, "discord_fail": 0, "block0_too_many": 0, "graduations": 0,
             "st_ok": 0, "st_fail": 0, "st_skipped": 0, "young_by_list": {}, "resets": 0,
-            "exp_errors": 0, "quote_2s": [], "notloesung": 0, "messung_verworfen": 0, "dex": 0, "dex_fehler": 0}
+            "exp_errors": 0, "quote_2s": [], "notloesung": 0, "messung_verworfen": 0, "dex": 0, "dex_fehler": 0,
+            "wellen": 0, "welle_fehler": 0}
 
 
 STATS = fresh_stats()
@@ -704,6 +721,270 @@ def update_narrative_leaders(views, now):
             cur = _narrative_leaders.get(part)
             if cur is None or now - cur[3] > 24 * 3600 or cur[0] == v["mint"] or v["mcap"] > cur[2]:
                 _narrative_leaders[part] = (v["mint"], v["symbol"], v["mcap"], now)
+
+
+def welle_parts(v):
+    """Namenswoerter fuer die Beobachtung; Mitlaeufer-Regeln bleiben getrennt."""
+    try:
+        parts = set()
+        for text in (v.get("symbol"), v.get("name")):
+            for part in re.split(r"[^A-Za-z0-9]+", str(text or "").upper()):
+                if len(part) >= NARRATIVE_MIN_PART_LEN and part not in WELLE_STOPWORDS:
+                    parts.add(part)
+        return parts
+    except Interrupted:
+        raise
+    except Exception:
+        STATS["welle_fehler"] = STATS.get("welle_fehler", 0) + 1
+        return set()
+
+
+def welle_aufzeichnen(w, art, now):
+    """Start und Ende einer Welle, ohne Abruf oder Handelsbuchung."""
+    try:
+        if os.path.exists(WELLEN_FILE):
+            with open(WELLEN_FILE, newline="", encoding="utf-8") as f:
+                if any(row.get("welle") == str(w.get("id")) and row.get("art") == art
+                       for row in csv.DictReader(f)):
+                    return True
+        ensure_csv_columns(WELLEN_FILE, WELLEN_HEADER)
+        new = not os.path.exists(WELLEN_FILE)
+        ref = w.get("ref_price", 0)
+        price = w.get("preis_usd", ref)
+        entscheidung = w.get("entscheidung", "offen")
+        if art == "ende" and entscheidung == "offen":
+            entscheidung = "nicht_geprueft"
+        with open(WELLEN_FILE, "a", newline="", encoding="utf-8") as f:
+            writer = csv.writer(f)
+            if new:
+                writer.writerow(WELLEN_HEADER)
+            writer.writerow([datetime.fromtimestamp(now, timezone.utc).strftime("%Y-%m-%d %H:%M:%S"),
+                             w.get("id"), art, w.get("wort"), len(w.get("mints", [])),
+                             " ".join(f"{w.get('symbole', {}).get(m, '?')}:{m[:8]}"
+                                      for m in w.get("mints", [])),
+                             w.get("symbol"), w.get("groesster"), w.get("holders"), entscheidung,
+                             w.get("grund", ""), f"{price:.12g}",
+                             f"{price / ref:.4f}" if ref > 0 else "",
+                             f"{w.get('peak_usd', ref) / ref:.4f}" if ref > 0 else ""])
+        return True
+    except Interrupted:
+        raise
+    except Exception:
+        STATS["welle_fehler"] = STATS.get("welle_fehler", 0) + 1
+        return False
+
+
+def namenswellen_pruefen(p, views, now):
+    """Schiebefenster ueber Entstehungszeiten aus schon geladenen Token-Daten."""
+    try:
+        if CTX["name"]:
+            return
+        if _welle_kontext[1] is not STATS:
+            _welle_index.clear()
+            _welle_preise.clear()
+            _welle_letzte_views.clear()
+        _welle_kontext[:] = [p, STATS]
+        wellen = p.setdefault("wellen", {})
+        behalten_h = WELLE_MAX_ALTER_H + max(WELLE_BEOBACHTUNG_H, WELLE_COOLDOWN_H)
+        cutoff = now - behalten_h * 3600
+        for wort, coins in list(_welle_index.items()):
+            for mint in [m for m, c in coins.items() if c[0] < cutoff]:
+                del coins[mint]
+            if not coins:
+                del _welle_index[wort]
+        gueltige_mints = {m for coins in _welle_index.values() for m in coins}
+        for mint in list(_welle_preise):
+            if mint not in gueltige_mints:
+                del _welle_preise[mint]
+        for ident, w in list(wellen.items()):
+            if w.get("beendet") and w.get("zeit", now) < cutoff:
+                del wellen[ident]
+        geladene_views = {}
+        for v in views:
+            try:
+                geladene_views[v["mint"]] = v
+                age = v.get("age_h")
+                if age is None or not 0 <= age <= WELLE_MAX_ALTER_H:
+                    continue
+                entstanden = now - age * 3600
+                for wort in welle_parts(v):
+                    _welle_index.setdefault(wort, {})[v["mint"]] = (
+                        entstanden, v.get("holders", 0), v.get("symbol", "?"))
+                _welle_preise[v["mint"]] = v.get("price", 0)
+            except Interrupted:
+                raise
+            except Exception:
+                STATS["welle_fehler"] = STATS.get("welle_fehler", 0) + 1
+        for wort, coins in sorted(_welle_index.items()):
+            try:
+                bisher = [w for w in wellen.values() if w.get("wort") == wort]
+                offen = next((w for w in bisher if not w.get("beendet")
+                              and now < w.get("until", 0)), None)
+                if offen is not None:
+                    first = offen.get("fenster_start", offen.get("zeit", now))
+                    for mint, c in sorted(coins.items(), key=lambda x: (x[1][0], x[0])):
+                        if first <= c[0] <= first + WELLE_FENSTER_MIN * 60:
+                            if mint not in offen.get("mints", []):
+                                offen.setdefault("mints", []).append(mint)
+                            offen.setdefault("symbole", {}).setdefault(mint, c[2])
+                    continue
+                if any(now - w.get("zeit", 0) < WELLE_COOLDOWN_H * 3600
+                       or not w.get("beendet") for w in bisher):
+                    continue
+                if sum(not w.get("beendet") for w in wellen.values()) >= WELLE_MAX_OFFEN:
+                    continue
+                # Bereits beobachtete Coins duerfen nach Ablauf keine zweite Welle bilden.
+                benutzt = {m for w in bisher for m in w.get("mints", [])}
+                zeiten = sorted((c[0], mint) for mint, c in coins.items()
+                                if mint not in benutzt and now - c[0] <= WELLE_MAX_ALTER_H * 3600)
+                left = 0
+                for right, (entstanden, mint) in enumerate(zeiten):
+                    while entstanden - zeiten[left][0] > WELLE_FENSTER_MIN * 60:
+                        left += 1
+                    if right - left + 1 < WELLE_MIN_COINS:
+                        continue
+                    first = zeiten[left][0]
+                    mints = [m for t, m in zeiten if first <= t <= first + WELLE_FENSTER_MIN * 60]
+                    groesster = min(mints, key=lambda m: (-coins[m][1], coins[m][0], m))
+                    ref = _welle_preise.get(groesster, 0)
+                    entscheidung, grund = "offen", ""
+                    if groesster in p.get("positions", {}):
+                        entscheidung, grund = "gekauft", "vor_erkennung"
+                    elif now - p.get("cooldown", {}).get(groesster, 0) < 24 * 3600:
+                        entscheidung, grund = "abgelehnt", "COOLDOWN"
+                    ident = f"{wort}_{int(now)}"
+                    w = {"id": ident, "wort": wort, "zeit": now, "mints": mints,
+                         "groesster": groesster, "symbol": coins[groesster][2],
+                         "holders": coins[groesster][1], "ref_price": ref, "peak_usd": ref,
+                         "until": now + WELLE_BEOBACHTUNG_H * 3600,
+                         "entscheidung": entscheidung, "grund": grund, "fenster_start": first,
+                         "symbole": {m: coins[m][2] for m in mints}, "preis_usd": ref}
+                    wellen.setdefault(ident, w)
+                    STATS["wellen"] = STATS.get("wellen", 0) + 1
+                    if welle_aufzeichnen(w, "start", now):
+                        w.setdefault("start_geschrieben", True)
+                    break
+            except Interrupted:
+                raise
+            except Exception:
+                STATS["welle_fehler"] = STATS.get("welle_fehler", 0) + 1
+        offene_mints = {m for w in wellen.values() if not w.get("beendet")
+                        and now < w.get("until", 0) for m in w.get("mints", [])}
+        for mint in list(_welle_letzte_views):
+            if mint not in offene_mints or now - _welle_letzte_views[mint][0] > 10 * 60:
+                del _welle_letzte_views[mint]
+        for mint in offene_mints:
+            if mint in geladene_views:
+                _welle_letzte_views[mint] = (now, dict(geladene_views[mint]))
+        for w in wellen.values():
+            try:
+                if w.get("beendet") or now >= w.get("until", 0):
+                    continue
+                v = geladene_views.get(w.get("groesster"))
+                if v is not None and v.get("price", 0) > 0:
+                    w.setdefault("preis_usd", w.get("ref_price", 0))
+                    w.setdefault("peak_usd", w.get("ref_price", 0))
+                    w["preis_usd"] = v["price"]
+                    w["peak_usd"] = max(w["peak_usd"], v["price"])
+            except Interrupted:
+                raise
+            except Exception:
+                STATS["welle_fehler"] = STATS.get("welle_fehler", 0) + 1
+    except Interrupted:
+        raise
+    except Exception:
+        STATS["welle_fehler"] = STATS.get("welle_fehler", 0) + 1
+
+
+def welle_entscheidung(mint, text):
+    """Nur die Hauptstrategie entscheidet; ein Kauf bleibt endgueltig."""
+    try:
+        p, stats = _welle_kontext
+        if CTX["name"] or p is None or stats is not STATS:
+            return
+        for w in p.get("wellen", {}).values():
+            if w.get("beendet") or time.time() >= w.get("until", 0):
+                continue
+            if w.get("groesster") == mint and w.get("entscheidung") != "gekauft":
+                w.setdefault("entscheidung", "offen")
+                w.setdefault("grund", "")
+                w["entscheidung"] = "gekauft" if text == "gekauft" else "abgelehnt"
+                w["grund"] = "" if text == "gekauft" else text
+    except Interrupted:
+        raise
+    except Exception:
+        STATS["welle_fehler"] = STATS.get("welle_fehler", 0) + 1
+
+
+def wellen_beenden(p, now):
+    """Abgelaufene Beobachtungen vor dem Entfernen der anderen Beobachter abschliessen."""
+    try:
+        if CTX["name"]:
+            return False
+        if _welle_kontext[1] is not STATS:
+            _welle_index.clear()
+            _welle_preise.clear()
+            _welle_letzte_views.clear()
+        _welle_kontext[:] = [p, STATS]
+        geaendert = False
+        for w in p.get("wellen", {}).values():
+            try:
+                if w.get("beendet"):
+                    continue
+                if not w.get("start_geschrieben"):
+                    if welle_aufzeichnen(w, "start", w.get("zeit", now)):
+                        w.setdefault("start_geschrieben", True)
+                if now >= w.get("until", now) and w.get("start_geschrieben"):
+                    if welle_aufzeichnen(w, "ende", now):
+                        if w.get("entscheidung", "offen") == "offen":
+                            w.setdefault("entscheidung", "offen")
+                            w["entscheidung"] = "nicht_geprueft"
+                        w.setdefault("beendet", True)
+                        geaendert = True
+            except Interrupted:
+                raise
+            except Exception:
+                STATS["welle_fehler"] = STATS.get("welle_fehler", 0) + 1
+        return geaendert
+    except Interrupted:
+        raise
+    except Exception:
+        STATS["welle_fehler"] = STATS.get("welle_fehler", 0) + 1
+        return False
+
+
+def wellen_verlauf(p, data, now):
+    """Verwendet die Sammelantwort oder eine hoechstens zehn Minuten alte Scan-View."""
+    try:
+        if CTX["name"]:
+            return
+        for w in p.get("wellen", {}).values():
+            try:
+                mint = w.get("groesster")
+                if w.get("beendet") or now >= w.get("until", 0):
+                    continue
+                if mint in data:
+                    v = token_view(data[mint], now)
+                else:
+                    gesehen, v = _welle_letzte_views.get(mint, (0, None))
+                    if v is None or now - gesehen > 10 * 60:
+                        continue
+                if v["price"] <= 0:
+                    continue
+                w.setdefault("preis_usd", w.get("ref_price", 0))
+                w.setdefault("peak_usd", w.get("ref_price", 0))
+                w["preis_usd"] = v["price"]
+                w["peak_usd"] = max(w["peak_usd"], v["price"])
+                log_path("welle", mint, w.get("symbol", "?"), v, w.get("ref_price", 0),
+                         w.get("zeit", now), w["peak_usd"], False)
+            except Interrupted:
+                raise
+            except Exception:
+                STATS["welle_fehler"] = STATS.get("welle_fehler", 0) + 1
+    except Interrupted:
+        raise
+    except Exception:
+        STATS["welle_fehler"] = STATS.get("welle_fehler", 0) + 1
 
 
 def follower_of(v, now):
@@ -1209,6 +1490,12 @@ def ensure_csv_columns(path, header):
 
 
 def log_reject(v, reason):
+    try:
+        welle_entscheidung(v.get("mint"), reason)
+    except Interrupted:
+        raise
+    except Exception:
+        STATS["welle_fehler"] = STATS.get("welle_fehler", 0) + 1
     STATS["rejects"][reason] = STATS["rejects"].get(reason, 0) + 1
     key = (v.get("mint"), reason)
     if time.time() - _reject_seen.get(key, 0) < REJECT_REPEAT_SECONDS:
@@ -1341,6 +1628,13 @@ def open_position(p, v, bundle, sol_usd, max_slippage_pct=None, extra_pos=None):
     dex_vormerken("kauf", v)
     STATS["entries"].append({"symbol": v["symbol"], "roundtrip": roundtrip,
                              "mitlaeufer": bool(v.get("mitlaeufer"))})
+    try:
+        if not CTX["name"] and bundle.get("quelle") != "experiment":
+            welle_entscheidung(v["mint"], "gekauft")
+    except Interrupted:
+        raise
+    except Exception:
+        STATS["welle_fehler"] = STATS.get("welle_fehler", 0) + 1
     ml = v.get("mitlaeufer")
     ml_line = (f"**Mitlaeufer-Verdacht:** teilt \"{ml['teil']}\" mit {ml['leader']} "
                f"(${ml['leader_mcap']:,.0f}), nur zur Beobachtung\n") if ml else ""
@@ -1438,6 +1732,13 @@ def manage_positions(p, sol_usd, now):
     loop = STATS["loops"]
     watch = p.setdefault("watch", {})
     shadow = p.setdefault("shadow", {})
+    wellen_geaendert = False
+    try:
+        wellen_geaendert = wellen_beenden(p, now)
+    except Interrupted:
+        raise
+    except Exception:
+        STATS["welle_fehler"] = STATS.get("welle_fehler", 0) + 1
     for store in (watch, shadow):
         for mint in [m for m, w in store.items() if now > w["until"]]:
             del store[mint]
@@ -1449,6 +1750,13 @@ def manage_positions(p, sol_usd, now):
     if log_shadow:
         wanted += [m for m in shadow if m not in p["positions"] and m not in watch]
     if not wanted:
+        try:
+            if wellen_geaendert:
+                save_portfolio(p)
+        except Interrupted:
+            raise
+        except Exception:
+            STATS["welle_fehler"] = STATS.get("welle_fehler", 0) + 1
         return
     data = jup_tokens(wanted)
     for mint, pos in list(p["positions"].items()):
@@ -1593,6 +1901,13 @@ def manage_positions(p, sol_usd, now):
             s["peak_usd"] = max(s["peak_usd"], v["price"])
             log_path("abgelehnt_" + s["reason"], mint, s["symbol"], v, s["ref_price"], s["since"],
                      s["peak_usd"], False)
+    try:
+        if log_shadow:
+            wellen_verlauf(p, data, now)
+    except Interrupted:
+        raise
+    except Exception:
+        STATS["welle_fehler"] = STATS.get("welle_fehler", 0) + 1
     save_portfolio(p)
 
 
@@ -1621,6 +1936,12 @@ def scan(p, sol_usd, now, exps=None):
                 STATS["young_by_list"].setdefault(short, set()).add(v["mint"])
     update_symbol_leaders(views, now)
     update_narrative_leaders(views, now)
+    try:
+        namenswellen_pruefen(p, views, now)
+    except Interrupted:
+        raise
+    except Exception:
+        STATS["welle_fehler"] = STATS.get("welle_fehler", 0) + 1
     for name, with_filters in (("endspurt", True), ("endspurt_ohne_filter", False)):
         if exps and name in exps and name not in EXP_BEENDET:
             try:
@@ -2327,7 +2648,7 @@ def git_push():
     wird zeilenweise gemischt (das zerstoert JSON). Andere Dateien auf main, etwa eine
     zwischendurch hochgeladene bot.py, bleiben unangetastet."""
     files = [f for f in (PORTFOLIO_FILE, JOURNAL_FILE, REJECT_FILE, PHASE_FILE, VERLAUF_DIR,
-                         NEAR_MISS_FILE, "verlauf.csv", EXP_DIR, MESSUNG_FILE, DEX_FILE, FLUG_DIR)
+                         NEAR_MISS_FILE, WELLEN_FILE, "verlauf.csv", EXP_DIR, MESSUNG_FILE, DEX_FILE, FLUG_DIR)
              if os.path.exists(f)]
     if not files:
         return
@@ -2402,6 +2723,14 @@ def shift_summary(p, start_value, started, reason):
                  f"**Helius:** {STATS['helius_ok']} ok / {STATS['helius_fail']} Fehler")
     if STATS.get("near_misses"):
         lines.append(f"**Knapp abgelehnt, neu beobachtet:** {STATS['near_misses']}")
+    try:
+        if STATS.get("wellen") or STATS.get("welle_fehler"):
+            lines.append(f"**Namenswellen (Beobachtung):** {STATS.get('wellen', 0)} erkannt"
+                         + (f" | Fehler {STATS['welle_fehler']}" if STATS.get("welle_fehler") else ""))
+    except Interrupted:
+        raise
+    except Exception:
+        STATS["welle_fehler"] = STATS.get("welle_fehler", 0) + 1
     ybl = STATS["young_by_list"]
     if ybl:
         lines.append("**Junge Kandidaten je Liste:** " + ", ".join(
@@ -2449,6 +2778,12 @@ def run():
     synced = git_sync_start()
     ensure_csv_columns(REJECT_FILE, REJECT_HEADER)
     ensure_csv_columns(NEAR_MISS_FILE, NEAR_MISS_HEADER)
+    try:
+        ensure_csv_columns(WELLEN_FILE, WELLEN_HEADER)
+    except Interrupted:
+        raise
+    except Exception:
+        STATS["welle_fehler"] = STATS.get("welle_fehler", 0) + 1
     for path in [JOURNAL_FILE] + [os.path.join(EXP_DIR, n, "journal.csv") for n in EXPERIMENTS]:
         ensure_csv_columns(path, JOURNAL_HEADER)
     p = load_portfolio()

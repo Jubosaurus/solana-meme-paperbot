@@ -34,6 +34,7 @@ Das Wiki sammelt Wissen und beschließt nichts. Verbindlich bleiben `STRATEGIE.m
 - [[Tag-13-Marktsignale]] – Tag 13 – Marktsignale prüfen
 - [[Tag-16-Neu-kaufen]] – Tag 16 – Würde ich heute zu diesem Preis neu kaufen?
 - [[Tag-17-FOMO]] – Tag 17 – Nicht aus FOMO kaufen
+- [[Tag-18-20-Knappheit-KI-News]] – Tag 18–20 und Namenswelle (nur Beobachtung, seit 07.10.)
 - [[Testregeln-Experimente]] – Testregeln für Experimente und Urteile
 - [[Verkaufsregeln-Hauptstrategie]] – Verkaufsregeln der Hauptstrategie
 
@@ -147,6 +148,7 @@ Das Wiki sammelt Wissen und beschließt nichts. Verbindlich bleiben `STRATEGIE.m
 - [[Q-Copy-Wallets]] – Quelle: copy_wallets.txt
 - [[Q-Korrekturen]] – Quelle: Korrekturen Copy-Bot
 - [[Q-Scout-Kandidaten]] – Quelle: scout/kandidaten.csv (nur Adressen)
+- [[Q-2026-10-07-Tag18-20]] – Quelle: Videos Tag 18–20 / Namenswelle
 - [[Q-STRATEGIE]] – Quelle: STRATEGIE.md
 - [[Q-Videos-Regeln]] – Quelle: videos/regeln.md
 - [[Q-Zusammenfassung-Chat]] – Quelle: Zusammenfassung fürs Chat-Projekt

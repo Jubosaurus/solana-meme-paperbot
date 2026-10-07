@@ -56,3 +56,6 @@ Noch offen:
 
 ## 07.10.2026 (Nexus Core Teil 3)
 - Eingespeist: [[Q-2026-10-07-Nexus-Core-Teil3]] in [[Nexus-Core]] (neues Logo als PNG, Leitsatz, Wächter-Plakette „automatisch“, fünf Fotorunden, Kontowerte unverändert, Codex-Sandbox ohne Browser).
+
+## 07.10.2026 (Tag 18–20)
+- Eingespeist: [[Q-2026-10-07-Tag18-20]] in [[Tag-18-20-Knappheit-KI-News]] (Tag 18 und 19 ohne Umsetzung, Tag 20 als Beobachtung „Namenswelle“).
