@@ -369,6 +369,22 @@ def test_filter_trichter_zaehlt_coins_je_grund_und_kaeufe(tmp_path):
     assert r.filter_trichter(tmp_path / "leer", jetzt=jetzt)["pruefungen"] == 0
 
 
+def test_filter_trichter_liest_alte_datei_und_tagesdateien(tmp_path):
+    """Seit 08.10.: abgelehnt/JJJJ-MM-TT.csv; die alte Gesamtdatei bleibt lesbar."""
+    jetzt = datetime(2026, 10, 9, 12, tzinfo=timezone.utc).timestamp()
+    kopf = ["zeit", "symbol", "mint", "grund"]
+    write_csv(tmp_path / "abgelehnt.csv", kopf, [["2026-10-07 10:00:00", "A", "m1", "STORY_ZU_ALT"],
+                                                  ["2026-10-08 00:01:00", "A", "m1", "STORY_ZU_ALT"]])
+    (tmp_path / "abgelehnt").mkdir()
+    write_csv(tmp_path / "abgelehnt" / "2026-10-08.csv", kopf, [["2026-10-08 10:00:00", "B", "m2", "ZU_JUNG"]])
+    write_csv(tmp_path / "abgelehnt" / "2026-10-09.csv", kopf, [["2026-10-09 10:00:00", "C", "m3", "ZU_JUNG"]])
+    write_csv(tmp_path / "abgelehnt" / "2026-09-01.csv", kopf, [["2026-09-01 10:00:00", "D", "m4", "ZU_JUNG"]])
+    t = r.filter_trichter(tmp_path, tage=7, jetzt=jetzt)
+    assert t["pruefungen"] == 4 and t["coins"] == 3
+    assert [d["tag"] for d in t["je_tag"]] == ["2026-10-07", "2026-10-08", "2026-10-09"]
+    assert r.filter_trichter(tmp_path, tage=1, jetzt=jetzt)["pruefungen"] == 1
+
+
 def test_kostenaufschlag_roh_und_mit_kosten():
     """Entscheidung 06.10.: 2 % je Rundlauf (Endspurt 4 %) vom Einsatz, immer roh und mit Kosten."""
     k = r.trade_kennzahlen([closed(0.1), closed(0.0), closed(-0.1)], 2.0)

@@ -17,7 +17,7 @@ Du bist der Daten-Prüfer dieses Paper-Trading-Projekts. Du bekommst Behauptunge
 
 - Hauptstrategie: `portfolio.json` (`closed`, `positions`), `journal.csv`, `verlauf/*.csv` (Phasen `offen`, `nach_verkauf`, `exp_<name>_...`, `abgelehnt_<GRUND>` für knapp Abgelehnte)
 - Experimente: `experimente/<name>/portfolio.json`
-- Abgelehnte Coins: `abgelehnt.csv`, `knapp_abgelehnt.csv` (Weiterverfolgung, z. B. `FOMO_SPRUNG`)
+- Abgelehnte Coins: `abgelehnt.csv` (bis 07.10.) und `abgelehnt/JJJJ-MM-TT.csv` (seit 08.10., eine Datei pro Tag), `knapp_abgelehnt.csv` (Weiterverfolgung, z. B. `FOMO_SPRUNG`)
 - Copy: `copy/konten.json` (pro Wallet `positionen`, `geschlossen`, `schatten`, `schatten_geschlossen`, `runde`), `copy/journal.csv`, `copy/verlauf/*.csv`
 - Scout: `scout/kandidaten.csv`, `scout/status.json`
 

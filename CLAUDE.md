@@ -17,11 +17,11 @@ Paper-Trading-Projekt für Solana-Memecoins. **Es wird kein echtes Geld gehandel
 
 ## Aufbau
 
-Drei unabhängige Bots, jeweils eigener GitHub-Actions-Workflow, Schichten von knapp 6 h, Stand wird laufend ins Repository gepusht.
+Drei unabhängige Bots, jeweils eigener GitHub-Actions-Workflow, Schichten von knapp 6 h, Stand wird laufend ins Repository gepusht (seit 08.10. höchstens alle 5 min, nach einer neuen Journal-Zeile spätestens nach ca. 1 min; vorher jede Minute).
 
 | Bot | Datei | Workflow | Daten |
 |---|---|---|---|
-| Hauptstrategie NARRATIV + Experimente | `bot.py` | `bot_runner.yml` (Kettenstart, Sicherheitsnetz stündlich Minute 17 seit 06.10.) | `portfolio.json`, `journal.csv`, `messung.csv`, `dexscreener.csv`, `flugschreiber/`, `abgelehnt.csv`, `knapp_abgelehnt.csv`, `namenswellen.csv` (seit 07.10.), `marktphase.json`, `verlauf/`, `experimente/<name>/` |
+| Hauptstrategie NARRATIV + Experimente | `bot.py` | `bot_runner.yml` (Kettenstart, Sicherheitsnetz stündlich Minute 17 seit 06.10.) | `portfolio.json`, `journal.csv`, `messung.csv`, `dexscreener.csv`, `flugschreiber/`, `abgelehnt.csv`, `abgelehnt/`, `knapp_abgelehnt.csv`, `namenswellen.csv` (seit 07.10.), `marktphase.json`, `verlauf/`, `experimente/<name>/` |
 | Copy Trading | `copy_bot.py` (nutzt `bot.py` als `core`) | `copy_runner.yml` (Kettenstart, Sicherheitsnetz stündlich Minute 47 seit 06.10.) | `copy/konten.json`, `copy/journal.csv`, `copy/messung.csv`, `copy/verlauf/`, `copy/flutschutz.json`; Wallets in `copy_wallets.txt` |
 | Wallet-Scout | `scout_bot.py` (nutzt `copy_bot.py`) | `scout_runner.yml` (stündlich Minute 29, läuft nur einmal je 6-h-Fenster) | `scout/status.json`, `scout/kandidaten.csv`, `scout/tx_pruefung.csv`, `scout/warteliste.csv`; Prüfliste `scout/pruefen.txt`, Transaktions-Prüfung `scout/pruefen_tx.txt`; Automatik schreibt `copy_wallets.txt` |
 
@@ -89,7 +89,7 @@ Codex (OpenAI, über ChatGPT Pro) ergänzt Claude. Offizielles Plugin `openai/co
 ## Goldene Regeln
 
 1. **Vor jeder Änderung `git pull`.** Die Bots pushen etwa jede Minute Daten nach `main` (Commits mit `[skip ci]`).
-2. **Nur Code und Doku committen, nie Daten** (`portfolio.json`, `journal.csv`, `messung.csv`, `dexscreener.csv`, `namenswellen.csv`, `flugschreiber/`, `verlauf/`, `experimente/`, `copy/`, `scout/status.json`, `scout/kandidaten.csv`, `scout/tx_pruefung.csv`, `scout/warteliste.csv`). Ausnahme: `copy_wallets.txt` (ändert seit 04.10. auch die Scout-Automatik selbst; vor Änderungen von Hand `git pull`), `scout/pruefen.txt` und `scout/pruefen_tx.txt`, wenn der Betreiber Wallets ändern oder Transaktionen prüfen lassen will. Doku wie `auswertungen/`, `tests/` und `.claude/` darf eingespielt werden.
+2. **Nur Code und Doku committen, nie Daten** (`portfolio.json`, `journal.csv`, `messung.csv`, `dexscreener.csv`, `namenswellen.csv`, `abgelehnt.csv`, `abgelehnt/`, `knapp_abgelehnt.csv`, `flugschreiber/`, `verlauf/`, `experimente/`, `copy/`, `scout/status.json`, `scout/kandidaten.csv`, `scout/tx_pruefung.csv`, `scout/warteliste.csv`). Ausnahme: `copy_wallets.txt` (ändert seit 04.10. auch die Scout-Automatik selbst; vor Änderungen von Hand `git pull`), `scout/pruefen.txt` und `scout/pruefen_tx.txt`, wenn der Betreiber Wallets ändern oder Transaktionen prüfen lassen will. Doku wie `auswertungen/`, `tests/` und `.claude/` darf eingespielt werden.
 3. **Laufende Daten dürfen nie kaputtgehen:** neue Felder mit `setdefault`/`.get`, neue CSV-Spalten nur hinten anhängen (`core.ensure_csv_columns`), alte Positionen/Konten müssen mit neuem Code weiterlaufen.
 4. **Absturzsicherheit:** Ein einzelner Coin, eine Nachricht oder eine API-Antwort darf nie einen Bot stoppen (Fehler abfangen, zählen, in der Endmeldung zeigen). Ein abgestürzter Bot startet wegen des Kettenstarts erst beim Sicherheitsnetz-Lauf neu.
 5. **Testen vor dem Push** (siehe Tests). Bei jeder Änderung an Verkaufsregeln: Gegenprobe, dass die Hauptstrategie auf den aufgezeichneten Verläufen unverändert verkauft.

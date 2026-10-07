@@ -202,3 +202,15 @@ def test_seite_leere_daten_und_ladefehler(seite, tmp_path, monkeypatch):
     app.run()
     assert not app.exception
     assert any("konnten nicht geladen" in e.value for e in app.get("html"))
+
+
+def test_rueckblick_liest_auch_tagesdateien_der_ablehnungen(tmp_path):
+    """Seit 08.10. stehen neue Ablehnungen in abgelehnt/JJJJ-MM-TT.csv, alte in abgelehnt.csv."""
+    csv_schreiben(tmp_path / "knapp_abgelehnt.csv", HEADER, [])
+    csv_schreiben(tmp_path / "abgelehnt.csv", HEADER, [fall("A")])
+    csv_schreiben(tmp_path / "abgelehnt/2026-10-01.csv", HEADER, [fall("B", sek=60)])
+    csv_schreiben(tmp_path / "verlauf/2026-10-01.csv", KURS_HEADER, [kurs("A"), kurs("B", sek=3660)])
+    q = r.abgelehnt_rueckblick(tmp_path)["quellen"]["abgelehnt"]
+    assert q["pruefungen"] == 2 and q["coins"] == 2
+    gruppe = next(g for g in q["gruende"] if g["grund"] == "FOMO_SPRUNG")
+    assert gruppe["horizonte"][1]["n"] == 2

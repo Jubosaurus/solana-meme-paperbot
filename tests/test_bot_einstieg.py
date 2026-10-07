@@ -1,6 +1,8 @@
 """Hauptstrategie: Token-Kennzahlen, Schnellpruefungen (inkl. Tag 17 FOMO), knapp abgelehnt, Bundle-Check."""
 import csv
+import os
 import time
+from datetime import datetime, timezone
 
 import pytest
 
@@ -91,9 +93,24 @@ def test_log_reject_schreibt_nur_einmal_pro_stunde():
     v = view()
     core.log_reject(v, "ZU_JUNG")
     core.log_reject(v, "ZU_JUNG")
-    rows = list(csv.reader(open(core.REJECT_FILE, encoding="utf-8")))
+    rows = list(csv.reader(open(core.reject_path(), encoding="utf-8")))
     assert len(rows) == 2                         # Kopf + 1 Zeile
     assert core.STATS["rejects"]["ZU_JUNG"] == 2
+    assert not os.path.exists(core.REJECT_FILE)   # alte Gesamtdatei wird nicht mehr geschrieben
+
+
+def test_log_reject_schreibt_tagesdatei_und_alte_datei_bleibt_lesbar():
+    with open(core.REJECT_FILE, "w", newline="", encoding="utf-8") as f:
+        csv.writer(f).writerows([core.REJECT_HEADER, ["2026-10-07 10:00:00", "ALT", "m0", "ZU_JUNG"] + [""] * 8])
+    core.log_reject(view(), "ZU_JUNG")
+    heute = core.reject_path()
+    assert heute.startswith(core.REJECT_DIR) and heute.endswith(datetime.now(timezone.utc).strftime("%Y-%m-%d") + ".csv")
+    assert core.reject_files() == [core.REJECT_FILE, heute]
+    alt = list(csv.reader(open(core.REJECT_FILE, encoding="utf-8")))
+    assert len(alt) == 2                          # alte Datei unveraendert
+    os.makedirs(core.REJECT_DIR, exist_ok=True)
+    open(os.path.join(core.REJECT_DIR, "notiz.txt"), "w").close()
+    assert core.reject_files() == [core.REJECT_FILE, heute]   # nur Tagesdateien zaehlen
 
 
 def test_ensure_csv_columns_haengt_hinten_an(tmp_path):

@@ -38,6 +38,7 @@ In der Auswertung kurz nennen, wie viele Zeilen herausgerechnet wurden. Kommen n
 ## 2. Betrieb
 
 - Lücken über 10 Minuten in `verlauf/` (Hauptbot) und über 45 Minuten in `copy/journal.csv` (Copy-Bot) im Zeitraum.
+- Repo-Wachstum (seit 08.10. Sicherung höchstens alle 5 min, Ablehnungen in `abgelehnt/JJJJ-MM-TT.csv`): Commits je Bot und Tag (`git rev-list --count --since=… --until=… HEAD`) und GitHub-Größe (`gh api repos/{owner}/{repo} --jq .size`, KB) notieren; Vergleich 06.10.: 2.389 Commits/Tag, 2.011.513 KB. Lücken zwischen Commits bis ca. 5 min sind jetzt normal.
 - `gh run list --limit 30` für alle drei Workflows: fehlgeschlagene oder abgebrochene Läufe? Bei Fehlern das Log mit `gh run view <id> --log-failed` lesen und die Ursache in einem Satz nennen.
 - Lief der Scout seit der letzten Auswertung (Zeitstempel in `scout/kandidaten.csv`)?
 

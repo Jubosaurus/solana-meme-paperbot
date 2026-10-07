@@ -54,6 +54,35 @@ def notification(sig, sub=101, logs=("Program log: Instruction: Buy",)):
         "subscription": sub, "result": {"value": {"signature": sig, "err": None, "logs": list(logs)}}}})
 
 
+def test_copy_schicht_ueberlebt_ausnahme_beim_sichern(clock, market, monkeypatch, sandbox):
+    """Codex-Fund 07.10.: Eine Ausnahme beim Sichern darf die Copy-Schicht nicht beenden;
+    nach einer Journal-Zeile wird nach ca. 1 min erneut gesichert."""
+    open(cb.WALLET_FILE, "w", encoding="utf-8").write(f"Alpha: {WALLET}\n")
+    market.set(MINT, price=PRICE_USD)
+    txs = {"live1": buy_tx(sig="live1", block_time=int(clock.now))}
+    monkeypatch.setattr(core, "rpc", lambda method, params: txs.get(params[0]) if method == "getTransaction"
+                        else ([] if method == "getSignaturesForAddress" else None))
+    confirm = json.dumps({"jsonrpc": "2.0", "id": 1, "result": 101})
+    monkeypatch.setattr(cb.websocket, "create_connection",
+                        lambda url, timeout=None: FakeWS(clock, [confirm, notification("live1")]))
+    start, versuche = clock.now, []
+
+    def kaputt():
+        versuche.append(clock.now - start)
+        if len(versuche) <= 2:
+            raise OSError("git weg")
+        return True
+    monkeypatch.setattr(cb, "git_push", kaputt)
+    monkeypatch.setattr(cb, "SHIFT_SECONDS", 400)
+
+    cb.run()
+
+    assert cb.STATS["git_fail"] >= 2
+    assert len(versuche) >= 3 and versuche[1] - versuche[0] < 120      # neuer Versuch nach ca. 1 min
+    assert versuche[-1] >= 390                                          # Schicht lief bis zum Ende
+    assert [r["aktion"] for r in csv.DictReader(open(cb.JOURNAL_FILE, encoding="utf-8"))] == ["KAUF"]
+
+
 def test_copy_schicht_mit_leerer_nachricht_und_neuverbindung(clock, market, monkeypatch, sandbox):
     open(cb.WALLET_FILE, "w", encoding="utf-8").write(f"Alpha: {WALLET}\n")
     market.set(MINT, price=PRICE_USD)
@@ -124,7 +153,7 @@ def test_hauptbot_schicht(clock, market, monkeypatch, sandbox):
     assert os.path.exists("experimente/kontrollgruppe/portfolio.json")
     titles = [t for t, _ in sandbox["discord"]]
     assert "🔴 Schicht beendet" in titles
-    own = {core.PORTFOLIO_FILE, core.JOURNAL_FILE, core.REJECT_FILE, core.PHASE_FILE, core.VERLAUF_DIR,
+    own = {core.PORTFOLIO_FILE, core.JOURNAL_FILE, core.REJECT_FILE, core.REJECT_DIR, core.PHASE_FILE, core.VERLAUF_DIR,
            core.NEAR_MISS_FILE, "verlauf.csv", core.EXP_DIR, core.MESSUNG_FILE, core.DEX_FILE, core.FLUG_DIR}
     adds = git_adds(sandbox["git"])
     assert len(adds) >= 2                                               # Zwischensicherung und Schichtende

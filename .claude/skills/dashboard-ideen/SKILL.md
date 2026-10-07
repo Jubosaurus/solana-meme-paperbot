@@ -19,7 +19,7 @@ Ideen, die keinem dieser drei Punkte dienen, fliegen raus.
 
 1. **Bestand aufnehmen** (kurz, nicht alles lesen): `dashboard/app.py` (Seitenliste), `dashboard/README.md`, die Funktionsnamen in `dashboard/daten.py`, `dashboard/rechnung.py`, `dashboard/wallets.py`. Was es schon gibt, nicht noch einmal vorschlagen – höchstens als Ausbau.
 2. **Datenquellen prüfen** – nur vorschlagen, was die Daten hergeben. Spalten per Skript/DuckDB nachsehen, nie große Dateien lesen:
-   - Konten: `portfolio.json`, `experimente/<name>/`, `journal.csv`, `messung.csv`, `verlauf/`, `abgelehnt.csv`, `knapp_abgelehnt.csv`, `marktphase.json`
+   - Konten: `portfolio.json`, `experimente/<name>/`, `journal.csv`, `messung.csv`, `verlauf/`, `abgelehnt.csv`, `abgelehnt/`, `knapp_abgelehnt.csv`, `marktphase.json`
    - Copy: `copy/konten.json`, `copy/journal.csv`, `copy/messung.csv`, `copy_wallets.txt`
    - Scout: `scout/status.json`, `scout/kandidaten.csv` (Kopfzeile alt, Zeilen nach Länge zuordnen), `scout/warteliste.csv`, `scout/pruefen.txt`
    - Flugschreiber: `flugschreiber/`
@@ -38,7 +38,7 @@ Ideen, die keinem dieser drei Punkte dienen, fliegen raus.
 
 Das Dashboard darf mehr als anzeigen, aber nur so:
 
-- **Nur Einstellungs-Dateien und Listen**: z. B. `copy_wallets.txt`, `scout/pruefen.txt`, `scout/pruefen_tx.txt`, Schalter (z. B. `AUTO_AUFNAHME` in `scout_bot.py` – nur mit Rückfrage, weil Code). **Nie Daten-Dateien** (`portfolio.json`, `journal.csv`, `messung.csv`, `verlauf/`, `experimente/`, `copy/`, `flugschreiber/`, `scout/status.json`, `scout/kandidaten.csv`, `scout/tx_pruefung.csv`, `dexscreener.csv`, `abgelehnt.csv`, `knapp_abgelehnt.csv`, `marktphase.json`). Die schreiben nur die Bots.
+- **Nur Einstellungs-Dateien und Listen**: z. B. `copy_wallets.txt`, `scout/pruefen.txt`, `scout/pruefen_tx.txt`, Schalter (z. B. `AUTO_AUFNAHME` in `scout_bot.py` – nur mit Rückfrage, weil Code). **Nie Daten-Dateien** (`portfolio.json`, `journal.csv`, `messung.csv`, `verlauf/`, `experimente/`, `copy/`, `flugschreiber/`, `scout/status.json`, `scout/kandidaten.csv`, `scout/tx_pruefung.csv`, `dexscreener.csv`, `abgelehnt.csv`, `abgelehnt/`, `knapp_abgelehnt.csv`, `marktphase.json`). Die schreiben nur die Bots.
 - **Jede Änderung = eigener Commit** mit Grund im Text und **Eintrag im Änderungsprotokoll von `STRATEGIE.md`** (Datum, Änderung, Grund). Vorbild: `dashboard/wallets.py` (`git pull` → ändern → nur diese Datei committen → pushen → bei Fehler alles zurücknehmen).
 - **Prüfungen vor dem Speichern** (Format, Duplikate, Grenzen wie `AUTO_MAX_WALLETS`), Fehler verständlich anzeigen.
 - **Löschen/Entfernen nur mit Bestätigung** (zweiter Klick oder Häkchen). Entfernte Wallets auskommentieren mit Datum und Grund, nicht löschen.

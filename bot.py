@@ -28,7 +28,8 @@ import listings
 # ================================================================ Dateien
 PORTFOLIO_FILE = "portfolio.json"
 JOURNAL_FILE = "journal.csv"
-REJECT_FILE = "abgelehnt.csv"
+REJECT_FILE = "abgelehnt.csv"           # alte Gesamtdatei bis 07.10., wird nur noch gelesen
+REJECT_DIR = "abgelehnt"                # seit 08.10. eine Datei pro Tag (UTC), z. B. abgelehnt/2026-10-08.csv
 PHASE_FILE = "marktphase.json"
 VERLAUF_DIR = "verlauf"                  # eine Datei pro Tag (UTC), z. B. verlauf/2026-09-28.csv
 # Flugschreiber (seit 04.10., nur Aufzeichnung): je offene Position etwa jede Minute Liquiditaet, Holder,
@@ -67,7 +68,8 @@ SCAN_EVERY_LOOPS = 6                    # Kandidaten ca. alle 70 s
 PHASE_EVERY_LOOPS = 30                  # Marktphase ca. alle 6 min
 THESIS_EVERY_LOOPS = 3                  # These ca. alle 36 s pruefen (Jupiter-Daten brauchen Zeit)
 SOL_PRICE_EVERY_LOOPS = 5
-GIT_PUSH_EVERY_LOOPS = 5                # Sicherung ca. jede Minute
+GIT_PUSH_SECONDS = 300                  # Sicherung hoechstens alle 5 min (seit 08.10., vorher jede Minute)
+GIT_PUSH_HANDEL_SECONDS = 60            # nach einem Kauf/Verkauf (Journal-Zeile) spaetestens nach ca. 1 min
 WATCH_LOG_EVERY_LOOPS = 3               # Verlauf nach Verkauf ca. alle 36 s
 NEAR_MISS_LOG_EVERY_LOOPS = 10          # Verlauf knapp Abgelehnter ca. alle 2 min
 
@@ -314,6 +316,7 @@ _bundle_cache = {}
 _portfolio_alarm = set()
 _shield_cache = {}
 _reject_seen = {}
+_handel_seit_push = [False]          # Journal-Zeile seit der letzten Sicherung (Hauptbot und Experimente)
 _symbol_leaders = {}                    # Tag 12: Symbol -> (mint, holder, zeit)
 _narrative_leaders = {}                 # Namensteil -> (mint, symbol, mcap, zeit)
 _sol_price = [0.0]
@@ -1207,6 +1210,7 @@ JOURNAL_HEADER = ["zeit", "aktion", "symbol", "mint", "preis_usd", "sol",
 def journal(action, pos, price_usd, sol, reason="", pnl_sol="", pnl_pct="", notloesung=""):
     """Tag 3: Einstieg mit These und Verkaufsbedingung, jeder Verkauf mit Grund."""
     path = CTX["journal"]
+    _handel_seit_push[0] = True
     new = not os.path.exists(path)
     with open(path, "a", newline="", encoding="utf-8") as f:
         w = csv.writer(f)
@@ -1547,6 +1551,21 @@ def ensure_csv_columns(path, header):
     os.replace(tmp, path)
 
 
+def reject_path(when=None):
+    """Tagesdatei der Ablehnungen (UTC), z. B. abgelehnt/2026-10-08.csv."""
+    when = when or datetime.now(timezone.utc)
+    return os.path.join(REJECT_DIR, when.strftime("%Y-%m-%d") + ".csv")
+
+
+def reject_files(root=""):
+    """Alle Ablehnungsdateien in zeitlicher Reihenfolge: alte Gesamtdatei (bis 07.10.) und Tagesdateien."""
+    old = os.path.join(str(root), REJECT_FILE)
+    folder = os.path.join(str(root), REJECT_DIR)
+    days = sorted(os.path.join(folder, n) for n in os.listdir(folder)
+                  if re.fullmatch(r"\d{4}-\d{2}-\d{2}\.csv", n)) if os.path.isdir(folder) else []
+    return ([old] if os.path.exists(old) else []) + days
+
+
 def log_reject(v, reason):
     try:
         welle_entscheidung(v.get("mint"), reason)
@@ -1559,12 +1578,15 @@ def log_reject(v, reason):
     if time.time() - _reject_seen.get(key, 0) < REJECT_REPEAT_SECONDS:
         return
     _reject_seen[key] = time.time()
-    new = not os.path.exists(REJECT_FILE)
-    with open(REJECT_FILE, "a", newline="", encoding="utf-8") as f:
+    jetzt = datetime.now(timezone.utc)
+    path = reject_path(jetzt)
+    os.makedirs(REJECT_DIR, exist_ok=True)
+    new = not os.path.exists(path)
+    with open(path, "a", newline="", encoding="utf-8") as f:
         w = csv.writer(f)
         if new:
             w.writerow(REJECT_HEADER)
-        w.writerow([datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S"),
+        w.writerow([jetzt.strftime("%Y-%m-%d %H:%M:%S"),
                     v.get("symbol"), v.get("mint"), reason,
                     "" if v.get("age_h") is None else f"{v['age_h']:.2f}",
                     f"{v.get('mcap', 0):.0f}", f"{v.get('liquidity', 0):.0f}", v.get("holders"),
@@ -2707,11 +2729,11 @@ def git_push():
     """Sichert die Zustandsdateien auf main. Jede Datei wird als Ganzes ersetzt, nichts
     wird zeilenweise gemischt (das zerstoert JSON). Andere Dateien auf main, etwa eine
     zwischendurch hochgeladene bot.py, bleiben unangetastet."""
-    files = [f for f in (PORTFOLIO_FILE, JOURNAL_FILE, REJECT_FILE, PHASE_FILE, VERLAUF_DIR,
+    files = [f for f in (PORTFOLIO_FILE, JOURNAL_FILE, REJECT_FILE, REJECT_DIR, PHASE_FILE, VERLAUF_DIR,
                          NEAR_MISS_FILE, WELLEN_FILE, "verlauf.csv", EXP_DIR, MESSUNG_FILE, DEX_FILE, FLUG_DIR)
              if os.path.exists(f)]
     if not files:
-        return
+        return True
     _git("config", "user.name", "github-actions[bot]")
     _git("config", "user.email", "github-actions[bot]@users.noreply.github.com")
     _abort_stuck_rebase()
@@ -2721,17 +2743,35 @@ def git_push():
         if fetch.returncode != 0:
             detail = f"fetch: {fetch.stderr.strip()[-200:]}"
             continue
-        _git("reset", "-q", "origin/main")          # Index = neuester Stand, eigene Dateien bleiben
-        _git("add", *files)
-        if _git("diff", "--cached", "--quiet").returncode == 0:
-            return                                   # nichts Neues
-        _git("commit", "-q", "-m", "NARRATIV Update [skip ci]")
+        reset = _git("reset", "-q", "origin/main")  # Index = neuester Stand, eigene Dateien bleiben
+        add = _git("add", *files) if reset.returncode == 0 else reset
+        if add.returncode != 0:
+            detail = f"reset/add: {add.stderr.strip()[-200:]}"
+            continue
+        diff = _git("diff", "--cached", "--quiet")
+        if diff.returncode == 0:
+            return True                              # nichts Neues
+        if diff.returncode != 1:
+            detail = f"diff: {diff.stderr.strip()[-200:]}"
+            continue
+        commit = _git("commit", "-q", "-m", "NARRATIV Update [skip ci]")
+        if commit.returncode != 0:
+            detail = f"commit: {commit.stderr.strip()[-200:]}"
+            continue
         push = _git("push", "-q", "origin", "HEAD:main")
         if push.returncode == 0:
             STATS["git_ok"] += 1
-            return
+            return True
         detail = f"push: {push.stderr.strip()[-200:]}"   # main hat sich bewegt, neuer Versuch
     _git_failed(detail)
+    return False
+
+
+def push_faellig(now, last_push):
+    """Sicherung hoechstens alle GIT_PUSH_SECONDS; nach einer Journal-Zeile (Kauf/Verkauf)
+    schon nach GIT_PUSH_HANDEL_SECONDS. Laeuft eine Sicherung fehl, bleibt der Handel vorgemerkt."""
+    seit = now - last_push
+    return seit >= GIT_PUSH_SECONDS or (_handel_seit_push[0] and seit >= GIT_PUSH_HANDEL_SECONDS)
 
 
 def _git_failed(detail):
@@ -2836,7 +2876,8 @@ def run():
     signal.signal(signal.SIGINT, _on_signal)
     started = time.time()
     synced = git_sync_start()
-    ensure_csv_columns(REJECT_FILE, REJECT_HEADER)
+    for path in reject_files():
+        ensure_csv_columns(path, REJECT_HEADER)
     ensure_csv_columns(NEAR_MISS_FILE, NEAR_MISS_HEADER)
     try:
         ensure_csv_columns(WELLEN_FILE, WELLEN_HEADER)
@@ -2863,6 +2904,7 @@ def run():
             f"**Marktphase:** {current_phase()}", 0x22C55E)
     reason = "regulaer (Schichtende)"
     loop = 0
+    last_push = time.time()
     try:
         while time.time() - started < SHIFT_DURATION_SECONDS:
             loop += 1
@@ -2881,8 +2923,12 @@ def run():
                     scan(p, sol_usd, now, exps)
                     save_experiments(exps)
                 save_portfolio(p)
-                if loop % GIT_PUSH_EVERY_LOOPS == 0:
-                    git_push()
+                if push_faellig(time.time(), last_push):
+                    try:
+                        if git_push():
+                            _handel_seit_push[0] = False  # nur nach bestaetigter Sicherung
+                    finally:
+                        last_push = time.time()         # Fehlschlag: Vormerkung bleibt, neuer Versuch nach ca. 1 min
             except Interrupted:
                 raise
             except Exception as err:

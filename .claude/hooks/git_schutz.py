@@ -23,7 +23,7 @@ DATEN_DATEIEN = {
     "marktphase.json", "messung.csv", "dexscreener.csv",
     "scout/status.json", "scout/kandidaten.csv", "scout/tx_pruefung.csv",
 }
-DATEN_ORDNER = ("verlauf/", "experimente/", "copy/", "flugschreiber/")
+DATEN_ORDNER = ("verlauf/", "experimente/", "copy/", "flugschreiber/", "abgelehnt/")
 # Ausdruecklich erlaubt, auch wenn ein Muster oben passen wuerde
 AUSNAHMEN = {"copy_wallets.txt", "scout/pruefen.txt", "scout/pruefen_tx.txt",
              "scout/warteliste.csv"}

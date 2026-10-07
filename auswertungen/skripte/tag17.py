@@ -259,7 +259,7 @@ def dashboard_check(cases, task_horizons):
     original = rechnung._rueckblick_csv
     # Die zweite Quelle ist fuer diesen Vergleich irrelevant und nicht freigegeben.
     def approved_csv(path, *a, **kw):
-        if path.name == 'abgelehnt.csv':
+        if path.name == 'abgelehnt.csv' or path.parent.name == 'abgelehnt':
             return iter(())
         return original(path, *a, **kw)
     rechnung._rueckblick_csv = approved_csv

@@ -879,6 +879,11 @@ def lupe_gruende(trades):
     return sorted(je.values(), key=lambda d: d["summe"])
 
 
+def ablehnungs_dateien(repo=None):
+    """Alte Gesamtdatei abgelehnt.csv (bis 07.10.) und Tagesdateien abgelehnt/JJJJ-MM-TT.csv (seit 08.10.)."""
+    return [Path(p) for p in core.reject_files(Path(repo or REPO))]
+
+
 def filter_trichter(repo=None, tage=7, jetzt=None):
     """Hauptstrategie: abgelehnte Coins je Grund (Pruefungen und verschiedene Coins) und Kaeufe, je Tag (UTC).
     tage = Kalendertage einschliesslich heute (1 = nur heute)."""
@@ -886,8 +891,9 @@ def filter_trichter(repo=None, tage=7, jetzt=None):
     jetzt = jetzt or datetime.now(timezone.utc).timestamp()
     ab = datetime.fromtimestamp(jetzt - (tage - 1) * 86400, timezone.utc).strftime("%Y-%m-%d")
     je_tag, je_grund, coins = {}, {}, {}
-    pfad_ab = repo / core.REJECT_FILE
-    if pfad_ab.exists():
+    for pfad_ab in ablehnungs_dateien(repo):
+        if Path(pfad_ab).parent.name == core.REJECT_DIR and Path(pfad_ab).stem < ab:
+            continue                                     # Tagesdatei vor dem Zeitraum
         with open(pfad_ab, newline="", encoding="utf-8", errors="replace") as f:
             for r in csv.DictReader(f):
                 tag = (r.get("zeit") or "")[:10]
@@ -1362,8 +1368,13 @@ def abgelehnt_rueckblick(repo=None, grund=None, stunden=(1, 6)):
     for name in ("knapp_abgelehnt", "abgelehnt"):
         gruppen, tage, erste, coins = {}, {}, {}, set()
         n = unzuordenbar = 0
-        for row in _rueckblick_csv(repo / f"{name}.csv", {"zeit", "mint", "grund"}, hinweise,
-                                  zusatz=("symbol", "preis_usd")):
+        pfade = [repo / f"{name}.csv"]
+        if name == "abgelehnt":
+            pfade = ablehnungs_dateien(repo) or pfade      # ohne Dateien bleibt der Hinweis "Datei fehlt"
+        zeilen = (row for pfad in pfade
+                  for row in _rueckblick_csv(pfad, {"zeit", "mint", "grund"}, hinweise,
+                                             zusatz=("symbol", "preis_usd")))
+        for row in zeilen:
             g = row["grund"].strip() or "Unbekannt"
             if grund is not None and g != grund:
                 continue

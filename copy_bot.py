@@ -64,7 +64,8 @@ MAX_SIGS_PER_POS = 60                   # verarbeitete Trader-Signaturen je Posi
 CLEANUP_MAX_VALUE_PCT = 1.0             # Schichtende: Positionen mit <= 1 % Restwert (-99 %) bereinigen
 SHIFT_SECONDS = core.SHIFT_DURATION_SECONDS
 PING_EVERY = 30
-PUSH_EVERY = 60
+PUSH_EVERY = 300                        # Sicherung hoechstens alle 5 min (seit 08.10., vorher jede Minute)
+PUSH_HANDEL = 60                        # nach einer neuen Journal-Zeile spaetestens nach ca. 1 min
 MIN_SWAP_LAMPORTS = 1_000_000           # unter 0,001 SOL gilt eine Bewegung nicht als Kauf/Verkauf
 BASE_FEE_LAMPORTS = 5000                # Grundgebuehr pro Signatur
 JUP_INTERVAL = 1.6                      # Copy-Bot fragt Jupiter etwas langsamer ab als der Hauptbot
@@ -200,8 +201,12 @@ def save_accounts(data):
     os.replace(tmp, ACCOUNTS_FILE)
 
 
+_journal_seit_push = [False]             # neue Journal-Zeile seit der letzten Sicherung
+
+
 def journal(row):
     os.makedirs(COPY_DIR, exist_ok=True)
+    _journal_seit_push[0] = True
     new = not os.path.exists(JOURNAL_FILE)
     with open(JOURNAL_FILE, "a", newline="", encoding="utf-8") as f:
         w = csv.writer(f)
@@ -1068,23 +1073,35 @@ def cleanup(data):
 # ================================================================ Git (nur die eigenen Dateien)
 
 def git_push():
+    """Sichert copy/ auf main. Rueckgabe True, wenn gesichert oder nichts Neues."""
     if not os.path.exists(COPY_DIR):
-        return
+        return True
     g = core._git
     g("config", "user.name", "github-actions[bot]")
     g("config", "user.email", "github-actions[bot]@users.noreply.github.com")
     for _ in range(3):
         if g("fetch", "-q", "origin", "main").returncode != 0:
             continue
-        g("reset", "-q", "origin/main")          # Index = neuester Stand, eigene Dateien bleiben
-        g("add", COPY_DIR)
-        if g("diff", "--cached", "--quiet").returncode == 0:
-            return
-        g("commit", "-q", "-m", "COPY Update [skip ci]")
+        if g("reset", "-q", "origin/main").returncode != 0:   # Index = neuester Stand, eigene Dateien bleiben
+            continue
+        if g("add", COPY_DIR).returncode != 0:
+            continue
+        diff = g("diff", "--cached", "--quiet").returncode
+        if diff == 0:
+            return True
+        if diff != 1 or g("commit", "-q", "-m", "COPY Update [skip ci]").returncode != 0:
+            continue
         if g("push", "-q", "origin", "HEAD:main").returncode == 0:
             STATS["git_ok"] += 1
-            return
+            return True
     STATS["git_fail"] += 1
+    return False
+
+
+def push_faellig(now, last_push):
+    """Hoechstens alle PUSH_EVERY Sekunden; nach einer neuen Journal-Zeile schon nach PUSH_HANDEL."""
+    seit = now - last_push
+    return seit > PUSH_EVERY or (_journal_seit_push[0] and seit > PUSH_HANDEL)
 
 
 # ================================================================ WebSocket
@@ -1256,10 +1273,17 @@ def run(probe=False):
                     STATS["errors"] += 1
                     print(f"[COPY] Kursverlauf: {str(err)[:120]}")
                 last_path = now
-            if now - last_push > PUSH_EVERY:
-                save_accounts(data)
-                git_push()
-                last_push = now
+            if push_faellig(now, last_push):
+                try:
+                    save_accounts(data)
+                    if git_push():
+                        _journal_seit_push[0] = False   # nur nach bestaetigter Sicherung
+                except Exception as err:             # Sicherung darf den Copy-Bot nie stoppen
+                    STATS["errors"] += 1
+                    STATS["git_fail"] += 1
+                    print(f"[COPY] Sicherung: {str(err)[:120]}")
+                finally:
+                    last_push = now                  # Fehlschlag: Vormerkung bleibt, neuer Versuch nach ca. 1 min
         normal_end = True
     except Interrupted as sig:
         print(f"[COPY] Abbruch-Signal erhalten ({sig}), speichere")
