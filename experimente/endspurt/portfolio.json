@@ -1,7 +1,7 @@
 {
   "strategy": "EXPERIMENT_endspurt",
   "started": "2026-09-30T09:53:19.214630+00:00",
-  "bankroll_sol": 8.12644,
+  "bankroll_sol": 7.92494,
   "positions": {
     "5jE3vuAV9xcjUsMRaZdk69LULRTkmt1os6sNpBBjU658": {
       "mint": "5jE3vuAV9xcjUsMRaZdk69LULRTkmt1os6sNpBBjU658",
@@ -69,7 +69,74 @@
       "liq_low_checks": 0,
       "exit_mode": "endspurt",
       "entry_vsol": 95.46,
-      "flug_last": 1791363980.8037481
+      "flug_last": 1791364043.695162
+    },
+    "FNgMfPgP6pHwxkqYYJT2jTzfzQgoSiCtEXZhGB13pump": {
+      "mint": "FNgMfPgP6pHwxkqYYJT2jTzfzQgoSiCtEXZhGB13pump",
+      "symbol": "Cayetana",
+      "opened": 1791364104.6096182,
+      "invested_sol": 0.2,
+      "fees_sol": 0.0015,
+      "entry_signal_usd": 3.732531004935344e-05,
+      "entry_fill_usd": 3.759900172259799e-05,
+      "entry_slippage_pct": 0.73,
+      "roundtrip_cost_pct": 3.76,
+      "tokens_initial": 628986.731793,
+      "tokens_left": 628986.731793,
+      "decimals": 6,
+      "proceeds_sol": 0.0,
+      "peak_usd": 3.759900172259799e-05,
+      "tp1_done": false,
+      "thesis_breaks": 0,
+      "missing_loops": 0,
+      "entry_liquidity": 12024.882028433665,
+      "entry_view": {
+        "age_h": 0.2139840665128496,
+        "mcap": 37325.3100493534,
+        "liquidity": 12024.882028433665,
+        "holders": 216,
+        "holder_growth_1h": 103.77358490566037,
+        "holder_growth_5m": 30.909090909090907,
+        "net_buyers_5m": 126,
+        "organic_buyers_5m": 0,
+        "organic_score": 0.0,
+        "price_change_1h": 260.6252463326847,
+        "price_change_5m": 66.35641575587896,
+        "buys_5m": 334,
+        "sells_5m": 235,
+        "traders_5m": 276,
+        "traders_1h": 717,
+        "buy_vol_5m": 15588.701093239892,
+        "sell_vol_5m": 11634.659648859413,
+        "buy_vol_1h": 72083.94005936291,
+        "sell_vol_1h": 63728.21206725052,
+        "organic_buy_vol_1h": 2315.036167399639,
+        "top_holders_pct": 24.932155894433127,
+        "dev_balance_pct": 0.0,
+        "dev_mints": 2444,
+        "launchpad": "pump.fun",
+        "graduated": false,
+        "social": false,
+        "quelle": "traded1h+traded5m+trend1h+trend5m",
+        "trades_24h": 2557,
+        "organic_label": "low",
+        "buy_organic_vol_5m": 770.3280380776675,
+        "jup_fees": null,
+        "hour_utc": 9
+      },
+      "bundle": {
+        "quelle": "experiment",
+        "text": "Endspurt: Kurve bei 101 von 115 vSol (83% Fortschritt), 2557 Trades, organisch low"
+      },
+      "phase": "normal",
+      "thesis": "Story verbreitet sich: Holder +104%/h, 126 Netto-Kaeufer 5m, 0 organisch; Endspurt: Kurve bei 101 von 115 vSol (83% Fortschritt), 2557 Trades, organisch low; Dev-Coins 2444",
+      "exit_rule": "Haelfte bei 2x; Rest raus, wenn Holder schrumpfen und Netto-Verkaeufer 2x in Folge, Liquiditaet -30%, -40%, nach 1,5x nicht unter Einstand, nach 2x 30 % vom Hoch (ab 10x 25 %)",
+      "mitlaeufer": null,
+      "solana_tracker": null,
+      "graduated": false,
+      "liq_low_checks": 0,
+      "exit_mode": "endspurt",
+      "entry_vsol": 100.8
     }
   },
   "closed": [
@@ -16118,12 +16185,13 @@
     "41xiRZYJxrp3WgEAtkUkd5cHNPYcsKqFZpSrFB4spump": 1791355649.7281651,
     "FZdJcanccAy4QoAa4zwNcH2AVHmhFDR8RyX2DH83bKUV": 1791358254.471443,
     "7bYndjsetuU7tHb8YoQwtAhAzqoEfcC7oW1EpnKipump": 1791360466.8815613,
-    "5jE3vuAV9xcjUsMRaZdk69LULRTkmt1os6sNpBBjU658": 1791362271.7064633
+    "5jE3vuAV9xcjUsMRaZdk69LULRTkmt1os6sNpBBjU658": 1791362271.7064633,
+    "FNgMfPgP6pHwxkqYYJT2jTzfzQgoSiCtEXZhGB13pump": 1791364104.6103504
   },
   "watch": {},
   "runde": 1,
   "shadow": {},
-  "saved_at": 1791364006.4718943,
+  "saved_at": 1791364123.2168381,
   "dev_day": {
     "date": "2026-10-07",
     "devs": [
@@ -16137,7 +16205,8 @@
       "4eWb7MfNgUPH9AEeGf9Q3fYuQmiLA7roF4f6XC8zC1KF",
       "DwVjLtesZazk4hS6V4JoTkPB54k85A5A9KH18Apg4Fwg",
       "GnXNFEME6eBLGKZZK5ftv185psbgkfBWPfPhUSX4LV8h",
-      "CxxcsDAobcZPeYgWUGfuXb4Via5QNm9xhdU96dUTKsfR"
+      "CxxcsDAobcZPeYgWUGfuXb4Via5QNm9xhdU96dUTKsfR",
+      "FVZRwUp6E4m9jV4VumF8q7m8q3mF9fpikRrJSCCfFAdP"
     ]
   }
 }
