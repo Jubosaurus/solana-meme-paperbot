@@ -6,12 +6,11 @@ import daten
 import rechnung
 import wallets
 
-st.title("Wallets prüfen", anchor=False)
-st.caption("Hier schickst du neue Wallet-Adressen zur Prüfung an den Scout. Diese Seite speichert nur ans Ende "
+ansicht.seitenkopf("Wallets prüfen", "Hier schickst du neue Wallet-Adressen zur Prüfung an den Scout. Diese Seite speichert nur ans Ende "
            "von scout/pruefen.txt und startet einen kurzen Scout-Lauf, der nur die Prüfliste bewertet (ohne "
            "Coin-Suche und Birdeye). Erfüllt eine Wallet alle Aufnahme-Kriterien, nimmt der Scout sie automatisch "
            "ins Copy Trading auf oder ersetzt eine schwache Wallet (höchstens 3 Änderungen pro Tag); sonst kommt sie "
-           "auf die Warteliste. Abschalten: Schalter AUTO_AUFNAHME oben in scout_bot.py.")
+           "auf die Warteliste. Abschalten: Schalter AUTO_AUFNAHME oben in scout_bot.py.", status=False)
 
 # ---------------------------------------------------------------- Eingabe
 # Schreiben nur am PC selbst (localhost). Vom Handy im Heimnetz: nur anschauen.
@@ -49,10 +48,11 @@ if am_pc:
 zeilen = wallets.pruefliste_status()
 wartet = sum(1 for z in zeilen if z["status"] == "wartet")
 st.subheader("Prüfliste", anchor=False)
-with st.container(horizontal=True):
-    st.metric("Adressen in der Prüfliste", len(zeilen), border=True)
-    st.metric("Geprüft", len(zeilen) - wartet, border=True)
-    st.metric("Warten auf den Scout", wartet, border=True)
+ansicht.raster([
+    ansicht.karte("Adressen in der Prüfliste", len(zeilen)),
+    ansicht.karte("Geprüft", len(zeilen) - wartet),
+    ansicht.karte("Warten auf den Scout", wartet),
+])
 
 
 def ergebnis_text(z):
@@ -64,7 +64,7 @@ def ergebnis_text(z):
 
 
 if zeilen:
-    st.dataframe(pd.DataFrame([{
+    ansicht.tabelle(pd.DataFrame([{
         "Name": z["name"], "Status": z["status"], "Ergebnis": ergebnis_text(z),
         "Punkte": z["punkte"], "Haltedauer min": ansicht.txt(z["haltedauer_min"], 1),
         "Verkäufe < 60 s": "" if z["schnell_anteil"] is None else f"{z['schnell_anteil']:.0%}",
@@ -72,11 +72,11 @@ if zeilen:
         "abgeschl. Coins": z["coins"],
         "Copy": z["copy"], "geprüft": rechnung.zeit_text(z["zeit"]) if z["zeit"] else "",
         "Adresse": z["wallet"],
-    } for z in zeilen]), hide_index=True, alt="Prüfliste mit Scout-Ergebnis", column_config={
-        "Punkte": st.column_config.NumberColumn(format="%.1f", help="Bewertung des Scouts (höher = besser)"),
-        "abgeschl. Coins": st.column_config.NumberColumn(format="%d"),
+    } for z in zeilen]), zahlen={
+        "Punkte": (1, False, ""),
+        "abgeschl. Coins": (0, False, ""),
     })
-    st.caption("Die Punkte kommen vom Scout und sind nur eine Hilfe. Vorsicht bei wenigen abgeschlossenen Coins. "
+    st.caption("Die Punkte kommen vom Scout (höher = besser) und sind nur eine Hilfe. Vorsicht bei wenigen abgeschlossenen Coins. "
                "Jede Adresse wird nur einmal bewertet; neu erst, wenn sich die Bewertungsmethode ändert.")
 else:
-    st.caption("Die Prüfliste ist leer.")
+    ansicht.leer("Die Prüfliste ist leer.", "Hier erscheinen die Adressen und ihre Scout-Ergebnisse nach der Aufnahme in die Prüfliste.")

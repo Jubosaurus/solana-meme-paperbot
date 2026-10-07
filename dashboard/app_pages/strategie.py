@@ -13,7 +13,7 @@ nach_key = {k["key"]: k for k in konten}
 kontrolle = nach_key[rechnung.KONTROLLE]
 jetzt = time.time()
 
-st.title("Strategie & Experimente", anchor=False)
+a.seitenkopf("Strategie & Experimente", "Konten, Testurteile und Trades der Hauptstrategie und Experimente, roh und mit Kosten.")
 wahl = st.segmented_control("Konto", options=list(nach_key), default="hauptstrategie",
                             format_func=lambda key: nach_key[key]["label"], key="konto", required=True,
                             bind="query-params", label_visibility="collapsed")
@@ -22,42 +22,39 @@ v = k["vergleich"]
 
 # ---------------------------------------------------------------- Kopf: grosse Zahlen
 a.raster([
-    a.karte("Kontowert", rechnung.sol_text(k["kontowert"], 2, False), a.pm_html(k["ergebnis"]) + " seit Start",
-            fuss=a.sparkline([p["kontostand"] for p in k["verlauf"]][-80:]), leuchten=True),
+    a.konto_karte(k, fuss=a.sparkline([p["kontostand"] for p in k["verlauf"]][-80:]), leuchten=True),
     a.karte("Fortschritt bis zum Urteil", f"{k['trades']}", f"von {rechnung.ZIEL_TRADES} Trades",
             a.ring(k["fortschritt"], f"{k['fortschritt']:.0%}")),
-    a.karte("SOL je Trade (roh)", rechnung.zahl(k["pro_trade"], 4, vorzeichen=True) if k["trades"] else "–",
-            "ohne die 3 besten: " + (rechnung.zahl(k["ohne_beste_pro_trade"], 4, vorzeichen=True)
-                                     if k["ohne_beste_pro_trade"] is not None else "–")),
-    a.karte(f"SOL je Trade mit Kosten ({k['kosten_pct']:.0f} %)",
-            rechnung.zahl(k["pro_trade_kosten"], 4, vorzeichen=True) if k["trades"] else "–",
-            "ohne die 3 besten: " + (rechnung.zahl(k["ohne_beste_pro_trade_kosten"], 4, vorzeichen=True)
-                                     if k["ohne_beste_pro_trade_kosten"] is not None else "–")),
+    a.roh_kosten_karte("SOL je Trade",
+                      a.plusminus(k["pro_trade"], 4, "") if k["trades"] else "–",
+                      a.plusminus(k["pro_trade_kosten"], 4, "") if k["trades"] else "–",
+                      "ohne die 3 besten: " + a.pm_html(k["ohne_beste_pro_trade"], 4, ""),
+                      "ohne die 3 besten: " + a.pm_html(k["ohne_beste_pro_trade_kosten"], 4, ""),
+                      kosten_pct=k["kosten_pct"]),
     a.karte("Gewinner", f"{k['gewinner']} von {k['trades']}" if k["trades"] else "–",
             f"Trefferquote {k['gewinner'] / k['trades']:.0%}" if k["trades"] else ""),
 ], gross=True)
 
 # ---------------------------------------------------------------- Testurteil
-with st.container(border=True):
-    st.markdown("**Testurteil** " + ("" if v["ampel"] in ("basis", "keine_daten") else
-                                     f"· gleicher Zeitraum wie die Kontrollgruppe, ab {rechnung.zeit_text(v['beginn'])}"))
+with st.container():
+    st.subheader("Testurteil", anchor=False)
+    if v["ampel"] not in ("basis", "keine_daten"):
+        st.caption(f"Gleicher Zeitraum wie die Kontrollgruppe, ab {rechnung.zeit_text(v['beginn'])}")
     st.html(a.urteil_chip(v))
     if v["ampel"] not in ("basis", "keine_daten"):
         e, kg = v["eigen"], v["kontrolle"]
-        st.dataframe(pd.DataFrame([
+        a.tabelle(pd.DataFrame([
             {"": k["label"], "Trades": e["trades"], "SOL je Trade": e["pro_trade"],
-             "ohne 3 beste": e["ohne_beste_pro_trade"], "Summe": a.plusminus(e["summe"]),
-             "je Trade mit Kosten": e["pro_trade_kosten"], "ohne 3 beste mit Kosten": e["ohne_beste_pro_trade_kosten"],
-             "Summe mit Kosten": a.plusminus(e["summe_kosten"])},
+             "je Trade mit Kosten": e["pro_trade_kosten"],
+             "ohne 3 beste": e["ohne_beste_pro_trade"], "ohne 3 beste mit Kosten": e["ohne_beste_pro_trade_kosten"],
+             "Summe": e["summe"], "Summe mit Kosten": e["summe_kosten"]},
             {"": "Kontrollgruppe (Zufall)", "Trades": kg["trades"], "SOL je Trade": kg["pro_trade"],
-             "ohne 3 beste": kg["ohne_beste_pro_trade"], "Summe": a.plusminus(kg["summe"]),
-             "je Trade mit Kosten": kg["pro_trade_kosten"], "ohne 3 beste mit Kosten": kg["ohne_beste_pro_trade_kosten"],
-             "Summe mit Kosten": a.plusminus(kg["summe_kosten"])},
-        ]), hide_index=True, alt="Vergleich mit der Kontrollgruppe, roh und mit Kosten", column_config={
-            "SOL je Trade": st.column_config.NumberColumn(format="%+.4f"),
-            "ohne 3 beste": st.column_config.NumberColumn(format="%+.4f"),
-            "je Trade mit Kosten": st.column_config.NumberColumn(format="%+.4f"),
-            "ohne 3 beste mit Kosten": st.column_config.NumberColumn(format="%+.4f"),
+             "je Trade mit Kosten": kg["pro_trade_kosten"],
+             "ohne 3 beste": kg["ohne_beste_pro_trade"], "ohne 3 beste mit Kosten": kg["ohne_beste_pro_trade_kosten"],
+             "Summe": kg["summe"], "Summe mit Kosten": kg["summe_kosten"]},
+        ]), zahlen={"Trades": (0, False, "")}, pm_spalten={
+            **{c: (4, "") for c in ("SOL je Trade", "je Trade mit Kosten", "ohne 3 beste", "ohne 3 beste mit Kosten")},
+            "Summe": (3, " SOL"), "Summe mit Kosten": (3, " SOL"),
         })
         st.caption(f"Kostenaufschlag: {rechnung.KOSTEN_PCT:.0f} % vom Einsatz je Rundlauf, Endspurt-Konten "
                    f"{rechnung.KOSTEN_ENDSPURT_PCT:.0f} % (Schätzung aus der Messung, nicht gemessen: Sandwich-Angriffe, "
@@ -66,39 +63,42 @@ with st.container(border=True):
                    "ohne die 3 besten Trades. „Im Plus/Minus“ ist die Summe dieser Trades – beides kann auseinanderfallen.")
     elif v["ampel"] == "basis":
         st.caption("Die Kontrollgruppe kauft zufällig ohne Filter. Sie ist der Maßstab für alle anderen Konten.")
+    else:
+        a.leer("Noch kein Vergleich möglich", "Beide Konten brauchen abgeschlossene Trades im selben Zeitraum.")
 
 # ---------------------------------------------------------------- Paar-Experimente: Coin fuer Coin
 if k["key"] in rechnung.PAAR_EXPERIMENTE:
     pv = rechnung.paarvergleich(k["closed"], nach_key["hauptstrategie"]["closed"])
-    with st.container(border=True):
-        st.markdown(f"**Coin für Coin gegen die Hauptstrategie** · gleiche Käufe, {pv['anzahl']} Paare abgeschlossen")
+    with st.container():
+        st.subheader("Coin für Coin gegen die Hauptstrategie", anchor=False)
+        st.caption(f"Gleiche Käufe, {pv['anzahl']} Paare abgeschlossen")
         if pv["anzahl"]:
             st.markdown(f"Unterschied gesamt {a.pm_html(pv['differenz'])} · ohne die 3 besten "
                         f"{a.pm_html(pv['differenz_ohne_beste'])} · besser {pv['besser']}, schlechter "
                         f"{pv['schlechter']}, gleich {pv['gleich']}", unsafe_allow_html=True)
-            st.dataframe(pd.DataFrame([{
+            a.datentabelle(pd.DataFrame([{
                 "Coin": x["symbol"], "Experiment": x["experiment"], "Hauptstrategie": x["haupt"],
                 "Unterschied": x["differenz"], "Grund Experiment": x["grund_experiment"],
                 "Grund Hauptstrategie": x["grund_haupt"]} for x in pv["paare"]]),
-                hide_index=True, alt="Coin für Coin gegen die Hauptstrategie", column_config={
-                    c: st.column_config.NumberColumn(format="%+.4f")
-                    for c in ("Experiment", "Hauptstrategie", "Unterschied")})
+                alt_text="Coin für Coin gegen die Hauptstrategie", pm_spalten={
+                    c: (4, "") for c in ("Experiment", "Hauptstrategie", "Unterschied")})
             st.caption("Nur Coins, die beide Konten gekauft und schon verkauft haben (Kauf höchstens 10 min "
                        "auseinander). Positiv = Experiment besser.")
         else:
-            st.caption("Noch keine Paare: Beide Konten müssen denselben Coin gekauft und verkauft haben.")
+            a.leer("Noch keine abgeschlossenen Paare", "Beide Konten müssen denselben Coin gekauft und verkauft haben.")
 
 # ---------------------------------------------------------------- Kontoverlauf (gross)
-with st.container(border=True):
-    st.markdown(f"**Kontoverlauf** · {k['label']} violett"
-                + ("" if k["key"] == rechnung.KONTROLLE else ", Kontrollgruppe grau") + " · gestrichelt = 10 SOL Start")
+with st.container():
+    st.subheader("Kontoverlauf", anchor=False)
+    st.caption(f"{k['label']} violett"
+               + ("" if k["key"] == rechnung.KONTROLLE else ", Kontrollgruppe grau") + " · gestrichelt = 10 SOL Start")
     eigen = pd.DataFrame(k["verlauf"])
     vgl = pd.DataFrame(kontrolle["verlauf"]) if k["key"] != rechnung.KONTROLLE else None
     if len(eigen) > 1:
         stil.zeigen(a.kontoverlauf(eigen, k["label"], vgl), f"Kontostand {k['label']} über die Zeit")
         st.caption("Stand nach jedem geschlossenen Trade; offene Positionen sind nicht enthalten.")
     else:
-        st.caption("Noch keine abgeschlossenen Trades.")
+        a.leer("Noch kein Kontoverlauf", "Nach den ersten abgeschlossenen Trades erscheint der Verlauf.")
 
 # ---------------------------------------------------------------- Offene Positionen und letzte Trades
 links, rechts = st.columns([2, 3])
@@ -114,7 +114,7 @@ with links:
             "rechts_unten": f"Wert {a.txt(o['wert'], 3, einheit=' SOL')}" if o["wert"] is not None else "kein Kurs",
         } for o in k["offen"]], scroll=False)
     else:
-        st.caption("Keine offenen Positionen.")
+        a.leer("Keine offenen Positionen", "Neue Käufe erscheinen hier, solange die Position offen ist.")
 with rechts:
     st.subheader("Letzte Trades", anchor=False)
     if k["closed"]:
@@ -127,4 +127,4 @@ with rechts:
         } for c in letzte])
         st.caption("Die 40 neuesten. Zeiten in UTC, in Klammern deutsche Zeit.")
     else:
-        st.caption("Noch keine Trades.")
+        a.leer("Noch keine Trades", "Hier erscheinen die 40 neuesten abgeschlossenen Trades.")

@@ -307,6 +307,38 @@ def news_liste(items, scroll=True):
     st.html('<div class="pb-karte">' + (f'<div class="pb-scroll">{inhalt}</div>' if scroll else inhalt) + "</div>")
 
 
+def datentabelle(df, zahlen=None, pm_spalten=None, hilfen=None, alt_text="Datentabelle", leer_text="Noch keine Daten."):
+    """Bis 200 Zeilen Nexus-Tabelle, darueber native Tabelle mit breiten Textspalten.
+
+    Eingaben bleiben numerisch; nur die Anzeige von Leistungswerten bekommt Pfeil und Vorzeichen.
+    Spalten-Erklaerungen bleiben auch bei der HTML-Tabelle ueber einen aufklappbaren Hinweis erreichbar.
+    """
+    zahlen, pm_spalten, hilfen = zahlen or {}, pm_spalten or {}, hilfen or {}
+    if df is None or len(df) <= 200:
+        tabelle(df, zahlen=zahlen, pm_spalten=pm_spalten, leer_text=leer_text)
+    else:
+        anzeige = df.copy()
+        config = {}
+        for spalte in df.columns:
+            hilfe = hilfen.get(spalte)
+            if spalte in pm_spalten:
+                anzeige[spalte] = df[spalte].map(
+                    lambda x: "–" if pd.isna(x) else plusminus(x, *(pm_spalten[spalte] or ())))
+                config[spalte] = st.column_config.TextColumn(width="medium", help=hilfe)
+            elif spalte in zahlen:
+                stellen, vorzeichen, einheit = zahlen[spalte]
+                fmt = f"%{'+' if vorzeichen else ''}.{stellen}f{einheit.replace('%', '%%')}"
+                config[spalte] = st.column_config.NumberColumn(width="medium", format=fmt, help=hilfe)
+            elif pd.api.types.is_numeric_dtype(df[spalte]):
+                config[spalte] = st.column_config.NumberColumn(width="medium", help=hilfe)
+            else:
+                config[spalte] = st.column_config.TextColumn(width="large", help=hilfe)
+        st.dataframe(anzeige, hide_index=True, column_config=config, row_height=96, alt=alt_text)
+    if hilfen and df is not None and len(df):
+        with st.expander("Spalten erklärt", icon=":material/info:"):
+            tabelle(pd.DataFrame([{"Spalte": s, "Erklärung": h} for s, h in hilfen.items()]))
+
+
 # ================================================================ Diagramme
 
 def balken(df, wert, name, titel_x, stellen=3, referenz=None, referenz_text=""):
@@ -315,7 +347,7 @@ def balken(df, wert, name, titel_x, stellen=3, referenz=None, referenz_text=""):
     df["richtung"] = df[wert].apply(lambda v: "Plus" if v >= 0 else "Minus")
     df["beschriftung"] = df[wert].apply(lambda v: rechnung.zahl(v, stellen, vorzeichen=True))
     reihenfolge = list(df.sort_values(wert, ascending=False)[name])
-    y = alt.Y(f"{name}:N", sort=reihenfolge, title=None, axis=alt.Axis(labelLimit=300, ticks=False, domain=False))
+    y = alt.Y(f"{name}:N", sort=reihenfolge, title=None, axis=alt.Axis(labelLimit=170, labelFontSize=11, labelFont="Inter, sans-serif", ticks=False, domain=False))
     farbe = alt.Color("richtung:N", scale=alt.Scale(domain=["Plus", "Minus"], range=[stil.PLUS, stil.MINUS]),
                       legend=None)
     basis = alt.Chart(df).encode(y=y)

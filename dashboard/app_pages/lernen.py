@@ -12,7 +12,7 @@ import stil
 konten = daten.strategie_konten(daten.stand())
 jetzt = time.time()
 
-st.title("Lernen", anchor=False)
+a.seitenkopf("Lernen", "Zeit bis zum Testurteil, Merkmale von Verlusten und der Filter-Trichter als Spuren für weitere Prüfungen.")
 st.caption("Streng urteilen, aus Verlusten lernen. Alles hier sind Hinweise für neue Regeln oder Experimente – "
            "ob eine Regel wirklich hilft, prüft danach der Strategie-Tester an den aufgezeichneten Daten.")
 
@@ -43,17 +43,17 @@ if kalender:
         a.karte("Ohne absehbares Urteil", str(sum(1 for z in kalender if z["eta"] is None or z["tage_bis_urteil"] > 30)),
                 "kein Trade in 3 Tagen oder länger als 30 Tage"),
     ])
-    st.dataframe(pd.DataFrame([{
-        "Konto": z["label"], "Fortschritt": z["anteil"], "Trades": f"{z['trades']} / {rechnung.ZIEL_TRADES}",
+    a.tabelle(pd.DataFrame([{
+        "Konto": z["label"], "Fortschritt": z["anteil"] * 100, "Trades": f"{z['trades']} / {rechnung.ZIEL_TRADES}",
         "Tempo je Tag": round(z["tempo_pro_tag"], 1), "Urteil": wann(z),
         "voraussichtlich": rechnung.zeit_text(z["eta"]) if z["eta"] and z["rest"] else "",
         "Stand heute": z["urteil"],
-    } for z in kalender]), hide_index=True, alt="Fortschritt aller Experimente bis zum Urteil", column_config={
-        "Fortschritt": st.column_config.ProgressColumn(min_value=0, max_value=1, format="percent"),
-        "Tempo je Tag": st.column_config.NumberColumn(help="Abgeschlossene Trades je Tag, Schnitt der letzten 3 Tage"),
-    })
+    } for z in kalender]), zahlen={"Fortschritt": (0, False, " %"), "Tempo je Tag": (1, False, "")})
+    st.caption("Tempo je Tag: abgeschlossene Trades je Tag, Schnitt der letzten 3 Tage.")
     st.caption("Gezählt wie im Testurteil: nur Trades, die im selben Zeitraum wie die Kontrollgruppe geschlossen "
                "wurden. Das Datum ist eine Schätzung aus dem Tempo der letzten 3 Tage.")
+else:
+    a.leer("Keine laufenden Konten im Urteils-Kalender", "Beendete Experimente und die Kontrollgruppe werden hier nicht angezeigt.")
 
 # ---------------------------------------------------------------- 2. Verlust-Lupe
 st.subheader("Verlust-Lupe", anchor=False)
@@ -65,7 +65,7 @@ wahl = st.multiselect("Konten", options=list(nach_key), default=["hauptstrategie
 trades = [t for t in alle if not wahl or t["key"] in wahl]
 
 if not trades:
-    st.info("Noch keine abgeschlossenen Trades in dieser Auswahl.", icon=":material/info:")
+    a.leer("Noch keine abgeschlossenen Trades", "Wähle andere Konten oder warte auf die ersten Verkäufe in dieser Auswahl.")
 else:
     vergleich = rechnung.lupe_vergleich(trades)
     gruende = rechnung.lupe_gruende(trades)
@@ -88,41 +88,39 @@ else:
 
     with tab_merkmale:
         st.markdown("Wie sahen die Coins **beim Kauf** aus? Mittlerer Wert (Median) bei Verlierern und Gewinnern.")
-        st.dataframe(pd.DataFrame([{
+        a.tabelle(pd.DataFrame([{
             "Merkmal": m["merkmal"],
-            "Verlierer": a.txt(m["verlierer"], 1, einheit=m["einheit"]),
-            "Gewinner": a.txt(m["gewinner"], 1, einheit=m["einheit"]),
-            "Unterschied": m["abstand_pct"] / 100 if m["abstand_pct"] is not None else None,
+            "Verlierer": m["verlierer"], "Gewinner": m["gewinner"], "Einheit (V/G)": m["einheit"],
+            "Unterschied": m["abstand_pct"],
             "Werte (V/G)": f"{m['n_verlierer']} / {m['n_gewinner']}",
-        } for m in vergleich["merkmale"]]), hide_index=True, alt="Merkmale beim Kauf: Verlierer gegen Gewinner",
-            column_config={"Unterschied": st.column_config.NumberColumn(
-                format="percent", help="Verlierer im Vergleich zu Gewinnern (+ = bei Verlierern höher)")})
+        } for m in vergleich["merkmale"]]), zahlen={
+            "Verlierer": (1, False, ""), "Gewinner": (1, False, ""), "Unterschied": (0, True, " %")})
+        st.caption("Unterschied: Verlierer im Vergleich zu Gewinnern (+ = bei Verlierern höher). "
+                   "Einheit (V/G) gilt für beide Medianwerte.")
         st.caption("Vorsicht: Ein Unterschied ist nur eine Spur, kein Beweis. Bei wenigen Werten (rechte Spalte) "
                    "kann er Zufall sein. Eine neue Regel daraus erst mit dem Strategie-Tester prüfen.")
 
     with tab_gruende:
         df_g = pd.DataFrame([{"Grund": g["grund"], "Summe": g["summe"]} for g in gruende])
         stil.zeigen(a.balken(df_g, "Summe", "Grund", "Ergebnis SOL"), "Ergebnis je Verkaufsgrund")
-        st.dataframe(pd.DataFrame([{
-            "Verkaufsgrund": g["grund"], "Trades": g["trades"], "Summe": a.plusminus(g["summe"]),
-            "Anteil Verlierer": g["anteil_verlierer"], "schlechtester": a.plusminus(g["schlechtester"]),
-        } for g in gruende]), hide_index=True, alt="Verkaufsgründe mit Anzahl und Ergebnis", column_config={
-            "Anteil Verlierer": st.column_config.ProgressColumn(min_value=0, max_value=1, format="percent")})
+        a.tabelle(pd.DataFrame([{
+            "Verkaufsgrund": g["grund"], "Trades": g["trades"], "Summe": g["summe"],
+            "Anteil Verlierer": g["anteil_verlierer"] * 100, "schlechtester": g["schlechtester"],
+        } for g in gruende]), zahlen={"Trades": (0, False, ""), "Anteil Verlierer": (0, False, " %")},
+            pm_spalten={"Summe": (3, " SOL"), "schlechtester": (3, " SOL")})
 
     with tab_verschenkt:
         if not verschenkt:
-            st.info("Keine Trades, die erst im Plus waren und im Minus endeten.", icon=":material/check_circle:")
+            a.leer("Keine verschenkten Gewinne", "Keine Trades in dieser Auswahl, die erst im Plus waren und im Minus endeten.")
         else:
-            st.dataframe(pd.DataFrame([{
+            a.datentabelle(pd.DataFrame([{
                 "Konto": t["konto"], "Coin": t["symbol"], "Hoch": t["hoch"], "Ergebnis": t["pnl_sol"],
                 "Verkaufsgrund": t["grund_lang"], "Haltedauer h": t["halte_h"],
                 "geschlossen": rechnung.zeit_text(t["zeit"]),
-            } for t in sorted(verschenkt, key=lambda t: t["pnl_sol"])]), hide_index=True,
-                alt="Trades, die erst im Plus waren und im Minus endeten", column_config={
-                    "Hoch": st.column_config.NumberColumn(format="%.2f×", help="Höchster Stand als Vielfaches"),
-                    "Ergebnis": st.column_config.NumberColumn(format="%+.4f SOL"),
-                    "Haltedauer h": st.column_config.NumberColumn(format="%.2f"),
-                })
+            } for t in sorted(verschenkt, key=lambda t: t["pnl_sol"])]),
+                alt_text="Trades, die erst im Plus waren und im Minus endeten", zahlen={
+                    "Hoch": (2, False, "×"), "Haltedauer h": (2, False, "")},
+                pm_spalten={"Ergebnis": (4, " SOL")}, hilfen={"Hoch": "Höchster Stand als Vielfaches"})
             st.caption("Diese Trades zeigen, wo eine Gewinnsicherung früher hätte greifen können. "
                        "Den Verlauf eines Coins siehst du auf der Seite Flugschreiber.")
 
@@ -132,7 +130,7 @@ tage = st.segmented_control("Zeitraum", options=[1, 3, 7], default=7, format_fun
                             key="trichter_tage", required=True, label_visibility="collapsed")
 trichter = daten.filter_trichter(daten.stand(), tage or 7)
 if not trichter["pruefungen"]:
-    st.info("Keine abgelehnten Coins in diesem Zeitraum.", icon=":material/info:")
+    a.leer("Keine abgelehnten Coins", "Für diesen Zeitraum liegen keine Ablehnungen vor; wähle bei Bedarf einen anderen Zeitraum.")
 else:
     oben = trichter["gruende"][0]
     a.raster([
@@ -152,6 +150,6 @@ else:
     st.caption("Ein Coin wird oft mehrfach geprüft und abgelehnt; der Balken zählt jeden Coin je Grund einmal. "
                "Nur die Hauptstrategie schreibt abgelehnte Coins auf.")
     with st.expander("Je Tag", icon=":material/calendar_month:"):
-        st.dataframe(pd.DataFrame([{"Tag (UTC)": d["tag"], "Ablehnungen": d["abgelehnt"], "Käufe": d["kaeufe"]}
-                                   for d in reversed(trichter["je_tag"])]), hide_index=True,
-                     alt="Ablehnungen und Käufe je Tag")
+        a.tabelle(pd.DataFrame([{"Tag (UTC)": d["tag"], "Ablehnungen": d["abgelehnt"], "Käufe": d["kaeufe"]}
+                               for d in reversed(trichter["je_tag"])]),
+                  zahlen={"Ablehnungen": (0, False, ""), "Käufe": (0, False, "")})

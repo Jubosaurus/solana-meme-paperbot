@@ -9,12 +9,12 @@ import stil
 
 rows, coins = daten.flugschreiber(daten.stand())
 
-st.title("Flugschreiber", anchor=False)
+a.seitenkopf("Flugschreiber", "Kurs, Bestände und Liquidität jedes aufgezeichneten Coins bis zum Verkauf und mögliche Rug-Muster.")
 st.caption("Für jeden Coin, den ein Konto hält, schreiben die Bots etwa einmal pro Minute auf: Kurs, Dev-Bestand, "
-           "Top-10-Anteil, Holder und Liquidität. Hier siehst du den Verlauf bis zum Verkauf – die rote Linie "
+           "Top-10-Anteil, Holder und Liquidität. Hier siehst du den Verlauf bis zum Verkauf – die bernsteinfarbene Linie "
            "zeigt, wann und warum verkauft wurde. Ziel: Rug-Muster erkennen.")
 if not coins:
-    st.info("Noch keine Aufzeichnungen in flugschreiber/.", icon=":material/info:")
+    a.leer("Noch keine Aufzeichnungen", "Die Bots schreiben gehaltene Coins etwa einmal pro Minute in flugschreiber/ auf.")
     st.stop()
 
 
@@ -32,7 +32,7 @@ with st.container(horizontal=True, vertical_alignment="bottom"):
     nur_rug = st.checkbox("Nur Rug-Verdacht (Notbremse oder Liquidität abgezogen)", key="flug_rug")
 auswahl = [c for c in coins if konto_wahl in ("alle", c["konto"]) and (not nur_rug or ist_rug_verdacht(c))]
 if not auswahl:
-    st.caption("Keine Coins für diese Auswahl.")
+    a.leer("Keine Coins für diese Auswahl", "Wähle ein anderes Konto oder schalte den Filter für Rug-Verdacht aus.")
     st.stop()
 
 
@@ -73,9 +73,9 @@ def aenderung(v0, v1):
 liq_aend = aenderung(liq0, liq1)
 grund = c.get("verkauf_grund")
 a.raster([
-    a.karte("Verkauf", a.e(verkauf_kurz(grund)) if grund else "noch offen",
+    a.karte("Verkauf", verkauf_kurz(grund) if grund else "noch offen",
             a.pm_html(c["pnl_sol"]) if "pnl_sol" in c else "",
-            oben_rechts=a.chip("Rug-Verdacht", "schlecht") if ist_rug_verdacht(c) else "", klein=True),
+            oben_rechts=a.chip("Rug-Verdacht", "achtung") if ist_rug_verdacht(c) else "", klein=True),
     a.karte("Dev-Bestand", von_bis(dev0, dev1, 1, " %"), "Start → letzter Messpunkt", klein=True),
     a.karte("Liquidität", von_bis(liq0, liq1, 0, " $"),
             a.pm_html(liq_aend, 0, " %") if liq_aend is not None else "", klein=True),
@@ -101,16 +101,19 @@ for i, (feld, titel, referenz) in enumerate(vorhanden):
         teile.append(alt.Chart(pd.DataFrame({"y": [referenz]})).mark_rule(
             color=stil.TEXT_LEISE, strokeDash=[4, 4]).encode(y="y:Q"))
     if len(verkaeufe):
-        teile.append(alt.Chart(verkaeufe).mark_rule(color=stil.MINUS, strokeWidth=2, strokeDash=[6, 3]).encode(
+        teile.append(alt.Chart(verkaeufe).mark_rule(color=stil.WARN, strokeWidth=2, strokeDash=[6, 3]).encode(
             x="minuten:Q", tooltip=[alt.Tooltip("grund:N", title="Verkaufsgrund"),
                                     alt.Tooltip("pnl_text:N", title="Ergebnis")]))
         if i == 0:
-            teile.append(alt.Chart(verkaeufe).mark_text(align="right", dx=-5, baseline="top", color=stil.MINUS,
+            teile.append(alt.Chart(verkaeufe).mark_text(align="right", dx=-5, baseline="top", color=stil.WARN,
                                                         fontSize=12).encode(
                 x="minuten:Q", y=alt.value(4), text="kurz:N"))
     lagen.append(alt.layer(*teile).properties(height=110, width="container"))
-stil.zeigen(alt.vconcat(*lagen).resolve_scale(x="shared"), f"Flugschreiber von {c['symbol']}")
-st.caption("Rote gestrichelte Linie = Verkauf (Grund oben, Details beim Darüberfahren). Teilverkäufe haben je eine Linie. "
+if lagen:
+    stil.zeigen(alt.vconcat(*lagen).resolve_scale(x="shared"), f"Flugschreiber von {c['symbol']}")
+else:
+    a.leer("Keine Messwerte für die Diagramme", "Der Coin ist aufgezeichnet, aber die angezeigten Merkmale fehlen noch.")
+st.caption("Bernsteinfarbene gestrichelte Linie = Verkauf (Grund oben, Details beim Darüberfahren). Teilverkäufe haben je eine Linie. "
            "Fehlende Linien: Der Wert wurde für diesen Coin nicht aufgezeichnet.")
 if not len(verkaeufe):
     st.caption("Der Coin wurde noch nicht verkauft oder das Journal kennt keinen Verkauf.")

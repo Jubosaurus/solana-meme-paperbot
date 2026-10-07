@@ -206,6 +206,19 @@ h1, h2, h3 { letter-spacing: -0.01em; }
   .nx-kopf h1 { font-size: 1.55rem; }
   .nx-duo .pb-zahl { font-size: 1.2rem; }
 }
+/* ---- Lange Inhalte bleiben lesbar und innerhalb der Karten ---- */
+.pb-zahl, .pb-wert { white-space: normal; overflow-wrap: anywhere; }
+.pb-titel { flex-wrap: wrap; }
+.pb-chip { max-width: 100%; white-space: normal; overflow-wrap: anywhere; }
+.pb-name, .pb-detail { white-space: normal; overflow: visible; text-overflow: clip; overflow-wrap: anywhere; }
+.pb-eintrag { grid-template-columns: 30px minmax(0, 1fr) minmax(0, auto); }
+.nx-tabelle { min-width: 0; max-width: 100%; width: 100%; }
+.nx-tabelle th { overflow-wrap: anywhere; max-width: 28rem; }
+@media (max-width: 640px) {
+  .pb-eintrag { grid-template-columns: 30px minmax(0, 1fr); }
+  .pb-eintrag .pb-wert { grid-column: 2; text-align: left; }
+  .nx-duo .pb-zahl { font-size: clamp(0.9rem, 4vw, 1.2rem); }
+}
 </style>
 """
 

@@ -14,7 +14,7 @@ konten, gespeichert, _ = daten.copy_konten(head)
 roh = daten.copy_rohdaten(head)
 jetzt = time.time()
 
-st.title("Copy Trading", anchor=False)
+a.seitenkopf("Copy Trading", "Ergebnisse aller Trader und Runden sowie offene Positionen und der Vergleich mit dem Trader.")
 st.caption(f"Stand der Konten: {rechnung.zeit_text(gespeichert)}. Jede Wallet hat ein eigenes Konto mit 10 SOL je "
            "Runde. Fehlbuchungen bis 03.10. sind herausgerechnet (auswertungen/korrekturen.csv).")
 
@@ -64,52 +64,63 @@ for name, wert, anteil in rechnung.ausreisser([(k["name"], k["ergebnis_seit_star
     a.hinweis(a.ausreisser_text(name, wert, anteil, gesamt, "im Copy Trading"))
 
 # ---------------------------------------------------------------- Balken
-with st.container(border=True):
-    st.markdown("**Ergebnis seit Start je Trader** (alle Runden)")
+with st.container():
+    st.subheader("Ergebnis seit Start je Trader", anchor=False)
+    st.caption("Alle Runden")
     mit = [k for k in liste if abs(k["ergebnis_seit_start"]) >= 0.005]
     df = pd.DataFrame([{"Trader": k["name"], "ergebnis": k["ergebnis_seit_start"]} for k in mit])
     if len(df):
         stil.zeigen(a.balken(df, "ergebnis", "Trader", "SOL", stellen=2), "Ergebnis seit Start je Trader")
+    else:
+        a.leer("Noch kein Trader-Ergebnis", "Trader ohne Ergebnis stehen weiterhin in der Tabelle.")
     if len(liste) > len(mit):
         st.caption(f"{len(liste) - len(mit)} Wallets ohne Ergebnis (noch kein Trade) ausgeblendet; sie stehen in der Tabelle.")
 
 # ---------------------------------------------------------------- Tabelle
 st.subheader("Alle Trader", anchor=False)
-st.dataframe(pd.DataFrame([{
-    "Trader": k["name"], "seit Start": a.plusminus(k["ergebnis_seit_start"], 2),
-    "laufende Runde": a.plusminus(k["ergebnis_runde"], 2), "Runde": k["runde"], "Kontowert": k["kontowert"],
+a.datentabelle(pd.DataFrame([{
+    "Trader": k["name"], "seit Start": k["ergebnis_seit_start"],
+    "laufende Runde": k["ergebnis_runde"], "Runde": k["runde"], "Kontowert": k["kontowert"],
     "vorsichtig": k["vorsichtig"], "offen": k["offen"], "geschlossen": k["geschlossen"],
-    "wir %": a.txt(k["wir_median_pct"], 1, True), "Trader %": a.txt(k["trader_median_pct"], 1, True),
-    "Verzögerung s": a.txt(k["verzoegerung_median_s"], 1), "Preisabstand %": a.txt(k["preisabstand_median_pct"], 1, True),
-    "Schatten": k["schatten"], "Schatten SOL": a.plusminus(k["schatten_pnl"]),
-    "Trader raus ≤ 60 s": a.txt(k["exit_liq"]["raus_60s"] / k["exit_liq"]["kaeufe"] * 100, 0, einheit=" %")
-    if k.get("exit_liq") and k["exit_liq"]["kaeufe"] else "–",
-    "raus vor uns": a.txt(k["exit_liq"]["raus_vor_uns"] / k["exit_liq"]["kaeufe"] * 100, 0, einheit=" %")
-    if k.get("exit_liq") and k["exit_liq"]["kaeufe"] else "–",
+    "wir %": k["wir_median_pct"], "Trader %": k["trader_median_pct"],
+    "Verzögerung s": k["verzoegerung_median_s"], "Preisabstand %": k["preisabstand_median_pct"],
+    "Schatten": k["schatten"], "Schatten SOL": k["schatten_pnl"],
+    "Trader raus ≤ 60 s": k["exit_liq"]["raus_60s"] / k["exit_liq"]["kaeufe"] * 100
+    if k.get("exit_liq") and k["exit_liq"]["kaeufe"] else None,
+    "raus vor uns": k["exit_liq"]["raus_vor_uns"] / k["exit_liq"]["kaeufe"] * 100
+    if k.get("exit_liq") and k["exit_liq"]["kaeufe"] else None,
     "letzter Trade": a.vor(k["letzter_trade"]), "Hinweise": hinweise(k),
-} for k in liste]), hide_index=True, alt="Alle Copy-Trader", column_config={
-    "seit Start": st.column_config.TextColumn(help="Alle Runden: geschlossene Positionen + offene zum letzten Kurs"),
-    "laufende Runde": st.column_config.TextColumn(help="Kontowert minus 10 SOL der laufenden Runde"),
-    "Kontowert": st.column_config.NumberColumn(format="%.2f SOL", help="Frei + offene Positionen (wie in Discord)"),
-    "vorsichtig": st.column_config.NumberColumn(format="%.2f SOL",
-                                                help="Wie Kontowert, aber Positionen, die auf den Verkauf warten, mit 0"),
-    "wir %": st.column_config.TextColumn(help="Median unseres Ergebnisses je geschlossener Position "
-                                              "(nur gültige Vergleiche)"),
-    "Trader %": st.column_config.TextColumn(help="Median des Traders auf denselben Positionen"),
-    "Verzögerung s": st.column_config.TextColumn(help="Median beim Kauf, Sekunden nach dem Trader"),
-    "Preisabstand %": st.column_config.TextColumn(help="Unser Kaufkurs gegenüber dem des Traders (Median, + = teurer)"),
-    "Schatten SOL": st.column_config.TextColumn(help="Wegen Preisgrenze nicht gekauft, nur verfolgt"),
-    "Trader raus ≤ 60 s": st.column_config.TextColumn(help="Anteil unserer Kaeufe, bei denen der Trader innerhalb von "
-                                                           "60 s nach seinem Kauf schon wieder verkauft (Exit-Liquiditaet)"),
-    "raus vor uns": st.column_config.TextColumn(help="Anteil, bei dem der Trader schon verkauft hatte, bevor unser "
-                                                     "Kauf ausgefuehrt war – dann kaufen wir seine Ware"),
-    "Hinweise": st.column_config.TextColumn(width="large"),
+} for k in liste]), alt_text="Alle Copy-Trader", zahlen={
+    **{c: (0, False, "") for c in ("Runde", "offen", "geschlossen", "Schatten")},
+    "Kontowert": (2, False, " SOL"), "vorsichtig": (2, False, " SOL"),
+    "Verzögerung s": (1, False, ""), "Preisabstand %": (1, True, ""),
+    "Trader raus ≤ 60 s": (0, False, " %"), "raus vor uns": (0, False, " %"),
+}, pm_spalten={
+    "seit Start": (2, " SOL"), "laufende Runde": (2, " SOL"), "Schatten SOL": (3, " SOL"),
+    "wir %": (1, ""), "Trader %": (1, ""),
+}, hilfen={
+    "seit Start": "Alle Runden: geschlossene Positionen + offene zum letzten Kurs",
+    "laufende Runde": "Kontowert minus 10 SOL der laufenden Runde",
+    "Kontowert": "Frei + offene Positionen (wie in Discord)",
+    "vorsichtig": "Wie Kontowert, aber Positionen, die auf den Verkauf warten, mit 0",
+    "wir %": "Median unseres Ergebnisses je geschlossener Position (nur gültige Vergleiche)",
+    "Trader %": "Median des Traders auf denselben Positionen",
+    "Verzögerung s": "Median beim Kauf, Sekunden nach dem Trader",
+    "Preisabstand %": "Unser Kaufkurs gegenüber dem des Traders (Median, + = teurer)",
+    "Schatten SOL": "Wegen Preisgrenze nicht gekauft, nur verfolgt",
+    "Trader raus ≤ 60 s": "Anteil unserer Kaeufe, bei denen der Trader innerhalb von 60 s nach seinem Kauf "
+                          "schon wieder verkauft (Exit-Liquiditaet)",
+    "raus vor uns": "Anteil, bei dem der Trader schon verkauft hatte, bevor unser Kauf ausgefuehrt war "
+                    "– dann kaufen wir seine Ware",
 })
 st.caption("Wallet-Regeln: 72 h ohne Trade → ersetzen; nach 30 Positionen und mehr als 1 SOL Verlust → prüfen. "
            "Der Bot entscheidet nichts selbst, die Entscheidung triffst du.")
 
 # ---------------------------------------------------------------- Einzelner Trader
 st.subheader("Einzelner Trader", anchor=False)
+if not liste:
+    a.leer("Keine Trader in dieser Auswahl", "Schalte „Nur aktive Trader“ aus, um auch entfernte Wallets zu sehen.")
+    st.stop()
 name = st.selectbox("Trader", [k["name"] for k in liste], key="trader", bind="query-params")
 acct = (roh.get("wallets") or {}).get(name)
 if acct:
@@ -124,7 +135,7 @@ if acct:
     st.caption(f"Adresse {k['adresse']}")
     links, rechts = st.columns(2)
     with links:
-        st.markdown(f"**Offen ({len(acct['positionen'])})**")
+        st.subheader(f"Offen ({len(acct['positionen'])})", anchor=False)
         if acct["positionen"]:
             eintraege = []
             for p in acct["positionen"].values():
@@ -139,10 +150,11 @@ if acct:
                                   "rechts_unten": f"Wert {a.txt(w, 3, einheit=' SOL')}"})
             a.protokoll(eintraege)
         else:
-            st.caption("Keine.")
+            a.leer("Keine offenen Positionen", "Neue Käufe dieses Traders erscheinen hier.")
     with rechts:
         geschlossen = sorted(acct.get("geschlossen") or [], key=lambda g: g.get("geschlossen") or "", reverse=True)
-        st.markdown(f"**Geschlossen ({len(geschlossen)})** · die 40 neuesten")
+        st.subheader(f"Geschlossen ({len(geschlossen)})", anchor=False)
+        st.caption("Die 40 neuesten")
         if geschlossen:
             a.protokoll([{
                 "name": f"{g.get('symbol', '?')} · wir {a.txt(g.get('pnl_pct'), 1, True, ' %')}",
@@ -151,4 +163,6 @@ if acct:
                 "rechts_unten": rechnung.zeit_text(g.get("geschlossen")),
             } for g in geschlossen[:40]])
         else:
-            st.caption("Keine.")
+            a.leer("Noch keine geschlossenen Positionen", "Nach einem vollständigen Verkauf erscheint hier der Trade.")
+else:
+    a.fehler("Kontodetails fehlen", "Die Gesamtergebnisse des Traders stehen weiterhin in der Tabelle oben.")

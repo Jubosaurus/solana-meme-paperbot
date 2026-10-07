@@ -1,24 +1,25 @@
 import pandas as pd
 import streamlit as st
 
-import ansicht
+import ansicht as a
 import daten
 import rechnung
 
 rangliste, letzter_lauf = daten.scout(daten.stand())
 in_copy = {addr for _, addr in rechnung.aktive_wallets()}
 
-st.title("Scout", anchor=False)
+a.seitenkopf("Scout", "Bewertete und aussortierte Wallets mit ihren Kennzahlen und dem aktuellen Prüfstand.")
 st.caption(f"Letzter Lauf: {rechnung.zeit_text(letzter_lauf)}. Der Scout liefert nur eine Rangliste; "
            "Wallets werden erst nach Prüfung und deiner Zustimmung aufgenommen.")
 
 bewertet = [r for r in rangliste if r["ergebnis"] == "bewertet"]
 raus = [r for r in rangliste if r["ergebnis"] != "bewertet"]
 
-with st.container(horizontal=True):
-    st.metric("Bewertete Wallets", len(bewertet), border=True)
-    st.metric("Davon schon im Copy Trading", sum(1 for r in bewertet if r["wallet"] in in_copy), border=True)
-    st.metric("Aussortiert", len(raus), border=True)
+a.raster([
+    a.karte("Bewertete Wallets", str(len(bewertet))),
+    a.karte("Davon schon im Copy Trading", str(sum(1 for r in bewertet if r["wallet"] in in_copy))),
+    a.karte("Aussortiert", str(len(raus))),
+])
 
 
 def zahl(x):
@@ -31,30 +32,35 @@ def pct(x):
 
 
 st.subheader("Rangliste", anchor=False)
-st.dataframe(pd.DataFrame([{
+a.datentabelle(pd.DataFrame([{
     "Rang": i + 1, "Wallet": r["wallet"][:4] + "…" + r["wallet"][-4:], "Quelle": r["quelle"],
     "Punkte": zahl(r["punkte"]), "abgeschl. Coins": zahl(r["coins_abgeschlossen"]),
-    "Trades je Tag": ansicht.txt(zahl(r["trades_pro_tag"]), 1),
-    "Trefferquote": ansicht.txt(pct(r["trefferquote"]), 0, einheit=" %"),
-    "Rendite ohne besten %": ansicht.txt(zahl(r["rendite_ohne_besten_pct"]), 1, True),
-    "Reibung pp": ansicht.txt(zahl(r["reibung_pp"]), 1),
-    "Haltedauer min": ansicht.txt(zahl(r["haltedauer_median_min"]), 1),
-    "Verkäufe < 60 s": ansicht.txt(pct(r.get("schnelle_verkaeufe_anteil")), 0, einheit=" %"),
-    "Kauf median SOL": ansicht.txt(zahl(r["kauf_median_sol"]), 3),
-    "Bot-Gebühr-Anteil": ansicht.txt(pct(r["bot_gebuehr_anteil"]), 0, einheit=" %"),
+    "Trades je Tag": zahl(r["trades_pro_tag"]),
+    "Trefferquote": pct(r["trefferquote"]),
+    "Rendite ohne besten %": zahl(r["rendite_ohne_besten_pct"]),
+    "Reibung pp": zahl(r["reibung_pp"]),
+    "Haltedauer min": zahl(r["haltedauer_median_min"]),
+    "Verkäufe < 60 s": pct(r.get("schnelle_verkaeufe_anteil")),
+    "Kauf median SOL": zahl(r["kauf_median_sol"]),
+    "Bot-Gebühr-Anteil": pct(r["bot_gebuehr_anteil"]),
     "im Copy": "ja" if r["wallet"] in in_copy else "", "bewertet": rechnung.zeit_text(r["zeit"]),
     "Adresse": r["wallet"],
-} for i, r in enumerate(bewertet)]), hide_index=True, alt="Rangliste des Scouts", column_config={
-    "Punkte": st.column_config.NumberColumn(format="%.1f", help="Bewertung des Scouts (höher = besser)"),
-    "abgeschl. Coins": st.column_config.NumberColumn(format="%d", help="Abgeschlossene Coins im 7-Tage-Fenster. "
-                                                                       "Wenige = unsichere Punktzahl"),
-    "Reibung pp": st.column_config.TextColumn(help="Geschätzte Kosten fürs Kopieren (Prozentpunkte)"),
-})
+} for i, r in enumerate(bewertet)]), alt_text="Rangliste des Scouts", zahlen={
+    "Rang": (0, False, ""), "Punkte": (1, False, ""), "abgeschl. Coins": (0, False, ""),
+    "Trades je Tag": (1, False, ""), "Trefferquote": (0, False, " %"),
+    "Reibung pp": (1, False, ""), "Haltedauer min": (1, False, ""),
+    "Verkäufe < 60 s": (0, False, " %"), "Kauf median SOL": (3, False, ""),
+    "Bot-Gebühr-Anteil": (0, False, " %"),
+}, pm_spalten={"Rendite ohne besten %": (1, "")}, hilfen={
+    "Punkte": "Bewertung des Scouts (höher = besser)",
+    "abgeschl. Coins": "Abgeschlossene Coins im 7-Tage-Fenster. Wenige = unsichere Punktzahl",
+    "Reibung pp": "Geschätzte Kosten fürs Kopieren (Prozentpunkte)",
+}, leer_text="Noch keine bewerteten Wallets.")
 st.caption("Vorsicht bei sehr hohen Punkten mit wenigen abgeschlossenen Coins: Dann bläht oft ein einzelner "
            "Treffer die Rendite stark auf.")
 
 with st.expander(f"Aussortiert ({len(raus)})", icon=":material/filter_alt_off:"):
-    st.dataframe(pd.DataFrame([{
+    a.datentabelle(pd.DataFrame([{
         "Wallet": r["wallet"][:4] + "…" + r["wallet"][-4:], "Quelle": r["quelle"], "Ergebnis": r["ergebnis"],
         "Grund": r["grund"], "geprüft": rechnung.zeit_text(r["zeit"]), "Adresse": r["wallet"],
-    } for r in raus]), hide_index=True, alt="Vom Scout aussortierte Wallets")
+    } for r in raus]), alt_text="Vom Scout aussortierte Wallets", leer_text="Keine aussortierten Wallets.")

@@ -1,4 +1,6 @@
-# Dashboard (nur Anschauen)
+# Nexus Core – Dashboard (nur Anschauen)
+
+Aussehen und Marke: `DESIGN.md` (Vorgaben), `stil.py` (CSS, Logo, Icons), `ansicht.py` (Bausteine). Logo, Schriften und Symbole liegen in `static/` (neu erzeugen mit `python tools/nexus_logo_bauen.py` aus dem Hauptordner; braucht fonttools, brotli, Pillow, nur dafür).
 
 Zeigt den Stand aller drei Bots im Browser auf diesem Rechner. Es wird **kein echtes Geld** gehandelt, und das Dashboard **ändert nichts** (einzige Ausnahme: die Seite „Wallets prüfen“, siehe unten): Es liest nur die Dateien im Repository, startet keine Bots und braucht keine Schlüssel.
 

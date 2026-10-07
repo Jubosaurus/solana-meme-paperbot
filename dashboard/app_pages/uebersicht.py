@@ -161,7 +161,7 @@ with st.expander("Alle Kennzahlen als Tabelle", icon=":material/table_chart:", e
 
 with st.container(border=True):
     st.markdown("**SOL je Trade** · graue Linie = Kontrollgruppe")
-    df = pd.DataFrame([{"Konto": k["label"], "pro_trade": k["pro_trade"] or 0.0} for k in konten if k["trades"]])
+    df = pd.DataFrame([{"Konto": k["label"].split(" (beendet")[0], "pro_trade": k["pro_trade"] or 0.0} for k in konten if k["trades"]])
     if len(df):
         stil.zeigen(a.balken(df, "pro_trade", "Konto", "SOL je Trade", stellen=4, referenz=kontrolle["pro_trade"],
                              referenz_text="Kontrollgruppe"), "SOL je Trade je Konto, Kontrollgruppe als Linie")
