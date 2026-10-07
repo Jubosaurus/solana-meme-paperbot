@@ -1,4 +1,6 @@
-"""ACHTUNG: Prototyp, noch nicht verlaesslich - Gegenprobe gegen die echten Copy-Ergebnisse ist offen.
+"""ACHTUNG: Prototyp. Stand 08.10.: Regel-Nachbau (Variante A, echte Preisabstaende) trifft 4DOV fast genau
+(76 Abschluesse, +1,170 gegen echt +1,177 SOL). Das Preismodell (B bis E, Preisabstand per Median/Zufall) ist
+NICHT verlaesslich: B liegt 5 SOL unter A. Nur Variante A als Gegenprobe benutzen.
 
 Copy-Backtest-Prototyp (Schritt 4 des Backtest-Plans, 07.10.2026). Nur Auswertung, kein Handel.
 
@@ -16,6 +18,7 @@ Credits: 1 je getSignaturesForAddress- bzw. getTransaction-Aufruf (Helius-Doku, 
 der Zaehler steht in zaehler.json und stoppt hart vor --max-credits.
 """
 import argparse
+import calendar
 import csv
 import gzip
 import json
@@ -174,6 +177,11 @@ def echte_daten(adresse):
     return zeilen, je_sig
 
 
+def utc_ts(text):
+    """Journal-Zeit (UTC-Text) -> Unix-Zeit. Nicht mktime verwenden: das rechnet im Sommer 1 h falsch."""
+    return calendar.timegm(time.strptime(text, "%Y-%m-%d %H:%M:%S"))
+
+
 def zahl(x):
     try:
         return float(x)
@@ -190,7 +198,7 @@ def abstaende():
             continue
         if r["aktion"] in ("KAUF", "SCHATTEN_KAUF"):
             kauf.append(g)
-        elif r["aktion"] == "VERKAUF":
+        elif r["aktion"] == "VERKAUF" and abs(g) <= 100:      # >100 % = Trader-Preis (fast) null: Ausreisser bis 5 Mio. %
             verkauf.append(g)
     return kauf, verkauf
 
@@ -297,6 +305,21 @@ class Konto:
             self.zu.append(p)
             del self.pos[t["mint"]]
 
+    def bereinigen(self, t):
+        """Schichtende-Bereinigung (Restwert <= 1 %): Restposition wird zum Jupiter-Restwert t["sol"] verkauft."""
+        p = self.pos.get(t["mint"])
+        if not p:
+            return
+        fee = cb.DEFAULT_FEE_SOL if t["sol"] > 0 else 0.0
+        p["erloes"] += t["sol"]
+        p["gebuehr"] += fee
+        self.bank += t["sol"] - fee
+        p["pnl"] = p["erloes"] - p["invest"] - p["gebuehr"]
+        p["grund"] = "BEREINIGT"
+        self.zu.append(p)
+        del self.pos[t["mint"]]
+        self.n["bereinigt"] = self.n.get("bereinigt", 0) + 1
+
     def ergebnis(self):
         zu = sum(p["pnl"] for p in self.zu)
         return {"geschlossen": len(self.zu), "pnl_geschlossen": round(zu, 4), "offen": len(self.pos),
@@ -312,6 +335,8 @@ def simulieren(trades, gap_kauf, gap_verkauf):
             k.verkauf(t, gap_verkauf(t))
         elif t["kind"] == "UEBERWEISUNG":
             k.verkauf(t, None, ueberweisung=True)
+        elif t["kind"] == "BEREINIGT":
+            k.bereinigen(t)
     return k
 
 
@@ -327,14 +352,22 @@ def rechnen(name):
     trades = trader_trades(name, adresse)
     if not trades:
         raise SystemExit("Keine lokalen Trader-Trades. Zuerst 'holen'.")
+    # Helius-Daten enden beim Abruf: alles Spaetere (Journal, echte Abschluesse) bleibt aussen vor
+    daten_ende = max(s.get("blockTime") or 0 for s in (json.loads(z) for z in
+                     open(daten_ordner(name) / "signaturen.jsonl", encoding="utf-8")))
+    zeilen = [r for r in zeilen if utc_ts(r["zeit"]) <= daten_ende]
+    je_sig = {}
+    for r in zeilen:
+        if r.get("trader_signatur"):
+            je_sig.setdefault(r["trader_signatur"], []).append(r)
     kauf_abst, verk_abst = abstaende()
     med_k, med_v = statistics.median(kauf_abst), statistics.median(verk_abst)
     start = min(r["zeit"] for r in zeilen)
-    start_ts = time.mktime(time.strptime(start, "%Y-%m-%d %H:%M:%S")) - time.timezone
+    start_ts = utc_ts(start)
     ende = max(r["zeit"] for r in zeilen)
-    ende_ts = time.mktime(time.strptime(ende, "%Y-%m-%d %H:%M:%S")) - time.timezone
-    im_fenster = [t for t in trades if start_ts <= (t.get("block_time") or 0) <= ende_ts]
-    vorher = [t for t in trades if (t.get("block_time") or 0) < start_ts]
+    ende_ts = utc_ts(ende)
+    im_fenster = [t for t in trades if start_ts - 120 <= (t.get("block_time") or 0) <= ende_ts]   # Trader-Trade liegt vor unserer Journalzeile
+    vorher = [t for t in trades if (t.get("block_time") or 0) < start_ts - 120]
 
     def echte_luecke(t):
         rows = je_sig.get(t["sig"], [])
@@ -352,9 +385,15 @@ def rechnen(name):
         aktionen = {r["aktion"] for r in je_sig.get(t["sig"], [])}
         return t["kind"] != "KAUF" or bool(aktionen & {"KAUF", "SCHATTEN_KAUF"}) or t["sol"] < cb.MIN_TRADER_BUY_SOL
 
+    bereinigt = [{"kind": "BEREINIGT", "mint": r["mint"], "sol": zahl(r["unser_sol"]) or 0.0,
+                  "block_time": utc_ts(r["zeit"]), "sig": ""} for r in zeilen if r["aktion"] == "BEREINIGT"]
+
+    def mit_bereinigung(liste):
+        return sorted(liste + bereinigt, key=lambda t: t.get("block_time") or 0)
+
     varianten = {}
     # A: nur die Trades, die unser Bot live gesehen hat, mit echten Preisabstaenden -> prueft den Regel-Nachbau
-    a = [t for t in im_fenster if gesehen(t) and nur_live_kaeufe(t)]
+    a = mit_bereinigung([t for t in im_fenster if gesehen(t) and nur_live_kaeufe(t)])
     varianten["A_live_trades_echte_preise"] = simulieren(
         a, lambda t: echte_luecke(t) if echte_luecke(t) is not None else med_k,
         lambda t: echte_luecke(t) if echte_luecke(t) is not None else med_v).ergebnis()
@@ -374,7 +413,11 @@ def rechnen(name):
     varianten["E_30_tage_zufall"] = {"laeufe": MC_LAEUFE, "pnl_p10": pnl_mc[len(pnl_mc) // 10],
                                      "pnl_median": pnl_mc[len(pnl_mc) // 2], "pnl_p90": pnl_mc[len(pnl_mc) * 9 // 10]}
 
-    echt_zu = [g for g in konto["geschlossen"]]
+    def _iso_ts(text):
+        from datetime import datetime
+        return datetime.fromisoformat(text).timestamp()
+    echt_zu = [g for g in konto["geschlossen"] if _iso_ts(g["geschlossen"]) <= daten_ende
+               and g["opened"] >= start_ts - 3600]
     echt = {"geschlossen": len(echt_zu), "pnl_geschlossen": round(sum(g["pnl_sol"] for g in echt_zu), 4),
             "offen": len(konto["positionen"]), "bankroll": round(konto["bankroll_sol"], 4), "runde": konto["runde"],
             "kauf": sum(r["aktion"] == "KAUF" for r in zeilen), "verkauf": sum(r["aktion"] == "VERKAUF" for r in zeilen),
