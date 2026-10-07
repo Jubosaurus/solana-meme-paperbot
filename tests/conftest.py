@@ -104,6 +104,8 @@ def sandbox(tmp_path, monkeypatch):
     monkeypatch.setattr(cb, "_stop", [None])
     monkeypatch.setattr(cb, "_stopping", [False])
     monkeypatch.setattr(core, "_handel_seit_push", [False])
+    monkeypatch.setattr(core, "_meta_woerter", {})
+    monkeypatch.setattr(core, "_meta_abruf", [0.0, None, 0.0])
     monkeypatch.setattr(cb, "_journal_seit_push", [False])
     monkeypatch.setattr(scout, "STATS", copy.deepcopy(_SCOUT_STATS))
     monkeypatch.setattr(core, "HELIUS_RPC", None)

@@ -57,7 +57,7 @@ Tabelle für den Zeitraum **und** seit Start: Konto | Trades | Gewinner | Summe 
 
 Daraus grob schätzen, wie viel Verzögerung die Ergebnisse real kosten würde (Abweichung × 0,2 SOL × Anzahl Trades). Das ist eine Schätzung: Sandwich-Angriffe und gescheiterte Transaktionen sind darin nicht enthalten.
 
-**DexScreener-Beobachtung (seit 04.10., nur Aufzeichnung):** `dexscreener.csv` je gekauftem bzw. knapp abgelehntem Coin: bezahltes Profil, Werbung, Community-Übernahme, Boosts, Zahlungszeitpunkte in Minuten vor dem Ereignis.
+**DexScreener-Beobachtung (seit 04.10., nur Aufzeichnung):** `dexscreener.csv` je gekauftem bzw. knapp abgelehntem Coin: bezahltes Profil, Werbung, Community-Übernahme, Boosts, Zahlungszeitpunkte in Minuten vor dem Ereignis. Spalte `zahlungen` seit 07.10. nur Anzahl. **Trending-Metas (seit 07.10.):** an beendeten Namenswellen (`namenswellen.csv`, Zeilen `ende`) `meta_treffer`/`meta_minuten`/`meta_rang` zählen: Wie oft stand das Wellen-Wort später in DexScreeners Trending, und wie viele Minuten nach unserer Welle (Median nur über Zeilen mit Zahl; negativ = Trending war früher; leer = Wort stand schon seit Schichtbeginn im Trending, getrennt zählen)? Erst ab etwa 20 Wellen urteilen.
 - Bis 100 Käufe aufgezeichnet sind, nur die Anzahl nennen.
 - Danach prüfen, ob Gewinner und Verlierer sich unterscheiden (z. B. Werbung vor gegen nach unserem Kauf). Methode wie bei Strategie-Ideen: erste Hälfte finden, zweite bestätigen, ohne 3 beste.
 

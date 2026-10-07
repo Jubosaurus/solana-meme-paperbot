@@ -259,7 +259,16 @@ WELLEN_FILE = "namenswellen.csv"
 WELLE_STOPWORDS = NARRATIVE_STOPWORDS | {"INU", "COINS", "MEMES", "CASH", "ONE", "NEW", "BABY"}
 WELLEN_HEADER = ["zeit", "welle", "art", "wort", "anzahl_coins", "coins", "groesster_symbol",
                  "groesster_mint", "holder", "entscheidung", "grund", "preis_usd", "vielfaches",
-                 "hoch_vielfaches"]
+                 "hoch_vielfaches", "meta_treffer", "meta_minuten", "meta_rang"]
+# DexScreener-Trending-Metas gegen Namenswellen (seit 07.10., nur Beobachtung). Gespeichert werden nur
+# eigene Werte an der Welle: Treffer 1/0 (leer = kein Abruf), Minuten vom Wellenstart bis das Wellen-Wort
+# erstmals in einem Trending-Meta stand (negativ = schon vorher, leer = schon beim ersten Abruf der Schicht,
+# Zeitpunkt unbekannt), bester Rang. Keine Namen, Texte oder Antworten der Metas.
+META_EVERY_SECONDS = 300                # /metas/trending/v1 hoechstens alle 5 min (Limit 60/min)
+META_MAX_RANG = 50
+META_VERGESSEN_H = 24
+_meta_woerter = {}                       # Wort -> (erstmals gesehen, bester Rang); nur im Speicher
+_meta_abruf = [0.0, None, 0.0]           # letzter Versuch, erster und letzter erfolgreicher Abruf (Zeitpunkte)
 _welle_index = {}                        # Wort -> Mint -> (entstanden, holders, symbol)
 _welle_preise = {}                       # Letzter bereits geladener Kurs je Mint
 _welle_letzte_views = {}                  # Mint -> (Scan-Zeit, bereits geladene View)
@@ -826,7 +835,9 @@ def welle_aufzeichnen(w, art, now):
                              w.get("symbol"), w.get("groesster"), w.get("holders"), entscheidung,
                              w.get("grund", ""), f"{price:.12g}",
                              f"{price / ref:.4f}" if ref > 0 else "",
-                             f"{w.get('peak_usd', ref) / ref:.4f}" if ref > 0 else ""])
+                             f"{w.get('peak_usd', ref) / ref:.4f}" if ref > 0 else "",
+                             (int(bool(w.get("meta_treffer"))) if w.get("meta_abrufe") else ""),
+                             w.get("meta_minuten", ""), w.get("meta_rang", "")])
         return True
     except Interrupted:
         raise
@@ -955,6 +966,65 @@ def namenswellen_pruefen(p, views, now):
         raise
     except Exception:
         STATS["welle_fehler"] = STATS.get("welle_fehler", 0) + 1
+
+
+def meta_faellig(now=None):
+    return (time.time() if now is None else now) - _meta_abruf[0] >= META_EVERY_SECONDS
+
+
+def meta_abrufen(now=None):
+    """DexScreener-Trending-Metas abrufen (nur Beobachtung, Tag 20). Laeuft in der Pause zwischen zwei
+    Durchlaeufen, nie im Scan oder in der Positionspruefung. Merkt nur Woerter im Speicher."""
+    now = time.time() if now is None else now
+    _meta_abruf[0] = now
+    data = dex_get("/metas/trending/v1")
+    eintraege = data[:META_MAX_RANG] if isinstance(data, list) else []
+    themen = [m for m in eintraege if isinstance(m, dict)
+              and (isinstance(m.get("name"), str) or isinstance(m.get("slug"), str))]
+    if not themen:                                     # keine oder nur unbrauchbare Antwort: Fehler, keine Beobachtung
+        STATS["meta_fehler"] = STATS.get("meta_fehler", 0) + 1
+        return False
+    STATS["metas"] = STATS.get("metas", 0) + 1
+    if _meta_abruf[1] is None:
+        _meta_abruf[1] = now
+    _meta_abruf[2] = now
+    for rang, meta in enumerate(data[:META_MAX_RANG], 1):
+        if meta not in themen:
+            continue
+        name = meta.get("name") if isinstance(meta.get("name"), str) else ""
+        slug = meta.get("slug") if isinstance(meta.get("slug"), str) else ""
+        for wort in welle_parts({"symbol": slug, "name": name}):
+            alt = _meta_woerter.get(wort)
+            _meta_woerter[wort] = (alt[0], min(alt[1], rang)) if alt else (now, rang)
+    for wort in [w for w, (t, _) in _meta_woerter.items() if now - t > META_VERGESSEN_H * 3600]:
+        del _meta_woerter[wort]
+    return True
+
+
+def metas_pruefen(p, now):
+    """Gemerkte Trending-Woerter mit den offenen Namenswellen vergleichen. Kein Netzwerk."""
+    try:
+        if CTX["name"]:
+            return
+        stand = _meta_abruf[2]                   # Zeitpunkt, schichtuebergreifend vergleichbar
+        for w in p.get("wellen", {}).values():
+            if w.get("beendet") or now >= w.get("until", 0) or stand <= w.get("meta_stand", 0):
+                continue
+            w["meta_stand"] = stand
+            w["meta_abrufe"] = w.get("meta_abrufe", 0) + 1
+            treffer = _meta_woerter.get(str(w.get("wort", "")).upper())
+            if not treffer:
+                continue
+            gesehen, rang = treffer
+            if not w.get("meta_treffer"):
+                w["meta_treffer"] = 1
+                w["meta_minuten"] = ("" if gesehen == _meta_abruf[1]      # seit Schichtbeginn: Zeitpunkt unbekannt
+                                     else round((gesehen - w.get("zeit", now)) / 60, 1))
+            w["meta_rang"] = min(w.get("meta_rang") or rang, rang)
+    except Interrupted:
+        raise
+    except Exception:
+        STATS["meta_fehler"] = STATS.get("meta_fehler", 0) + 1
 
 
 def welle_entscheidung(mint, text):
@@ -1303,8 +1373,7 @@ def run_dex():
             "cto": int("communityTakeover" in typen), "boosts": len(boosts),
             "erste_zahlung_min_vor_ereignis": round((zeit - zahlungen[0]) / 60, 1) if zahlungen else "",
             "letzte_zahlung_min_vor_ereignis": round((zeit - zahlungen[-1]) / 60, 1) if zahlungen else "",
-            "zahlungen": " ".join(f"{t}@{int(as_float(o.get('paymentTimestamp')) / 1000)}"
-                                  for t, o in zip(typen, orders)),
+            "zahlungen": len(orders),            # seit 07.10. nur die Anzahl (vorher Art@Zeitstempel)
         })
         STATS["dex"] += 1
     new = not os.path.exists(DEX_FILE)
@@ -1319,13 +1388,15 @@ def sleep_with_rechecks(seconds):
     """Pause zwischen zwei Durchlaeufen; faellige Messungen und DexScreener-Abfragen laufen darin,
     die Pause wird nicht laenger (hoechstens um die Dauer einer Abfrage)."""
     end = time.time() + seconds
-    while (_rechecks or _dex_queue) and time.time() < end:
+    while (_rechecks or _dex_queue or meta_faellig()) and time.time() < end:
         wait = _rechecks[0][0] - time.time() if _rechecks else None
         try:
             if wait is not None and wait <= 0:
                 run_recheck()
             elif _dex_queue and end - time.time() > DEX_INTERVAL + 1:
                 run_dex()
+            elif meta_faellig() and end - time.time() > DEX_INTERVAL + 1:
+                meta_abrufen()
             elif wait is not None:
                 time.sleep(max(0.0, min(wait, end - time.time())))   # nie negativ (ValueError)
             else:
@@ -2022,6 +2093,7 @@ def scan(p, sol_usd, now, exps=None):
         raise
     except Exception:
         STATS["welle_fehler"] = STATS.get("welle_fehler", 0) + 1
+    metas_pruefen(p, now)
     for name, with_filters in (("endspurt", True), ("endspurt_ohne_filter", False)):
         if exps and name in exps and name not in EXP_BEENDET:
             try:
@@ -2813,6 +2885,9 @@ def shift_summary(p, start_value, started, reason):
     if STATS["dex"] or STATS["dex_fehler"]:
         lines.append(f"**DexScreener (Beobachtung):** {STATS['dex']} Coins aufgezeichnet"
                      + (f", {STATS['dex_fehler']} ohne Antwort" if STATS["dex_fehler"] else ""))
+    if STATS.get("metas") or STATS.get("meta_fehler"):
+        lines.append(f"**Trending-Metas (Beobachtung):** {STATS.get('metas', 0)} Abrufe"
+                     + (f", {STATS['meta_fehler']} Fehler" if STATS.get("meta_fehler") else ""))
     ml = sum(1 for e in STATS["entries"] if e.get("mitlaeufer"))
     if ml:
         lines.append(f"**Kaeufe mit Mitlaeufer-Verdacht:** {ml} von {len(STATS['entries'])}")

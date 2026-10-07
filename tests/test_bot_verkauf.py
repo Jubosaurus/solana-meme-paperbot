@@ -324,7 +324,7 @@ def test_dexscreener_beim_kauf_in_der_pause(market, monkeypatch, clock):
                               "block0_still_held_pct": 0.0}, market.sol_usd)
     assert clock.now == t0 and antworten == []                 # Kauf wartet nicht auf DexScreener
     core.sleep_with_rechecks(12)
-    assert antworten == [f"/orders/v1/solana/{MINT}"]
+    assert [a for a in antworten if a.startswith("/orders")] == [f"/orders/v1/solana/{MINT}"]   # Metas laufen ebenfalls in der Pause
     r = dex_rows()[0]
     assert r["art"] == "kauf" and r["konto"] == "hauptstrategie" and r["profil"] == "1" and r["werbung"] == "1"
     assert r["boosts"] == "1" and r["erste_zahlung_min_vor_ereignis"] == "10.0"
