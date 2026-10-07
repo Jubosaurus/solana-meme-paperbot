@@ -4,6 +4,7 @@ Das Wiki sammelt Wissen und beschließt nichts. Verbindlich bleiben `STRATEGIE.m
 
 ## Themen und Systeme
 
+- [[Backtest-Plan]] – Backtest- und Datenplan (07.10., nur Plan)
 - [[Copy-Fehlbuchungen-bis-03-10]] – Copy-Fehlbuchungen bis 03.10.
 - [[Copy-Trading]] – Copy Trading
 - [[Entscheidungen]] – Entscheidungen des Betreibers (Chronik)
@@ -133,6 +134,7 @@ Das Wiki sammelt Wissen und beschließt nichts. Verbindlich bleiben `STRATEGIE.m
 
 ## Quellen (Verweise auf Rohquellen)
 
+- [[Q-2026-10-07-Backtest-Plan]] – Quelle: Backtest- und Datenplan (07.10.2026)
 - [[Q-2026-10-07-Nexus-Core]] – Quelle: Dashboard-Entscheidung Nexus Core, Teil 1 und 2 (07.10.2026)
 - [[Q-2026-10-07-Nexus-Core-Teil3]] – Quelle: Nexus Core Teil 3, Logo und Fotorunden (07.10.2026)
 - [[Q-2026-10-03-Ueberpruefung]] – Quelle: Große Überprüfung 03.10.2026

@@ -59,3 +59,6 @@ Noch offen:
 
 ## 07.10.2026 (Tag 18–20)
 - Eingespeist: [[Q-2026-10-07-Tag18-20]] in [[Tag-18-20-Knappheit-KI-News]] (Tag 18 und 19 ohne Umsetzung, Tag 20 als Beobachtung „Namenswelle“).
+
+## 07.10.2026 (Backtest-Plan)
+- Eingespeist: [[Q-2026-10-07-Backtest-Plan]] in [[Backtest-Plan]] (neu), [[DexScreener]], [[Helius]], [[Birdeye]].
