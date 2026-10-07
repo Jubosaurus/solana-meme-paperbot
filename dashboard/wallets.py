@@ -11,6 +11,7 @@ import socket
 import subprocess
 from datetime import datetime
 from pathlib import Path
+from urllib.parse import urlparse
 
 import rechnung
 
@@ -40,10 +41,31 @@ def eigene_adressen():
     return adressen
 
 
+def host_erlaubt(header, eigene=None):
+    """Schutz gegen DNS-Rebinding: Eine fremde Webseite kann den Browser des PCs auf 127.0.0.1 umlenken. Dann steht
+    im Host-Kopf aber der Name der fremden Seite. Erlaubt sind nur localhost, die eigenen Adressen und der
+    Rechnername. Fehlt der Host-Kopf (z. B. in Tests), gilt das nicht als Verstoss."""
+    host = next((v for k, v in (header or {}).items() if str(k).lower() == "host"), None)
+    if host is None:
+        return True
+    try:
+        name = urlparse(f"//{str(host).strip()}").hostname
+    except ValueError:
+        return False
+    if not name:
+        return False
+    eigene = eigene_adressen() if eigene is None else eigene
+    erlaubt = {a.lower() for a in eigene} | {"localhost", "127.0.0.1", "::1", socket.gethostname().lower()}
+    return name.lower().rstrip(".") in erlaubt
+
+
 def ist_lokal(ip, header=None, eigene=None):
     """True nur, wenn der Zugriff vom PC selbst kommt. Streamlit meldet bei localhost None (ip_address).
-    Ein Proxy-Kopf (X-Forwarded-For o. ae.) heisst: nicht lokal. Unbekannte Adresse = nicht lokal."""
+    Ein Proxy-Kopf (X-Forwarded-For o. ae.) heisst: nicht lokal. Unbekannte Adresse = nicht lokal.
+    Ein fremder Host-Kopf (DNS-Rebinding) heisst ebenfalls: nicht lokal."""
     if header and any(k.lower() in ("x-forwarded-for", "forwarded", "x-real-ip") for k in header.keys()):
+        return False
+    if not host_erlaubt(header, eigene):
         return False
     if ip is None:
         return True

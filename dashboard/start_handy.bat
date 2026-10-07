@@ -59,10 +59,14 @@ if errorlevel 1 (
   )
 )
 
+rem Nur diese Host-Namen annehmen (Schutz gegen DNS-Rebinding): localhost und die Heimnetz-Adresse dieses PCs.
+set "HOSTSCHALTER="
+for /f "delims=" %%h in ('".venv\Scripts\python.exe" handy_info.py --hosts') do set "HOSTSCHALTER=%%h"
+
 ".venv\Scripts\python.exe" handy_info.py
 echo.
 echo Dashboard startet. Am PC: http://localhost:8501
 echo Zum Beenden dieses Fenster schliessen.
 echo.
-".venv\Scripts\python.exe" -m streamlit run app.py --server.address 0.0.0.0
+".venv\Scripts\python.exe" -m streamlit run app.py --server.address 0.0.0.0 %HOSTSCHALTER%
 pause

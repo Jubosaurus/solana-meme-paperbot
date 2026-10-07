@@ -19,7 +19,7 @@ $stempel   = (Get-Date).ToUniversalTime().ToString("yyyy-MM-dd_HHmm")
 $protokoll = Join-Path $haupt ".claude\codex-protokolle\$stempel"
 
 # Pfade, die eine Karte nie aendern darf (Patch wird dann als ABGELEHNT markiert)
-$verboten = '^(portfolio\.json|journal\.csv|messung\.csv|dexscreener\.csv|abgelehnt\.csv|knapp_abgelehnt\.csv|marktphase\.json|flugschreiber/|verlauf/|experimente/|copy/|scout/|copy_wallets\.txt|\.github/|\.claude/settings|\.claude/hooks/)'
+$verboten = '^(portfolio\.json|journal\.csv|messung\.csv|dexscreener\.csv|abgelehnt\.csv|knapp_abgelehnt\.csv|marktphase\.json|flugschreiber/|verlauf/|experimente/|copy/|scout/|copy_wallets\.txt|bot\.py|copy_bot\.py|scout_bot\.py|\.github/|\.claude/codex-nachtlauf|\.claude/settings|\.claude/hooks/)'
 $profile   = @{ "astra" = "astra"; "sol" = "sol"; "terra" = "terra"; "luna" = "luna" }
 
 function Schreib($text) { Write-Host $text; if ($Los) { Add-Content -Path "$protokoll\nachtlauf.log" -Value $text -Encoding utf8 } }

@@ -16,6 +16,7 @@ import re
 import signal
 from collections import deque
 import subprocess
+import sys
 import time
 from contextlib import contextmanager
 from datetime import datetime, timezone
@@ -347,8 +348,65 @@ def jup_get(path):
         return None
 
 
+_GEHEIM_ENV = ("HELIUS_API_KEY", "JUPITER_API_KEY", "SOLANA_TRACKER_API_KEY", "BIRDEYE_API_KEY", "DISCORD_WEBHOOK_URL",
+               "DISCORD_WEBHOOK_EXPERIMENTE", "DISCORD_WEBHOOK_COPY", "DISCORD_WEBHOOK_SCOUT")
+_GEHEIM_MUSTER = re.compile(r"(/webhooks/)[\w/-]*|(api[-_]?key=)[\w-]*", re.I)
+
+
 def _hide_key(text):
-    return str(text).replace(HELIUS_API_KEY, "***") if HELIUS_API_KEY else str(text)
+    """Ersetzt Schluessel und Webhook-Adressen durch ***: bekannte Werte (Umgebung) und Muster (auch abgeschnittene
+    Teile wie '/api/webhooks/123/abc' oder 'api-key=abc'). Gilt fuer Logs und Discord-Texte."""
+    s = str(text)
+    if HELIUS_API_KEY:
+        s = s.replace(HELIUS_API_KEY, "***")          # wie bisher, auch kurze Schluessel
+    for wert in {os.environ.get(n) or "" for n in _GEHEIM_ENV}:
+        wert = wert.strip()
+        if len(wert) >= 8:
+            s = s.replace(wert, "***")
+    return _GEHEIM_MUSTER.sub(lambda m: (m.group(1) or m.group(2)) + "***", s)
+
+
+def _hide_key_deep(obj):
+    """_hide_key fuer alle Texte in verschachtelten Listen/Dicts (z. B. zusaetzliche Discord-Embeds)."""
+    if isinstance(obj, str):
+        return _hide_key(obj)
+    if isinstance(obj, list):
+        return [_hide_key_deep(x) for x in obj]
+    if isinstance(obj, dict):
+        return {k: _hide_key_deep(v) for k, v in obj.items()}
+    return obj
+
+
+class _SaubererStrom:
+    """Schickt jede Ausgabe durch _hide_key, bevor sie ins (oeffentliche) Actions-Log geht."""
+
+    def __init__(self, ziel):
+        self._ziel = ziel
+
+    def write(self, text):
+        if not isinstance(text, str):
+            return self._ziel.write(text)
+        try:
+            sauber = _hide_key(text)
+        except Exception:                          # der Filter darf nie einen Bot stoppen; im Zweifel nichts ausgeben
+            sauber = "***\n" if text.endswith("\n") else "***"
+        self._ziel.write(sauber)
+        return len(text)
+
+    def writelines(self, zeilen):
+        for zeile in zeilen:
+            self.write(zeile)
+
+    def __getattr__(self, name):
+        return getattr(self._ziel, name)
+
+
+def log_schutz_an():
+    """Schaltet den Log-Filter fuer stdout und stderr ein (nur beim Start der Bots, nicht in Tests)."""
+    for name in ("stdout", "stderr"):
+        strom = getattr(sys, name)
+        if not isinstance(strom, _SaubererStrom):
+            setattr(sys, name, _SaubererStrom(strom))
 
 
 def rpc(method, params):
@@ -2600,8 +2658,10 @@ def discord(title, text, color=0x6366F1, extra_embeds=None):
     if not target:
         print(f"[DISCORD] {title}")
         return
+    title, text = _hide_key(title), _hide_key(text)
     payload = {"embeds": [{"title": title, "description": text[:4000], "color": color,
                            "timestamp": datetime.now(timezone.utc).isoformat()}] + (extra_embeds or [])[:9]}
+    payload = _hide_key_deep(payload)
     err = ""
     for attempt in range(DISCORD_ATTEMPTS):
         try:
@@ -2616,7 +2676,7 @@ def discord(title, text, color=0x6366F1, extra_embeds=None):
                     time.sleep(2)
                 continue
         except requests.RequestException as e:
-            err = str(e)[:120]
+            err = _hide_key(e)[:120]
         time.sleep(2 * (attempt + 1))
     STATS["discord_fail"] += 1
     print(f"[DISCORD] nicht zugestellt nach {DISCORD_ATTEMPTS} Versuchen: {title} ({err})")
@@ -2949,4 +3009,5 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--probe", action="store_true")
     args = parser.parse_args()
+    log_schutz_an()
     probe() if args.probe else run()

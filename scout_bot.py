@@ -803,6 +803,12 @@ def _add_reason(e):
             f"{e.get('kauf_median_sol')} SOL, {e.get('trades_pro_tag')} Trades/Tag")
 
 
+def one_line(text):
+    """Text fuer eine Kommentarzeile in copy_wallets.txt: keine Zeilenumbrueche und Steuerzeichen (sonst koennte
+    ein Teil des Textes als eigene, aktive Zeile gelesen werden)."""
+    return re.sub(r"[\x00-\x1f\x7f\x85\u2028\u2029]+", " ", str(text)).strip()
+
+
 def apply_wallet_changes(plans, datum, taken_accounts):
     """Schreibt die geplanten Aenderungen in copy_wallets.txt (frischer Stand). Prueft jede Aenderung gegen die
     Datei: Adresse schon drin, zu ersetzende Wallet nicht mehr aktiv oder Limit voll -> ausgelassen.
@@ -828,24 +834,24 @@ def apply_wallet_changes(plans, datum, taken_accounts):
             i = active_index(p["raus"]["adresse"])
             if i is None:
                 continue
-            lines[i] = f"# {lines[i].strip()}   <- entfernt {datum} automatisch: {p['raus']['grund']}; ohne Ersatz"
+            lines[i] = f"# {lines[i].strip()}   <- entfernt {datum} automatisch: {one_line(p['raus']['grund'])}; ohne Ersatz"
             active -= 1
             done.append(p)
             continue
-        if p["adresse"] in addrs:
+        if p["adresse"] in addrs or not ADDR_RE.fullmatch(str(p["adresse"])):
             continue
         name = unique_name(p["name"], p["adresse"], taken)
         if p.get("raus"):
             i = active_index(p["raus"]["adresse"])
             if i is None:
                 continue
-            lines[i] = (f"# {lines[i].strip()}   <- entfernt {datum} automatisch: {p['raus']['grund']}; "
+            lines[i] = (f"# {lines[i].strip()}   <- entfernt {datum} automatisch: {one_line(p['raus']['grund'])}; "
                         f"ersetzt durch {name}")
         elif active >= AUTO_MAX_WALLETS:
             continue
         else:
             active += 1
-        lines += [f"# {datum} automatisch aufgenommen: {p['grund']}", f"{name}: {p['adresse']}"]
+        lines += [f"# {datum} automatisch aufgenommen: {one_line(p['grund'])}", f"{name}: {p['adresse']}"]
         addrs.add(p["adresse"])
         taken.add(name)
         done.append(dict(p, name=name))
@@ -1258,6 +1264,8 @@ def main(argv=None):
     ap.add_argument("--wenn-faellig", action="store_true",
                     help="nur laufen, wenn im aktuellen 6-h-Fenster noch kein kompletter Lauf war (Zeitplan)")
     args = ap.parse_args(argv)
+    if __name__ == "__main__":
+        core.log_schutz_an()
     if args.probe:
         probe()
     elif args.wenn_faellig and not args.nur_pruefliste and not run_due(load_state(), time.time()):

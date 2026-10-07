@@ -47,6 +47,11 @@ secondaryBackgroundColor = "#0F172A"
 headless = false
 port = 8501
 address = "localhost"            # nur auf diesem Rechner erreichbar, nicht im Netzwerk
+# Schutz gegen DNS-Rebinding (Sicherheitspruefung 07.10.): nur diese Host-Namen werden angenommen.
+# start_handy.bat ersetzt die Liste per Umgebungsvariable um die Heimnetz-Adresse des PCs.
+allowedHosts = ["localhost", "127.0.0.1", "::1"]
+enableCORS = true
+enableXsrfProtection = true
 runOnSave = false
 fileWatcherType = "none"
 enableStaticServing = true       # Logo, Schriften, Symbole aus dashboard/static

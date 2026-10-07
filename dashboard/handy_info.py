@@ -32,7 +32,20 @@ def netz_art():
         return None
 
 
+def erlaubte_hosts():
+    """Host-Namen, die das Dashboard im Handy-Betrieb annehmen darf (Schutz gegen DNS-Rebinding): der PC selbst und
+    seine Heimnetz-Adresse. Das Handy ruft die Adresse als Zahl auf, ein Angreifer braucht einen Namen."""
+    hosts = ["localhost", "127.0.0.1", "::1"]
+    ip = heimnetz_ip()
+    if ip:
+        hosts.append(ip)
+    return hosts
+
+
 def main():
+    if "--hosts" in sys.argv:
+        print(" ".join(f"--server.allowedHosts {h}" for h in erlaubte_hosts()))   # Streamlit-Schalter fuer start_handy.bat
+        return 0
     ip = heimnetz_ip()
     if not ip:
         print("Keine Netzwerkverbindung gefunden. Ist der PC mit dem WLAN/Heimnetz verbunden?")

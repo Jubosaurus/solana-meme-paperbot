@@ -270,6 +270,21 @@ def test_proxy_kopf_ist_nicht_lokal():
     assert not w.ist_lokal(None, {"X-Forwarded-For": "192.168.1.55"}, EIGEN)
 
 
+def test_fremder_host_ist_nicht_lokal():
+    """DNS-Rebinding: Der Browser des PCs spricht 127.0.0.1 an, im Host-Kopf steht aber die fremde Seite."""
+    assert not w.ist_lokal(None, {"Host": "boese.example.com:8501"}, EIGEN)
+    assert not w.ist_lokal("127.0.0.1", {"host": "192.168.1.55:8501"}, EIGEN)
+    assert not w.ist_lokal(None, {"Host": "localhost.boese.example:8501"}, EIGEN)
+    assert not w.ist_lokal(None, {"Host": ""}, EIGEN)
+
+
+def test_eigener_host_ist_lokal():
+    assert w.ist_lokal(None, {"Host": "localhost:8501"}, EIGEN)
+    assert w.ist_lokal(None, {"Host": "127.0.0.1:8501"}, EIGEN)
+    assert w.ist_lokal("192.168.1.20", {"Host": "192.168.1.20:8501"}, EIGEN)
+    assert w.ist_lokal(None, {"Host": "[::1]:8501"}, EIGEN)
+
+
 def test_seite_zeigt_am_handy_keine_knoepfe(monkeypatch):
     """Echte Seite per AppTest: vom Handy (fremde IP) kein Textfeld, kein Knopf, aber der Hinweis."""
     from unittest import mock

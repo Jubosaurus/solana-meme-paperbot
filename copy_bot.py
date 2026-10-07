@@ -1215,7 +1215,7 @@ def run(probe=False):
                 continue
             except Exception as err:             # Sicherheitsnetz: nie wegen einer einzelnen Nachricht abstuerzen
                 STATS["errors"] += 1
-                STATS["last_error"] = f"{type(err).__name__}: {str(err)[:150]}"
+                STATS["last_error"] = core._hide_key(f"{type(err).__name__}: {str(err)[:150]}")
                 print(f"[COPY] unerwarteter Fehler, laeuft weiter: {STATS['last_error']}")
             now = time.time()
             if ws is not None and len(subs) < len([w for w in wallets if w[0] not in STATS["muted"]]) \
@@ -1271,7 +1271,7 @@ def run(probe=False):
                 cleaned = cleanup(data)
             except Exception as err:             # Bereinigung darf das Speichern nie verhindern
                 STATS["errors"] += 1
-                STATS["last_error"] = f"Bereinigung: {str(err)[:150]}"
+                STATS["last_error"] = core._hide_key(f"Bereinigung: {str(err)[:150]}")
                 print(f"[COPY] Bereinigung fehlgeschlagen: {str(err)[:150]}")
         end_ts = time.time()
         for name in active:                      # bis hierher lueckenlos zugehoert (ausser offene Luecken, Abmeldungen)
@@ -1329,7 +1329,7 @@ def process_message(msg, subs, data, sol_usd, ws=None):
         handle_signature(name, data["wallets"][name], sig, sol_usd)
     except Exception as err:                     # ein fehlerhafter Trade darf den Bot nicht stoppen
         STATS["errors"] += 1
-        STATS["last_error"] = str(err)[:200]
+        STATS["last_error"] = core._hide_key(err)[:200]
         print(f"[COPY] Fehler bei {name} {sig[:12]}: {str(err)[:150]}")
 
 
@@ -1534,4 +1534,5 @@ def run_probe(wallets):
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()
     ap.add_argument("--probe", action="store_true")
+    core.log_schutz_an()
     run(probe=ap.parse_args().probe)
