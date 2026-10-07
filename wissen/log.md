@@ -50,3 +50,6 @@ Noch offen:
 - Eingespeist: [[Nexus-Core]] und [[Q-2026-10-07-Nexus-Core]] aus `CLAUDE.md` (Dashboard), `STRATEGIE.md` (Änderungsprotokoll 07.10.), `dashboard/DESIGN.md`, `dashboard/README.md`, dem lokalen Ideenbericht `auswertungen/dashboard/ideen_2026-10-07.md` und Auftragskarte 16 (Originalpfade auf der Quellen-Seite); Index ergänzt.
 - Teil 1 als gebaut dokumentiert; alle zehn Ideen aus Teil 2 mit einem Satz und Status erfasst, die ausgewählten Seiten 1–5 gemäß Auftragskarte als in Arbeit markiert; Ergebnis wird von Claude nachgetragen.
 - Leitplanken aufgenommen: neue lesende Seiten nur mit lokalen Daten, Rechnung nur über `dashboard/rechnung.py`, schreibende Funktionen nur am PC; das Wiki trifft keine Entscheidung.
+
+## 07.10.2026 (Tag 17)
+- Eingespeist: [[Q-2026-10-07-Tag17]] (Zwischenstand FOMO_SPRUNG, Regel bleibt) in [[Tag-17-FOMO]].
