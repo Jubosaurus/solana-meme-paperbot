@@ -62,3 +62,6 @@ Noch offen:
 
 ## 07.10.2026 (Backtest-Plan)
 - Eingespeist: [[Q-2026-10-07-Backtest-Plan]] in [[Backtest-Plan]] (neu), [[DexScreener]], [[Helius]], [[Birdeye]].
+
+## 07.10.2026 (Backtest-Plan, Entscheidungen)
+- Nachgeführt: [[Entscheidungen]], [[Backtest-Plan]] (Schritte 2 und 5 umgesetzt).
