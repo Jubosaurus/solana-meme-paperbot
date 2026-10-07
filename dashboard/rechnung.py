@@ -194,6 +194,21 @@ def trade_kennzahlen(closed, kosten=None):
             "fortschritt": min(1.0, n / ZIEL_TRADES)}
 
 
+def kosten_abzug(k):
+    """Kostenaufschlag eines Strategie-Kontos in SOL (Summe roh minus Summe mit Kosten)."""
+    return k["summe"] - k["summe_kosten"]
+
+
+def kontowert_mit_kosten(k):
+    """Kontowert nach Abzug des Kostenaufschlags (2 % je Rundlauf, Endspurt 4 %)."""
+    return k["kontowert"] - kosten_abzug(k)
+
+
+def ergebnis_mit_kosten(k):
+    """Plus/Minus seit Start nach Abzug des Kostenaufschlags."""
+    return k["ergebnis"] - kosten_abzug(k)
+
+
 def konto_strategie(key, label, p, kurse, sol_usd=None):
     """Konto der Hauptstrategie oder eines Experiments. sol_usd=None: SOL-Kurs je Position vom Kauf
     (das Dashboard fragt keine Kurse ab). Discord rechnet mit dem aktuellen SOL-Kurs; bewegt sich SOL

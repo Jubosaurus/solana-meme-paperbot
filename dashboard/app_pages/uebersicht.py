@@ -15,22 +15,20 @@ copy, _, _ = daten.copy_konten(head)
 commits, _, _ = daten.betrieb(head)
 _, scout_lauf = daten.scout(head)
 
-st.title("Übersicht", anchor=False)
+a.seitenkopf("Übersicht", "Läuft alles, wie stehen die Konten, was ist neu? Zahlen roh und mit Kostenaufschlag (2 %, Endspurt 4 %).")
 
-# ---------------------------------------------------------------- 1. Laeuft alles?
+# ---------------------------------------------------------------- 1. Laeuft alles? (Pillen stehen im Seitenkopf)
 letzte = {bot: (t[-1] if t else None) for bot, t in commits.items()}
 status = {bot: rechnung.bot_status(ts, jetzt) for bot, ts in letzte.items()}
 scout_status = "kaputt" if scout_lauf is None else "ok" if jetzt - scout_lauf <= 7 * 3600 else \
     "achtung" if jetzt - scout_lauf <= 13 * 3600 else "kaputt"
 kaputt = [b for b, s in status.items() if s == "kaputt"] + (["Scout"] if scout_status == "kaputt" else [])
 if kaputt:
-    st.error(f"**{', '.join(kaputt)}: keine neuen Daten.** Details unter Betrieb.", icon=":material/error:")
-a.status_leiste([(s, f"{b} · Daten {a.vor(letzte[b])}") for b, s in status.items()]
-                + [(scout_status, f"Scout · {a.vor(scout_lauf)}")])
+    a.fehler(f"{', '.join(kaputt)}: keine neuen Daten.", "Details unter System → Betrieb.")
 
 # ---------------------------------------------------------------- 1a. Fuer dich wichtig (News)
-with st.container(border=True):
-    st.markdown("**Für dich wichtig**")
+with st.container():
+    st.subheader("Für dich wichtig", anchor=False)
     try:
         news = daten.news(head)
         wichtig = [i for i in news["liste"] if set(i["marken"]) & {"position", "listing", "rug"}
@@ -47,8 +45,8 @@ with st.container(border=True):
 
 # ---------------------------------------------------------------- 1b. Was ist neu
 ZEITRAEUME = {"24 Stunden": 24, "48 Stunden": 48, "7 Tage": 168}
-with st.container(border=True):
-    st.markdown("**Was ist neu?**")
+with st.container():
+    st.subheader("Was ist neu?", anchor=False)
     wahl_zeit = st.segmented_control("Zeitraum", list(ZEITRAEUME), default="24 Stunden", key="neu_zeitraum",
                                      required=True, label_visibility="collapsed")
     neu = daten.neu_seit(head, ZEITRAEUME[wahl_zeit or "24 Stunden"])
@@ -99,10 +97,11 @@ def verlauf_werte(k):
 
 
 a.raster([
-    a.karte("Hauptstrategie · Kontowert", rechnung.sol_text(haupt["kontowert"], 2, False),
-            a.pm_html(haupt["ergebnis"]) + " seit Start", fuss=a.sparkline(verlauf_werte(haupt)), leuchten=True),
-    a.karte("Kontrollgruppe (Zufall) · Kontowert", rechnung.sol_text(kontrolle["kontowert"], 2, False),
-            a.pm_html(kontrolle["ergebnis"]) + " seit Start", fuss=a.sparkline(verlauf_werte(kontrolle))),
+    a.konto_karte(haupt, fuss=a.sparkline(verlauf_werte(haupt)), leuchten=True),
+    a.konto_karte(kontrolle, fuss=a.sparkline(verlauf_werte(kontrolle))),
+], breit=True)
+st.write("")
+a.raster([
     a.karte("Copy seit Start", rechnung.sol_text(copy_gesamt, 2),
             f"alle Runden, {len(copy)} Wallets inkl. entfernte<br>laufende Runden: {a.pm_html(runde_summe, 2)}",
             oben_rechts=a.chip(f"{sum(1 for c in aktiv if c['ergebnis_runde'] > 0)}/{len(aktiv)} im Plus")),
@@ -135,25 +134,30 @@ with schlecht:
 st.subheader("Hauptstrategie und Experimente", anchor=False)
 st.caption("Urteil: verglichen mit der Kontrollgruppe (kauft zufällig) aus demselben Zeitraum, frühestens nach "
            "200 Trades und nur, wenn es auch ohne die 3 besten Trades hält. „Im Plus/Minus“ getrennt davon.")
-a.raster([a.karte(k["label"], rechnung.sol_text(k["kontowert"], 2, False),
-                  a.pm_html(k["ergebnis"]), a.ring(k["fortschritt"], f"{k['fortschritt']:.0%}", f"{k['trades']}/200"),
-                  fuss=a.urteil_chip(k["vergleich"]) + a.sparkline([p["kontostand"] for p in k["verlauf"]][-60:]),
-                  klein=True)
-          for k in konten])
+a.raster([a.roh_kosten_karte(
+    k["label"], rechnung.sol_text(k["kontowert"], 2, False), rechnung.sol_text(rechnung.kontowert_mit_kosten(k), 2, False),
+    a.pm_html(k["ergebnis"]), a.pm_html(rechnung.ergebnis_mit_kosten(k)), kosten_pct=k["kosten_pct"],
+    fuss='<div class="pb-zeile"><div>' + a.urteil_chip(k["vergleich"]) + f'<div class="pb-unter">{k["trades"]}/200 Trades</div></div>'
+         + a.ring(k["fortschritt"], f"{k['fortschritt']:.0%}", f"{k['trades']}/200") + "</div>" + a.sparkline([p["kontostand"] for p in k["verlauf"]][-60:]))
+          for k in konten], breit=True)
 
-with st.expander("Alle Kennzahlen als Tabelle", icon=":material/table_chart:"):
-    st.dataframe(pd.DataFrame([{
-        "Konto": k["label"], "Plus/Minus": a.plusminus(k["ergebnis"]), "Urteil": a.urteil_text(k["vergleich"]),
-        "Kontowert": k["kontowert"], "Trades": k["trades"], "SOL je Trade": k["pro_trade"],
-        "ohne 3 beste": k["ohne_beste_pro_trade"], "je Trade mit Kosten": k["pro_trade_kosten"],
-        "ohne 3 beste mit Kosten": k["ohne_beste_pro_trade_kosten"], "offen": len(k["offen"]),
-    } for k in konten]), hide_index=True, alt="Alle Konten mit Kennzahlen", column_config={
-        "Kontowert": st.column_config.NumberColumn(format="%.2f SOL"),
-        "SOL je Trade": st.column_config.NumberColumn(format="%+.4f"),
-        "ohne 3 beste": st.column_config.NumberColumn(format="%+.4f"),
-        "je Trade mit Kosten": st.column_config.NumberColumn(format="%+.4f"),
-        "ohne 3 beste mit Kosten": st.column_config.NumberColumn(format="%+.4f"),
-    })
+st.write("")
+with st.expander("Alle Kennzahlen als Tabelle", icon=":material/table_chart:", expanded=True):
+    tab = pd.DataFrame([{
+        "Konto": k["label"],
+        "Plus/Minus roh": k["ergebnis"], "Plus/Minus mit Kosten": rechnung.ergebnis_mit_kosten(k),
+        "Kontowert roh": k["kontowert"], "Kontowert mit Kosten": rechnung.kontowert_mit_kosten(k),
+        "Trades": k["trades"], "offen": len(k["offen"]),
+        "SOL je Trade roh": k["pro_trade"], "SOL je Trade mit Kosten": k["pro_trade_kosten"],
+        "ohne 3 beste roh": k["ohne_beste_pro_trade"], "ohne 3 beste mit Kosten": k["ohne_beste_pro_trade_kosten"],
+        "Urteil roh": a.urteil_roh(k["vergleich"]),
+        "Urteil mit Kosten": a.urteil_mit_kosten(k["vergleich"]),
+    } for k in konten])
+    a.tabelle(tab, zahlen={"Kontowert roh": (2, False, " SOL"), "Kontowert mit Kosten": (2, False, " SOL"),
+                           "Trades": (0, False, ""), "offen": (0, False, ""),
+                           "SOL je Trade roh": (4, True, ""), "SOL je Trade mit Kosten": (4, True, ""),
+                           "ohne 3 beste roh": (4, True, ""), "ohne 3 beste mit Kosten": (4, True, "")},
+              pm_spalten={"Plus/Minus roh": (3, " SOL"), "Plus/Minus mit Kosten": (3, " SOL")}, hoehe=520)
 
 with st.container(border=True):
     st.markdown("**SOL je Trade** · graue Linie = Kontrollgruppe")
@@ -162,4 +166,4 @@ with st.container(border=True):
         stil.zeigen(a.balken(df, "pro_trade", "Konto", "SOL je Trade", stellen=4, referenz=kontrolle["pro_trade"],
                              referenz_text="Kontrollgruppe"), "SOL je Trade je Konto, Kontrollgruppe als Linie")
     else:
-        st.caption("Noch keine geschlossenen Trades.")
+        a.leer("Noch keine geschlossenen Trades", "Sobald die ersten Trades geschlossen sind, erscheint hier der Vergleich.")

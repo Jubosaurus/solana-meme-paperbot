@@ -381,6 +381,16 @@ def test_kostenaufschlag_roh_und_mit_kosten():
     assert r.konto_strategie("heisse_coins", "H", p, {})["pro_trade_kosten"] == pytest.approx(-0.004)
 
 
+def test_kontowert_mit_kosten_fuer_die_anzeige():
+    """Nexus-Core-Karten zeigen Kontowert und Plus/Minus roh und mit Kosten: Abzug = Summe roh minus Summe mit Kosten."""
+    p = {"bankroll_sol": 9.5, "positions": {}, "closed": [{"pnl_sol": -0.5, "invested_sol": 0.2},
+                                                           {"pnl_sol": 0.0, "invested_sol": 0.2}]}
+    k = r.konto_strategie("endspurt", "E", p, {})   # 4 % von 0,4 SOL Einsatz = 0,016 SOL
+    assert r.kosten_abzug(k) == pytest.approx(0.016)
+    assert r.kontowert_mit_kosten(k) == pytest.approx(9.5 - 0.016)
+    assert r.ergebnis_mit_kosten(k) == pytest.approx(-0.5 - 0.016)
+
+
 def test_urteil_mit_kosten_kann_vom_rohurteil_abweichen():
     kg = {"key": "kontrollgruppe", "gestartet": "2026-10-01T00:00:00+00:00", "closed": [closed(-0.02) for _ in range(200)]}
     e = konto("endspurt", [-0.019] * 200)           # roh knapp besser; Endspurt zahlt 4 % statt 2 %: mit Kosten schlechter

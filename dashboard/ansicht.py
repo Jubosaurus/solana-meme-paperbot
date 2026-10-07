@@ -1,4 +1,5 @@
-"""Bausteine der Darstellung: Karten, Mini-Kurven, Ringe, Aktivitaetsprotokoll, Diagramme.
+"""Bausteine der Darstellung (Nexus Core): Seitenkopf, Karten, Roh/Kosten-Karten, Tabellen, Leer- und Fehlerzustand,
+Mini-Kurven, Ringe, Aktivitaetsprotokoll, Diagramme.
 
 Plus/Minus immer mit Pfeil und Vorzeichen (nie Farbe allein). Alle Texte aus den Daten (Coin-Namen kommen
 von der Blockchain!) werden mit html.escape eingefuegt. Farben und CSS stehen in stil.py.
@@ -17,7 +18,7 @@ import stil
 AMPEL_KLASSE = {"besser": "gut", "schlechter": "schlecht", "gemischt": "achtung", "zu_frueh": "",
                 "basis": "", "keine_daten": ""}
 AMPEL_ZEICHEN = {"besser": "✓", "schlechter": "✗", "gemischt": "≈", "zu_frueh": "…", "basis": "–", "keine_daten": "–"}
-STATUS = {"ok": ("gut", "✓", "läuft"), "achtung": ("achtung", "!", "verzögert"), "kaputt": ("schlecht", "✗", "steht")}
+STATUS = {"ok": ("gut", "läuft"), "achtung": ("achtung", "verzögert"), "kaputt": ("schlecht", "steht")}
 
 
 def e(text):
@@ -54,8 +55,25 @@ def urteil_text(v):
     return f"{AMPEL_ZEICHEN[v['ampel']]} {rechnung.urteil_beide(v)}"
 
 
+def urteil_roh(v):
+    return rechnung.urteil_kurz(v)
+
+
+def urteil_mit_kosten(v):
+    """Urteil mit Kostenaufschlag; die Vergleichsbasis (Kontrollgruppe) hat keines und bleibt gleich."""
+    k = v.get("kosten")
+    return rechnung.urteil_kurz({**v, **k}) if k else rechnung.urteil_kurz(v)
+
+
 def urteil_chip(v):
-    return f'<span class="pb-chip {AMPEL_KLASSE[v["ampel"]]}">{e(urteil_text(v))}</span>'
+    """Urteil roh und mit Kosten untereinander (umbrechend, nie abgeschnitten)."""
+    zeilen = [("roh", rechnung.urteil_kurz(v), v["ampel"])]
+    k = v.get("kosten")
+    if k:
+        zeilen.append(("mit Kosten", rechnung.urteil_kurz({**v, **k}), k["ampel"]))
+    return '<div class="nx-urteil">' + "".join(
+        f'<span class="pb-chip {AMPEL_KLASSE[ampel]}">{e(AMPEL_ZEICHEN[ampel])} <b>{e(art)}:</b> {e(text)}</span>'
+        for art, text, ampel in zeilen) + "</div>"
 
 
 def chip(text, klasse=""):
@@ -89,7 +107,10 @@ def sparkline(werte, breite=120, hoehe=40):
             f'<stop offset="0" stop-color="{farbe}" stop-opacity="0.35"/>'
             f'<stop offset="1" stop-color="{farbe}" stop-opacity="0"/></linearGradient></defs>'
             f'<polygon points="{flaeche}" fill="url(#{gid})"/>'
-            f'<polyline points="{linie}" fill="none" stroke="{farbe}" stroke-width="2" '
+            f'<defs><filter id="glow" x="-10%" y="-30%" width="120%" height="160%"><feGaussianBlur stdDeviation="2.2"/></filter></defs>'
+            f'<polyline points="{linie}" fill="none" stroke="{farbe}" stroke-width="3.5" stroke-opacity="0.55" '
+            f'stroke-linejoin="round" stroke-linecap="round" filter="url(#glow)"/>'
+            f'<polyline points="{linie}" fill="none" stroke="{farbe}" stroke-width="1.8" '
             f'stroke-linejoin="round" stroke-linecap="round"/>'
             f'<circle cx="{pts[-1][0]:.1f}" cy="{pts[-1][1]:.1f}" r="3" fill="{farbe}"/></svg>', "pb-spark",
                     "Mini-Kurve des Kontostands")
@@ -122,17 +143,111 @@ def karte(titel, zahl, unter="", rechts="", oben_rechts="", fuss="", leuchten=Fa
             + (f'<div class="pb-fuss">{fuss}</div>' if fuss else "") + "</div>")
 
 
-def raster(karten, gross=False):
-    st.html(f'<div class="pb-raster{" gross" if gross else ""}">{"".join(karten)}</div>')
+def raster(karten, gross=False, breit=False):
+    st.html(f'<div class="pb-raster{" gross" if gross else ""}{" breit" if breit else ""}">{"".join(karten)}</div>')
+
+
+def pille(status, text):
+    """Status-Pille: ok = pulsierender Punkt, verzoegert = Dreieck, steht = Kreuz. Immer auch als Wort (nie Farbe allein)."""
+    klasse, wort = STATUS[status]
+    zeichen = {"ok": '<i class="nx-punkt"></i>', "achtung": '<i class="nx-dreieck">▲</i>',
+               "kaputt": '<i class="nx-dreieck">✗</i>'}[status]
+    return f'<span class="nx-pille {klasse}">{zeichen}<b>{e(wort.capitalize())}</b> · {e(text)}</span>'
 
 
 def status_leiste(eintraege):
-    """eintraege: [(status, text)] -> Reihe von Status-Chips mit Zeichen + Wort."""
-    teile = []
-    for status, text in eintraege:
-        klasse, zeichen, wort = STATUS[status]
-        teile.append(chip(f"{zeichen} {wort} · {text}", klasse))
-    st.html(f'<div class="pb-status">{"".join(teile)}</div>')
+    """eintraege: [(status, text)] -> Reihe von Status-Pillen."""
+    st.html(f'<div class="nx-pillen">{"".join(pille(s, t) for s, t in eintraege)}</div>')
+
+
+def bot_status_eintraege():
+    """Pillen-Daten aller drei Bots (Hauptbot, Copy-Bot, Scout) wie auf der Uebersicht; bei Fehlern leer."""
+    import daten
+    try:
+        jetzt = time.time()
+        head = daten.stand()
+        commits, _, _ = daten.betrieb(head)
+        _, scout_lauf = daten.scout(head)
+        letzte = {bot: (t[-1] if t else None) for bot, t in commits.items()}
+        ergebnis = [(rechnung.bot_status(ts, jetzt), f"{bot} · {vor(ts)}") for bot, ts in letzte.items()]
+        scout = "kaputt" if scout_lauf is None else "ok" if jetzt - scout_lauf <= 7 * 3600 else \
+            "achtung" if jetzt - scout_lauf <= 13 * 3600 else "kaputt"
+        return ergebnis + [(scout, f"Scout · {vor(scout_lauf)}")]
+    except Exception:
+        return []
+
+
+def seitenkopf(titel, beschreibung="", status=True):
+    """Einheitlicher Seitenkopf: Titel, Erklaerung, darunter die Status-Pillen der Bots."""
+    st.html(f'<div class="nx-kopf"><h1>{e(titel)}</h1>' + (f'<p>{e(beschreibung)}</p>' if beschreibung else "") + "</div>")
+    if status:
+        eintraege = bot_status_eintraege()
+        if eintraege:
+            status_leiste(eintraege)
+
+
+def leer(titel="Noch keine Daten", hilfe=""):
+    """Leerzustand im Nexus-Stil."""
+    st.html(f'<div class="nx-leer"><img src="{stil.icon_uri("leer")}" alt=""/><b>{e(titel)}</b>'
+            + (f"<span>{e(hilfe)}</span>" if hilfe else "") + "</div>")
+
+
+def fehler(titel, detail=""):
+    """Fehlermeldung im Nexus-Stil (statt st.error): was ist passiert, was geht trotzdem."""
+    st.html(f'<div class="nx-fehler" role="alert"><img src="{stil.icon_uri("fehler", stil.MINUS)}" alt=""/><div>'
+            f'<b>{e(titel)}</b>' + (f"<span>{e(detail)}</span>" if detail else "") + "</div></div>")
+
+
+def _zelle(wert, spalte, zahlen, pm_spalten):
+    if wert is None or (isinstance(wert, float) and wert != wert):
+        return "–"
+    if spalte in pm_spalten and isinstance(wert, (int, float)):
+        return pm_html(wert, *(pm_spalten[spalte] or ()))
+    if spalte in zahlen and isinstance(wert, (int, float)):
+        stellen, vorzeichen, einheit = zahlen[spalte]
+        return e(txt(wert, stellen, vorzeichen, einheit))
+    return e(wert)
+
+
+def tabelle(df, zahlen=None, pm_spalten=None, hoehe=560, leer_text="Noch keine Daten."):
+    """Tabelle, die sich dem Inhalt anpasst: Text bricht um, Zahlen stehen rechts in Monospace, Kopfzeile und erste
+    Spalte bleiben beim Scrollen stehen. Nichts wird abgeschnitten (bei schmalem Bildschirm: seitlich wischen).
+    zahlen: {Spalte: (Nachkommastellen, mit_Vorzeichen, Einheit)}; pm_spalten: {Spalte: (Stellen, Einheit) oder None}
+    fuer Gewinn/Verlust mit Pfeil und Farbe. Alle anderen Werte werden als Text eingefuegt (maskiert)."""
+    zahlen, pm_spalten = zahlen or {}, pm_spalten or {}
+    if df is None or len(df) == 0:
+        return leer(leer_text)
+    numerisch = set(zahlen) | set(pm_spalten)
+    wisch = '<div class="pb-detail pb-frei">↔ Bei schmalem Bildschirm seitlich wischen, um alle Spalten zu sehen.</div>'         if len(df.columns) > 5 else ""
+    kopf = "".join(f'<th class="{"num" if c in numerisch else ""}">{e(c)}</th>' for c in df.columns)
+    zeilen = []
+    for _, r in df.iterrows():
+        zellen = "".join(f'<td class="{"num" if c in numerisch else "text"}">{_zelle(r[c], c, zahlen, pm_spalten)}</td>'
+                         for c in df.columns)
+        zeilen.append(f"<tr>{zellen}</tr>")
+    st.html(f'<div class="nx-tabelle" style="max-height:{int(hoehe)}px"><table><thead><tr>{kopf}</tr></thead>'
+            f'<tbody>{"".join(zeilen)}</tbody></table></div>{wisch}')
+
+
+def roh_kosten_karte(titel, roh, kosten, unter_roh="", unter_kosten="", kosten_pct=None, fuss="", leuchten=False,
+                     oben_rechts=""):
+    """Karte mit zwei Werten nebeneinander: roh (vorher) und mit Kosten (nachher). Beide Zahlen sind fertige Texte,
+    die Unterzeilen fertiges HTML (z. B. pm_html)."""
+    chip_kosten = chip(f"Kosten {kosten_pct:g} %".replace(".", ","), "achtung") if kosten_pct is not None else ""
+    return (f'<div class="pb-karte{" leuchten" if leuchten else ""}"><div class="pb-titel"><span>{e(titel)}</span>'
+            f'{oben_rechts or chip_kosten}</div><div class="nx-duo">'
+            f'<div><div class="nx-mini">roh</div><div class="pb-zahl">{e(roh)}</div><div class="pb-unter">{unter_roh}</div></div>'
+            f'<div><div class="nx-mini kosten">mit Kosten</div><div class="pb-zahl">{e(kosten)}</div>'
+            f'<div class="pb-unter">{unter_kosten}</div></div></div>'
+            + (f'<div class="pb-fuss">{fuss}</div>' if fuss else "") + "</div>")
+
+
+def konto_karte(k, fuss="", leuchten=False):
+    """Konto der Hauptstrategie/eines Experiments: Kontowert roh und mit Kosten (2 %, Endspurt 4 %) nebeneinander."""
+    mit = rechnung.kontowert_mit_kosten(k)
+    return roh_kosten_karte(k["label"], rechnung.sol_text(k["kontowert"], 2, False), rechnung.sol_text(mit, 2, False),
+                            pm_html(k["ergebnis"]) + " seit Start", pm_html(rechnung.ergebnis_mit_kosten(k)) + " seit Start",
+                            kosten_pct=k.get("kosten_pct"), fuss=fuss, leuchten=leuchten)
 
 
 def ausreisser_text(name, wert, anteil, gesamt, bereich):
@@ -143,7 +258,7 @@ def ausreisser_text(name, wert, anteil, gesamt, bereich):
 
 
 def hinweis(text):
-    st.html(f'<div class="pb-hinweis">⚠ {e(text)}</div>')
+    st.html(f'<div class="pb-hinweis"><span>▲</span><span>{e(text)}</span></div>')
 
 
 def protokoll(eintraege, scroll=True):
@@ -200,7 +315,7 @@ def balken(df, wert, name, titel_x, stellen=3, referenz=None, referenz_text=""):
     df["richtung"] = df[wert].apply(lambda v: "Plus" if v >= 0 else "Minus")
     df["beschriftung"] = df[wert].apply(lambda v: rechnung.zahl(v, stellen, vorzeichen=True))
     reihenfolge = list(df.sort_values(wert, ascending=False)[name])
-    y = alt.Y(f"{name}:N", sort=reihenfolge, title=None, axis=alt.Axis(labelLimit=180, ticks=False, domain=False))
+    y = alt.Y(f"{name}:N", sort=reihenfolge, title=None, axis=alt.Axis(labelLimit=300, ticks=False, domain=False))
     farbe = alt.Color("richtung:N", scale=alt.Scale(domain=["Plus", "Minus"], range=[stil.PLUS, stil.MINUS]),
                       legend=None)
     basis = alt.Chart(df).encode(y=y)

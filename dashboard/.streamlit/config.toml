@@ -1,27 +1,47 @@
-# Dunkles Design (Farben passend zu stil.py; eigenes CSS und Diagramm-Thema stehen dort).
-# Gruen/Rot nur als Akzent, immer mit Pfeil und Vorzeichen.
+# Nexus Core: Farben und Schriften nach DESIGN.md (CSS und Diagramm-Thema stehen in stil.py).
+# Gruen/Rot nur fuer Leistungswerte, immer mit Pfeil und Vorzeichen.
 [theme]
 base = "dark"
-primaryColor = "#8b7cf6"
-backgroundColor = "#0c0a1d"
-secondaryBackgroundColor = "#16132e"
-textColor = "#ecebf7"
-borderColor = "#2c2852"
-font = "sans-serif"
-baseRadius = "12px"
-showSidebarBorder = false
-chartCategoricalColors = ["#8b7cf6", "#4f8df5", "#1baf7a", "#eda100", "#e87ba4", "#9085e9"]
-blueColor = "#4f8df5"
-violetColor = "#8b7cf6"
-redColor = "#ff6b7a"
-greenColor = "#34c77b"
-orangeColor = "#fab219"
-yellowColor = "#fab219"
-grayColor = "#8e8bab"
+primaryColor = "#6366F1"
+backgroundColor = "#080B11"
+secondaryBackgroundColor = "#0F172A"
+textColor = "#E2E8F0"
+borderColor = "#1E293B"
+font = "Inter, sans-serif"
+headingFont = "Space Grotesk, sans-serif"
+codeFont = "JetBrains Mono, monospace"
+baseRadius = "10px"
+showSidebarBorder = true
+chartCategoricalColors = ["#6366F1", "#10B981", "#F59E0B", "#38BDF8", "#F43F5E", "#A78BFA"]
+blueColor = "#38BDF8"
+violetColor = "#6366F1"
+redColor = "#F43F5E"
+greenColor = "#10B981"
+orangeColor = "#F59E0B"
+yellowColor = "#F59E0B"
+grayColor = "#64748B"
+
+[[theme.fontFaces]]
+family = "Inter"
+url = "app/static/fonts/Inter.woff2"
+weight = "400 700"
+style = "normal"
+
+[[theme.fontFaces]]
+family = "Space Grotesk"
+url = "app/static/fonts/SpaceGrotesk.woff2"
+weight = "500 700"
+style = "normal"
+
+[[theme.fontFaces]]
+family = "JetBrains Mono"
+url = "app/static/fonts/JetBrainsMono.woff2"
+weight = "400 700"
+style = "normal"
 
 [theme.sidebar]
-backgroundColor = "#0e0c22"
-secondaryBackgroundColor = "#16132e"
+backgroundColor = "#0B1120"
+secondaryBackgroundColor = "#0F172A"
 
 [server]
 headless = false
@@ -29,6 +49,7 @@ port = 8501
 address = "localhost"            # nur auf diesem Rechner erreichbar, nicht im Netzwerk
 runOnSave = false
 fileWatcherType = "none"
+enableStaticServing = true       # Logo, Schriften, Symbole aus dashboard/static
 
 [browser]
 gatherUsageStats = false
