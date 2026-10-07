@@ -1006,3 +1006,921 @@ def listing_welle_uebersicht(repo=None, anzahl=15):
     return {"ereignisse": list(reversed(rows))[:anzahl], "anzahl_ereignisse": len(rows),
             "gekauft": sum(1 for r in rows if r.get("entscheidung") == "gekauft"),
             "geruechte": len(gerueche), "quellen": (portfolio.get("listing") or {}).get("quellen", {})}
+
+
+# ================================================================ Wissen (nur lokale Markdown-Dateien)
+import re as _wissen_re  # noqa: E402
+import unicodedata as _wissen_unicode  # noqa: E402
+
+
+def wissen_links(text):
+    """Obsidian-Verweise als lesbaren Text zeigen, Alias und Abschnitt bleiben lesbar."""
+    def ersetzen(treffer):
+        ziel, trenner, alias = treffer.group(1).partition("|")
+        if trenner:
+            return alias.strip()
+        seite, _, abschnitt = ziel.partition("#")
+        seite = seite.rsplit("/", 1)[-1].removesuffix(".md")
+        return " – ".join(teil for teil in (seite.strip(), abschnitt.strip()) if teil)
+    return _wissen_re.sub(r"!?\[\[([^\]\n]+)\]\]", ersetzen, text or "")
+
+
+def wissen_titel(text, ersatz="Ohne Titel"):
+    """Erste Markdown-Ueberschrift ausserhalb von Code, sonst Dateiname."""
+    code = None
+    for zeile in (text or "").splitlines():
+        zeile = zeile.strip()
+        zaun = _wissen_re.match(r"(`{3,}|~{3,})", zeile)
+        if zaun:
+            if code is None:
+                code = zaun.group(1)[0]
+            elif zeile.startswith(code * 3):
+                code = None
+            continue
+        if code is not None:
+            continue
+        titel = _wissen_re.match(r"#{1,6}\s+(.+?)(?:\s+#+)?$", zeile)
+        if titel:
+            return wissen_links(titel.group(1)).strip() or ersatz
+    return ersatz
+
+
+def _wissen_normal(text):
+    """Umlaute, Umschreibungen und Gross/Klein vereinheitlichen."""
+    text = _wissen_unicode.normalize("NFKD", str(text or "").casefold())
+    text = "".join(c for c in text if not _wissen_unicode.combining(c))
+    return text.replace("ae", "a").replace("oe", "o").replace("ue", "u")
+
+
+def wissen_ausschnitt(text, suche="", laenge=220):
+    """Kurzer lesbarer Ausschnitt um den ersten Treffer, auch bei Umlauten."""
+    text = " ".join(wissen_links(text).split())
+    laenge = max(20, int(laenge))
+    zeichen, positionen = [], []
+    for index, original in enumerate(text):
+        for zeichen_normal in _wissen_unicode.normalize("NFKD", original.casefold()):
+            if not _wissen_unicode.combining(zeichen_normal):
+                zeichen.append(zeichen_normal)
+                positionen.append(index)
+    normal, ursprung = [], []
+    index = 0
+    while index < len(zeichen):
+        normal.append(zeichen[index])
+        ursprung.append(positionen[index])
+        index += 2 if "".join(zeichen[index:index + 2]) in ("ae", "oe", "ue") else 1
+    normal = "".join(normal)
+    begriffe = [_wissen_normal(b) for b in str(suche or "").split()]
+    stellen = [normal.find(b) for b in begriffe if b and b in normal]
+    # Normalisierung kann Zeichen zusammenziehen; Originalposition bleibt erhalten.
+    position = ursprung[min(stellen)] if stellen else 0
+    start = max(0, position - laenge // 3)
+    ende = min(len(text), start + laenge)
+    if ende == len(text):
+        start = max(0, ende - laenge)
+    return ("… " if start else "") + text[start:ende].strip() + (" …" if ende < len(text) else "")
+
+
+def _wissen_innerhalb(path, basis):
+    try:
+        return path.resolve().is_relative_to(basis)
+    except (OSError, RuntimeError):
+        return False
+
+
+def _wissen_markdown_dateien(repo, ordner, rekursiv):
+    """Nur Markdown im vorgesehenen Repo-Ordner, keine Verweise nach ausserhalb."""
+    import os
+    basis = repo / ordner
+    try:
+        if not _wissen_innerhalb(basis, repo) or not basis.is_dir():
+            return []
+        grenze = basis.resolve()
+        dateien = []
+        for wurzel, unterordner, namen in os.walk(basis, followlinks=False):
+            unterordner[:] = [name for name in unterordner
+                             if rekursiv and not (Path(wurzel) / name).is_symlink()
+                             and _wissen_innerhalb(Path(wurzel) / name, grenze)]
+            for name in namen:
+                path = Path(wurzel) / name
+                if path.suffix.lower() == ".md" and _wissen_innerhalb(path, grenze):
+                    dateien.append(path)
+        return sorted(dateien)
+    except (OSError, RuntimeError):
+        return []
+
+
+def _wissen_seite(path, repo, bericht=False):
+    try:
+        text = path.read_text(encoding="utf-8-sig")
+        if not text.strip() or "\x00" in text:
+            return None
+        relativ = path.relative_to(repo)
+        teile = relativ.parts
+        art, gruppe = "dokument", "Weitere Dokumente"
+        if bericht:
+            art, gruppe = "bericht", "Berichte"
+        elif teile[1:2] == ("notizen",):
+            art, gruppe = "notiz", "Eigene Notizen"
+        elif teile[1:2] == ("wiki",):
+            art = "wiki"
+            gruppe = "/".join(teile[2:-1]) or "Allgemein"
+        elif relativ.as_posix() == "wissen/index.md":
+            art, gruppe = "index", "Einstieg"
+        zeit = path.stat().st_mtime
+        if bericht:
+            try:
+                zeit = datetime.strptime(path.stem[:10], "%Y-%m-%d").replace(tzinfo=timezone.utc).timestamp()
+            except ValueError:
+                pass
+        return {"pfad": relativ.as_posix(), "titel": wissen_titel(text, path.stem),
+                "inhalt": text, "markdown": wissen_links(text), "art": art, "gruppe": gruppe,
+                "eigene_notiz": art == "notiz", "sortierzeit": zeit}
+    except (OSError, UnicodeError):
+        return None
+
+
+def wissen_seiten(repo=None):
+    """Alle lesbaren Wissensseiten; kaputte und leere Dateien ueberspringen."""
+    repo = Path(repo or REPO).resolve()
+    seiten = [_wissen_seite(path, repo) for path in _wissen_markdown_dateien(repo, "wissen", True)]
+    return sorted((s for s in seiten if s),
+                  key=lambda s: (_wissen_normal(s["gruppe"]), _wissen_normal(s["titel"]), s["pfad"]))
+
+
+def wissen_berichte(repo=None):
+    """Berichte neueste zuerst: Datum im Dateinamen, sonst letzte Dateiaenderung."""
+    repo = Path(repo or REPO).resolve()
+    seiten = [_wissen_seite(path, repo, bericht=True)
+              for path in _wissen_markdown_dateien(repo, "auswertungen", False)]
+    return sorted((s for s in seiten if s), key=lambda s: (s["sortierzeit"], s["pfad"]), reverse=True)
+
+
+def wissen_suche(seiten, text):
+    """Alle Suchwoerter muessen vorkommen. Reihenfolge bleibt, Eingabedaten bleiben unveraendert."""
+    begriffe = [_wissen_normal(b) for b in str(text or "").split()]
+    treffer = []
+    for seite in seiten or []:
+        inhalt = seite.get("markdown", seite.get("inhalt", ""))
+        suchtext = _wissen_normal(" ".join((seite.get("titel", ""), seite.get("pfad", ""), inhalt)))
+        if all(b in suchtext for b in begriffe):
+            treffer.append(dict(seite, ausschnitt=wissen_ausschnitt(inhalt, text)))
+    return treffer
+
+
+def wissen_gruppen(seiten):
+    """Seitenliste nach Unterordnern; der Einstieg wird gesondert gezeigt."""
+    gruppen = {}
+    for seite in seiten or []:
+        if seite.get("art") != "index":
+            gruppen.setdefault(seite.get("gruppe", "Weitere Dokumente"), []).append(seite)
+    return gruppen
+
+
+# ================================================================ Rennbahn
+
+def rennbahn(konten, sichtbar=None, mit_kosten=False):
+    """Rangliste und auf 0 normierte Trade-Verlaeufe aus Strategie-Konten.
+
+    Rangwerte entsprechen konto_strategie (laufende Runde, inklusive offener
+    Positionen). Kurven entsprechen kontoverlauf (geschlossene Trades aller
+    Runden). Der Kostenschalter waehlt nur den Kurvenwert; Rangfolge, Konten
+    und beide Testurteile bleiben gleich. Ohne Auswahl sind aktive Konten sichtbar.
+    Eingaben werden nicht veraendert; Dateien werden weder gelesen noch geschrieben.
+    """
+    from math import isfinite
+
+    hinweise, gueltig = [], []
+    for original in konten or []:
+        if not isinstance(original, dict) or not original.get("key"):
+            hinweise.append("Ein Konto ohne Kennung konnte nicht angezeigt werden.")
+            continue
+        k = dict(original)
+        k.setdefault("label", k["key"])
+        k.setdefault("closed", [])
+        k.setdefault("offen", [])
+        k.setdefault("kosten_pct", kosten_pct(k["key"]))
+        if not isinstance(k["closed"], list) or any(not isinstance(c, dict) for c in k["closed"]):
+            hinweise.append(f"{k['label']}: Trades sind nicht lesbar; Konto ausgelassen.")
+            continue
+        gueltig.append(k)
+
+    kontrolle = next((k for k in gueltig if k["key"] == KONTROLLE), None)
+    if gueltig and kontrolle is None:
+        hinweise.append("Die Kontrollgruppe fehlt; ein Testurteil ist noch nicht möglich.")
+    standard = [k["key"] for k in gueltig if not k.get("beendet")]
+    auswahl = set(standard if sichtbar is None else sichtbar)
+    rangliste, beendet, verlauf = [], [], []
+
+    for k in gueltig:
+        label = k["label"]
+        try:
+            kennzahlen = trade_kennzahlen(k["closed"], k["kosten_pct"])
+            vergleich = (vergleich_mit_kontrolle(k, kontrolle) if kontrolle else
+                         {"ampel": "keine_daten", "text": "Kontrollgruppe fehlt"})
+            wert = as_float(k.get("kontowert"), float("nan"))
+            hat_daten = bool(k.get("gestartet") or k.get("gespeichert") or k["closed"] or k["offen"])
+            ergebnis = wert - START_SOL if hat_daten and isfinite(wert) else None
+            netto = kontowert_mit_kosten(k) - START_SOL if ergebnis is not None else None
+            row = {"key": k["key"], "label": label, "beendet": k.get("beendet"),
+                   "runde": k.get("runde") or 1, "ergebnis": ergebnis, "ergebnis_kosten": netto,
+                   "trades": kennzahlen["trades"],
+                   "trades_bis_200": max(0, ZIEL_TRADES - kennzahlen["trades"]),
+                   "vergleich_trades": vergleich.get("eigen", {}).get("trades", 0),
+                   "kosten_pct": k["kosten_pct"], "vergleich": vergleich,
+                   "urteil": urteil_kurz(vergleich),
+                   "urteil_kosten": urteil_kurz({**vergleich, **vergleich.get("kosten", {})})}
+            (beendet if k.get("beendet") else rangliste).append(row)
+            if not hat_daten:
+                hinweise.append(f"{label}: Noch keine gespeicherten Kontodaten.")
+            fehlende_kurse = sum(o.get("wert") is None for o in k["offen"])
+            if fehlende_kurse:
+                hinweise.append(f"{label}: Bei {fehlende_kurse} offenen Positionen fehlt der Kurs; "
+                                "sie zählen wie auf der Strategieseite mit Wert 0.")
+
+            # UTC-Sortierung verhindert falsche Reihenfolgen bei gemischten Zeitzonen.
+            trades = []
+            for c in k["closed"]:
+                t = zeitpunkt(c.get("closed_at"))
+                if t is None:
+                    hinweise.append(f"{label}: Mindestens eine Trade-Zeit fehlt; kein zuverlässiger Verlauf.")
+                    break
+                trades.append({**c, "closed_at": t.astimezone(timezone.utc).isoformat()})
+            else:
+                trades.sort(key=lambda c: c["closed_at"])
+                start = zeitpunkt(k.get("gestartet"))
+                if start is None and trades:
+                    start = zeitpunkt(trades[0]["closed_at"])
+                    hinweise.append(f"{label}: Startzeit fehlt; Verlauf beginnt beim ersten geschlossenen Trade.")
+                if start is None or k["key"] not in auswahl:
+                    continue
+                roh = kontoverlauf({"gestartet": start.isoformat(), "closed": trades})
+                abzug = 0.0
+                for i, p in enumerate(roh):
+                    if i:
+                        c = trades[i - 1]
+                        abzug += kosten_abzug({"closed": [c], "runde": c.get("runde") or 1,
+                                               "kosten_pct": k["kosten_pct"]})
+                    brutto = p["kontostand"] - START_SOL
+                    netto_punkt = brutto - abzug
+                    verlauf.append({"key": k["key"], "konto": label, "zeit": p["zeit"], "folge": i,
+                                    "beendet": bool(k.get("beendet")), "kontrolle": k["key"] == KONTROLLE,
+                                    "roh": brutto, "mit_kosten": netto_punkt,
+                                    "ergebnis": netto_punkt if mit_kosten else brutto})
+        except (KeyError, TypeError, ValueError, OverflowError):
+            hinweise.append(f"{label}: Unlesbare Kontodaten; einzelne Angaben fehlen.")
+
+    # Feste Reihenfolge: Der Kostenschalter veraendert weder Rang noch Auswahl.
+    for gruppe in (rangliste, beendet):
+        gruppe.sort(key=lambda row: (row["ergebnis"] is None, -(row["ergebnis"] or 0), row["label"]))
+        for rang, row in enumerate(gruppe, 1):
+            row["rang"] = rang
+    return {"rangliste": rangliste, "beendet": beendet, "verlauf": verlauf,
+            "standard": standard, "hinweise": list(dict.fromkeys(hinweise))}
+
+
+# ================================================================ Verpasste Chancen
+
+ABGELEHNT_TOLERANZ_S = 300
+
+
+def _rueckblick_csv(path, pflicht, hinweise, zusatz=(), phase_prefix=None):
+    """CSV zeilenweise lesen; defekte Dateien/Zeilen melden, andere weiter auswerten."""
+    try:
+        with open(path, newline="", encoding="utf-8-sig") as f:
+            reader = csv.reader(f)
+            header = next(reader, [])
+            if not pflicht.issubset(header):
+                hinweise.append(f"{path.name}: Benötigte Spalten fehlen.")
+                return
+            indizes = [(k, header.index(k)) for k in pflicht | set(zusatz) if k in header]
+            phase_i = header.index("phase") if phase_prefix is not None else None
+            kaputt = 0
+            for row in reader:
+                if not row:
+                    continue
+                if len(row) != len(header):
+                    kaputt += 1
+                    continue
+                if phase_i is not None and not row[phase_i].startswith(phase_prefix):
+                    continue
+                yield {k: row[i] for k, i in indizes}
+            if kaputt:
+                hinweise.append(f"{path.name}: {kaputt} unvollständige Zeilen nicht ausgewertet.")
+    except FileNotFoundError:
+        hinweise.append(f"{path.name}: Datei fehlt.")
+    except (OSError, UnicodeError, csv.Error):
+        hinweise.append(f"{path.name}: Datei nicht vollständig lesbar.")
+
+
+def _rueckblick_preis(wert):
+    import math
+    preis = as_float(wert, None)
+    return preis if preis is not None and math.isfinite(preis) and preis > 0 else None
+
+
+def _rueckblick_statistik(werte):
+    """Anteile beziehen sich nur auf messbare Coins, keine Nullwerte fuer Datenluecken."""
+    n = len(werte)
+    hoeher = sum(x > 0 for x in werte)
+    niedriger = sum(x < 0 for x in werte)
+    return {"n": n, "hoeher": hoeher, "niedriger": niedriger, "gleich": n - hoeher - niedriger,
+            "hoeher_pct": hoeher / n * 100 if n else None,
+            "niedriger_pct": niedriger / n * 100 if n else None,
+            "median_pct": statistics.median(werte) if n else None,
+            "mittel_pct": statistics.mean(werte) if n else None,
+            "min_pct": min(werte) if n else None, "max_pct": max(werte) if n else None}
+
+
+def abgelehnt_rueckblick(repo=None, grund=None, stunden=(1, 6)):
+    """Lokaler Papierkurs-Rueckblick, ohne Streamlit, Netzwerk oder Schreibzugriffe.
+
+    Beide Ablehnungsdateien bleiben getrennt (Nahfaelle stehen oft auch in abgelehnt.csv).
+    Pro Quelle/Mint/Grund zaehlt die erste zeitlich zuordenbare Ablehnung, auch wenn ihr
+    Startpreis fehlt. Kurse nur aus der passenden Phase abgelehnt_<Grund>, nie per Ticker.
+    Naechster Messpunkt +/-5 min um das Ziel; Gleichstand nimmt den frueheren Punkt.
+    Kein Fortschreiben, Interpolieren oder Ersetzen fehlender Preise. Widerspruechliche
+    Kurse am gleichen Zeitpunkt bleiben unmessbar. Quellen werden nur einmal gelesen.
+    """
+    from bisect import bisect_left
+    import math
+
+    repo = Path(repo or REPO)
+    if isinstance(stunden, (int, float)):
+        stunden = (stunden,)
+    stunden = tuple(dict.fromkeys(stunden))
+    if not stunden or any(not math.isfinite(h) or h <= 0 for h in stunden):
+        raise ValueError("Stunden müssen endlich und größer als null sein.")
+    hinweise, quellen, gesucht = [], {}, set()
+    zeit_cache = {}
+
+    def zeit_lesen(text):
+        if text not in zeit_cache:
+            zeit_cache[text] = zeitpunkt(text)
+        return zeit_cache[text]
+
+    tag_cache = {}
+    for name in ("knapp_abgelehnt", "abgelehnt"):
+        gruppen, tage, erste, coins = {}, {}, {}, set()
+        n = unzuordenbar = 0
+        for row in _rueckblick_csv(repo / f"{name}.csv", {"zeit", "mint", "grund"}, hinweise,
+                                  zusatz=("symbol", "preis_usd")):
+            g = row["grund"].strip() or "Unbekannt"
+            if grund is not None and g != grund:
+                continue
+            n += 1
+            mint = row["mint"].strip()
+            gruppe = gruppen.setdefault(g, {"grund": g, "pruefungen": 0, "mints": set()})
+            gruppe["pruefungen"] += 1
+            if mint:
+                gruppe["mints"].add(mint)
+                coins.add(mint)
+            zeit = zeit_lesen(row["zeit"])
+            if zeit:
+                if zeit not in tag_cache:
+                    tag_cache[zeit] = zeit.astimezone(timezone.utc).strftime("%Y-%m-%d")
+                tag = tag_cache[zeit]
+                tage[tag] = tage.get(tag, 0) + 1
+            if not mint or zeit is None:
+                unzuordenbar += 1
+                continue
+            t = zeit.timestamp()
+            key = (mint, g)
+            if key not in erste or t < erste[key]["zeit"]:
+                erste[key] = {"mint": mint, "grund": g, "symbol": row.get("symbol") or "?",
+                              "zeit": t, "preis_usd": _rueckblick_preis(row.get("preis_usd"))}
+            elif t == erste[key]["zeit"] and erste[key]["preis_usd"] != _rueckblick_preis(row.get("preis_usd")):
+                erste[key]["preis_usd"] = None
+                erste[key]["startkonflikt"] = True
+            gesucht.add(key)
+        quellen[name] = {"pruefungen": n, "coins": len(coins), "unzuordenbar": unzuordenbar,
+                        "je_tag": [{"tag": tag, "pruefungen": zahl} for tag, zahl in sorted(tage.items())],
+                        "gruppen": gruppen, "erste": erste}
+
+    kurse = {}
+    dateien = sorted((repo / "verlauf").glob("*.csv")) if gesucht else []
+    if gesucht and not dateien:
+        hinweise.append("verlauf/: Keine Kursdateien vorhanden. Nur Ablehnungen zählbar.")
+    for path in dateien:
+        for row in _rueckblick_csv(path, {"zeit", "mint", "phase", "preis_usd"}, hinweise,
+                                  phase_prefix="abgelehnt_"):
+            phase = row["phase"]
+            if not phase.startswith("abgelehnt_"):
+                continue
+            key = (row["mint"].strip(), phase[len("abgelehnt_"):])
+            if key not in gesucht:
+                continue
+            zeit = zeit_lesen(row["zeit"])
+            if zeit is not None:
+                kurse.setdefault(key, []).append((zeit.timestamp(), _rueckblick_preis(row["preis_usd"])))
+
+    konflikt = 0
+    for key, punkte in kurse.items():
+        eindeutig = {}
+        for t, preis in punkte:
+            if t in eindeutig and eindeutig[t] != preis:
+                konflikt += 1
+                eindeutig[t] = None
+            else:
+                eindeutig[t] = preis
+        zeiten = sorted(eindeutig)
+        kurse[key] = (zeiten, [eindeutig[t] for t in zeiten])
+    if konflikt:
+        hinweise.append(f"{konflikt} widersprüchliche Kurszeilen: Messpunkte nicht verwendet.")
+
+    for quelle in quellen.values():
+        werte = {}
+        erste = quelle.pop("erste")
+        startkonflikte = sum(bool(f.get("startkonflikt")) for f in erste.values())
+        if startkonflikte:
+            hinweise.append(f"{startkonflikte} widersprüchliche Startpreise: Fälle nicht auswertbar.")
+        for key, fall in erste.items():
+            zeiten, preise = kurse.get(key, ([], []))
+            fall["horizonte"] = {}
+            for h in stunden:
+                ziel = fall["zeit"] + h * 3600
+                i = bisect_left(zeiten, ziel)
+                kandidaten = [j for j in (i - 1, i) if 0 <= j < len(zeiten)]
+                messung = {"rendite_pct": None, "zeit": None, "preis_usd": None, "abstand_s": None}
+                if kandidaten:
+                    j = min(kandidaten, key=lambda j: (abs(zeiten[j] - ziel), zeiten[j]))
+                    preis, start = preise[j], fall["preis_usd"]
+                    if (zeiten[j] > fall["zeit"] and abs(zeiten[j] - ziel) <= ABGELEHNT_TOLERANZ_S
+                            and preis is not None and start is not None):
+                        rendite = (preis / start - 1) * 100
+                        if math.isfinite(rendite):
+                            messung = {"rendite_pct": rendite, "zeit": zeiten[j], "preis_usd": preis,
+                                       "abstand_s": zeiten[j] - ziel}
+                            werte.setdefault((fall["grund"], h), []).append(rendite)
+                fall["horizonte"][h] = messung
+        quelle["gruende"] = []
+        for g, gruppe in sorted(quelle.pop("gruppen").items(), key=lambda item: -item[1]["pruefungen"]):
+            gruppe["coins"] = len(gruppe.pop("mints"))
+            gruppe["horizonte"] = {}
+            for h in stunden:
+                zahlen = werte.get((g, h), [])
+                stats = _rueckblick_statistik(zahlen)
+                stats["fehlend"] = gruppe["coins"] - stats["n"]
+                stats["ohne_beste_3"] = _rueckblick_statistik(sorted(zahlen)[:-3])
+                gruppe["horizonte"][h] = stats
+            quelle["gruende"].append(gruppe)
+        quelle["faelle"] = sorted(erste.values(), key=lambda fall: fall["zeit"], reverse=True)[:50]
+        if quelle["unzuordenbar"]:
+            hinweise.append(f"{quelle['unzuordenbar']} Ablehnungen ohne Mint oder lesbare Zeit: nur gezählt.")
+    return {"quellen": quellen, "stunden": stunden, "toleranz_s": ABGELEHNT_TOLERANZ_S,
+            "hinweise": list(dict.fromkeys(hinweise))}
+
+
+# ================================================================ Tageszeit (nur Beobachtung)
+
+TAGESZEIT_MIN_TRADES = 10
+TAGESZEIT_WOCHENTAGE = ("Mo", "Di", "Mi", "Do", "Fr", "Sa", "So")
+TAGESZEIT_GRUPPEN = (("Nacht", 0, 8), ("Vormittag", 8, 14),
+                    ("Nachmittag", 14, 20), ("Abend", 20, 24))
+TAGESZEIT_PHASEN = {"ruhig": "Ruhig", "normal": "Normal", "heiss": "Heiß"}
+
+
+def _tageszeit_zahl(wert):
+    """Fehlende oder nicht endliche Zahlen bleiben fehlend, statt als Null zu zaehlen."""
+    import math
+    if isinstance(wert, bool) or wert in (None, ""):
+        return None
+    zahlwert = as_float(wert, None)
+    return zahlwert if zahlwert is not None and math.isfinite(zahlwert) else None
+
+
+def _tageszeit_utc(wert):
+    """Auch Offset-Zeiten immer vor der Stunden-/Wochentagszuordnung nach UTC wandeln."""
+    try:
+        if isinstance(wert, bool):
+            return None
+        d = wert if isinstance(wert, datetime) else zeitpunkt(wert)
+        if d is None:
+            return None
+        return (d if d.tzinfo else d.replace(tzinfo=timezone.utc)).astimezone(timezone.utc)
+    except (TypeError, ValueError, OverflowError, OSError):
+        return None
+
+
+def tageszeit_kaufzeit(trade):
+    """Kaufzeit geschlossener Trades, bevorzugt direkt, sonst closed_at minus hold_h.
+
+    hold_h ist eine gespeicherte Haltedauer; die Rueckrechnung kann gerundet sein.
+    Fehlende oder widerspruechliche Zeiten werden nicht einer Stunde zugeschlagen.
+    """
+    if not isinstance(trade, dict):
+        return None, False
+    ende = _tageszeit_utc(trade.get("closed_at"))
+    if ende is None:
+        return None, False
+    for feld in ("opened", "opened_at", "entry_time"):
+        if trade.get(feld) not in (None, ""):
+            kauf = _tageszeit_utc(trade[feld])
+            return (kauf, False) if kauf is not None and kauf <= ende else (None, False)
+    dauer = _tageszeit_zahl(trade.get("hold_h"))
+    if dauer is None or dauer < 0:
+        return None, False
+    try:
+        return ende - timedelta(hours=dauer), True
+    except (OverflowError, ValueError):
+        return None, False
+
+
+def tageszeit_stunden_text(start, ende=None):
+    """UTC und deutsche Sommer-/Winterzeit explizit; kein fester Offset fuer alle Tage."""
+    def uhr(stunde):
+        return f"{stunde % 24:02d}:00" + (" (+1 Tag)" if stunde >= 24 else "")
+    if ende is None:
+        return f"{start:02d}:00 UTC ({uhr(start + 2)} MESZ / {uhr(start + 1)} MEZ)"
+    return (f"{start:02d}:00–{ende:02d}:00 UTC "
+            f"({uhr(start + 2)}–{uhr(ende + 2)} MESZ / {uhr(start + 1)}–{uhr(ende + 1)} MEZ)")
+
+
+def _tageszeit_statistik(trades, kosten):
+    """Kosten immer ueber kosten_abzug; alle Runden und dieselbe Auswahl je Kennzahl."""
+    def pnl(t):
+        abzug = kosten_abzug({"closed": [{**t, "runde": 1}], "runde": 1, "kosten_pct": kosten})
+        return t["pnl_sol"] - abzug
+    werte = sorted((pnl(t) for t in trades), reverse=True)
+    n = len(werte)
+    rest = werte[BESTE_WEGLASSEN:]
+    return {"trades": n, "summe": sum(werte) if n else None,
+            "pro_trade": sum(werte) / n if n else None,
+            "ohne_beste_trades": len(rest), "beste_abgezogen": min(n, BESTE_WEGLASSEN),
+            "ohne_beste_summe": sum(rest) if rest else None,
+            "ohne_beste_pro_trade": sum(rest) / len(rest) if rest else None,
+            "ausreichend": n >= TAGESZEIT_MIN_TRADES,
+            "status": "Beobachtung" if n >= TAGESZEIT_MIN_TRADES else "zu wenig Daten"}
+
+
+def tageszeit_auswertung(trades, kosten=0.0, marktphasen=False):
+    """Geschlossene Trades nach Kaufstunde und UTC-Wochentag, ohne Streamlit.
+
+    kosten ist der vorhandene Kontoaufschlag in Prozent (0 = roh). Ein fehlender
+    Einsatz nutzt wie kosten_abzug den Standard; unlesbare Werte werden ausgelassen.
+    """
+    kosten = _tageszeit_zahl(kosten)
+    if kosten is None or kosten < 0:
+        raise ValueError("Der Kostenaufschlag muss eine endliche Zahl ab Null sein.")
+    sauber, hinweise = [], []
+    luecken = {"zeit": 0, "ergebnis": 0, "einsatz": 0, "standard": 0, "phase": 0}
+    rueckgerechnet = 0
+    for trade in trades if isinstance(trades, (list, tuple)) else []:
+        kauf, gerechnet = tageszeit_kaufzeit(trade)
+        if kauf is None:
+            luecken["zeit"] += 1
+            continue
+        pnl = _tageszeit_zahl(trade.get("pnl_sol"))
+        if pnl is None:
+            luecken["ergebnis"] += 1
+            continue
+        einsatz = _tageszeit_zahl(trade.get("invested_sol"))
+        if trade.get("invested_sol") is None:
+            einsatz = EINSATZ_STANDARD
+            luecken["standard"] += 1
+        elif einsatz is None or einsatz < 0:
+            luecken["einsatz"] += 1
+            if kosten:
+                continue
+            einsatz = 0.0
+        phase = trade.get("phase")
+        if not isinstance(phase, str) or phase not in TAGESZEIT_PHASEN:
+            phase = None
+            luecken["phase"] += 1
+        sauber.append({"pnl_sol": pnl, "invested_sol": einsatz, "kauf": kauf, "phase": phase})
+        rueckgerechnet += int(gerechnet)
+    if luecken["zeit"]:
+        hinweise.append(f"{luecken['zeit']} Trades ohne verlässliche Kauf-/Verkaufszeit oder Haltedauer: ausgelassen.")
+    if luecken["ergebnis"]:
+        hinweise.append(f"{luecken['ergebnis']} Trades ohne lesbares SOL-Ergebnis: ausgelassen.")
+    if luecken["einsatz"]:
+        hinweise.append(f"{luecken['einsatz']} Trades mit unlesbarem Einsatz: mit Kosten ausgelassen, roh enthalten.")
+    if luecken["standard"]:
+        hinweise.append(f"{luecken['standard']} Trades ohne Einsatz: Kosten mit dem Standard von {zahl(EINSATZ_STANDARD)} SOL berechnet.")
+    if rueckgerechnet:
+        hinweise.append(f"{rueckgerechnet} Kaufzeiten aus Verkaufszeit minus Haltedauer zurückgerechnet. "
+                        "Gerundete Haltedauern können die Zuordnung nahe einer Stundengrenze verschieben.")
+    raster = []
+    for tag, name in enumerate(TAGESZEIT_WOCHENTAGE):
+        for stunde in range(24):
+            gruppe = [t for t in sauber if t["kauf"].weekday() == tag and t["kauf"].hour == stunde]
+            raster.append({"wochentag": name, "tag": tag, "stunde": stunde,
+                           "zeit_text": tageszeit_stunden_text(stunde), **_tageszeit_statistik(gruppe, kosten)})
+    gruppen = []
+    for name, start, ende in TAGESZEIT_GRUPPEN:
+        gruppe = [t for t in sauber if start <= t["kauf"].hour < ende]
+        gruppen.append({"name": name, "zeit_text": tageszeit_stunden_text(start, ende),
+                        **_tageszeit_statistik(gruppe, kosten)})
+    phasen = []
+    if marktphasen:
+        for key, name in TAGESZEIT_PHASEN.items():
+            gruppe = [t for t in sauber if t["phase"] == key]
+            phasen.append({"name": name, **_tageszeit_statistik(gruppe, kosten)})
+        if luecken["phase"]:
+            hinweise.append(f"{luecken['phase']} Trades ohne bekannte gespeicherte Marktphase: nur in der Zeitauswertung enthalten.")
+        if not any(p["trades"] for p in phasen):
+            phasen = []
+            hinweise.append("Marktphasenvergleich weggelassen: keine gespeicherten Trade-Phasen vorhanden.")
+    zeiten = [t["kauf"] for t in sauber]
+    return {"gesamt": _tageszeit_statistik(sauber, kosten), "raster": raster, "gruppen": gruppen,
+            "phasen": phasen, "kosten_pct": kosten, "hinweise": hinweise,
+            "beginn": min(zeiten).isoformat() if zeiten else None,
+            "ende": max(zeiten).isoformat() if zeiten else None}
+
+
+def tageszeit_konten(repo=None):
+    """Nur lokale geschlossene Trades laden, ohne Kurse, Journal oder Bot-Abrufe.
+
+    Die aktuelle Marktphase wird niemals frueheren Trades zugeordnet. Eine gueltige
+    Zustandsdatei und gespeicherte Trade-Phasen erlauben den historischen Vergleich.
+    """
+    repo = Path(repo or REPO)
+    konten, hinweise = [], []
+    for key, label in KONTEN:
+        datei = repo / (core.PORTFOLIO_FILE if key == "hauptstrategie" else Path(core.EXP_DIR) / key / "portfolio.json")
+        p = lade_json(datei)
+        if not isinstance(p, dict):
+            hinweise.append(f"{label}: lokale Kontodatei fehlt oder ist nicht lesbar.")
+            continue
+        closed = p.get("closed", [])
+        if not isinstance(closed, list):
+            hinweise.append(f"{label}: gespeicherte Trades sind nicht lesbar.")
+            closed = []
+        beendet = getattr(core, "EXP_BEENDET", {}).get(key)
+        konten.append({"key": key, "label": label + (" (beendet)" if beendet else ""), "closed": closed})
+    markt = lade_json(repo / "marktphase.json")
+    phasen_ok = (isinstance(markt, dict) and isinstance(markt.get("phase"), str)
+                 and markt["phase"] in TAGESZEIT_PHASEN and _tageszeit_utc(markt.get("updated")) is not None)
+    if phasen_ok:
+        hinweise.append("Marktphasen stammen aus den geschlossenen Trades. marktphase.json zeigt nur den aktuellen "
+                        "Zustand und Messwerte; fehlende frühere Phasen werden daraus nicht ergänzt.")
+    else:
+        hinweise.append("Marktphasenvergleich weggelassen: marktphase.json fehlt oder enthält keinen lesbaren Zustand mit Zeit.")
+    return {"konten": konten, "marktphasen": phasen_ok, "hinweise": hinweise}
+
+
+# ================================================================ Wallet-Waechter (nur Vorschau)
+
+# Quelle: scout_bot.py, AUTO_MAX_WALLETS (nur gelesen, kein Import); CLAUDE.md,
+# "Feste Entscheidungen des Betreibers", Copy Trading / Automatische Aufnahme.
+WAECHTER_MAX_WALLETS = 30
+WAECHTER_TAGESLIMIT = 3       # Gleicher CLAUDE.md-Abschnitt: Aufnahme/Ersetzen pro UTC-Tag.
+WAECHTER_WARTESPALTEN = ("seit", "bewertet", "wallet", "name", "quelle", "punkte",
+                        "rendite_ohne_besten_pct", "coins", "kauf_median_sol", "trades_pro_tag", "inaktiv_h")
+
+
+def _waechter_zahl(wert):
+    import math
+    try:
+        z = as_float(wert, None)
+    except OverflowError:
+        return None
+    return z if z is not None and math.isfinite(z) else None
+
+
+def _waechter_zeit(wert):
+    try:
+        if isinstance(wert, datetime):
+            return wert.replace(tzinfo=wert.tzinfo or timezone.utc).timestamp()
+        # Auch CSV-Zeiten als Unix-Text zulassen.
+        z = _waechter_zahl(wert)
+        d = zeitpunkt(z if z is not None else wert)
+        return d.timestamp() if d else None
+    except (ValueError, TypeError, OSError, OverflowError):
+        return None
+
+
+def _waechter_json(path, hinweise):
+    try:
+        with path.open(encoding="utf-8-sig") as f:
+            data = json.load(f)
+        if isinstance(data, dict):
+            return data
+    except (OSError, ValueError):
+        pass
+    hinweise.append(f"{path.name} fehlt oder ist nicht lesbar; betroffene Regeln bleiben offen.")
+    return {}
+
+
+def _waechter_heute(repo, ab, jetzt, hinweise):
+    """Lokale Git-Diffs: eine automatische neue Wallet = eine Aufnahme oder ein Tausch.
+
+    Ein Tausch wird nicht doppelt gezaehlt. Reine Entfernungen und manuelle Aufnahmen
+    bleiben sichtbar, verbrauchen aber kein Automatik-Tageslimit.
+    """
+    import re
+    # Quelle: CLAUDE.md, Feste Entscheidungen / Automatische Aufnahme; UTC nach
+    # Goldene Regeln, Regel 8. Stille Entfernungen ohne Tageslimit seit 06.10.
+    args = ["git", "log", f"--since=@{int(ab) - 1}", f"--until=@{int(jetzt)}",
+            "--format=WAECHTER:%ct", "-p", "--", "copy_wallets.txt"]
+    try:
+        proc = subprocess.run(args, cwd=repo, capture_output=True, text=True, timeout=30,
+                              encoding="utf-8", errors="replace")
+        if proc.returncode:
+            raise ValueError("Git-Historie nicht lesbar")
+    except (OSError, ValueError, subprocess.SubprocessError):
+        hinweise.append("Tageslimit unbekannt: die lokale Git-Historie ist nicht lesbar.")
+        return {"anzahl": None, "ereignisse": []}
+    ereignisse, zeit, auto = [], None, None
+    hinzu, weg, entfernt = {}, set(), []
+
+    def abschliessen():
+        if zeit is None or not ab <= zeit <= jetzt:
+            return
+        for adresse, (name, grund) in hinzu.items():
+            if adresse not in weg:
+                ereignisse.append({"zeit": zeit, "name": name,
+                                   "art": "Aufnahme / Ersetzen" if grund is not None else "Manuelle Aufnahme",
+                                   "automatisch": grund is not None, "grund": grund or "ohne Automatik-Vermerk"})
+        ereignisse.extend({"zeit": zeit, "name": name, "art": "Entfernung", "automatisch": False,
+                           "grund": grund} for name, grund in entfernt)
+
+    for zeile in proc.stdout.splitlines():
+        if zeile.startswith("WAECHTER:"):
+            abschliessen()
+            zeit = _waechter_zahl(zeile.split(":", 1)[1])
+            hinzu, weg, entfernt, auto = {}, set(), [], None
+        elif zeile.startswith(("+++", "---")):
+            continue
+        elif zeile.startswith("-"):
+            m = re.match(rf"[^:#]+:\s*({ADRESSE_TEXT})\s*$", zeile[1:].strip())
+            if m:
+                weg.add(m.group(1))
+        elif zeile.startswith("+"):
+            z = zeile[1:].strip()
+            m = re.match(r"#\s*\d\d\.\d\d\.\s*automatisch aufgenommen:\s*(.*)", z)
+            if m:
+                auto = m.group(1)
+                continue
+            m = re.match(rf"([^:#]+):\s*({ADRESSE_TEXT})\s*$", z)
+            if m:
+                hinzu[m.group(2)] = (m.group(1).strip(), auto)
+            m = re.match(rf"#\s*([^:]+):\s*{ADRESSE_TEXT}\s*<-\s*(.*)", z)
+            if m:
+                entfernt.append((m.group(1).strip(), m.group(2)))
+            auto = None
+        elif not zeile.startswith("@@"):
+            auto = None
+    abschliessen()
+    hinweise.append("Tageslimit aus lokalen Git-Einträgen; eine gekürzte oder veraltete Historie kann Änderungen auslassen.")
+    return {"anzahl": sum(e["automatisch"] for e in ereignisse), "ereignisse": ereignisse}
+
+
+def waechter_uebersicht(repo=None, jetzt=None):
+    """Wallet-Regeln aus lokalen Daten, ohne Bot-Import des Scouts und ohne Schreibzugriff."""
+    repo = Path(repo or REPO)
+    jetzt = _waechter_zeit(jetzt) if jetzt is not None else datetime.now(timezone.utc).timestamp()
+    if jetzt is None:
+        raise ValueError("Zeitpunkt der Vorschau ist unlesbar")
+    hinweise = []
+    raw = _waechter_json(repo / "copy" / "konten.json", hinweise)
+    wallets = raw.get("wallets")
+    if not isinstance(wallets, dict):
+        wallets = {}
+        hinweise.append("Wallet-Konten fehlen oder haben ein falsches Format.")
+    gespeichert = _waechter_zeit(raw.get("saved_at"))
+    # Quelle: CLAUDE.md, Feste Entscheidungen / Wallet-Regeln; Schutzkorrektur
+    # dokumentiert in STRATEGIE.md, Wallet-Scout / Grenzen (06.10.): hoechstens 2 h.
+    frisch = gespeichert is not None and 0 <= jetzt - gespeichert <= 2 * 3600
+    if not frisch:
+        hinweise.append("Copy-Konten sind älter als 2 Stunden oder ohne gültigen Datenstand. Stille Wallets bleiben gesperrt.")
+    liste_ok = (repo / "copy_wallets.txt").exists()
+    try:
+        aktive = aktive_wallets(repo)
+    except (ValueError, TypeError, UnicodeError):
+        aktive = []
+        liste_ok = False
+        hinweise.append("Die Liste aktiver Wallets ist nicht lesbar.")
+    if not (repo / "copy_wallets.txt").exists():
+        hinweise.append("copy_wallets.txt fehlt; die Zahl aktiver Wallets ist unbekannt.")
+    try:
+        konten, _, _ = copy_konten(repo)
+    except (ValueError, TypeError, AttributeError, KeyError, OverflowError, UnicodeError):
+        # Ein defektes Konto darf die anderen Wallets nicht verdecken.
+        hinweise.append("Mindestens ein Copy-Konto ist fehlerhaft; lesbare Konten werden einzeln berechnet.")
+        konten = []
+        for name, acct in wallets.items():
+            if isinstance(acct, dict):
+                try:
+                    konten.append(copy_konto(name, acct, True, [], set()))
+                except (ValueError, TypeError, AttributeError, KeyError, OverflowError):
+                    pass
+    nach_name = {k["name"]: k for k in konten}
+    flut = _waechter_json(repo / "copy" / "flutschutz.json", hinweise)
+    try:
+        scout = {s["wallet"]: s for s in scout_rangliste(repo)}
+    except (ValueError, TypeError, UnicodeError):
+        scout = {}
+        hinweise.append("Scout-Bewertungen sind nicht lesbar.")
+    hinweise.append("Bot-Hinweise stammen nur aus gespeicherten Bewertungen und Flutschutz-Abmeldungen. Eine aktuelle Live-Prüfung fehlt.")
+    zeilen = []
+    for name, adresse in aktive:
+        acct = wallets.get(name)
+        acct = acct if isinstance(acct, dict) else {}
+        k = nach_name.get(name, {})
+        luecken, gruende = [], []
+        if not acct or acct.get("adresse") != adresse:
+            luecken.append("Konto fehlt oder Adresse passt nicht")
+            k, acct = {}, {}
+        start = _waechter_zeit(acct.get("gestartet"))
+        alter_tage = (jetzt - start) / 86400 if start is not None and start <= jetzt else None
+        letzter = _waechter_zeit(acct.get("letzter_trade"))
+        # Quelle: CLAUDE.md, Feste Entscheidungen / 72 h ohne Trade. Wenn nie
+        # gehandelt: seit gespeichertem Start (STRATEGIE.md, Wallet-Scout / Platz).
+        if not acct.get("letzter_trade"):
+            letzter = start
+        pause = (jetzt - letzter) / 3600 if letzter is not None and letzter <= jetzt else None
+        n = _waechter_zahl(k.get("geschlossen"))
+        # Quelle: STRATEGIE.md, Copy Trading / Wallet-Pruefung: Urteil aus
+        # geschlossenen Positionen; Wallet-Scout / Platz: ueber alle Runden.
+        pnl = _waechter_zahl(k.get("pnl_geschlossen"))
+        geschlossen = acct.get("geschlossen") or []
+        if isinstance(geschlossen, list) and any(not isinstance(g, dict) or
+                                                _waechter_zahl(g.get("pnl_sol")) is None for g in geschlossen):
+            pnl = None
+            luecken.append("Ergebnis einzelner Positionen fehlt")
+        if pause is None:
+            luecken.append("Handelspause unbekannt")
+        if n is None or pnl is None:
+            luecken.append("Ergebnis oder geschlossene Positionen unbekannt")
+        if alter_tage is None:
+            luecken.append("Startdatum unbekannt")
+        # Quelle: CLAUDE.md, Wallet-Regeln: Flutschutz-Abmeldung als Bot-Hinweis
+        # fuer 7 Tage; Grenzwerte (>30/min und >=80 % Fehler, oder >300/min)
+        # prueft der Copy-Bot vor dem Speichern, das Dashboard liest nur den Beleg.
+        f = flut.get(adresse)
+        f = f if isinstance(f, dict) else {}
+        flut_zeit = _waechter_zeit(f.get("zuletzt"))
+        bot = flut_zeit is not None and 0 <= jetzt - flut_zeit <= 7 * 86400
+        if bot:
+            gruende.append("Flutschutz-Abmeldung innerhalb von 7 Tagen")
+        s = scout.get(adresse, {})
+        fehlerquote, takt = _waechter_zahl(s.get("fehlgeschlagen")), _waechter_zahl(s.get("tx_pro_h"))
+        scout_zeit = _waechter_zeit(s.get("zeit"))
+        # Quelle: CLAUDE.md, Wallet-Regeln / Bot-Regeln Stufe 1, konkretisiert
+        # in STRATEGIE.md, Wallet-Scout Stufe 1: >80 % oder >50 % bei >60/h.
+        scout_bot = (scout_zeit is not None and scout_zeit <= jetzt and fehlerquote is not None
+                     and 0 <= fehlerquote <= 1 and (fehlerquote > 0.8 or
+                     (fehlerquote > 0.5 and takt is not None and takt > 60)))
+        if scout_bot:
+            bot = True
+            gruende.append("Bot-Verdacht aus gespeicherter Scout-Bewertung")
+        # Datenluecke anzeigen, ohne daraus eine neue Ersetzungsregel zu machen.
+        # Quelle fuer die 6-h-Frische: STRATEGIE.md, Wallet-Scout / Warteliste.
+        if (scout_zeit is None or not 0 <= jetzt - scout_zeit <= 6 * 3600 or
+                fehlerquote is None or not 0 <= fehlerquote <= 1 or takt is None or takt < 0):
+            luecken.append("Aktuelle Scout-Prüfung fehlt")
+        still = pause is not None and pause >= 72
+        if still:
+            gruende.append("Mindestens 72 Stunden ohne Trade" + ("; Datenstand sperrt Entfernung" if not frisch else ""))
+        # Quelle: CLAUDE.md, Wallet-Regeln / Schonfrist 7 Tage oder 30 Positionen,
+        # nur fuer Ergebnis. STRATEGIE.md, Schonfrist: unter BEIDEN Grenzen.
+        schonfrist = n is not None and n < 30 and alter_tage is not None and alter_tage < 7
+        # Quelle: CLAUDE.md, Wallet-Regeln: >=30 geschlossene Positionen und
+        # >1 SOL Verlust; STRATEGIE.md, Platz: ueber alle Runden, groesster zuerst.
+        verlust = n is not None and n >= 30 and pnl is not None and pnl < -1 and not schonfrist
+        if verlust:
+            gruende.append("Mindestens 30 Positionen und mehr als 1 SOL Verlust")
+        kandidat = "bot" if bot else "still" if still and frisch else "verlust" if verlust else None
+        ampel = "rot" if kandidat else "gelb" if still or schonfrist or luecken else "gruen"
+        zeilen.append({"name": name, "wallet": adresse, "ampel": ampel, "kandidat": kandidat,
+                       "gruende": gruende, "luecken": luecken, "pause_h": pause, "gestartet": start,
+                       "letzter_trade": _waechter_zeit(acct.get("letzter_trade")), "alter_tage": alter_tage,
+                       "geschlossen": n, "ergebnis": pnl, "schonfrist": schonfrist,
+                       "ergebnis_seit_start": _waechter_zahl(k.get("ergebnis_seit_start")),
+                       "scout_zeit": scout_zeit, "flutschutz_zeit": flut_zeit})
+    # Quelle: CLAUDE.md, Automatische Aufnahme: Bot -> still -> groesster Verlust.
+    # STRATEGIE.md, Platz: stille Wallets nach laengster Pause. Gleichstand nach Name.
+    kandidaten = [z for z in zeilen if z["kandidat"]]
+    kandidaten.sort(key=lambda z: ({"bot": 0, "still": 1, "verlust": 2}[z["kandidat"]],
+                                  -z["pause_h"] if z["kandidat"] == "still" else
+                                  z["ergebnis"] if z["kandidat"] == "verlust" else 0, z["name"]))
+    warteliste = []
+    try:
+        with (repo / "scout" / "warteliste.csv").open(encoding="utf-8-sig", newline="") as f:
+            reader = csv.DictReader(f)
+            if not set(WAECHTER_WARTESPALTEN) <= set(reader.fieldnames or []):
+                hinweise.append("Warteliste: Spalten fehlen; unbekannte Werte bleiben leer.")
+            for row in reader:
+                if not row.get("wallet"):
+                    hinweise.append("Warteliste: eine Zeile ohne Wallet-Adresse wurde ausgelassen.")
+                    continue
+                w = {feld: row.get(feld) for feld in WAECHTER_WARTESPALTEN}
+                for feld in WAECHTER_WARTESPALTEN[5:]:
+                    w[feld] = _waechter_zahl(w[feld])
+                w["seit"], w["bewertet"] = _waechter_zeit(w["seit"]), _waechter_zeit(w["bewertet"])
+                # Quelle: CLAUDE.md, Automatische Aufnahme (Warteliste), Details in
+                # STRATEGIE.md, Warteliste: 7 Tage warten, ab >6 h frisch pruefen.
+                w["abgelaufen"] = w["seit"] is not None and jetzt - w["seit"] > 7 * 86400
+                w["neu_pruefen"] = w["bewertet"] is None or not 0 <= jetzt - w["bewertet"] <= 6 * 3600
+                warteliste.append(w)
+    except (OSError, ValueError, csv.Error, UnicodeError):
+        hinweise.append("Warteliste fehlt oder ist nicht lesbar.")
+    ab = datetime.fromtimestamp(jetzt, timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0).timestamp()
+    heute = _waechter_heute(repo, ab, jetzt, hinweise)
+    heute["limit"] = WAECHTER_TAGESLIMIT
+    heute["rest"] = max(0, WAECHTER_TAGESLIMIT - heute["anzahl"]) if heute["anzahl"] is not None else None
+    return {"jetzt": jetzt, "tagesbeginn": ab, "gespeichert": gespeichert, "konten_frisch": frisch,
+            "aktiv": len(aktive) if liste_ok else None,
+            "maximum": WAECHTER_MAX_WALLETS, "heute": heute, "wallets": zeilen, "kandidaten": kandidaten,
+            "naechster": kandidaten[0] if kandidaten else None, "warteliste": warteliste,
+            "hinweise": list(dict.fromkeys(hinweise))}

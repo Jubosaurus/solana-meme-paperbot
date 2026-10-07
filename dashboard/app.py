@@ -33,11 +33,16 @@ SEITEN = {
     "news": st.Page("app_pages/news.py", title="News", icon=":material/newspaper:"),
     "wallets": st.Page("app_pages/wallets_pruefen.py", title="Wallets prüfen", icon=":material/playlist_add_check:"),
     "betrieb": st.Page("app_pages/betrieb.py", title="Betrieb", icon=":material/build:"),
+    "rennbahn": st.Page("app_pages/rennbahn.py", title="Rennbahn", icon=":material/show_chart:"),
+    "waechter": st.Page("app_pages/waechter.py", title="Wallet-Wächter", icon=":material/shield:"),
+    "verpasst": st.Page("app_pages/verpasste_chancen.py", title="Verpasste Chancen", icon=":material/undo:"),
+    "tageszeit": st.Page("app_pages/tageszeit.py", title="Tageszeit", icon=":material/schedule:"),
+    "wissen": st.Page("app_pages/wissen.py", title="Wissen", icon=":material/menu_book:"),
 }
 # Menue: Gruppe -> Seiten (Gruppen mit mehreren Seiten klappen auf; die aktive Gruppe ist offen)
 MENUE = {
-    "Handel": ["strategie", "copy", "scout"],
-    "Analyse": ["flugschreiber", "lernen", "news"],
+    "Handel": ["strategie", "rennbahn", "copy", "waechter", "scout"],
+    "Analyse": ["flugschreiber", "lernen", "verpasst", "tageszeit", "news", "wissen"],
     "System": ["wallets", "betrieb"],
 }
 

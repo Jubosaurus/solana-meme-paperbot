@@ -44,3 +44,9 @@ Noch offen:
 ## 06.10.2026 (abends)
 - Neue Seite [[Codex]] (Team Claude + Codex, Quelle [[Q-CLAUDE]]).
 - Scout-Automatik: Sicherung gegen Copy-Bot-Ausfall (Konten > 2 h alt) und Grenze 2 Stille-Entfernungen pro Lauf nachgeführt ([[Wallet-Scout]]); Datumsfehler 07.10. → 06.10. in Doku, Wiki, Dateinamen korrigiert (Quellen-Seite jetzt [[Q-2026-10-06-Entscheidungen]]).
+
+## 07.10.2026
+
+- Eingespeist: [[Nexus-Core]] und [[Q-2026-10-07-Nexus-Core]] aus `CLAUDE.md` (Dashboard), `STRATEGIE.md` (Änderungsprotokoll 07.10.), `dashboard/DESIGN.md`, `dashboard/README.md`, dem lokalen Ideenbericht `auswertungen/dashboard/ideen_2026-10-07.md` und Auftragskarte 16 (Originalpfade auf der Quellen-Seite); Index ergänzt.
+- Teil 1 als gebaut dokumentiert; alle zehn Ideen aus Teil 2 mit einem Satz und Status erfasst, die ausgewählten Seiten 1–5 gemäß Auftragskarte als in Arbeit markiert; Ergebnis wird von Claude nachgetragen.
+- Leitplanken aufgenommen: neue lesende Seiten nur mit lokalen Daten, Rechnung nur über `dashboard/rechnung.py`, schreibende Funktionen nur am PC; das Wiki trifft keine Entscheidung.

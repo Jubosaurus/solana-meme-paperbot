@@ -101,3 +101,40 @@ def news(head):
 @st.cache_data(ttl=600, max_entries=4, show_spinner=False)
 def listing_welle(head):
     return rechnung.listing_welle_uebersicht()
+
+
+@st.cache_data(ttl=300, max_entries=4, show_spinner=False)
+def wissen(head):
+    """Lokale Wissensseiten, nach neuem Datenstand oder spaetestens nach 5 min neu lesen."""
+    return rechnung.wissen_seiten()
+
+
+@st.cache_data(ttl=300, max_entries=4, show_spinner=False)
+def berichte(head):
+    """Lokale Markdown-Berichte, neueste zuerst."""
+    return rechnung.wissen_berichte()
+
+
+@st.cache_data(ttl=600, max_entries=4, show_spinner="Rennbahn wird berechnet …")
+def rennbahn(head):
+    """Beide Zahlenarten gemeinsam laden; Auswahl und Kostenschalter brauchen kein neues Lesen."""
+    konten = strategie_konten(head)
+    return rechnung.rennbahn(konten, sichtbar=[k["key"] for k in konten])
+
+
+@st.cache_data(ttl=600, max_entries=4, show_spinner="Ablehnungen und Folgekurse werden gelesen …")
+def verpasste_chancen(head):
+    """Beide Quellen/Horizonte gemeinsam laden; Auswahl braucht kein neues Lesen."""
+    return rechnung.abgelehnt_rueckblick()
+
+
+@st.cache_data(ttl=600, max_entries=4, show_spinner="Geschlossene Trades werden gelesen …")
+def tageszeit(head):
+    """Lokale Trades einmal laden; Kontoauswahl und Kosten schalten ohne neues Lesen um."""
+    return rechnung.tageszeit_konten()
+
+
+@st.cache_data(ttl=60, max_entries=4, show_spinner="Wallet-Regeln werden geprüft …")
+def waechter(head):
+    """Kurzer Cache fuer UTC-Tageswechsel und zeitabhaengige Wallet-Regeln."""
+    return rechnung.waechter_uebersicht()

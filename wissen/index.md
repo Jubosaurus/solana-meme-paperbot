@@ -116,6 +116,7 @@ Das Wiki sammelt Wissen und beschließt nichts. Verbindlich bleiben `STRATEGIE.m
 - [[Flugschreiber]] – Flugschreiber (Aufzeichnung)
 - [[Helius]] – Helius (Solana-Zugang)
 - [[Jupiter]] – Jupiter (Kurse und Token-Daten)
+- [[Nexus-Core]] – Dashboard-Entscheidung: Teil 1 gebaut, Teil 2 in Arbeit (07.10.2026)
 - [[Regressionsprobe-und-Tests]] – Testsammlung und Regressionsprobe
 - [[Solana-Tracker]] – Solana Tracker
 - [[Token-Verbrauch-Sitzungen]] – Token-Verbrauch der Claude-Sitzungen
@@ -131,6 +132,7 @@ Das Wiki sammelt Wissen und beschließt nichts. Verbindlich bleiben `STRATEGIE.m
 
 ## Quellen (Verweise auf Rohquellen)
 
+- [[Q-2026-10-07-Nexus-Core]] – Quelle: Dashboard-Entscheidung Nexus Core, Teil 1 und 2 (07.10.2026)
 - [[Q-2026-10-03-Ueberpruefung]] – Quelle: Große Überprüfung 03.10.2026
 - [[Q-2026-10-04-Nachtlauf]] – Quelle: Nachtlauf 03./04.10.2026
 - [[Q-2026-10-04-Tokenverbrauch]] – Quelle: Token-Verbrauch 04.10.2026
