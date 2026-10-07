@@ -1,7 +1,7 @@
 {
   "strategy": "EXPERIMENT_offene_tuer",
   "started": "2026-10-04T00:34:10.471054+00:00",
-  "bankroll_sol": 2.232412,
+  "bankroll_sol": 2.22543,
   "positions": {
     "82ViNHctUUpXgSQ8p56HGpg3bz9cggSjvG349eDnpump": {
       "mint": "82ViNHctUUpXgSQ8p56HGpg3bz9cggSjvG349eDnpump",
@@ -67,24 +67,24 @@
       "solana_tracker": null,
       "graduated": false,
       "liq_low_checks": 0,
-      "flug_last": 1791374999.0465765
+      "flug_last": 1791375150.820088
     },
     "9tYRgg4F3Uhrvcn8RVKe2RdaqvcNnd7KZeZGj2K6pump": {
       "mint": "9tYRgg4F3Uhrvcn8RVKe2RdaqvcNnd7KZeZGj2K6pump",
       "symbol": "IRLCraft",
       "opened": 1791374457.5703788,
       "invested_sol": 0.2,
-      "fees_sol": 0.0015,
+      "fees_sol": 0.003,
       "entry_signal_usd": 3.524356280666695e-05,
       "entry_fill_usd": 3.526113696136207e-05,
       "entry_slippage_pct": 0.05,
       "roundtrip_cost_pct": 2.86,
       "tokens_initial": 665328.563695,
-      "tokens_left": 665328.563695,
+      "tokens_left": 332664.2818475,
       "decimals": 6,
-      "proceeds_sol": 0.0,
-      "peak_usd": 5.3216676173023396e-05,
-      "tp1_done": false,
+      "proceeds_sol": 0.194518311,
+      "peak_usd": 7.110552749052814e-05,
+      "tp1_done": true,
       "thesis_breaks": 0,
       "missing_loops": 0,
       "entry_liquidity": 8152.08970500812,
@@ -133,8 +133,74 @@
       "solana_tracker": null,
       "graduated": true,
       "liq_low_checks": 0,
-      "flug_last": 1791374999.0465765,
+      "flug_last": 1791375150.820088,
       "graduated_during": true
+    },
+    "5iBXD3xQDgH6DnLaY9wC4dcXfWfrF6BpVdotFtKWpump": {
+      "mint": "5iBXD3xQDgH6DnLaY9wC4dcXfWfrF6BpVdotFtKWpump",
+      "symbol": "MARU",
+      "opened": 1791375090.6361496,
+      "invested_sol": 0.2,
+      "fees_sol": 0.0015,
+      "entry_signal_usd": 7.154080707824051e-05,
+      "entry_fill_usd": 7.83659577171152e-05,
+      "entry_slippage_pct": 9.54,
+      "roundtrip_cost_pct": 2.1,
+      "tokens_initial": 299567.911933,
+      "tokens_left": 299567.911933,
+      "decimals": 6,
+      "proceeds_sol": 0.0,
+      "peak_usd": 7.83659577171152e-05,
+      "tp1_done": false,
+      "thesis_breaks": 0,
+      "missing_loops": 0,
+      "entry_liquidity": 10302.930539692592,
+      "entry_view": {
+        "age_h": 0.6837501439783308,
+        "mcap": 67428.70807540022,
+        "liquidity": 10302.930539692592,
+        "holders": 484,
+        "holder_growth_1h": 591.4285714285714,
+        "holder_growth_5m": 27.034120734908136,
+        "net_buyers_5m": 138,
+        "organic_buyers_5m": 18,
+        "organic_score": 46.84084463695788,
+        "price_change_1h": 849.3574995983355,
+        "price_change_5m": 24.527673990972133,
+        "buys_5m": 434,
+        "sells_5m": 322,
+        "traders_5m": 304,
+        "traders_1h": 1537,
+        "buy_vol_5m": 23493.87753929664,
+        "sell_vol_5m": 21466.1916833525,
+        "buy_vol_1h": 150268.55874571428,
+        "sell_vol_1h": 138658.20907136681,
+        "organic_buy_vol_1h": 5813.876188432358,
+        "top_holders_pct": 24.04153045316729,
+        "dev_balance_pct": 0.0,
+        "dev_mints": 8194,
+        "launchpad": "pump.fun",
+        "graduated": true,
+        "social": true,
+        "quelle": "organic1h+organic5m+traded1h+traded5m+trend1h+trend5m",
+        "trades_24h": 6394,
+        "organic_label": "medium",
+        "buy_organic_vol_5m": 987.3264823219009,
+        "jup_fees": null,
+        "hour_utc": 12
+      },
+      "bundle": {
+        "quelle": "experiment",
+        "text": "Offene Tuer: ohne Sicherheits-, Bundle- und Dev-Pruefung"
+      },
+      "phase": "ruhig",
+      "thesis": "Story verbreitet sich: Holder +591%/h, 138 Netto-Kaeufer 5m, 18 organisch; Offene Tuer: ohne Sicherheits-, Bundle- und Dev-Pruefung; Dev-Coins 8194",
+      "exit_rule": "Haelfte bei 2x; Rest raus, wenn Holder schrumpfen und Netto-Verkaeufer 2x in Folge, Liquiditaet -30%, -40%, nach 1,5x nicht unter Einstand, nach 2x 30 % vom Hoch (ab 10x 25 %)",
+      "mitlaeufer": null,
+      "solana_tracker": null,
+      "graduated": true,
+      "liq_low_checks": 0,
+      "flug_last": 1791375121.3353357
     }
   },
   "closed": [
@@ -27520,7 +27586,8 @@
     "29mtjkMzLManih1hDoPDpW3FMk3P6bnAXg8MBecb2mPF": 1791371390.7690332,
     "GJap8NpQ4bVzdyFQ1LDebRqJHvPqmuSLr14ib3X8w4nX": 1791371913.967177,
     "82ViNHctUUpXgSQ8p56HGpg3bz9cggSjvG349eDnpump": 1791373364.821878,
-    "9tYRgg4F3Uhrvcn8RVKe2RdaqvcNnd7KZeZGj2K6pump": 1791374457.5711837
+    "9tYRgg4F3Uhrvcn8RVKe2RdaqvcNnd7KZeZGj2K6pump": 1791374457.5711837,
+    "5iBXD3xQDgH6DnLaY9wC4dcXfWfrF6BpVdotFtKWpump": 1791375090.6370587
   },
   "watch": {
     "G8HhFCbrbpmkCWyMdKeC2dTXiiGKEjgm9SXBkEjA7aV2": {
@@ -27724,5 +27791,5 @@
   },
   "runde": 2,
   "shadow": {},
-  "saved_at": 1791375061.049793
+  "saved_at": 1791375166.6725185
 }
