@@ -1,7 +1,7 @@
 {
   "strategy": "EXPERIMENT_offene_tuer",
   "started": "2026-10-04T00:34:10.471054+00:00",
-  "bankroll_sol": 2.535184,
+  "bankroll_sol": 2.333684,
   "positions": {
     "J1tjLHnNFZQX3JccUxX4etq8sgtZ53rAWQZDCcNpump": {
       "mint": "J1tjLHnNFZQX3JccUxX4etq8sgtZ53rAWQZDCcNpump",
@@ -17,7 +17,7 @@
       "tokens_left": 935288.994926,
       "decimals": 6,
       "proceeds_sol": 0.19891430599999999,
-      "peak_usd": 4.0255052491391266e-05,
+      "peak_usd": 4.138434620043309e-05,
       "tp1_done": true,
       "thesis_breaks": 0,
       "missing_loops": 0,
@@ -67,7 +67,7 @@
       "solana_tracker": null,
       "graduated": false,
       "liq_low_checks": 0,
-      "flug_last": 1791368479.2500398
+      "flug_last": 1791368553.5236526
     },
     "HixVBBRt2q8ewBRPvboAVBXDjUS2efMdmHVEdKiPAPnf": {
       "mint": "HixVBBRt2q8ewBRPvboAVBXDjUS2efMdmHVEdKiPAPnf",
@@ -133,7 +133,7 @@
       "solana_tracker": null,
       "graduated": true,
       "liq_low_checks": 0,
-      "flug_last": 1791368479.2500398
+      "flug_last": 1791368553.5236526
     },
     "8n2BE3HdAEmLgXsWyVt2q5wBygrGmuzH87Xh46kCpump": {
       "mint": "8n2BE3HdAEmLgXsWyVt2q5wBygrGmuzH87Xh46kCpump",
@@ -199,7 +199,73 @@
       "solana_tracker": null,
       "graduated": true,
       "liq_low_checks": 0,
-      "flug_last": 1791368479.2500398
+      "flug_last": 1791368553.5236526
+    },
+    "EPxNVJtqouu1PAFpb6fqkLEvjJyduwMzKon286nYpump": {
+      "mint": "EPxNVJtqouu1PAFpb6fqkLEvjJyduwMzKon286nYpump",
+      "symbol": "WIZARDS",
+      "opened": 1791368580.0825,
+      "invested_sol": 0.2,
+      "fees_sol": 0.0015,
+      "entry_signal_usd": 1.869831651394133e-05,
+      "entry_fill_usd": 1.868165370106411e-05,
+      "entry_slippage_pct": -0.09,
+      "roundtrip_cost_pct": 3.01,
+      "tokens_initial": 1260488.17482,
+      "tokens_left": 1260488.17482,
+      "decimals": 6,
+      "proceeds_sol": 0.0,
+      "peak_usd": 1.868165370106411e-05,
+      "tp1_done": false,
+      "thesis_breaks": 0,
+      "missing_loops": 0,
+      "entry_liquidity": 8422.374424836255,
+      "entry_view": {
+        "age_h": 0.6683369786871804,
+        "mcap": 18698.313713965308,
+        "liquidity": 8422.374424836255,
+        "holders": 178,
+        "holder_growth_1h": 117.07317073170731,
+        "holder_growth_5m": 5.952380952380952,
+        "net_buyers_5m": 18,
+        "organic_buyers_5m": 6,
+        "organic_score": 40.280788155448896,
+        "price_change_1h": 203.7895799184386,
+        "price_change_5m": 7.417125139406731,
+        "buys_5m": 28,
+        "sells_5m": 14,
+        "traders_5m": 27,
+        "traders_1h": 772,
+        "buy_vol_5m": 1190.2918483630465,
+        "sell_vol_5m": 896.8967525707848,
+        "buy_vol_1h": 55552.35622063059,
+        "sell_vol_1h": 50661.52955214362,
+        "organic_buy_vol_1h": 1303.7780577831636,
+        "top_holders_pct": 24.48282253034543,
+        "dev_balance_pct": 0.0,
+        "dev_mints": 11,
+        "launchpad": "pump.fun",
+        "graduated": false,
+        "social": true,
+        "quelle": "organic1h+organic5m+traded1h+trend1h+trend5m",
+        "trades_24h": 2706,
+        "organic_label": "medium",
+        "buy_organic_vol_5m": 0.0,
+        "jup_fees": null,
+        "hour_utc": 10
+      },
+      "bundle": {
+        "quelle": "experiment",
+        "text": "Offene Tuer: ohne Sicherheits-, Bundle- und Dev-Pruefung"
+      },
+      "phase": "ruhig",
+      "thesis": "Story verbreitet sich: Holder +117%/h, 18 Netto-Kaeufer 5m, 6 organisch; Offene Tuer: ohne Sicherheits-, Bundle- und Dev-Pruefung; Dev-Coins 11",
+      "exit_rule": "Haelfte bei 2x; Rest raus, wenn Holder schrumpfen und Netto-Verkaeufer 2x in Folge, Liquiditaet -30%, -40%, nach 1,5x nicht unter Einstand, nach 2x 30 % vom Hoch (ab 10x 25 %)",
+      "mitlaeufer": null,
+      "solana_tracker": null,
+      "graduated": false,
+      "liq_low_checks": 0,
+      "flug_last": 1791368597.6758134
     }
   },
   "closed": [
@@ -27152,7 +27218,8 @@
     "DwVyyBRBS3K7hGAHSPGLZ8DSNxBHgmFErEdAX7kapump": 1791365429.6524992,
     "HixVBBRt2q8ewBRPvboAVBXDjUS2efMdmHVEdKiPAPnf": 1791365770.5378299,
     "9yfiomKJ2fdHiZQ3MK9AJniu8eR2eSjCzfMEo1zXpump": 1791365887.9422457,
-    "8n2BE3HdAEmLgXsWyVt2q5wBygrGmuzH87Xh46kCpump": 1791368243.8964424
+    "8n2BE3HdAEmLgXsWyVt2q5wBygrGmuzH87Xh46kCpump": 1791368243.8964424,
+    "EPxNVJtqouu1PAFpb6fqkLEvjJyduwMzKon286nYpump": 1791368580.0832686
   },
   "watch": {
     "BkoKXH5Rtr3iRbmdFcBt9Yr1PFuGtRbqd5WnsmtLpump": {
@@ -27374,5 +27441,5 @@
   },
   "runde": 2,
   "shadow": {},
-  "saved_at": 1791368500.832564
+  "saved_at": 1791368601.1577878
 }
