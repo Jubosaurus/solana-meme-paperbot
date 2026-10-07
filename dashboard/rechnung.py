@@ -195,8 +195,11 @@ def trade_kennzahlen(closed, kosten=None):
 
 
 def kosten_abzug(k):
-    """Kostenaufschlag eines Strategie-Kontos in SOL (Summe roh minus Summe mit Kosten)."""
-    return k["summe"] - k["summe_kosten"]
+    """Kostenaufschlag der AKTUELLEN Runde eines Strategie-Kontos in SOL. Kontowert und Ergebnis gelten nur fuer die
+    laufende Runde (nach Neustart mit 10 SOL); Trades frueherer Runden (Feld runde, ohne Angabe = Runde 1) zaehlen nicht."""
+    runde = k.get("runde") or 1
+    return sum(as_float(c.get("invested_sol"), EINSATZ_STANDARD) * k["kosten_pct"] / 100
+               for c in k["closed"] if (c.get("runde") or 1) == runde)
 
 
 def kontowert_mit_kosten(k):

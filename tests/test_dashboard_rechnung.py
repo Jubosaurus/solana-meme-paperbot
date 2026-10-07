@@ -391,6 +391,16 @@ def test_kontowert_mit_kosten_fuer_die_anzeige():
     assert r.ergebnis_mit_kosten(k) == pytest.approx(-0.5 - 0.016)
 
 
+def test_kosten_abzug_nur_aktuelle_runde():
+    """Codex-Fund 07.10.: nach Neustart (Runde 2) zaehlen Kosten der Runde 1 nicht gegen den neuen Kontowert."""
+    p = {"bankroll_sol": 9.0, "runde": 2, "positions": {}, "closed": [
+        {"pnl_sol": -1.0, "invested_sol": 0.2, "runde": 1}, {"pnl_sol": -0.5, "invested_sol": 0.2, "runde": 2},
+        {"pnl_sol": 0.0, "invested_sol": 0.2}]}   # ohne Rundenangabe = Runde 1
+    k = r.konto_strategie("heisse_coins", "H", p, {})
+    assert r.kosten_abzug(k) == pytest.approx(0.2 * 0.02)
+    assert r.kontowert_mit_kosten(k) == pytest.approx(9.0 - 0.004)
+
+
 def test_urteil_mit_kosten_kann_vom_rohurteil_abweichen():
     kg = {"key": "kontrollgruppe", "gestartet": "2026-10-01T00:00:00+00:00", "closed": [closed(-0.02) for _ in range(200)]}
     e = konto("endspurt", [-0.019] * 200)           # roh knapp besser; Endspurt zahlt 4 % statt 2 %: mit Kosten schlechter

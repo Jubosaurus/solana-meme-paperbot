@@ -51,9 +51,6 @@ with st.sidebar:
             for s in schluessel:
                 st.page_link(SEITEN[s])
 
-aktuell.run()
-
-
 @st.fragment(run_every="5m")
 def fusszeile():
     """Fusszeile am Ende jeder Seite: Datenstand, Aktualisieren, Hinweis. Alle 5 min neue Daten; bei neuem Stand
@@ -74,4 +71,7 @@ def fusszeile():
         st.rerun(scope="app")
 
 
-fusszeile()
+try:
+    aktuell.run()
+finally:
+    fusszeile()    # auch wenn eine Seite st.stop() ruft: Timer und Aktualisieren-Knopf bleiben

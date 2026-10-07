@@ -245,8 +245,9 @@ def roh_kosten_karte(titel, roh, kosten, unter_roh="", unter_kosten="", kosten_p
 def konto_karte(k, fuss="", leuchten=False):
     """Konto der Hauptstrategie/eines Experiments: Kontowert roh und mit Kosten (2 %, Endspurt 4 %) nebeneinander."""
     mit = rechnung.kontowert_mit_kosten(k)
+    seit = f" in Runde {k['runde']}" if (k.get("runde") or 1) > 1 else " seit Start"
     return roh_kosten_karte(k["label"], rechnung.sol_text(k["kontowert"], 2, False), rechnung.sol_text(mit, 2, False),
-                            pm_html(k["ergebnis"]) + " seit Start", pm_html(rechnung.ergebnis_mit_kosten(k)) + " seit Start",
+                            pm_html(k["ergebnis"]) + seit, pm_html(rechnung.ergebnis_mit_kosten(k)) + seit,
                             kosten_pct=k.get("kosten_pct"), fuss=fuss, leuchten=leuchten)
 
 
