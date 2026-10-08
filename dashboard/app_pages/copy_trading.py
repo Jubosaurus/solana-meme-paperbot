@@ -32,7 +32,8 @@ def hinweise(k):
         h.append("72 h ohne Trade → ersetzen")
     # Regel seit 08.10.: Ergebnis seit Start inkl. offener Positionen zum Kurs (wie die Wallet-Regel im Bot); ohne Kurs kein Urteil
     if k["geschlossen"] >= 30 and k["ergebnis_seit_start"] < -1 and not k.get("ohne_kurs"):
-        h.append("prüfen: ≥ 30 Positionen, > 1 SOL Verlust seit Start")
+        h.append("prüfen: ≥ 30 Positionen, > 1 SOL Verlust seit Start"
+                 + (" (nur wegen Wert-0-Positionen)" if k.get("nur_wegen_wert0") else ""))
     if k["runde"] > 1:
         h.append(f"{k['runde'] - 1}× Konto aufgebraucht")
     if k["korrigiert"]:

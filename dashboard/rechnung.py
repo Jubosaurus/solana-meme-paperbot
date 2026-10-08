@@ -452,7 +452,8 @@ def copy_konto(name, acct, aktiv, journal_rows, korrigiert, exit_liq=None):
     # Ergebnis seit Start ueber alle Runden: je Position Erloese + Wert jetzt - Einsatz - Gebuehren.
     # (Kontowert - 10 SOL gilt nur fuer die laufende Runde; beim Rundenwechsel wird das Konto neu aufgefuellt.)
     # Seit 08.10. gemeinsame Rechnung mit der Wallet-Regel (copy_bot.ergebnis_seit_start).
-    seit_start, ohne_kurs = cb.ergebnis_seit_start(acct)
+    detail = cb.verlust_detail(acct)
+    seit_start, ohne_kurs = detail["ergebnis"], detail["ohne_kurs"]
     offen_pnl_vorsichtig = 0.0
     for p in (acct.get("positionen") or {}).values():
         w = cb.open_value({"positionen": {p.get("mint", ""): p}})
@@ -461,7 +462,8 @@ def copy_konto(name, acct, aktiv, journal_rows, korrigiert, exit_liq=None):
     pnl_zu = sum(as_float(g.get("pnl_sol")) for g in geschlossen)
     return {
         "ergebnis_seit_start": seit_start, "ergebnis_seit_start_vorsichtig": pnl_zu + offen_pnl_vorsichtig,
-        "ohne_kurs": ohne_kurs,
+        "ohne_kurs": ohne_kurs, "wert0_n": detail["wert0_n"], "wert0_sol": detail["wert0_sol"],
+        "nur_wegen_wert0": detail["nur_wegen_wert0"],
         "name": name, "aktiv": aktiv, "adresse": acct.get("adresse", ""), "runde": runde,
         "frei": frei, "wert_offen": wert, "kontowert": frei + wert, "vorsichtig": frei + wert - wert_wartend,
         "wartend": len(wartend), "ergebnis_runde": frei + wert - START_SOL,
@@ -1905,11 +1907,16 @@ def waechter_uebersicht(repo=None, jetzt=None):
         ohne_kurs = k.get("ohne_kurs")
         if ohne_kurs:
             luecken.append(f"{ohne_kurs} offene Position(en) ohne frischen Kurs: kein Verlust-Urteil")
+        wert0_n = k.get("wert0_n") or 0
+        if wert0_n:
+            gruende.append(f"{wert0_n} offene Position(en) zählen mit Wert 0 (keine Route oder seit 24 h kein Kurs, "
+                           f"{_waechter_zahl(k.get('wert0_sol')) or 0:.2f} SOL)")
         verlust = (n is not None and n >= 30 and pnl is not None and seit_start is not None and seit_start < -1 and not ohne_kurs
                    and not schonfrist)
         geschuetzt = _waechter_schutzliste().get(name)
         if verlust:
-            gruende.append("Mindestens 30 Positionen und mehr als 1 SOL Verlust seit Start (mit offenen Positionen)")
+            gruende.append("Mindestens 30 Positionen und mehr als 1 SOL Verlust seit Start (mit offenen Positionen)"
+                           + (" - nur wegen der Wert-0-Positionen" if k.get("nur_wegen_wert0") else ""))
         if geschuetzt and (verlust or still):
             gruende.append(f"Geschützt, wird nicht ersetzt: {geschuetzt}")
             verlust = still = False

@@ -130,6 +130,22 @@ def test_ohne_frischen_kurs_kein_verlust_urteil(tmp_path, keine_historie):
     assert all(any("ohne frischen Kurs" in h for h in z["luecken"]) for z in u["wallets"])
 
 
+def test_wert0_positionen_werden_im_waechter_gekennzeichnet(tmp_path, keine_historie):
+    import time
+    jetzt = time.time()
+    a = konto("Alpha", n=30, pnl=-0.9)
+    a["positionen"] = _offene(0.0, preis_zeit=None, letzter_preis_sol=0.0, kurs_fehlt_seit=jetzt - 25 * 3600,
+                              kurs_fehlt_bis=jetzt - 60)        # seit 25 h kein Kurs: Wert 0
+    b = konto("Beta", n=30, pnl=-0.9)
+    b["positionen"] = _offene(0.0, preis_zeit=None, letzter_preis_sol=0.0, kurs_fehlt_seit=jetzt - 23 * 3600,
+                              kurs_fehlt_bis=jetzt - 60)        # erst 23 h: kein Urteil
+    u = r.waechter_uebersicht(repository(tmp_path, {"Alpha": a, "Beta": b}), JETZT)
+    z = {x["name"]: x for x in u["wallets"]}
+    assert z["Alpha"]["kandidat"] == "verlust"
+    assert any("Wert 0" in g for g in z["Alpha"]["gruende"]) and any("nur wegen" in g for g in z["Alpha"]["gruende"])
+    assert z["Beta"]["kandidat"] is None and any("ohne frischen Kurs" in h for h in z["Beta"]["luecken"])
+
+
 def test_schutzliste_wird_im_waechter_beruecksichtigt(tmp_path, keine_historie, monkeypatch):
     import scout_bot
     monkeypatch.setattr(scout_bot, "AUTO_GESCHUETZT", {"Alpha": "Studie"})

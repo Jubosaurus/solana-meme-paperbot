@@ -125,3 +125,72 @@ def test_dashboard_und_bot_rechnen_dieselbe_zahl():
     k = rechnung.copy_konto("W", a, True, [], set())
     assert k["ergebnis_seit_start"] == pytest.approx(cb.ergebnis_seit_start(a)[0])
     assert k["ohne_kurs"] == 0
+
+
+# ================================================================ Position ohne Kurs / ohne Route (Entscheidung 08.10., Teil 2)
+H = 3600
+
+
+def pos_ohne_kurs(seit_h, bis_s=60, **extra):
+    """Offene Position (Einsatz 0.2, 1 Token), Kurs 0 seit seit_h Stunden, zuletzt vor bis_s Sekunden so gesehen."""
+    p = {"mint": "M1", "decimals": 6, "tokens_raw": 1_000_000, "invested_sol": 0.2, "proceeds_sol": 0.0, "fees_sol": 0.0,
+         "letzter_preis_sol": 0.0, "kurs_fehlt_seit": NOW - seit_h * H, "kurs_fehlt_bis": NOW - bis_s}
+    p.update(extra)
+    return p
+
+
+@pytest.mark.parametrize("seit_h,status", [(23, "offen"), (23.99, "offen"), (24, "null_24h"), (25, "null_24h")])
+def test_grenzfall_24_stunden_ohne_kurs(seit_h, status):
+    assert cb.kurs_status(pos_ohne_kurs(seit_h), NOW) == status
+
+
+def test_24h_regel_braucht_laufenden_bot_und_keine_wartende_position():
+    assert cb.kurs_status(pos_ohne_kurs(30, bis_s=3 * H), NOW) == "offen"        # Copy-Bot lief zuletzt vor 3 h: kein Urteil
+    assert cb.kurs_status(pos_ohne_kurs(30, verkauf_offen=True), NOW) == "offen"  # Verkauf wartet nach Ausfall
+    p = pos_ohne_kurs(30)
+    p.update(letzter_preis_sol=0.001, letzter_preis_zeit=NOW - 60)               # gueltiger frischer Kurs
+    assert cb.kurs_status(p, NOW) == "ok"
+
+
+def test_keine_route_zaehlt_sofort_mit_wert_0():
+    p = pos_ohne_kurs(0.1, keine_route_zeit=NOW - 10, letzter_preis_sol=0.5, letzter_preis_zeit=NOW - 60)
+    assert cb.kurs_status(p, NOW) == "null_route"                                 # trotz frischem Kurs: Jupiter findet keine Route
+    d = cb.ergebnis_detail({"geschlossen": [], "positionen": {"M1": p}}, NOW)
+    assert d["wert0_n"] == 1 and d["ohne_kurs"] == 0
+    assert d["ergebnis"] == pytest.approx(-0.2)                                   # Einsatz verloren
+    assert d["wert0_sol"] == pytest.approx(0.2)                                   # ohne die Null wuerde sie mit 0.2 (Einsatz) zaehlen
+
+
+def test_route_merken():
+    pos = {}
+    cb.route_merken(pos, None)                    # Ausfall: nichts aendern
+    assert pos == {}
+    cb.route_merken(pos, 0)                       # eindeutig keine Route
+    assert "keine_route_zeit" in pos
+    cb.route_merken(pos, None)
+    assert "keine_route_zeit" in pos
+    cb.route_merken(pos, 123)                     # spaeter wieder handelbar
+    assert "keine_route_zeit" not in pos
+
+
+def test_nur_wegen_wert0_wird_gekennzeichnet():
+    # realisiert -0.9; offene Position mit Wert 0 (seit 25 h kein Kurs): -1.1 -> Fall nur wegen der Null (neutral: -0.9)
+    a = konto(-0.03, 30)
+    a["positionen"] = {"M1": pos_ohne_kurs(25)}
+    d = cb.verlust_detail(a, NOW)
+    assert d["erfuellt"] and d["nur_wegen_wert0"] and d["wert0_n"] == 1
+    assert "nur wegen 1 Position" in cb.wert0_text(d) and "0.20 SOL" in cb.wert0_text(d)
+    # ohne die Wert-0-Position waere die Wallet schon ohnehin unter der Grenze -> nicht 'nur wegen'
+    b = konto(-0.05, 30)
+    b["positionen"] = {"M1": pos_ohne_kurs(25)}
+    d = cb.verlust_detail(b, NOW)
+    assert d["erfuellt"] and not d["nur_wegen_wert0"] and cb.wert0_text(d) == ""
+
+
+def test_scout_nennt_wert0_im_grund(monkeypatch):
+    monkeypatch.setattr(scout, "AUTO_GESCHUETZT", {})
+    a = konto(-0.03, 30)
+    a["positionen"] = {"M1": pos_ohne_kurs(25)}
+    aktiv = _setup({"W": a}, ["W"])
+    out = scout.replaceable_wallets(aktiv, scout.load_copy_accounts(), time.time(), check_bots=False)
+    assert len(out) == 1 and "nur wegen 1 Position(en) mit Wert 0" in out[0][2]

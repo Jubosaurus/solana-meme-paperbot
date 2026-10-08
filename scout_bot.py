@@ -765,11 +765,12 @@ def geschuetzte_treffer(active, accounts, now, still_pruefen=True):
         except (KeyError, TypeError, ValueError):
             start = now
         idle_h = (now - (a.get("letzter_trade") or start)) / 3600
-        hit, ergebnis, n_closed, _ = cb.verlust_regel(a, now)
+        d = cb.verlust_detail(a, now)
         if still_pruefen and idle_h >= cb.WALLET_SILENT_H:
             out[name] = f"still, seit {idle_h:.0f} h kein eigener Trade"
-        elif hit:
-            out[name] = f"Verlust, {n_closed} Positionen, {ergebnis:+.2f} SOL seit Start (mit offenen Positionen)"
+        elif d["erfuellt"]:
+            out[name] = (f"Verlust, {d['geschlossen']} Positionen, {d['ergebnis']:+.2f} SOL seit Start "
+                         f"(mit offenen Positionen){cb.wert0_text(d)}")
     return out
 
 
@@ -807,10 +808,12 @@ def replaceable_wallets(active, accounts, now, check_bots=True, still_pruefen=Tr
                 out.append((1, -idle_h, name, addr, f"still, seit {idle_h:.0f} h kein eigener Trade"))
             continue
         # Verlust seit Start (08.10.): Kontowert ueber alle Runden, offene Positionen zum Kurs; fehlt ein Kurs, kein Urteil
-        hit, ergebnis, n_closed, _ = cb.verlust_regel(a, now)
+        d = cb.verlust_detail(a, now)
+        n_closed, ergebnis = d["geschlossen"], d["ergebnis"]
         schonfrist = now - start < AUTO_SCHONFRIST_TAGE * 86400 and n_closed < cb.REVIEW_AFTER_CLOSED
-        if hit and not schonfrist:
-            grund = f"Verlust, {n_closed} Positionen, {ergebnis:+.2f} SOL seit Start (mit offenen Positionen)"
+        if d["erfuellt"] and not schonfrist:
+            grund = (f"Verlust, {n_closed} Positionen, {ergebnis:+.2f} SOL seit Start "
+                     f"(mit offenen Positionen){cb.wert0_text(d)}")
             if not schutz:
                 out.append((2, ergebnis, name, addr, grund))
     return [(n, a, g) for _, _, n, a, g in sorted(out, key=lambda x: (x[0], x[1]))]

@@ -57,6 +57,7 @@ WALLET_SILENT_H = 72                    # Wallet-Pruefung: so lange ohne eigenen
 BOT_MIN_MSGS = 200                      # Wallet-Pruefung: ab so vielen Meldungen pro Schicht ...
 BOT_FAILED_SHARE = 0.9                  # ... und so viel Anteil fehlgeschlagen ohne eigenen Trade -> Bot-Verdacht
 REVIEW_AFTER_CLOSED = 30                # Wallet-Pruefung: Ergebnis erst ab 30 geschlossenen Positionen bewerten ...
+KURS_NULL_NACH_S = 24 * 3600            # Wallet-Regel Verlust: seit so langer Zeit kein gueltiger Kurs -> Position zaehlt mit Wert 0 (08.10.)
 PREIS_MAX_ALTER_S = 2 * 3600            # Wallet-Regel Verlust: Kurs einer offenen Position aelter -> kein Urteil (seit 08.10.)
 REVIEW_MIN_LOSS_SOL = 1.0               # ... und nur, wenn mehr als 1 SOL (10 % des Kontos) verloren ist (seit 08.10.: Kontowert seit Start, mit offenen Positionen)
 RECONCILE_EVERY = 3600                  # Bestandsabgleich offener Positionen: beim Start und dann stuendlich
@@ -466,39 +467,86 @@ def open_value(acct):
     return value
 
 
-def ergebnis_seit_start(acct, now=None):
+def kurs_status(p, now):
+    """Wie belastbar ist der Kurs einer offenen Position fuer die Wallet-Regel Verlust? (Entscheidung 08.10.)
+    "ok": gueltiger Kurs (> 0) hoechstens 2 h alt. "null_route": Jupiter hat bei einem Verkauf ausdruecklich
+    "keine Route" geantwortet (quote_out = 0) -> sofort Wert 0. "null_24h": seit mindestens 24 h kein gueltiger Kurs,
+    waehrend der Copy-Bot lief (Jupiter antwortete, aber ohne Kurs fuer diesen Coin) -> Wert 0.
+    "offen": sonst (Ausfall, noch zu kurz, Verkauf wartet, Bot lange nicht gelaufen) -> kein Urteil.
+    Nur vorhandene Daten, keine Abfrage."""
+    if p.get("keine_route_zeit"):
+        return "null_route"
+    if p.get("verkauf_offen"):
+        return "offen"
+    preis, zeit = p.get("letzter_preis_sol"), p.get("letzter_preis_zeit")
+    if preis is not None and zeit is not None and core.as_float(preis) > 0 \
+            and 0 <= now - core.as_float(zeit) <= PREIS_MAX_ALTER_S:
+        return "ok"
+    seit, bis = p.get("kurs_fehlt_seit"), p.get("kurs_fehlt_bis")
+    if seit is not None and bis is not None and 0 <= now - core.as_float(bis) <= PREIS_MAX_ALTER_S \
+            and now - core.as_float(seit) >= KURS_NULL_NACH_S:
+        return "null_24h"
+    return "offen"
+
+
+def ergebnis_detail(acct, now=None):
     """Ergebnis seit Start ueber alle Runden: je geschlossene Position pnl_sol, je offene Position Erloese + Wert jetzt
     - Einsatz - Gebuehren (gleiche Zahl wie Dashboard "seit Start", dort ruft rechnung.copy_konto diese Funktion auf).
-    Rueckgabe (Ergebnis, Zahl offener Positionen ohne Kurs). Ohne Kurs = noch kein Kurs im Verlauf oder Verkauf wartet
-    nach Jupiter-Ausfall, Kurs 0, Kurs aelter als 2 h (oder ohne Zeitstempel); dann ist die Zahl unsicher (kein Urteil)."""
+    Positionen mit kurs_status "null_route"/"null_24h" zaehlen mit Wert 0, "offen" (kein belastbarer Kurs) machen die
+    Zahl unsicher (ohne_kurs, kein Urteil). Rueckgabe: ergebnis, ohne_kurs, wert0_n, wert0_sol (Wert dieser Positionen
+    ohne die Null, bewertet wie open_value ohne Kurs: Einsatz minus Erloese), unvollstaendige alte Positionen zaehlen als ohne Kurs."""
     now = time.time() if now is None else now
     total = sum(core.as_float(c.get("pnl_sol")) for c in acct.get("geschlossen") or [])
-    ohne_kurs = 0
+    ohne_kurs = wert0_n = 0
+    wert0_sol = 0.0
     for p in (acct.get("positionen") or {}).values():
         try:
-            wert = open_value({"positionen": {p.get("mint", ""): p}})
-            total += core.as_float(p.get("proceeds_sol")) - core.as_float(p.get("invested_sol")) \
-                - core.as_float(p.get("fees_sol")) + wert
-            preis = p.get("letzter_preis_sol")
-            zeit = p.get("letzter_preis_zeit")
-            # Kein belastbarer Kurs: fehlt, ist 0 (Jupiter lieferte keinen usdPrice), ist veraltet oder unbekannt alt,
-            # oder der Verkauf wartet nach Jupiter-Ausfall
-            if (preis is None or core.as_float(preis) <= 0 or zeit is None or not 0 <= now - core.as_float(zeit)
-                    <= PREIS_MAX_ALTER_S or p.get("verkauf_offen")):
+            basis = core.as_float(p.get("proceeds_sol")) - core.as_float(p.get("invested_sol")) \
+                - core.as_float(p.get("fees_sol"))
+            status = kurs_status(p, now)
+            if status in ("null_route", "null_24h"):
+                wert0_n += 1
+                wert0_sol += open_value({"positionen": {p.get("mint", ""): dict(p, letzter_preis_sol=None)}})
+                total += basis
+                continue
+            total += basis + open_value({"positionen": {p.get("mint", ""): p}})
+            if status != "ok":
                 ohne_kurs += 1
         except (KeyError, TypeError, ValueError):
             ohne_kurs += 1                      # unvollstaendige alte Position: kein Urteil statt Absturz
-    return total, ohne_kurs
+    return {"ergebnis": total, "ohne_kurs": ohne_kurs, "wert0_n": wert0_n, "wert0_sol": wert0_sol}
+
+
+def ergebnis_seit_start(acct, now=None):
+    """Rueckgabe (Ergebnis, Zahl offener Positionen ohne belastbaren Kurs); Details in ergebnis_detail."""
+    d = ergebnis_detail(acct, now)
+    return d["ergebnis"], d["ohne_kurs"]
+
+
+def verlust_detail(acct, now=None):
+    """Wallet-Regel Verlust (Entscheidung 08.10.): ab 30 geschlossenen Positionen und mehr als 1 SOL Verlust seit Start
+    (Kontowert, offene Positionen zum Kurs, Positionen ohne Route/Kurs seit 24 h mit Wert 0). Fehlt bei einer offenen
+    Position der belastbare Kurs, gibt es kein Urteil. Zusatz nur_wegen_wert0: ohne die Wert-0-Positionen laege die Wallet
+    nicht unter der Grenze."""
+    d = ergebnis_detail(acct, now)
+    d["geschlossen"] = len(acct.get("geschlossen") or [])
+    d["erfuellt"] = d["geschlossen"] >= REVIEW_AFTER_CLOSED and d["ergebnis"] < -REVIEW_MIN_LOSS_SOL and d["ohne_kurs"] == 0
+    d["nur_wegen_wert0"] = bool(d["erfuellt"] and d["wert0_n"] and d["ergebnis"] + d["wert0_sol"] >= -REVIEW_MIN_LOSS_SOL)
+    return d
+
+
+def wert0_text(d):
+    """Kennzeichnung fuer Meldungen, wenn eine Wallet nur wegen Positionen ohne Kurs/Route unter die Grenze faellt."""
+    if not d.get("nur_wegen_wert0"):
+        return ""
+    return (f" - nur wegen {d['wert0_n']} Position(en) mit Wert 0 (keine Route oder seit 24 h kein Kurs, "
+            f"{d['wert0_sol']:.2f} SOL)")
 
 
 def verlust_regel(acct, now=None):
-    """Wallet-Regel Verlust (Entscheidung 08.10.): ab 30 geschlossenen Positionen und mehr als 1 SOL Verlust seit Start
-    (Kontowert, offene Positionen zum Kurs). Fehlt bei einer offenen Position der Kurs, gibt es kein Urteil.
-    Rueckgabe (erfuellt, Ergebnis, geschlossene Positionen, offene ohne Kurs)."""
-    geschlossen = len(acct.get("geschlossen") or [])
-    ergebnis, ohne_kurs = ergebnis_seit_start(acct, now)
-    erfuellt = geschlossen >= REVIEW_AFTER_CLOSED and ergebnis < -REVIEW_MIN_LOSS_SOL and ohne_kurs == 0
-    return erfuellt, ergebnis, geschlossen, ohne_kurs
+    """Rueckgabe (erfuellt, Ergebnis, geschlossene Positionen, offene ohne Kurs); Details in verlust_detail."""
+    d = verlust_detail(acct, now)
+    return d["erfuellt"], d["ergebnis"], d["geschlossen"], d["ohne_kurs"]
 
 
 def account_line(acct):
@@ -507,6 +555,18 @@ def account_line(acct):
     n = len(acct["positionen"])
     return (f"**Konto:** frei {acct['bankroll_sol']:.3f} SOL | {n} offen, Wert jetzt ~{value:.2f} SOL | "
             f"**Kontowert ~{acct['bankroll_sol'] + value:.2f} SOL** | Runde {acct['runde']}")
+
+def route_merken(pos, out):
+    """Jupiter hat bei einem Verkauf ausdruecklich "keine Route" geantwortet (out = 0): merken, damit die Wallet-Regel
+    Verlust den Rest der Position sofort mit Wert 0 rechnet. Eine spaetere Antwort mit Menge hebt die Markierung auf.
+    out = None (Ausfall) wird vorher abgefangen und aendert nichts."""
+    if out is None:
+        return
+    if out > 0:
+        pos.pop("keine_route_zeit", None)
+    else:
+        pos["keine_route_zeit"] = time.time()
+
 
 def trade_fee(t):
     """Unsere Gebuehr = die tatsaechliche Netzwerkgebuehr des Traders fuer diesen Trade
@@ -677,6 +737,8 @@ def copy_sell(name, acct, t, sig, now, reason="VERKAUF", nachgeholt=False):
     batch = pos["gemerkt"]
     sell_raw = pos["tokens_raw"] if full_exit else int(pos["tokens_raw"] * to_sell)
     out = quote_out(t["mint"], core.WSOL_MINT, sell_raw) if sell_raw > 0 else 0
+    if sell_raw > 0:
+        route_merken(pos, out)
     if out is None:
         # Jupiter-Ausfall: nicht als wertlos buchen. Der Anteil bleibt vorgemerkt und wird beim naechsten
         # Verkauf des Traders oder beim stuendlichen Abgleich erneut versucht.
@@ -829,6 +891,7 @@ def retry_sell(name, acct, pos, now):
     out = quote_out(pos["mint"], core.WSOL_MINT, sell_raw)
     if out is None:
         return False                                         # weiter vorgemerkt
+    route_merken(pos, out)
     proceeds = out / 1e9
     fee = pos.get("letzte_gebuehr", DEFAULT_FEE_SOL) if out > 0 else 0
     pos["tokens_raw"] -= sell_raw
@@ -916,6 +979,8 @@ def reconcile(data, now, sol_usd=None):
             out = quote_out(mint, core.WSOL_MINT, sell_raw) if sell_raw > 0 else 0
             if out is None:
                 continue                                     # Jupiter-Ausfall: beim naechsten Abgleich erneut
+            if sell_raw > 0:
+                route_merken(pos, out)
             with booking():
                 proceeds, fee = out / 1e9, (pos.get("letzte_gebuehr", DEFAULT_FEE_SOL) if out > 0 else 0)
                 pos["tokens_raw"] -= sell_raw
@@ -955,7 +1020,8 @@ def log_paths(data, sol_usd, now):
     mints = sorted({it[2]["mint"] for it in items})
     toks = {}
     for i in range(0, len(mints), 100):
-        for tok in jup(f"/tokens/v2/search?query={','.join(mints[i:i + 100])}") or []:
+        res = jup(f"/tokens/v2/search?query={','.join(mints[i:i + 100])}") or []
+        for tok in res:
             if tok.get("id"):
                 toks[tok["id"]] = tok
     os.makedirs(COPY_VERLAUF_DIR, exist_ok=True)
@@ -970,12 +1036,26 @@ def log_paths(data, sol_usd, now):
             w.writerow(COPY_VERLAUF_HEADER)
         for name, art, p in items:
             tok = toks.get(p["mint"])
+            if art == "offen":
+                # Wallet-Regel Verlust (08.10.): gueltiger Kurs merken. Die Zeit ohne Kurs zaehlt nur, wenn Jupiter den Coin
+                # ausdruecklich ohne gueltigen usdPrice geliefert hat. Fehlt der Coin in der Antwort (Ausfall, Teilantwort),
+                # ist das unbekannt: nichts markieren. Liegt die letzte Beobachtung laenger als 2 h zurueck (Ausfall, Bot-Pause,
+                # Neustart), beginnt die 24 h neu.
+                if tok and core.as_float(tok.get("usdPrice")) > 0:
+                    p.pop("kurs_fehlt_seit", None)
+                    p.pop("kurs_fehlt_bis", None)
+                elif tok:
+                    bis = p.get("kurs_fehlt_bis")
+                    if p.get("kurs_fehlt_seit") is None or bis is None or not 0 <= now - core.as_float(bis) <= PREIS_MAX_ALTER_S:
+                        p["kurs_fehlt_seit"] = now
+                    p["kurs_fehlt_bis"] = now
             if not tok:
                 continue
             price = core.as_float(tok.get("usdPrice")) / sol_usd
             if art == "offen":
                 p["letzter_preis_sol"] = price           # fuer den Kontowert in den Meldungen
-                p["letzter_preis_zeit"] = now            # seit 08.10.: Wallet-Regel Verlust braucht einen frischen Kurs
+                if price > 0:
+                    p["letzter_preis_zeit"] = now        # seit 08.10.: Wallet-Regel Verlust braucht einen frischen, gueltigen Kurs
                 bought = p.get("tokens_gekauft_raw") or p["tokens_raw"]
                 entry = p["invested_sol"] / (bought / 10 ** p["decimals"]) if bought else 0
                 value = p["tokens_raw"] / 10 ** p["decimals"] * price
@@ -1015,10 +1095,10 @@ def wallet_check(data, active, now):
         last = a.get("letzter_trade") or datetime.fromisoformat(a["gestartet"]).timestamp()
         if (now - last) / 3600 >= WALLET_SILENT_H:
             notes.append(f"💤 {name}: seit {(now - last) / 3600:.0f} h kein eigener Trade -> ersetzen")
-        hit, ergebnis, closed, _ = verlust_regel(a, now)
-        if hit:
-            notes.append(f"📉 {name}: {closed} Positionen geschlossen, {ergebnis:+.2f} SOL seit Start (mit offenen Positionen) "
-                         "-> pruefen, ob noch lehrreich")
+        d = verlust_detail(a, now)
+        if d["erfuellt"]:
+            notes.append(f"📉 {name}: {d['geschlossen']} Positionen geschlossen, {d['ergebnis']:+.2f} SOL seit Start "
+                         f"(mit offenen Positionen){wert0_text(d)} -> pruefen, ob noch lehrreich")
     return notes
 
 
@@ -1084,6 +1164,7 @@ def cleanup(data):
             raw_out = quote_out(mint, core.WSOL_MINT, pos["tokens_raw"])
             if raw_out is None:
                 continue                                     # Jupiter-Ausfall: Position bleibt offen
+            route_merken(pos, raw_out)                       # Wallet-Regel Verlust: Quote > 0 hebt "keine Route" auf, 0 merkt sie
             out = raw_out / 1e9
             if out > pos["invested_sol"] * CLEANUP_MAX_VALUE_PCT / 100:
                 continue

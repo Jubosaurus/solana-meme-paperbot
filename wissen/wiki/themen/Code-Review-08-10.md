@@ -32,3 +32,7 @@
 - Schutzliste `AUTO_GESCHUETZT`: 4DOV wird bis zum Strategie-Review nie wegen Verlust oder Stille ersetzt; die Bot-Regel gilt weiter. [[Q-2026-10-08-Wallet-Regel-Probe]]
 - Probe vor dem Einbau: Heute erfüllt nur 4DOV (−5,76 SOL seit Start bei 86 Positionen) die neue Regel; ersetzbar sind 0. Nächste Kandidaten: Dior (29 Positionen, −10,96), C7bF (29, −1,50), 54QZ, 8K7Z, Pikalosi. [[Q-2026-10-08-Wallet-Regel-Probe]]
 
+## Position ohne Kurs (Entscheidung Betreiber, 08.10. spät)
+
+- Antwortet Jupiter bei einem Verkauf ausdrücklich „keine Route“, zählt der Rest der Position in der Verlust-Regel sofort mit Wert 0; liefert Jupiter 24 h lang keinen gültigen Kurs, zählt sie danach mit Wert 0; kürzer und bei Ausfall bleibt es bei „kein Kurs = kein Urteil“. Scout-Grund, Copy-Endmeldung und Wallet-Wächter nennen, wenn eine Wallet nur deshalb unter die Grenze fällt. Der frühere offene Punkt (gerugter Coin ohne Kurs) ist damit geschlossen. [[Q-2026-10-08-Wallet-Regel-Probe]]
+

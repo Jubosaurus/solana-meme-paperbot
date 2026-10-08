@@ -637,3 +637,58 @@ def test_copy_verlauf_mit_flugschreiber_spalten_hinten(env, monkeypatch):
     assert len(rows[1]) == len(cb.COPY_VERLAUF_HEADER) and rows[1][10:] == [""] * 5      # alte Zeile: leer ergaenzt
     neu = dict(zip(rows[0], rows[-1]))
     assert neu["mint"] == MINT and neu["holder"] != "" and neu["top10_pct"] != ""
+
+
+# ================================================================ Wallet-Regel Verlust: Kurs- und Routen-Merker (08.10.)
+def test_teilverkauf_ohne_route_merkt_keine_route(env):
+    buy(env, tokens=1_000_000)
+    env.market.price[MINT] = 0                                     # Fake: Quote 0 = Jupiter sagt "keine Route"
+    sell(env, "s1", tokens=500_000, pre=1_000_000, sol=0.25)
+    pos = env.acct["positionen"][MINT]
+    assert pos["tokens_raw"] > 0 and pos.get("keine_route_zeit")
+    d = cb.ergebnis_detail(env.acct, time.time())
+    assert d["wert0_n"] == 1 and d["ohne_kurs"] == 0
+    env.market.price[MINT] = PRICE_USD                             # wieder handelbar
+    sell(env, "s2", tokens=250_000, pre=500_000, sol=0.1)
+    assert "keine_route_zeit" not in env.acct["positionen"][MINT]
+
+
+def test_kursverlauf_merkt_zeit_ohne_kurs_nur_bei_ausdruecklicher_antwort(env, monkeypatch):
+    buy(env)
+    pos = env.acct["positionen"][MINT]
+    ohne_preis = lambda path: [{"id": MINT, "symbol": "X"}] if path.startswith("/tokens/v2/search") else None
+    monkeypatch.setattr(cb, "jup", ohne_preis)
+    t0 = time.time()
+    cb.log_paths(env.data, 100.0, t0)                              # Jupiter liefert den Coin ohne usdPrice
+    assert pos["kurs_fehlt_seit"] == t0 and pos["kurs_fehlt_bis"] == t0 and "letzter_preis_zeit" not in pos
+    cb.log_paths(env.data, 100.0, t0 + 3600)
+    assert pos["kurs_fehlt_seit"] == t0 and pos["kurs_fehlt_bis"] == t0 + 3600     # seit bleibt, bis laeuft mit
+    monkeypatch.setattr(cb, "jup", lambda path: [])                # Ausfall: nichts markieren
+    cb.log_paths(env.data, 100.0, t0 + 7200)
+    assert pos["kurs_fehlt_bis"] == t0 + 3600
+    monkeypatch.setattr(cb, "jup", ohne_preis)
+    cb.log_paths(env.data, 100.0, t0 + 30 * 3600)                  # 30 h Luecke: die 24 h beginnen neu (Codex-Fund)
+    assert pos["kurs_fehlt_seit"] == t0 + 30 * 3600 and cb.kurs_status(pos, t0 + 30 * 3600) == "offen"
+    monkeypatch.setattr(cb, "jup", lambda path: env.market.search([MINT]) if path.startswith("/tokens/v2/search") else None)
+    cb.log_paths(env.data, 100.0, t0 + 31 * 3600)                  # gueltiger Kurs: Markierung weg
+    assert "kurs_fehlt_seit" not in pos and pos["letzter_preis_zeit"] == t0 + 31 * 3600
+
+
+def test_teilantwort_ohne_den_coin_markiert_nichts(env, monkeypatch):
+    buy(env)
+    pos = env.acct["positionen"][MINT]
+    monkeypatch.setattr(cb, "jup", lambda path: [{"id": "AndererMint", "usdPrice": 1.0}] if path.startswith("/tokens/v2/search") else None)
+    t0 = time.time()
+    for h in (0, 12, 25):
+        cb.log_paths(env.data, 100.0, t0 + h * 3600)               # Antworten ohne unseren Coin: unbekannt, nicht "kein Kurs"
+    assert "kurs_fehlt_seit" not in pos and cb.kurs_status(pos, t0 + 25 * 3600) == "offen"
+
+
+def test_bereinigung_mit_positiver_quote_hebt_keine_route_auf(env):
+    buy(env)
+    pos = env.acct["positionen"][MINT]
+    pos["keine_route_zeit"] = time.time() - 60
+    pos["letzter_preis_sol"] = 0.001                               # grob vorsortiert: Wert unter 10 % des Einsatzes
+    env.market.price[MINT] = PRICE_USD * 0.6                       # Quote bietet noch 60 %: ueber der Bereinigungsgrenze
+    assert cb.cleanup(env.data) == 0
+    assert "keine_route_zeit" not in pos                           # trotz offener Position hebt die positive Quote den Merker auf
