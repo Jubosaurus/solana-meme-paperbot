@@ -457,3 +457,27 @@ def test_endmeldung_und_git_dateiliste(clock, sandbox):
                for msg in sandbox["discord"])
     core.git_push()
     assert any(core.WELLEN_FILE in call for call in sandbox["git"])
+
+
+def test_dieselben_coins_unter_mehreren_woertern_geben_nur_eine_welle(clock):
+    views = [core.token_view(tok(mint=addr(f"Mint{chr(65 + i)}"), now=clock.now, age_h=age,
+                                 symbol="GIF", name="CAP GIRAFFE WIF", holders=100 + i,
+                                 price=0.001), clock.now)
+             for i, age in enumerate((1.4, 1.2, 1.0))]
+    p = erkennen(clock, views)
+    assert len(p["wellen"]) == 1
+    assert len([r for r in zeilen() if r["art"] == "start"]) == 1
+
+
+def test_spaeter_gemeinsamer_coin_wird_nicht_zwei_offenen_wellen_zugeordnet(clock):
+    def view(i, name, age, holders=100):
+        return core.token_view(tok(mint=addr(f"Mint{i}"), now=clock.now, age_h=age, symbol=f"S{i}",
+                                   name=name, holders=holders, price=0.001), clock.now)
+    erste = [view(f"C{i}", "CAP", 1.4 - 0.1 * i) for i in range(3)]
+    zweite = [view(f"W{i}", "WIF", 1.4 - 0.1 * i) for i in range(3)]
+    p = erkennen(clock, erste + zweite)
+    assert len(p["wellen"]) == 2
+    gemeinsam = view("X", "CAP WIF", 1.3)
+    erkennen(clock, erste + zweite + [gemeinsam], p=p)
+    treffer = [w for w in p["wellen"].values() if gemeinsam["mint"] in w["mints"]]
+    assert len(treffer) == 1

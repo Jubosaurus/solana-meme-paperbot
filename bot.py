@@ -894,7 +894,10 @@ def namenswellen_pruefen(p, views, now):
                               and now < w.get("until", 0)), None)
                 if offen is not None:
                     first = offen.get("fenster_start", offen.get("zeit", now))
+                    fremd = {m for w in wellen.values() if w is not offen for m in w.get("mints", [])}
                     for mint, c in sorted(coins.items(), key=lambda x: (x[1][0], x[0])):
+                        if mint in fremd:                      # gehoert schon zu einer anderen Welle (seit 08.10.)
+                            continue
                         if first <= c[0] <= first + WELLE_FENSTER_MIN * 60:
                             if mint not in offen.get("mints", []):
                                 offen.setdefault("mints", []).append(mint)
@@ -905,8 +908,9 @@ def namenswellen_pruefen(p, views, now):
                     continue
                 if sum(not w.get("beendet") for w in wellen.values()) >= WELLE_MAX_OFFEN:
                     continue
-                # Bereits beobachtete Coins duerfen nach Ablauf keine zweite Welle bilden.
-                benutzt = {m for w in bisher for m in w.get("mints", [])}
+                # Bereits beobachtete Coins duerfen nach Ablauf keine zweite Welle bilden, auch nicht unter einem
+                # anderen Wort (seit 08.10.: drei Woerter derselben Coins gaben drei Wellen: CAP, GIRAFFE, WIF).
+                benutzt = {m for w in wellen.values() for m in w.get("mints", [])}
                 zeiten = sorted((c[0], mint) for mint, c in coins.items()
                                 if mint not in benutzt and now - c[0] <= WELLE_MAX_ALTER_H * 3600)
                 left = 0
