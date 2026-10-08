@@ -100,6 +100,9 @@ AUTO_MAX_IDLE_H = 24                # letzte Aktivitaet unter 24 h
 AUTO_MIN_COINS = 3                  # mindestens 3 Coins im Zeitraum (04.10. abends: gelockert von 5)
 AUTO_MAX_TRADES_TAG = 200           # hoechstens 200 Trades pro Tag
 AUTO_MIN_KAUF_SOL = 0.1             # Kauf-Median mindestens 0,1 SOL (darunter kaufen wir 0,2 SOL, der Trader viel weniger)
+AUTO_GESCHUETZT = {                 # nie wegen Verlust oder Stille ersetzen (Bot-Regel gilt weiter); Adresse-Kurzname -> Grund
+    "4DOV": "Studie Preisabstand, Betreiber 08.10., gilt bis Strategie-Review",
+}
 AUTO_SCHONFRIST_TAGE = 7            # unter 7 Tagen UND unter 30 Positionen: nicht wegen Ergebnis ersetzen
 WAIT_RECHECK_H = 6                  # Bewertung aelter als 6 h: vor der Aufnahme neu pruefen
 WAIT_MAX_TAGE = 7                   # nach 7 Tagen faellt ein Kandidat von der Warteliste
@@ -749,6 +752,27 @@ def load_flood_hints(now):
     return out
 
 
+def geschuetzte_treffer(active, accounts, now, still_pruefen=True):
+    """Geschuetzte Wallets (AUTO_GESCHUETZT), die Stille oder Verlust-Regel sonst erfuellen wuerden: {Name: Grund}.
+    Nur zur Meldung, rechnet ohne Abfrage aus copy/konten.json."""
+    out = {}
+    for name, _ in active:
+        a = accounts.get(name)
+        if name not in AUTO_GESCHUETZT or not a:
+            continue
+        try:
+            start = datetime.fromisoformat(a["gestartet"]).timestamp()
+        except (KeyError, TypeError, ValueError):
+            start = now
+        idle_h = (now - (a.get("letzter_trade") or start)) / 3600
+        hit, ergebnis, n_closed, _ = cb.verlust_regel(a, now)
+        if still_pruefen and idle_h >= cb.WALLET_SILENT_H:
+            out[name] = f"still, seit {idle_h:.0f} h kein eigener Trade"
+        elif hit:
+            out[name] = f"Verlust, {n_closed} Positionen, {ergebnis:+.2f} SOL seit Start (mit offenen Positionen)"
+    return out
+
+
 def replaceable_wallets(active, accounts, now, check_bots=True, still_pruefen=True):
     """Aktive Wallets, die eine Wallet-Regel erfuellen, in der Reihenfolge Bot, still (laengste Pause zuerst),
     groesster Verlust. [(Name, Adresse, Grund)]. check_bots=False: ohne Helius-Abfrage (nur still/Verlust).
@@ -777,14 +801,18 @@ def replaceable_wallets(active, accounts, now, check_bots=True, still_pruefen=Tr
         except (KeyError, TypeError, ValueError):
             start = now
         idle_h = (now - (a.get("letzter_trade") or start)) / 3600
+        schutz = AUTO_GESCHUETZT.get(name)
         if still_pruefen and idle_h >= cb.WALLET_SILENT_H:
-            out.append((1, -idle_h, name, addr, f"still, seit {idle_h:.0f} h kein eigener Trade"))
+            if not schutz:
+                out.append((1, -idle_h, name, addr, f"still, seit {idle_h:.0f} h kein eigener Trade"))
             continue
-        closed = a.get("geschlossen") or []
-        realized = sum(core.as_float(c.get("pnl_sol")) for c in closed)
-        schonfrist = now - start < AUTO_SCHONFRIST_TAGE * 86400 and len(closed) < cb.REVIEW_AFTER_CLOSED
-        if not schonfrist and len(closed) >= cb.REVIEW_AFTER_CLOSED and realized <= -cb.REVIEW_MIN_LOSS_SOL:
-            out.append((2, realized, name, addr, f"Verlust, {len(closed)} Positionen, {realized:+.2f} SOL"))
+        # Verlust seit Start (08.10.): Kontowert ueber alle Runden, offene Positionen zum Kurs; fehlt ein Kurs, kein Urteil
+        hit, ergebnis, n_closed, _ = cb.verlust_regel(a, now)
+        schonfrist = now - start < AUTO_SCHONFRIST_TAGE * 86400 and n_closed < cb.REVIEW_AFTER_CLOSED
+        if hit and not schonfrist:
+            grund = f"Verlust, {n_closed} Positionen, {ergebnis:+.2f} SOL seit Start (mit offenen Positionen)"
+            if not schutz:
+                out.append((2, ergebnis, name, addr, grund))
     return [(n, a, g) for _, _, n, a, g in sorted(out, key=lambda x: (x[0], x[1]))]
 
 
@@ -965,6 +993,7 @@ def auto_wallets(state, now, sol_usd, rows):
     konten_h = copy_accounts_age_h(now)
     still_ok = konten_h <= AUTO_KONTEN_MAX_ALTER_H     # sonst Copy-Bot ausgefallen: Stille sagt nichts
     still_n = 0                                      # Entfernungen wegen Stille in diesem Lauf
+    STATS["geschuetzt"] = geschuetzte_treffer(active, accounts, now, still_ok)   # nur Meldung (einmal je Lauf)
     repl = None                                      # erst abfragen, wenn ein Kandidat auf einen vollen Platz trifft
     plans, lines, rechecks = [], [], 0
     for e in sorted(wait.values(), key=lambda e: -core.as_float(e.get("punkte"))):
@@ -1149,8 +1178,11 @@ def search(state, now, sol_usd):
 def auto_status_line():
     if not AUTO_AUFNAHME:
         return "**Automatik:** aus (AUTO_AUFNAHME = False), copy_wallets.txt wird nicht geaendert"
-    return (f"**Automatik:** an | heute {STATS.get('auto_heute', 0)} von {AUTO_MAX_PRO_TAG} Aenderungen | "
-            f"Warteliste {STATS.get('warteliste', 0)} | Limit {AUTO_MAX_WALLETS} aktive Wallets")
+    zeile = (f"**Automatik:** an | heute {STATS.get('auto_heute', 0)} von {AUTO_MAX_PRO_TAG} Aenderungen | "
+             f"Warteliste {STATS.get('warteliste', 0)} | Limit {AUTO_MAX_WALLETS} aktive Wallets")
+    for name, grund in sorted((STATS.get("geschuetzt") or {}).items()):     # einmal je Lauf (STATS gilt nur fuer diesen Lauf)
+        zeile += f"\n🛡️ **{name}** geschuetzt ({AUTO_GESCHUETZT.get(name, '')}): sonst ersetzbar wegen {grund}"
+    return zeile
 
 
 def run(nur_liste=False):

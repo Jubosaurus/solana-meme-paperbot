@@ -85,3 +85,6 @@ Noch offen:
 
 ## 08.10.2026 (Wallet-Regel-Zahlen und Korrektur-Paket)
 - Eingespeist: [[Q-2026-10-08-Wallet-Regel-Zahlen]] in [[Code-Review-08-10]]. Schritt 2 (Schutzliste 4DOV) wartet auf Entscheidung des Betreibers.
+
+## 08.10.2026 (Wallet-Verlust-Regel geändert)
+- Eingespeist: [[Q-2026-10-08-Wallet-Regel-Probe]] in [[Code-Review-08-10]] und [[Copy-Trading]] (alte Regelaussage als überholt markiert).

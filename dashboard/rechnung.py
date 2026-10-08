@@ -451,15 +451,17 @@ def copy_konto(name, acct, aktiv, journal_rows, korrigiert, exit_liq=None):
     schatten = acct.get("schatten_geschlossen") or []
     # Ergebnis seit Start ueber alle Runden: je Position Erloese + Wert jetzt - Einsatz - Gebuehren.
     # (Kontowert - 10 SOL gilt nur fuer die laufende Runde; beim Rundenwechsel wird das Konto neu aufgefuellt.)
-    offen_pnl = offen_pnl_vorsichtig = 0.0
+    # Seit 08.10. gemeinsame Rechnung mit der Wallet-Regel (copy_bot.ergebnis_seit_start).
+    seit_start, ohne_kurs = cb.ergebnis_seit_start(acct)
+    offen_pnl_vorsichtig = 0.0
     for p in (acct.get("positionen") or {}).values():
         w = cb.open_value({"positionen": {p.get("mint", ""): p}})
         basis = as_float(p.get("proceeds_sol")) - as_float(p.get("invested_sol")) - as_float(p.get("fees_sol"))
-        offen_pnl += basis + w
         offen_pnl_vorsichtig += basis + (0.0 if p.get("verkauf_offen") else w)
     pnl_zu = sum(as_float(g.get("pnl_sol")) for g in geschlossen)
     return {
-        "ergebnis_seit_start": pnl_zu + offen_pnl, "ergebnis_seit_start_vorsichtig": pnl_zu + offen_pnl_vorsichtig,
+        "ergebnis_seit_start": seit_start, "ergebnis_seit_start_vorsichtig": pnl_zu + offen_pnl_vorsichtig,
+        "ohne_kurs": ohne_kurs,
         "name": name, "aktiv": aktiv, "adresse": acct.get("adresse", ""), "runde": runde,
         "frei": frei, "wert_offen": wert, "kontowert": frei + wert, "vorsichtig": frei + wert - wert_wartend,
         "wartend": len(wartend), "ergebnis_runde": frei + wert - START_SOL,
@@ -1776,8 +1778,17 @@ def _waechter_heute(repo, ab, jetzt, hinweise):
     return {"anzahl": sum(e["automatisch"] for e in ereignisse), "ereignisse": ereignisse}
 
 
+def _waechter_schutzliste():
+    """Geschuetzte Wallets der Scout-Automatik ({Name: Grund}); ohne Scout-Import lesbar -> leer."""
+    try:
+        import scout_bot
+        return dict(scout_bot.AUTO_GESCHUETZT)
+    except Exception:
+        return {}
+
+
 def waechter_uebersicht(repo=None, jetzt=None):
-    """Wallet-Regeln aus lokalen Daten, ohne Bot-Import des Scouts und ohne Schreibzugriff."""
+    """Wallet-Regeln aus lokalen Daten, ohne Schreibzugriff (liest nur die Schutzliste AUTO_GESCHUETZT aus scout_bot)."""
     repo = Path(repo or REPO)
     jetzt = _waechter_zeit(jetzt) if jetzt is not None else datetime.now(timezone.utc).timestamp()
     if jetzt is None:
@@ -1888,9 +1899,20 @@ def waechter_uebersicht(repo=None, jetzt=None):
         schonfrist = n is not None and n < 30 and alter_tage is not None and alter_tage < 7
         # Quelle: CLAUDE.md, Wallet-Regeln: >=30 geschlossene Positionen und
         # >1 SOL Verlust; STRATEGIE.md, Platz: ueber alle Runden, groesster zuerst.
-        verlust = n is not None and n >= 30 and pnl is not None and pnl < -1 and not schonfrist
+        # Seit 08.10. (Entscheidung Betreiber): Ergebnis seit Start mit offenen Positionen zum Kurs; ohne belastbaren Kurs
+        # kein Urteil; Schutzliste (AUTO_GESCHUETZT im Scout) nie wegen Verlust oder Stille, Bot-Regel bleibt.
+        seit_start = _waechter_zahl(k.get("ergebnis_seit_start"))
+        ohne_kurs = k.get("ohne_kurs")
+        if ohne_kurs:
+            luecken.append(f"{ohne_kurs} offene Position(en) ohne frischen Kurs: kein Verlust-Urteil")
+        verlust = (n is not None and n >= 30 and pnl is not None and seit_start is not None and seit_start < -1 and not ohne_kurs
+                   and not schonfrist)
+        geschuetzt = _waechter_schutzliste().get(name)
         if verlust:
-            gruende.append("Mindestens 30 Positionen und mehr als 1 SOL Verlust")
+            gruende.append("Mindestens 30 Positionen und mehr als 1 SOL Verlust seit Start (mit offenen Positionen)")
+        if geschuetzt and (verlust or still):
+            gruende.append(f"Geschützt, wird nicht ersetzt: {geschuetzt}")
+            verlust = still = False
         kandidat = "bot" if bot else "still" if still and frisch else "verlust" if verlust else None
         ampel = "rot" if kandidat else "gelb" if still or schonfrist or luecken else "gruen"
         zeilen.append({"name": name, "wallet": adresse, "ampel": ampel, "kandidat": kandidat,
@@ -1904,7 +1926,7 @@ def waechter_uebersicht(repo=None, jetzt=None):
     kandidaten = [z for z in zeilen if z["kandidat"]]
     kandidaten.sort(key=lambda z: ({"bot": 0, "still": 1, "verlust": 2}[z["kandidat"]],
                                   -z["pause_h"] if z["kandidat"] == "still" else
-                                  z["ergebnis"] if z["kandidat"] == "verlust" else 0, z["name"]))
+                                  z["ergebnis_seit_start"] if z["kandidat"] == "verlust" else 0, z["name"]))
     warteliste = []
     try:
         with (repo / "scout" / "warteliste.csv").open(encoding="utf-8-sig", newline="") as f:

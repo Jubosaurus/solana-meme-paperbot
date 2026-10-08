@@ -86,8 +86,10 @@ else:
         for h in z["luecken"]:
             if h != a.SCOUT_LUECKE:
                 a.hinweis(h)
-    st.caption("Verlustregel: mindestens 30 geschlossene Positionen und mehr als 1 SOL Verlust roh über alle Runden, "
-               "aus geschlossenen Positionen. Die Vorschau nutzt die gemeinsame Copy-Rechnung.")
+    st.caption("Verlustregel (seit 08.10.): mindestens 30 geschlossene Positionen und mehr als 1 SOL Verlust seit Start "
+               "über alle Runden, offene Positionen zum aktuellen Kurs; ohne frischen Kurs kein Urteil. "
+               "Geschützte Wallets (Schutzliste im Scout) werden nie wegen Verlust oder Stille ersetzt. "
+               "Die Vorschau nutzt die gemeinsame Copy-Rechnung.")
 
 st.subheader("Warteliste", anchor=False)
 if not u["warteliste"]:

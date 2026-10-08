@@ -82,16 +82,67 @@ def test_verlust_und_schonfrist_grenzen(tmp_path, keine_historie, n, pnl, alter,
     assert z["kandidat"] == erwartet and z["schonfrist"] == schonfrist
 
 
+def _offene(wert, preis_zeit="frisch", **extra):
+    """Eine offene Position (Einsatz 0.2) zum Kurs 'wert' (1 Token), Kurs jetzt gemeldet."""
+    import time
+    pos = {"mint": "m", "tokens_raw": 1000000, "decimals": 6, "letzter_preis_sol": wert, "invested_sol": 0.2,
+           "proceeds_sol": 0.0, "fees_sol": 0.0}
+    if preis_zeit == "frisch":
+        pos["letzter_preis_zeit"] = time.time()
+    pos.update(extra)
+    return {"m": pos}
+
+
 def test_alle_runden_geschlossen_und_offenes_ergebnis_als_zusatz(tmp_path, keine_historie):
+    # Regel seit 08.10.: offene Gewinne zaehlen mit. Realisiert -2, offen +0.5-0.2: seit Start -1.7 -> Fall.
     acct = konto("Alpha", n=30, pnl=-2, runde=3, bankroll_sol=10)
-    acct["positionen"] = {"m": {"mint": "m", "tokens_raw": 1000000, "decimals": 6,
-                                "letzter_preis_sol": 1, "invested_sol": 0.2, "proceeds_sol": 0.5}}
+    acct["positionen"] = _offene(0.5)
     repo = repository(tmp_path, {"Alpha": acct})
     u = r.waechter_uebersicht(repo, JETZT)
     gemeinsam = r.copy_konten(repo)[0][0]
     assert u["wallets"][0]["ergebnis"] == pytest.approx(gemeinsam["pnl_geschlossen"])
     assert u["wallets"][0]["ergebnis_seit_start"] == pytest.approx(gemeinsam["ergebnis_seit_start"])
-    assert gemeinsam["ergebnis_seit_start"] > -1 and u["naechster"]["kandidat"] == "verlust"
+    assert gemeinsam["ergebnis_seit_start"] == pytest.approx(-2 + 0.3) and u["naechster"]["kandidat"] == "verlust"
+
+
+def test_offene_gewinne_retten_eine_wallet_offene_verluste_machen_sie_zum_fall(tmp_path, keine_historie):
+    gewinn = konto("Gewinn", n=30, pnl=-1.5)
+    gewinn["positionen"] = _offene(1.2)                    # +1.0 offen: seit Start -0.5
+    verlust = konto("Verlust", n=30, pnl=-0.6)
+    verlust["positionen"] = _offene(1e-9)                   # -0.2 offen: -0.8 (noch kein Fall)
+    verlust2 = konto("Verlust2", n=30, pnl=-0.9)
+    verlust2["positionen"] = _offene(1e-9)                  # -0.2 offen: -1.1 (Fall, realisiert nur -0.9)
+    u = r.waechter_uebersicht(repository(tmp_path, {"Gewinn": gewinn, "Verlust": verlust, "Verlust2": verlust2}), JETZT)
+    assert [z["name"] for z in u["kandidaten"]] == ["Verlust2"]
+
+
+def test_ohne_frischen_kurs_kein_verlust_urteil(tmp_path, keine_historie):
+    wallets = {}
+    for name, pos in {"Keiner": _offene(0.0, preis_zeit=None), "Null": _offene(0.0, letzter_preis_zeit=__import__("time").time()),
+                      "Alt": _offene(0.5, letzter_preis_zeit=__import__("time").time() - 3 * 3600),
+                      "Wartet": _offene(0.5, verkauf_offen=True)}.items():
+        acct = konto(name, n=30, pnl=-1.5)
+        acct["positionen"] = pos
+        wallets[name] = acct
+    wallets["Keiner"]["positionen"]["m"]["letzter_preis_sol"] = None
+    u = r.waechter_uebersicht(repository(tmp_path, wallets), JETZT)
+    assert u["kandidaten"] == []
+    assert all(any("ohne frischen Kurs" in h for h in z["luecken"]) for z in u["wallets"])
+
+
+def test_schutzliste_wird_im_waechter_beruecksichtigt(tmp_path, keine_historie, monkeypatch):
+    import scout_bot
+    monkeypatch.setattr(scout_bot, "AUTO_GESCHUETZT", {"Alpha": "Studie"})
+    wallets = {"Alpha": konto("Alpha", n=30, pnl=-3), "Beta": konto("Beta", n=30, pnl=-3),
+               "Gamma": konto("Gamma", pause=100)}
+    wallets["Gamma"]["gestartet"] = wallets["Alpha"]["gestartet"]
+    u = r.waechter_uebersicht(repository(tmp_path, wallets), JETZT)
+    assert [z["name"] for z in u["kandidaten"]] == ["Gamma", "Beta"]
+    alpha = next(z for z in u["wallets"] if z["name"] == "Alpha")
+    assert alpha["kandidat"] is None and any("Geschützt" in g for g in alpha["gruende"])
+    monkeypatch.setattr(scout_bot, "AUTO_GESCHUETZT", {"Gamma": "Studie"})      # Schutz gilt auch gegen Stille
+    u = r.waechter_uebersicht(repository(tmp_path, wallets), JETZT)
+    assert [z["name"] for z in u["kandidaten"]] == ["Alpha", "Beta"]
 
 
 @pytest.mark.parametrize("saved,frisch", [(JETZT - 7200, True), (JETZT - 7201, False),

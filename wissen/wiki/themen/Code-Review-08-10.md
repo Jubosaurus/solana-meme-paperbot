@@ -26,3 +26,9 @@
 
 - CR6-3 behoben (eingespielt 08.10.): Sicherung der drei Workflows mit bis zu 4 Versuchen, danach roter Lauf; der Scout schreibt die Prüfliste dabei nie zurück. Aufzeichnung des echten Bundle-Check-Grundes (zwei neue Spalten hinten in `knapp_abgelehnt.csv`). Kauf- und Ablehnungsverhalten unverändert. Siehe `STRATEGIE.md`, Änderungsprotokoll 08.10. [[Q-2026-10-08-Wallet-Regel-Zahlen]]
 
+## Regeländerung Wallet-Verlust (Entscheidung Betreiber, 08.10. Abend)
+
+- Die Verlust-Regel rechnet seit 08.10. mit dem Kontowert seit Start über alle Runden, offene Positionen zum aktuellen Kurs (gemeinsame Rechnung `copy_bot.ergebnis_seit_start`, gleiche Zahl wie Dashboard „seit Start“); ohne Kurs einer offenen Position kein Urteil. [[Q-2026-10-08-Wallet-Regel-Probe]]
+- Schutzliste `AUTO_GESCHUETZT`: 4DOV wird bis zum Strategie-Review nie wegen Verlust oder Stille ersetzt; die Bot-Regel gilt weiter. [[Q-2026-10-08-Wallet-Regel-Probe]]
+- Probe vor dem Einbau: Heute erfüllt nur 4DOV (−5,76 SOL seit Start bei 86 Positionen) die neue Regel; ersetzbar sind 0. Nächste Kandidaten: Dior (29 Positionen, −10,96), C7bF (29, −1,50), 54QZ, 8K7Z, Pikalosi. [[Q-2026-10-08-Wallet-Regel-Probe]]
+

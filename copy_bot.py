@@ -57,7 +57,8 @@ WALLET_SILENT_H = 72                    # Wallet-Pruefung: so lange ohne eigenen
 BOT_MIN_MSGS = 200                      # Wallet-Pruefung: ab so vielen Meldungen pro Schicht ...
 BOT_FAILED_SHARE = 0.9                  # ... und so viel Anteil fehlgeschlagen ohne eigenen Trade -> Bot-Verdacht
 REVIEW_AFTER_CLOSED = 30                # Wallet-Pruefung: Ergebnis erst ab 30 geschlossenen Positionen bewerten ...
-REVIEW_MIN_LOSS_SOL = 1.0               # ... und nur, wenn mehr als 1 SOL (10 % des Kontos) verloren ist
+PREIS_MAX_ALTER_S = 2 * 3600            # Wallet-Regel Verlust: Kurs einer offenen Position aelter -> kein Urteil (seit 08.10.)
+REVIEW_MIN_LOSS_SOL = 1.0               # ... und nur, wenn mehr als 1 SOL (10 % des Kontos) verloren ist (seit 08.10.: Kontowert seit Start, mit offenen Positionen)
 RECONCILE_EVERY = 3600                  # Bestandsabgleich offener Positionen: beim Start und dann stuendlich
 BACKFILL_MAX_PAGES = 3                  # Nachholen: hoechstens 3 x 100 Signaturen je Wallet und Luecke
 MAX_SIGS_PER_POS = 60                   # verarbeitete Trader-Signaturen je Position (Schutz vor Doppelverarbeitung)
@@ -463,6 +464,41 @@ def open_value(acct):
         else:
             value += max(0.0, p["invested_sol"] - p["proceeds_sol"])
     return value
+
+
+def ergebnis_seit_start(acct, now=None):
+    """Ergebnis seit Start ueber alle Runden: je geschlossene Position pnl_sol, je offene Position Erloese + Wert jetzt
+    - Einsatz - Gebuehren (gleiche Zahl wie Dashboard "seit Start", dort ruft rechnung.copy_konto diese Funktion auf).
+    Rueckgabe (Ergebnis, Zahl offener Positionen ohne Kurs). Ohne Kurs = noch kein Kurs im Verlauf oder Verkauf wartet
+    nach Jupiter-Ausfall, Kurs 0, Kurs aelter als 2 h (oder ohne Zeitstempel); dann ist die Zahl unsicher (kein Urteil)."""
+    now = time.time() if now is None else now
+    total = sum(core.as_float(c.get("pnl_sol")) for c in acct.get("geschlossen") or [])
+    ohne_kurs = 0
+    for p in (acct.get("positionen") or {}).values():
+        try:
+            wert = open_value({"positionen": {p.get("mint", ""): p}})
+            total += core.as_float(p.get("proceeds_sol")) - core.as_float(p.get("invested_sol")) \
+                - core.as_float(p.get("fees_sol")) + wert
+            preis = p.get("letzter_preis_sol")
+            zeit = p.get("letzter_preis_zeit")
+            # Kein belastbarer Kurs: fehlt, ist 0 (Jupiter lieferte keinen usdPrice), ist veraltet oder unbekannt alt,
+            # oder der Verkauf wartet nach Jupiter-Ausfall
+            if (preis is None or core.as_float(preis) <= 0 or zeit is None or not 0 <= now - core.as_float(zeit)
+                    <= PREIS_MAX_ALTER_S or p.get("verkauf_offen")):
+                ohne_kurs += 1
+        except (KeyError, TypeError, ValueError):
+            ohne_kurs += 1                      # unvollstaendige alte Position: kein Urteil statt Absturz
+    return total, ohne_kurs
+
+
+def verlust_regel(acct, now=None):
+    """Wallet-Regel Verlust (Entscheidung 08.10.): ab 30 geschlossenen Positionen und mehr als 1 SOL Verlust seit Start
+    (Kontowert, offene Positionen zum Kurs). Fehlt bei einer offenen Position der Kurs, gibt es kein Urteil.
+    Rueckgabe (erfuellt, Ergebnis, geschlossene Positionen, offene ohne Kurs)."""
+    geschlossen = len(acct.get("geschlossen") or [])
+    ergebnis, ohne_kurs = ergebnis_seit_start(acct, now)
+    erfuellt = geschlossen >= REVIEW_AFTER_CLOSED and ergebnis < -REVIEW_MIN_LOSS_SOL and ohne_kurs == 0
+    return erfuellt, ergebnis, geschlossen, ohne_kurs
 
 
 def account_line(acct):
@@ -939,6 +975,7 @@ def log_paths(data, sol_usd, now):
             price = core.as_float(tok.get("usdPrice")) / sol_usd
             if art == "offen":
                 p["letzter_preis_sol"] = price           # fuer den Kontowert in den Meldungen
+                p["letzter_preis_zeit"] = now            # seit 08.10.: Wallet-Regel Verlust braucht einen frischen Kurs
                 bought = p.get("tokens_gekauft_raw") or p["tokens_raw"]
                 entry = p["invested_sol"] / (bought / 10 ** p["decimals"]) if bought else 0
                 value = p["tokens_raw"] / 10 ** p["decimals"] * price
@@ -978,10 +1015,10 @@ def wallet_check(data, active, now):
         last = a.get("letzter_trade") or datetime.fromisoformat(a["gestartet"]).timestamp()
         if (now - last) / 3600 >= WALLET_SILENT_H:
             notes.append(f"💤 {name}: seit {(now - last) / 3600:.0f} h kein eigener Trade -> ersetzen")
-        closed = len(a["geschlossen"])
-        realized = sum(c["pnl_sol"] for c in a["geschlossen"])
-        if closed >= REVIEW_AFTER_CLOSED and realized <= -REVIEW_MIN_LOSS_SOL:
-            notes.append(f"📉 {name}: {closed} Positionen geschlossen, {realized:+.2f} SOL -> pruefen, ob noch lehrreich")
+        hit, ergebnis, closed, _ = verlust_regel(a, now)
+        if hit:
+            notes.append(f"📉 {name}: {closed} Positionen geschlossen, {ergebnis:+.2f} SOL seit Start (mit offenen Positionen) "
+                         "-> pruefen, ob noch lehrreich")
     return notes
 
 

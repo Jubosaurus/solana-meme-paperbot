@@ -30,8 +30,9 @@ def hinweise(k):
         h.append(f"{k['wartend']} wartet auf Verkauf")
     if k["aktiv"] and k["letzter_trade"] and jetzt - k["letzter_trade"] > 72 * 3600:
         h.append("72 h ohne Trade → ersetzen")
-    if k["geschlossen"] >= 30 and k["pnl_geschlossen"] < -1:
-        h.append("prüfen: ≥ 30 Positionen, > 1 SOL Verlust")
+    # Regel seit 08.10.: Ergebnis seit Start inkl. offener Positionen zum Kurs (wie die Wallet-Regel im Bot); ohne Kurs kein Urteil
+    if k["geschlossen"] >= 30 and k["ergebnis_seit_start"] < -1 and not k.get("ohne_kurs"):
+        h.append("prüfen: ≥ 30 Positionen, > 1 SOL Verlust seit Start")
     if k["runde"] > 1:
         h.append(f"{k['runde'] - 1}× Konto aufgebraucht")
     if k["korrigiert"]:
@@ -118,7 +119,8 @@ a.datentabelle(pd.DataFrame([{
        "Nicht gekauft und frühe Verkäufe": ["Trader", "Schatten", "Schatten SOL", "Trader raus ≤ 60 s", "raus vor uns"],
        "Letzter Trade und Hinweise": ["Trader", "letzter Trade", "Hinweise"],
    })
-st.caption("Wallet-Regeln: 72 h ohne Trade → ersetzen; nach 30 Positionen und mehr als 1 SOL Verlust → prüfen. "
+st.caption("Wallet-Regeln: 72 h ohne Trade → ersetzen; nach 30 Positionen und mehr als 1 SOL Verlust seit Start "
+           "(mit offenen Positionen) → prüfen. "
            "Der Bot entscheidet nichts selbst, die Entscheidung triffst du.")
 
 # ---------------------------------------------------------------- Einzelner Trader
