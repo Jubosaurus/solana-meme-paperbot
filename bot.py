@@ -321,6 +321,7 @@ _helius_last = [0.0]
 HELIUS_INTERVAL = 0.15      # Hauptbot hoechstens ~6,5 Anfragen/s; der Copy-Bot setzt fuer sich einen langsameren Wert
 HELIUS_RETRY_WAIT = (0.5, 1.0, 2.0)   # bei 429 (zu viele Anfragen) bis zu drei weitere Versuche
 _block0_cache = {}
+_block0_diag = {}       # Mint -> Grund des letzten Ausfalls der Block-0-Analyse (nur Aufzeichnung, 08.10.)
 _bundle_cache = {}
 _portfolio_alarm = set()
 _shield_cache = {}
@@ -466,6 +467,7 @@ def find_creation_block(mint):
             params["before"] = before
         result = rpc("getSignaturesForAddress", [mint, params])
         if result is None:
+            _block0_diag[mint] = {"grund": "rpc_fehler"}
             return None
         if not result:
             break
@@ -475,9 +477,11 @@ def find_creation_block(mint):
         before = result[-1]["signature"]
     else:
         STATS["block0_too_many"] += 1       # erwartete Grenze, steht in der Endmeldung statt im Log
+        _block0_diag[mint] = {"grund": "zu_viele_transaktionen"}
         return None
     sigs = prev_page + page
     if not sigs:
+        _block0_diag[mint] = {"grund": "keine_signaturen"}
         return None
     slot = min(s["slot"] for s in sigs)
     block0 = [s for s in sigs if s["slot"] == slot and not s.get("err")]
@@ -490,18 +494,23 @@ def block0_analysis(mint):
     wie viel vom Angebot, und halten diese Wallets noch?"""
     base = _block0_cache.get(mint)
     if base is None:
+        _block0_diag.pop(mint, None)
         found = find_creation_block(mint)
         if not found:
             return None
         slot, sigs, early = found
         supply = as_float(((rpc("getTokenSupply", [mint]) or {}).get("value") or {}).get("amount"))
         if supply <= 0:
+            _block0_diag[mint] = {"grund": "supply_fehlt"}
             return None
         bought = {}
+        tx_fehlend = 0                            # nur Aufzeichnung: nicht abrufbare Transaktionen in Block 0
         for s in sigs[:BLOCK0_MAX_TX]:
             tx = rpc("getTransaction", [s["signature"], {"encoding": "json", "commitment": "confirmed",
                                                           "maxSupportedTransactionVersion": 1}])
             meta = (tx or {}).get("meta") or {}
+            if not tx:
+                tx_fehlend += 1
             if not tx or meta.get("err"):
                 continue
             pre = {b.get("accountIndex"): b for b in meta.get("preTokenBalances") or []
@@ -518,13 +527,14 @@ def block0_analysis(mint):
                     continue                      # Bonding Curve bzw. Pool, kein Kaeufer
                 bought[b["owner"]] = bought.get(b["owner"], 0.0) + (post_amt - pre_amt)
         base = {"slot": slot, "block0_tx": len(sigs), "early_tx": early,
-                "supply": supply, "bought": bought}
+                "supply": supply, "bought": bought, "tx_fehlend": tx_fehlend}
         _block0_cache[mint] = base
 
-    held, exited = 0.0, 0
+    held, exited, halter_fehlend = 0.0, 0, 0
     for owner, amount in list(base["bought"].items())[:BLOCK0_MAX_WALLETS]:
         res = rpc("getTokenAccountsByOwner", [owner, {"mint": mint}, {"encoding": "jsonParsed"}])
         if res is None:
+            halter_fehlend += 1
             held += amount                       # unbekannt: vorsichtshalber noch gehalten
             continue
         current = 0.0
@@ -546,6 +556,8 @@ def block0_analysis(mint):
         "block0_exited": exited,
         "early_tx_slot1_2": base["early_tx"],
         "bundle_holding_pct": round(held / supply * 100, 2),
+        "block0_tx_fehlend": base.get("tx_fehlend", 0),
+        "block0_halter_fehlend": halter_fehlend,
     }
 
 
@@ -1201,6 +1213,8 @@ def bundle_dev_check(mint):
     if cached and time.time() - cached[0] < cached[3]:
         return cached[1], cached[2]
 
+    if not HELIUS_RPC:
+        _block0_diag[mint] = {"grund": "kein_helius"}
     b0 = block0_analysis(mint) if HELIUS_RPC else None
     if not b0:
         # 30 min merken: sonst geht der Bot bei Coins mit >40.000 Transaktionen
@@ -1424,7 +1438,8 @@ ENTRY_FEATURES = ("age_h", "mcap", "liquidity", "holders", "holder_growth_1h", "
                   "jup_fees")                     # neue Merkmale nur hinten anhaengen (CSV-Spalten)
 
 
-NEAR_MISS_HEADER = ["zeit", "symbol", "mint", "grund", "detail", "preis_usd", *ENTRY_FEATURES]
+NEAR_MISS_HEADER = ["zeit", "symbol", "mint", "grund", "detail", "preis_usd", *ENTRY_FEATURES,
+                    "bundle_grund", "bundle_fehlend"]      # seit 08.10. hinten: echter Grund des Bundle-Check-Ausfalls
 
 
 def verlauf_file():
@@ -1583,6 +1598,21 @@ def near_miss_detail(v, reason, extra=None):
     return None
 
 
+BUNDLE_GRUND_TEXT = {"zu_viele_transaktionen": "zu viele Transaktionen", "rpc_fehler": "RPC-Fehler",
+                     "keine_signaturen": "keine Transaktionen gefunden", "supply_fehlt": "Angebot nicht lesbar",
+                     "kein_helius": "kein Helius-Zugang"}
+
+
+def bundle_diag_felder(mint, reason, extra):
+    """Nur Aufzeichnung (knapp_abgelehnt.csv): echter Grund des Bundle-Check-Ausfalls und Zahl fehlender
+    Transaktionen/Halter-Abfragen aus der Block-0-Analyse. Aendert kein Verhalten."""
+    if reason == "BUNDLE_CHECK_NICHT_MOEGLICH":
+        return [(_block0_diag.get(mint) or {}).get("grund", "unbekannt"), ""]
+    if extra and (extra.get("block0_tx_fehlend") or extra.get("block0_halter_fehlend")):
+        return ["", f"tx {extra.get('block0_tx_fehlend', 0)}, halter {extra.get('block0_halter_fehlend', 0)}"]
+    return ["", ""]
+
+
 def track_near_miss(p, v, reason, now, extra=None):
     """Knapp abgelehnte Coins 6 h weiter beobachten (nur Aufzeichnung, kein Handel)."""
     detail = near_miss_detail(v, reason, extra)
@@ -1603,7 +1633,8 @@ def track_near_miss(p, v, reason, now, extra=None):
         if new:
             w.writerow(NEAR_MISS_HEADER)
         w.writerow([datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S"), v["symbol"], mint,
-                    reason, detail, f"{v['price']:.12g}", *[v.get(k) for k in ENTRY_FEATURES]])
+                    reason, detail, f"{v['price']:.12g}", *[v.get(k) for k in ENTRY_FEATURES],
+                    *bundle_diag_felder(mint, reason, extra)])
     dex_vormerken("knapp_abgelehnt", v, reason)
 
 
@@ -1742,7 +1773,10 @@ def open_position(p, v, bundle, sol_usd, max_slippage_pct=None, extra_pos=None):
         bundle_txt = (f"Block 0: {bundle['block0_wallets']} Kaeufer, "
                       f"{bundle['block0_supply_pct']:.1f}% gekauft, "
                       f"{bundle['block0_still_held_pct']:.1f}% noch gehalten"
-                      + (" (gebuendelt, Bundler ausgestiegen)" if bundle.get("gebuendelt") else ""))
+                      + (" (gebuendelt, Bundler ausgestiegen)" if bundle.get("gebuendelt") else "")
+                      + (f" (unvollstaendig: {bundle.get('block0_tx_fehlend', 0)} Tx, "
+                         f"{bundle.get('block0_halter_fehlend', 0)} Halter fehlen)"
+                         if bundle.get("block0_tx_fehlend") or bundle.get("block0_halter_fehlend") else ""))
     else:
         bundle_txt = f"Insider halten {bundle.get('bundle_holding_pct', 0):.1f}% (RugCheck)"
     thesis = (f"Story verbreitet sich: Holder +{v['holder_growth_1h']:.0f}%/h, "
@@ -2189,8 +2223,9 @@ def scan(p, sol_usd, now, exps=None):
             continue
         reason, bundle = bundle_dev_check(v["mint"])
         if reason == "BUNDLE_CHECK_NICHT_MOEGLICH" and e2_ok:        # Experiment Heisse Coins
+            grund = (_block0_diag.get(v["mint"]) or {}).get("grund", "")     # seit 08.10. echter Grund statt immer "zu viele Transaktionen"
             exp_buy("heisse_coins", e2, v, {"quelle": "experiment", "text":
-                    "Bundle-Check nicht moeglich (zu viele Transaktionen), trotzdem gekauft"}, sol_usd)
+                    f"Bundle-Check nicht moeglich ({BUNDLE_GRUND_TEXT.get(grund, 'Grund unbekannt')}), trotzdem gekauft"}, sol_usd)
         if reason:
             log_reject(v, reason)
             track_near_miss(p, v, reason, now, bundle)

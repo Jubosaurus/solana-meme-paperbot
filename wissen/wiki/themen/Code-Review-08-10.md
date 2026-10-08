@@ -16,3 +16,13 @@
 - Scout: CR5-1 bis CR5-3 ohne neue Helius-Abfragen nicht nachrechenbar; von 8 seit 05.10. automatisch aufgenommenen Wallets mit Ergebnis liegen 6 im Minus (zusammen −1,36 SOL), alle vier mit knappster Aufnahme-Prognose im Minus (kleine Stichprobe). CR5-7: 24 aktive Wallets, 6 Plätze frei, 4DOV heute nicht ersetzbar; die Zahlen zu 4DOV (−4,25 SOL am 08.10. gegen +0,20 SOL in `copy/konten.json`) passen nicht zusammen. [[Q-2026-10-08-Code-Review-Haeufigkeit]]
 - Vorschlag im Bericht: vor dem Strategie-Review nichts beheben (höchstens den echten Grund und übersprungene Transaktionen mitschreiben); danach CR6-3, CR5-1 bis CR5-3 und CR5-7, dann CR4-2/CR4-3; CR4-1, CR3-6 und CR4-12 wegen Seltenheit nicht. Beschlossen ist nichts. [[Q-2026-10-08-Code-Review-Haeufigkeit]]
 
+## Wallet-Regel: welche Zahl gilt (08.10., Abend)
+
+- Die Regel im Code (`copy_bot.py`, `scout_bot.py`, Regel-Hinweis im Dashboard) rechnet nur **realisierte** Ergebnisse (geschlossene Positionen, alle Runden). Die Tagesauswertung vom 08.10. nannte dagegen „Kontowert minus 10 SOL“ bzw. „seit Start“ mit offenen Positionen. [[Q-2026-10-08-Wallet-Regel-Zahlen]]
+- 4DOV am 08.10. früh: 80 Positionen, realisiert +1,21 SOL, mit 18 offenen Positionen −4,25 SOL; am Abend 86 Positionen, realisiert 0,00, mit offenen −5,84. Nach der Regel im Code ist 4DOV also nicht unter der Grenze und wird derzeit nicht wegen Verlust ersetzt. [[Q-2026-10-08-Wallet-Regel-Zahlen]]
+- G7b2 (realisiert −2,05, genannt −2,40), 7Cn1 (−3,19, genannt −2,69) und 2Nxj (−1,40) liegen nach beiden Rechnungen über der Grenze; ihre Entfernung ist nach beiden gedeckt. [[Q-2026-10-08-Wallet-Regel-Zahlen]]
+
+## Korrektur-Paket (08.10., Abend)
+
+- CR6-3 behoben (eingespielt 08.10.): Sicherung der drei Workflows mit bis zu 4 Versuchen, danach roter Lauf; der Scout schreibt die Prüfliste dabei nie zurück. Aufzeichnung des echten Bundle-Check-Grundes (zwei neue Spalten hinten in `knapp_abgelehnt.csv`). Kauf- und Ablehnungsverhalten unverändert. Siehe `STRATEGIE.md`, Änderungsprotokoll 08.10. [[Q-2026-10-08-Wallet-Regel-Zahlen]]
+

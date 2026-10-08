@@ -57,19 +57,35 @@ jobs:
       # Sichert nur den Ordner copy/, die Dateien des Hauptbots bleiben unberuehrt
       - name: Sicherung
         if: always() && github.event.inputs.modus != 'probe'
+        id: sicherung
+        continue-on-error: true   # Fehler wird ganz unten sichtbar gemacht, der Kettenstart darf nicht ausfallen
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           if [ -d .git/rebase-merge ] || [ -d .git/rebase-apply ]; then git rebase --abort || true; fi
-          git fetch -q origin main && git reset -q origin/main
-          [ -e copy ] && git add copy || true
-          if ! git diff --cached --quiet; then
+          # Bis zu 4 Versuche: jedes Mal frisch auf den neuesten Stand von main setzen (Daten nie mischen), neu committen, pushen
+          ok=0
+          for versuch in 1 2 3 4; do
+            git fetch -q origin main && git reset -q origin/main || { sleep $((versuch * 5)); continue; }
+            staging=1
+            if [ -e copy ]; then git add copy || staging=0; fi
+            [ "$staging" = 1 ] || { sleep $((versuch * 5)); continue; }      # Staging-Fehler = gescheiterter Versuch
+            if git diff --cached --quiet; then ok=1; break; fi
             git commit -q -m "COPY Sicherung [skip ci]"
-            git push -q origin HEAD:main || echo "::warning::Sicherung fehlgeschlagen"
-          fi
+            if git push -q origin HEAD:main; then ok=1; break; fi
+            sleep $((versuch * 5))
+          done
+          if [ "$ok" != 1 ]; then echo "::error::Sicherung fehlgeschlagen (4 Versuche)"; exit 1; fi
 
       - name: Naechste Schicht starten
         if: success() && github.event.inputs.modus != 'probe'
         env:
           GH_TOKEN: ${{ github.token }}
         run: gh workflow run copy_runner.yml --ref main -f modus=normal || echo "::warning::Naechste Schicht konnte nicht gestartet werden"
+
+      # Ganz am Ende, damit der Kettenstart oben nicht ausfaellt: ein fehlgeschlagener Push macht den Lauf sichtbar rot
+      - name: Sicherung pruefen
+        if: always() && steps.sicherung.outcome == 'failure'
+        run: |
+          echo "::error::Die letzte Sicherung ist fehlgeschlagen, Daten seit dem letzten Zwischen-Push koennen fehlen"
+          exit 1

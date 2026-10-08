@@ -82,3 +82,6 @@ Noch offen:
 
 ## 08.10.2026 (Code-Review: Häufigkeit)
 - Eingespeist: [[Q-2026-10-08-Code-Review-Haeufigkeit]] in [[Code-Review-08-10]]. Nichts beschlossen.
+
+## 08.10.2026 (Wallet-Regel-Zahlen und Korrektur-Paket)
+- Eingespeist: [[Q-2026-10-08-Wallet-Regel-Zahlen]] in [[Code-Review-08-10]]. Schritt 2 (Schutzliste 4DOV) wartet auf Entscheidung des Betreibers.

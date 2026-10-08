@@ -64,12 +64,29 @@ jobs:
       # Sichert nur den Ordner scout/ (copy_wallets.txt committet die Automatik im Scout selbst)
       - name: Sicherung
         if: always() && github.event.inputs.modus != 'probe'
+        id: sicherung
+        continue-on-error: true   # Fehler wird ganz unten sichtbar gemacht, der Kettenstart darf nicht ausfallen
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git fetch -q origin main && git reset -q origin/main
-          [ -e scout ] && git add scout || true
-          if ! git diff --cached --quiet; then
+          # Bis zu 4 Versuche: jedes Mal frisch auf den neuesten Stand von main setzen (Daten nie mischen), neu committen, pushen
+          ok=0
+          for versuch in 1 2 3 4; do
+            git fetch -q origin main && git reset -q origin/main || { sleep $((versuch * 5)); continue; }
+            staging=1
+            # Die Pruefliste schreibt nur das Dashboard (dashboard/wallets.py): nie die alte Fassung vom Laufanfang zurueckschreiben
+            if [ -e scout ]; then git add scout ':!scout/pruefen.txt' ':!scout/pruefen_tx.txt' || staging=0; fi
+            [ "$staging" = 1 ] || { sleep $((versuch * 5)); continue; }      # Staging-Fehler = gescheiterter Versuch
+            if git diff --cached --quiet; then ok=1; break; fi
             git commit -q -m "SCOUT Sicherung [skip ci]"
-            git push -q origin HEAD:main || echo "::warning::Sicherung fehlgeschlagen"
-          fi
+            if git push -q origin HEAD:main; then ok=1; break; fi
+            sleep $((versuch * 5))
+          done
+          if [ "$ok" != 1 ]; then echo "::error::Sicherung fehlgeschlagen (4 Versuche)"; exit 1; fi
+
+      # Ganz am Ende, damit der Kettenstart oben nicht ausfaellt: ein fehlgeschlagener Push macht den Lauf sichtbar rot
+      - name: Sicherung pruefen
+        if: always() && steps.sicherung.outcome == 'failure'
+        run: |
+          echo "::error::Die letzte Sicherung ist fehlgeschlagen, Daten seit dem letzten Zwischen-Push koennen fehlen"
+          exit 1
