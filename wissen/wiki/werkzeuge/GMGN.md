@@ -9,3 +9,4 @@
 - Adressen aus `copy_wallets.txt` stehen im Format `Name: Adresse`; beim Einlesen die Adresse nach dem Doppelpunkt verwenden. [[Q-2026-10-08-GMGN-Lesetest]]
 - Entscheidung vom 08.10.: GMGN-Wallet nur als Zugang, kein Handel. Schl?ssel ausschlie?lich als GitHub-Secret; keine GMGN-Werte ins Repository. [[Q-2026-10-08-GMGN-Lesetest]]
 - GMGN-Einbau nur als zus?tzliche Kandidatenquelle: am 08.10. vom Betreiber freigegeben, Umsetzung l?uft. [[Q-2026-10-08-GMGN-Lesetest]]
+- Scout-Verteilung (08.10.): Die 40 GMGN-Prüfplätze je Lauf gehen fair an Smartmoney, KOL und Top-Trader (erst höchstens je 14, dann Rest auffüllen); vorher belegte Smartmoney alle Plätze. Der Bericht zeigt je Quelle „Plätze“ (nur Anzahlen). Abfragezahl unverändert. [[Entscheidungen]]

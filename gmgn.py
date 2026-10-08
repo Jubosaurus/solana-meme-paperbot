@@ -134,6 +134,12 @@ def bericht(stats):
         return "**GMGN:** kein Key"
     if stats.get("gmgn_429"):
         return "**GMGN:** nach 429 abgebrochen"
-    return (f"**GMGN:** {stats.get('gmgn_abfragen', 0)} Abfragen, {stats.get('gmgn_adressen', 0)} Adressen, "
+    text = (f"**GMGN:** {stats.get('gmgn_abfragen', 0)} Abfragen, {stats.get('gmgn_adressen', 0)} Adressen, "
             f"{stats.get('gmgn_neu', 0)} neu, {stats.get('gmgn_429', 0)}x 429, "
             f"{stats.get('gmgn_fehler', 0)} Fehler")
+    namen = (("smartmoney", "Smartmoney"), ("kol", "KOL"), ("toptrader", "Top-Trader"))
+    teile = [f"{n} {stats.get('gmgn_neu_' + k, 0)}/{stats.get('gmgn_angeboten_' + k, 0)}"
+             for k, n in namen if ("gmgn_angeboten_" + k) in stats]
+    if teile:
+        text += "\nPlaetze: " + ", ".join(teile)
+    return text

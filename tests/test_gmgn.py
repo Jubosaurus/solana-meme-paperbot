@@ -338,6 +338,10 @@ def test_search_40_plaetze_fair_auf_quellen(fake, monkeypatch):
     import collections
     z = collections.Counter(r["quelle"] for r in rows)
     assert z == {"GMGN-smartmoney": 32, "GMGN-kol": 3, "GMGN-toptrader": 5}
+    assert len(calls) == 3                                # Zahl der GMGN-Abfragen unveraendert
+    assert scout.STATS["gmgn_angeboten_smartmoney"] >= 32
+    assert scout.STATS["gmgn_neu_smartmoney"] == 32
+    assert "KOL 3/3, Top-Trader 5/5" in scout.gmgn.bericht(scout.STATS)
 
 
 def test_search_ohne_coins_liefert_smartmoney_und_kol(fake, monkeypatch):

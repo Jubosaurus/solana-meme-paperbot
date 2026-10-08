@@ -1104,6 +1104,10 @@ def search(state, now, sol_usd):
                     gmgn_neue.add(w)
                     n += 1
     STATS.update(gmgn_client.stats)
+    for quelle, ws in pro_quelle.items():                  # nur Anzahlen der eigenen Auswahl, keine GMGN-Werte
+        kurz = quelle.replace("GMGN-", "")
+        STATS[f"gmgn_angeboten_{kurz}"] = len(ws)
+        STATS[f"gmgn_neu_{kurz}"] = sum(1 for w in gmgn_neue if found[w][0] == quelle)
     cands = [w for w in found if w not in known and w not in recent]
     STATS["gmgn_neu"] = sum(w in gmgn_neue for w in cands)
     STATS["kandidaten"] = len(cands)
