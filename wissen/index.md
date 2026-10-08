@@ -4,6 +4,7 @@ Das Wiki sammelt Wissen und beschließt nichts. Verbindlich bleiben `STRATEGIE.m
 
 ## Themen und Systeme
 
+- [[Code-Review-08-10]] – Code-Review des Bestands (08.10., Karte 7 offen)
 - [[Backtest-Plan]] – Backtest- und Datenplan (07.10., nur Plan)
 - [[Copy-Fehlbuchungen-bis-03-10]] – Copy-Fehlbuchungen bis 03.10.
 - [[Copy-Preisabstand]] – Preisabstand zwischen Trader und Copy-Bot
@@ -182,3 +183,6 @@ Das Wiki sammelt Wissen und beschließt nichts. Verbindlich bleiben `STRATEGIE.m
 ## Eigene Notizen
 
 Liegen in `notizen/` (Rohquelle, wird nie verändert). Stand 05.10.2026: `2026-10-05_video-erkenntnisse.md` (eingespeist, siehe [[Q-2026-10-05-Video-Erkenntnisse]]).
+
+## 08.10.2026 (Code-Review)
+- Neu: [[Q-2026-10-08-Code-Review]] und Themenseite [[Code-Review-08-10]]; Index ergänzt.

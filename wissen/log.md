@@ -77,3 +77,5 @@ Noch offen:
 
 ## 08.10.2026 (context-mode und GMGN-Lesetest)
 - Neu: [[Q-2026-10-08-context-mode]], [[Q-2026-10-08-GMGN-Lesetest]] und Werkzeugseite [[context-mode]]. Nachgeführt: [[GMGN]] und [[Entscheidungen]]; Index ergänzt. Aussagen aus den Prüfberichten übernommen, GMGN-Werte ausgelassen.
+## 08.10.2026 (Code-Review)
+- Eingespeist: [[Q-2026-10-08-Code-Review]] in die neue Seite [[Code-Review-08-10]]; Index ergänzt. Karte 7 (Testlücken) als offen vermerkt.
