@@ -1,7 +1,7 @@
 {
   "strategy": "EXPERIMENT_offene_tuer",
   "started": "2026-10-04T00:34:10.471054+00:00",
-  "bankroll_sol": 0.320983,
+  "bankroll_sol": 0.119483,
   "positions": {
     "ERiLRgRWXKpbEjpq8QrchPMMisHrp3fnzLScdEtZpump": {
       "mint": "ERiLRgRWXKpbEjpq8QrchPMMisHrp3fnzLScdEtZpump",
@@ -67,7 +67,7 @@
       "solana_tracker": null,
       "graduated": false,
       "liq_low_checks": 0,
-      "flug_last": 1791437889.3194811
+      "flug_last": 1791437957.5148494
     },
     "4LMZ26yaVVYUN2o1x6MKzJTkHWAJPgK2sYeZ66oUpump": {
       "mint": "4LMZ26yaVVYUN2o1x6MKzJTkHWAJPgK2sYeZ66oUpump",
@@ -133,7 +133,73 @@
       "solana_tracker": null,
       "graduated": false,
       "liq_low_checks": 0,
-      "flug_last": 1791437875.969505
+      "flug_last": 1791437940.9088318
+    },
+    "4QTZ4dR2SmHdP48KAxpqa6edUDc1N4NwZoFnyZHnvnbw": {
+      "mint": "4QTZ4dR2SmHdP48KAxpqa6edUDc1N4NwZoFnyZHnvnbw",
+      "symbol": "Tincan",
+      "opened": 1791437968.592067,
+      "invested_sol": 0.2,
+      "fees_sol": 0.0015,
+      "entry_signal_usd": 0.00014126393929136678,
+      "entry_fill_usd": 0.00014022676407584304,
+      "entry_slippage_pct": -0.73,
+      "roundtrip_cost_pct": 1.79,
+      "tokens_initial": 164745.17257,
+      "tokens_left": 164745.17257,
+      "decimals": 6,
+      "proceeds_sol": 0.0,
+      "peak_usd": 0.00014022676407584304,
+      "tp1_done": false,
+      "thesis_breaks": 0,
+      "missing_loops": 0,
+      "entry_liquidity": 15496.497354097328,
+      "entry_view": {
+        "age_h": 0.5676430137289895,
+        "mcap": 135092.86864941617,
+        "liquidity": 15496.497354097328,
+        "holders": 1406,
+        "holder_growth_1h": 2131.746031746032,
+        "holder_growth_5m": 4.302670623145401,
+        "net_buyers_5m": 388,
+        "organic_buyers_5m": 23,
+        "organic_score": 41.659074439291594,
+        "price_change_1h": 3670.5602632965843,
+        "price_change_5m": -8.024918549152718,
+        "buys_5m": 1382,
+        "sells_5m": 1005,
+        "traders_5m": 831,
+        "traders_1h": 2309,
+        "buy_vol_5m": 65738.73162180885,
+        "sell_vol_5m": 66122.34305722626,
+        "buy_vol_1h": 314915.95424923074,
+        "sell_vol_1h": 297426.82704226323,
+        "organic_buy_vol_1h": 7054.5235709500685,
+        "top_holders_pct": 12.846266283657648,
+        "dev_balance_pct": 0.0,
+        "dev_mints": 27912,
+        "launchpad": "pump.fun",
+        "graduated": true,
+        "social": true,
+        "quelle": "organic1h+organic5m+traded1h+traded5m+trend1h",
+        "trades_24h": 11854,
+        "organic_label": "medium",
+        "buy_organic_vol_5m": 3080.6408300654093,
+        "jup_fees": null,
+        "hour_utc": 5
+      },
+      "bundle": {
+        "quelle": "experiment",
+        "text": "Offene Tuer: ohne Sicherheits-, Bundle- und Dev-Pruefung"
+      },
+      "phase": "normal",
+      "thesis": "Story verbreitet sich: Holder +2132%/h, 388 Netto-Kaeufer 5m, 23 organisch; Offene Tuer: ohne Sicherheits-, Bundle- und Dev-Pruefung; Dev-Coins 27912",
+      "exit_rule": "Haelfte bei 2x; Rest raus, wenn Holder schrumpfen und Netto-Verkaeufer 2x in Folge, Liquiditaet -30%, -40%, nach 1,5x nicht unter Einstand, nach 2x 30 % vom Hoch (ab 10x 25 %)",
+      "mitlaeufer": null,
+      "solana_tracker": null,
+      "graduated": true,
+      "liq_low_checks": 0,
+      "flug_last": 1791437982.1676965
     }
   },
   "closed": [
@@ -33037,7 +33103,8 @@
     "4f8kk1MVqGTgStmuCbw7Bku8qpavCoRjK63asszcpump": 1791435929.7639737,
     "4LMZ26yaVVYUN2o1x6MKzJTkHWAJPgK2sYeZ66oUpump": 1791436043.349086,
     "CHawNNAdYdzipEdiRDq3LFimhext5Z6g6zdohD1dACdx": 1791436898.416481,
-    "A1RWJTFMf4fYYEgGa34jafiXP1JEYNoaqUUKS4443S2a": 1791437223.2916734
+    "A1RWJTFMf4fYYEgGa34jafiXP1JEYNoaqUUKS4443S2a": 1791437223.2916734,
+    "4QTZ4dR2SmHdP48KAxpqa6edUDc1N4NwZoFnyZHnvnbw": 1791437968.5928717
   },
   "watch": {
     "EJ1cJkXFbv72KdpoyAFQz4CDPZQYioeTXgULmkjmpump": {
@@ -33259,5 +33326,5 @@
   },
   "runde": 2,
   "shadow": {},
-  "saved_at": 1791437910.5618968
+  "saved_at": 1791437985.6043868
 }
