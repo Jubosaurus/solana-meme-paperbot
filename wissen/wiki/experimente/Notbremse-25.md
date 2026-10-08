@@ -7,3 +7,7 @@
 - Stand 04.10. ~02:43 UTC: 4 Käufe, 3 abgeschlossen (2 Notbremse, 1 Gewinn gesichert). [[Q-2026-10-04-Nachtlauf]]
 - Stand 04.10. ~05:45 UTC: Kontowert 9,96 SOL, 3 Trades – viel zu früh für ein Urteil. [[Q-Zusammenfassung-Chat]]
 - Video-Hinweis (05.10.2026, Eigenangabe rasmr): Verlierer früh schließen; die Trefferquote ist zweitrangig, entscheidend ist, wie tief einzelne Verluste werden – das ist die Frage, die dieses Experiment prüft. [[Q-2026-10-05-Video-Erkenntnisse]]
+- Stand 08.10.2026 im Live-Paarvergleich: 74 Paare, −0,412 SOL gegen die Hauptstrategie (ohne die drei besten −0,589), dabei 48 besser, 24 schlechter und 2 gleich. [[Q-2026-10-08-Tagesauswertung]]
+- Gegenbefund aus der Nachrechnung aller 166 aufgezeichneten Käufe seit 27.09.: +0,388 SOL gegen die Hauptstrategie (ohne drei beste +0,171); 85 besser, 14 schlechter, 67 gleich. [[Q-2026-10-08-Notbremse-Drittel-Nachrechnung]]
+- Die beiden Befunde betreffen unterschiedliche Daten- und Ausführungsstände: Vor dem Live-Start beträgt der Nachrechnungsunterschied +0,621 SOL, ab 04.10. −0,233 SOL; bei 166 Paaren ist laut Quelle kein Urteil möglich. [[Q-2026-10-08-Notbremse-Drittel-Nachrechnung]]
+- Entscheidung 08.10.2026: Das Paar-Experiment läuft bis 200 Paaren weiter; es wird nicht in die Hauptstrategie übernommen. [[Q-2026-10-08-Entscheidungen]]

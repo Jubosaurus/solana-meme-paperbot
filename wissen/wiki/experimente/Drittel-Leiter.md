@@ -8,3 +8,7 @@
 - 48 h statt 24 h Halten ist nicht messbar: Der längste Verlauf reicht nur 9,7 h ab Kauf. [[Q-2026-10-04-Video-Nachrechnung]]
 - Siehe [[Tag-02-Teilverkauf]].
 - Video-Hinweis (05.10.2026, Eigenangabe rasmr): Große Positionen in Stufen in steigende Kurse verkaufen – bestätigt die Idee. [[Q-2026-10-05-Video-Erkenntnisse]]
+- Stand 08.10.2026 im Live-Paarvergleich: 68 Paare, −0,375 SOL gegen die Hauptstrategie (ohne die drei besten −0,518), dabei 34 besser, 28 schlechter und 6 gleich. [[Q-2026-10-08-Tagesauswertung]]
+- Nachrechnung aller 166 aufgezeichneten Käufe seit 27.09.: +0,249 SOL gegen die Hauptstrategie, ohne die drei besten nur +0,017; 103 Fälle sind gleich. [[Q-2026-10-08-Notbremse-Drittel-Nachrechnung]]
+- Der Bericht bewertet den Vorteil bei 166 Paaren als nicht belegt; zusätzliche Gebühren für Teilverkäufe sind darin noch nicht enthalten. [[Q-2026-10-08-Notbremse-Drittel-Nachrechnung]]
+- Entscheidung 08.10.2026: Das Paar-Experiment läuft bis 200 Paaren weiter. [[Q-2026-10-08-Entscheidungen]]

@@ -6,6 +6,7 @@ Das Wiki sammelt Wissen und beschließt nichts. Verbindlich bleiben `STRATEGIE.m
 
 - [[Backtest-Plan]] – Backtest- und Datenplan (07.10., nur Plan)
 - [[Copy-Fehlbuchungen-bis-03-10]] – Copy-Fehlbuchungen bis 03.10.
+- [[Copy-Preisabstand]] – Preisabstand zwischen Trader und Copy-Bot
 - [[Copy-Trading]] – Copy Trading
 - [[Entscheidungen]] – Entscheidungen des Betreibers (Chronik)
 - [[Hauptstrategie-NARRATIV]] – Hauptstrategie NARRATIV
@@ -17,6 +18,7 @@ Das Wiki sammelt Wissen und beschließt nichts. Verbindlich bleiben `STRATEGIE.m
 - [[Wallet-Scout]] – Wallet-Scout und Automatik
 - [[Wallet-Signal-Nachrechnung]] – Wallet-Signal nachgerechnet (04.10.)
 - [[Werbung-Markierung]] – Werbung in den Videos (nur Markierung, kein Wissen)
+- [[Sicherheit-im-Projekt]] – Sicherheitsprüfung und Absicherungen (07.10.)
 
 ## Regeln (Tag N) und Testregeln
 
@@ -112,15 +114,20 @@ Das Wiki sammelt Wissen und beschließt nichts. Verbindlich bleiben `STRATEGIE.m
 ## Werkzeuge und Datenquellen
 
 - [[Birdeye]] – Birdeye
+- [[Bitquery]] – Bitquery als mögliche Backtest-Datenquelle
 - [[Codex]] – Codex (OpenAI) als Prüfer und Helfer, Team mit Claude
 - [[Dashboard]] – Dashboard (Streamlit)
 - [[DexScreener]] – DexScreener
+- [[Dune]] – Dune als mögliche Backtest-Datenquelle
 - [[Flugschreiber]] – Flugschreiber (Aufzeichnung)
 - [[Helius]] – Helius (Solana-Zugang)
 - [[Jupiter]] – Jupiter (Kurse und Token-Daten)
 - [[Nexus-Core]] – Dashboard-Entscheidung: Teil 1 und 3 gebaut (neues Logo, Qualitätsschleife), Teil 2 Seiten gebaut (07.10.2026)
 - [[Regressionsprobe-und-Tests]] – Testsammlung und Regressionsprobe
 - [[Solana-Tracker]] – Solana Tracker
+- [[GMGN]] – GMGN als mögliche Datenquelle
+- [[Pump-fun]] – Pump.fun als Datenquelle
+- [[PumpPortal]] – PumpPortal als Ereignis-Datenstrom
 - [[Token-Verbrauch-Sitzungen]] – Token-Verbrauch der Claude-Sitzungen
 - [[Tools-aus-Videos]] – Tools und Datenquellen aus den Videos (Einstufung)
 - [[X-Twitter-API]] – X (Twitter) als Datenquelle
@@ -135,6 +142,13 @@ Das Wiki sammelt Wissen und beschließt nichts. Verbindlich bleiben `STRATEGIE.m
 ## Quellen (Verweise auf Rohquellen)
 
 - [[Q-2026-10-07-Backtest-Plan]] – Quelle: Backtest- und Datenplan (07.10.2026)
+- [[Q-2026-10-07-Backtest-Plan-Pruefung]] – Quelle: Prüfung Backtest-Plan (07.10.2026)
+- [[Q-2026-10-07-API-Pruefung]] – Quelle: API-Prüfung GMGN, Pump.fun und PumpPortal (07.10.2026)
+- [[Q-2026-10-07-Bitquery-Abfragen]] – Quelle: Bitquery-Abfragen (07.10.2026)
+- [[Q-2026-10-07-Datenquellen]] – Quelle: Datenquellen für Backtests (07.10.2026)
+- [[Q-2026-10-07-DexScreener-API]] – Quelle: DexScreener-API-Prüfung (07.10.2026)
+- [[Q-2026-10-07-PumpPortal]] – Quelle: PumpPortal-Recherche (07.10.2026)
+- [[Q-2026-10-07-Sicherheit]] – Quelle: Sicherheitsprüfung (07.10.2026)
 - [[Q-2026-10-07-Nexus-Core]] – Quelle: Dashboard-Entscheidung Nexus Core, Teil 1 und 2 (07.10.2026)
 - [[Q-2026-10-07-Nexus-Core-Teil3]] – Quelle: Nexus Core Teil 3, Logo und Fotorunden (07.10.2026)
 - [[Q-2026-10-03-Ueberpruefung]] – Quelle: Große Überprüfung 03.10.2026
@@ -151,6 +165,10 @@ Das Wiki sammelt Wissen und beschließt nichts. Verbindlich bleiben `STRATEGIE.m
 - [[Q-Korrekturen]] – Quelle: Korrekturen Copy-Bot
 - [[Q-Scout-Kandidaten]] – Quelle: scout/kandidaten.csv (nur Adressen)
 - [[Q-2026-10-07-Tag18-20]] – Quelle: Videos Tag 18–20 / Namenswelle
+- [[Q-2026-10-08-Entscheidungen]] – Quelle: Betreiberentscheidungen (08.10.2026)
+- [[Q-2026-10-08-Nachrechnung]] – Quelle: Nachrechnung Tagesauswertung (08.10.2026)
+- [[Q-2026-10-08-Notbremse-Drittel-Nachrechnung]] – Quelle: Nachrechnung Notbremse 25 und Drittel-Leiter (08.10.2026)
+- [[Q-2026-10-08-Tagesauswertung]] – Quelle: Tagesauswertung (08.10.2026)
 - [[Q-STRATEGIE]] – Quelle: STRATEGIE.md
 - [[Q-Videos-Regeln]] – Quelle: videos/regeln.md
 - [[Q-Zusammenfassung-Chat]] – Quelle: Zusammenfassung fürs Chat-Projekt

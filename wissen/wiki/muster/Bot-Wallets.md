@@ -5,3 +5,4 @@
 - Nur nach Menge abzumelden traf auch den echten Vieltrader [[922M]]; deshalb Menge und Fehleranteil. [[Q-CLAUDE]]
 - Am 04.10. wegen Bot-Verdacht nicht aufgenommen: 8 „frühe Käufer“ mit identischen Kennzahlen (Sniper-Netz, Haltedauer ~6 s), [[Deh9]], [[8zkg]], [[9Df3]] (Auslegung des Satzes in STRATEGIE.md). [[Q-STRATEGIE]]
 - [[Deh9]] hatte 1.120 Trades am Tag (Bot-Verdacht) und nur 4 Coins; [[8zkg]] ebenfalls Bot-Verdacht (03.10.). [[Q-2026-10-03-Ueberpruefung]]
+- Beim Scout-Lauf bis 08.10.2026 wurden drei TITS-Coin-Wallets mit 119 bis 1.298 Transaktionen pro Stunde als Bots erkannt. [[Q-2026-10-08-Tagesauswertung]]

@@ -17,3 +17,7 @@
 - Hauptstrategie und Copy-Coins sind fast getrennte Welten: Nur 14 von 680 Copy-Coins kaufte auch die Hauptstrategie. [[Q-2026-10-04-Video-Nachrechnung]]
 - Siehe [[Exit-Liquiditaet]], [[Bot-Wallets]], [[Kopieren-nicht-blind]], [[Wallet-Signal-Nachrechnung]], [[Wallets-entfernt-Uebersicht]], [[Copy-Fehlbuchungen-bis-03-10]].
 - Aktive Wallets (Stand 04.10.): [[4DOV]], [[6ANG]], [[HEBO]], [[Troupe]], [[Gake]], [[Pikalosi]], [[Dior]], [[3zsr]], [[C7bF]], [[2FPk]], [[haru]], [[43Nu]], [[koko]], [[Eshi]], [[54cb]], [[42wu]], [[77n6]], [[G7b2]], [[GeFg]], [[499R]], [[2Nxj]], [[7Cn1]].
+- 🕒 Überholt: Die Liste aktiver Wallets vom 04.10. ist ein alter Stand. Am 08.10.2026 wurden [[G7b2]], [[7Cn1]] und [[2Nxj]] nach der Verlustregel entfernt; [[4DOV]] bleibt als bewusste Ausnahme für die Preisabstand-Studie. [[Q-2026-10-08-Entscheidungen]]
+- Stand 08.10.2026: 27 Wallets waren aktiv; die im Zeitraum geschlossenen Positionen ohne HEBO ergaben −8,83 SOL bei der engen Definition „Position geschlossen“. [[Q-2026-10-08-Tagesauswertung]]
+- Die Nachrechnung nennt bei allen Varianten des Hinweises „Position geschlossen“ −9,71 SOL; die Differenz ist eine andere Definition, kein widersprüchlicher Datenstand. [[Q-2026-10-08-Nachrechnung]]
+- Der Preisabstand wird seit 08.10.2026 getrennt für Kauf und Verkauf als Median geführt; Zahlen und Einordnung stehen in [[Copy-Preisabstand]]. [[Q-2026-10-08-Tagesauswertung]]

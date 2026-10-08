@@ -6,3 +6,5 @@ Adresse: `4DovZLQMSrHhptkcteC7x5UCGRSEmLqfAQKtjBUEJxC1` (aus [[Q-Copy-Wallets]])
 - Stand 04.10. ~05:45 UTC: +2,9 SOL. [[Q-Zusammenfassung-Chat]]
 - Gewinner-Trader mit Haltezeiten von Minuten bis einer halben Stunde. [[Q-STRATEGIE]]
 - Der beste Signal-Trade der Nachrechnung war Agency (4DOV) mit +54 %; 4DOV war an 4 Signalen beteiligt. [[Q-2026-10-04-Video-Nachrechnung]]
+- Stand 08.10.2026: 80 Positionen und −4,25 SOL; die Wallet bleibt als bewusste Ausnahme für die Studie zum Preisabstand. [[Q-2026-10-08-Entscheidungen]]
+- Der Kauf-Preisabstand liegt mit −0,04 % (n=316) nahe null; deshalb gilt die Wallet in der Auswertung technisch als kopierbar. [[Q-2026-10-08-Nachrechnung]]

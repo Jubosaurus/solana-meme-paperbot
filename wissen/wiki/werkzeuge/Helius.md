@@ -10,3 +10,5 @@
 - Stand 05.10.: ohne 922M ca. 20.000 Credits/Tag (Dashboard-Zähler 127.221); daraufhin Wallet-Limit der Scout-Automatik von 22 auf 30 erhöht. [[Q-STRATEGIE]]
 - Stand 06.10.: Dashboard 145.870 Credits, 05.10. 127.221, also ca. 18.600/Tag; Hochrechnung 560.000–750.000/Monat je nach Abrechnungsbeginn (unbekannt). [[Q-2026-10-06-Tagesauswertung]]
 - Neue Helius-Bedingungen (Stand 28.09.2026) sprechen von „lawful business purpose“; ob ein privates Projekt darunter fällt, ist unsicher. `getTransactionsForAddress` (bis 1.000 Transaktionen je Abruf) könnte Wallet-Verläufe sehr billig machen, Freischaltung im Gratis-Tarif unsicher. [[Q-2026-10-07-Backtest-Plan]]
+- Stand 08.10.2026: Der Dashboard-Zähler beträgt 171.743 Credits; ohne den Backtest rechnet die Tagesauswertung mit etwa 15.500 Credits pro Tag. [[Q-2026-10-08-Entscheidungen]]
+- Der Backtest vom 07.10. verbrauchte 3.952 Credits und ist in dieser Tagesrate nicht enthalten. [[Q-2026-10-08-Tagesauswertung]]
