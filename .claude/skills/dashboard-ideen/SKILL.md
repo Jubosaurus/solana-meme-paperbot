@@ -51,7 +51,7 @@ Das Dashboard darf mehr als anzeigen, aber nur so:
 - Stil und Hilfsfunktionen des Dashboards übernehmen (`stil.py`, `ansicht.py`, `daten.py` mit Cache). Rechnungen gehören in `rechnung.py` (ohne Streamlit) und bekommen Tests in `tests/`.
 - Handy-tauglich: wenige große Zahlen oben, Details aufklappbar.
 - Zeiten in UTC, deutsche Zeit in Klammern.
-- **Mit Playwright durchklicken** (nur `http://localhost:8501`), Bildschirmfotos nach `auswertungen/dashboard/`. Dashboard dafür lokal mit `dashboard/.venv` starten.
+- **Fotos mit `tools/foto.py <seite> <ordner>`** (Playwright-MCP ist seit 08.10. entfernt), Bildschirmfotos nach `auswertungen/dashboard/`. Dashboard dafür lokal mit `dashboard/.venv` starten.
 - Schreibende Funktionen in Tests mit Fake-Git prüfen (siehe `tests/test_dashboard_wallets.py`), nie beim Durchklicken echt pushen.
 - Bei schreibenden Funktionen zusätzlich `code-review` und `code-pruefer` einsetzen.
 - `python -m pytest` muss grün sein.

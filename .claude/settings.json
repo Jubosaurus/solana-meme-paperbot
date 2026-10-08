@@ -18,15 +18,6 @@
             "statusMessage": "Git-Schutz: pruefe Commit/Push..."
           }
         ]
-      },
-      {
-        "matcher": "mcp__playwright__browser_navigate|mcp__playwright__browser_tabs",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "python \"$CLAUDE_PROJECT_DIR/.claude/hooks/nur_localhost.py\""
-          }
-        ]
       }
     ]
   }
