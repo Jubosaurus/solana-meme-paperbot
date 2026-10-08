@@ -359,3 +359,24 @@ def test_konten_im_lauf_veraltet_stoppt_stille_entfernung(monkeypatch):
     monkeypatch.setattr(scout, "push_wallet_changes", lambda plans, now, acc: gesehen.extend(plans) or plans)
     lines = scout.auto_wallets({}, NOW, 150.0, [])
     assert gesehen == [] and any("zurueckgestellt" in z for z in lines)
+
+
+def test_ohne_automatik_schreibt_nichts_in_wallet_liste(monkeypatch):
+    """--ohne-automatik (Gegenproben, z. B. GMGN): Automatik aus, copy_wallets.txt und Warteliste bleiben unberuehrt."""
+    monkeypatch.setattr(scout, "KEIN_PUSH", False)
+    monkeypatch.setattr(scout, "AUTO_AUFNAHME", True)          # nach dem Test wird der Wert zurueckgesetzt
+    gesehen = []
+    monkeypatch.setattr(scout, "run", lambda nur_liste=False: gesehen.append(nur_liste))
+    scout.main(["--nur-pruefliste", "--ohne-automatik"])
+    assert gesehen == [True] and scout.AUTO_AUFNAHME is False and scout.KEIN_PUSH is True
+    aufrufe = []
+    monkeypatch.setattr(core, "_git", lambda *a, **k: aufrufe.append(a))
+    scout.git_push()
+    assert aufrufe == []                                       # kein Git-Zugriff, nichts wird zurueckgepusht
+    vorher = "Alpha: " + addr("A") + "\n"
+    with open(cb.WALLET_FILE, "w", encoding="utf-8") as f:
+        f.write(vorher)
+    cand = {"wallet": addr("K"), "punkte": 80.0, "ergebnis": "bewertet"}
+    assert scout.auto_wallets({}, NOW, 150.0, [cand]) == []
+    assert open(cb.WALLET_FILE, encoding="utf-8").read() == vorher
+    assert not os.path.exists(scout.WAIT_FILE)

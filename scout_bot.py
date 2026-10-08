@@ -29,6 +29,7 @@ import bot as core
 import copy_bot as cb
 
 # ================================================================ Schalter (Entscheidung des Betreibers 04.10.)
+KEIN_PUSH = False                   # True nur mit --ohne-automatik: Gegenprobe pusht nichts (kein altes warteliste.csv zurueck)
 AUTO_AUFNAHME = True                # True: Scout nimmt Copy-Wallets selbst auf und ersetzt sie. False: nur melden
 AUTO_MAX_WALLETS = 30               # hoechstens so viele aktive Wallets in copy_wallets.txt
 AUTO_STILL_MAX_PRO_LAUF = 2         # hoechstens so viele Entfernungen wegen Stille pro Scout-Lauf (seit 06.10.)
@@ -416,6 +417,8 @@ def notify(title, lines):
 
 
 def git_push():
+    if KEIN_PUSH:              # --ohne-automatik: nichts verlaesst den Rechner
+        return
     g = core._git
     g("config", "user.name", "github-actions[bot]")
     g("config", "user.email", "github-actions[bot]@users.noreply.github.com")
@@ -1261,11 +1264,16 @@ def main(argv=None):
     ap = argparse.ArgumentParser()
     ap.add_argument("--probe", action="store_true")
     ap.add_argument("--nur-pruefliste", action="store_true", help="nur scout/pruefen.txt bewerten, danach Automatik")
+    ap.add_argument("--ohne-automatik", action="store_true",
+                    help="nur bewerten: Automatik aus, copy_wallets.txt und scout/warteliste.csv bleiben unveraendert")
     ap.add_argument("--wenn-faellig", action="store_true",
                     help="nur laufen, wenn im aktuellen 6-h-Fenster noch kein kompletter Lauf war (Zeitplan)")
     args = ap.parse_args(argv)
     if __name__ == "__main__":
         core.log_schutz_an()
+    if args.ohne_automatik:
+        global AUTO_AUFNAHME, KEIN_PUSH
+        AUTO_AUFNAHME, KEIN_PUSH = False, True       # technische Sicherung fuer Gegenproben (z. B. GMGN)
     if args.probe:
         probe()
     elif args.wenn_faellig and not args.nur_pruefliste and not run_due(load_state(), time.time()):
