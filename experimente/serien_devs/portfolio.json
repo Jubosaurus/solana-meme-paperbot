@@ -1,7 +1,7 @@
 {
   "strategy": "EXPERIMENT_serien_devs",
   "started": "2026-10-04T00:34:10.471102+00:00",
-  "bankroll_sol": 11.114154,
+  "bankroll_sol": 10.912654,
   "positions": {
     "Pre9atBqkocK1QngFy7Q7zvyQictEFpXdLi6bZ2qnYy": {
       "mint": "Pre9atBqkocK1QngFy7Q7zvyQictEFpXdLi6bZ2qnYy",
@@ -75,7 +75,80 @@
         "zuerst": 1791074748,
         "mint": "Pren1FvFX6J3E4kXhJuCiAD5aDmGEb7qJRncwA8Lkhw"
       },
-      "flug_last": 1791503428.8238654
+      "flug_last": 1791503705.2852485
+    },
+    "EUDqn3D6PdFdPJoWz7qqohJntquwHnvy63qZjFEX7Nzj": {
+      "mint": "EUDqn3D6PdFdPJoWz7qqohJntquwHnvy63qZjFEX7Nzj",
+      "symbol": "Clanker",
+      "opened": 1791503779.3055835,
+      "invested_sol": 0.2,
+      "fees_sol": 0.0015,
+      "entry_signal_usd": 2.3834463751390492e-05,
+      "entry_fill_usd": 2.6562306291009985e-05,
+      "entry_slippage_pct": 11.44,
+      "roundtrip_cost_pct": 3.06,
+      "tokens_initial": 824390.566964,
+      "tokens_left": 824390.566964,
+      "decimals": 6,
+      "proceeds_sol": 0.0,
+      "peak_usd": 2.6562306291009985e-05,
+      "tp1_done": false,
+      "thesis_breaks": 0,
+      "missing_loops": 0,
+      "entry_liquidity": 5038.746123882663,
+      "entry_view": {
+        "age_h": 0.4688392937845654,
+        "mcap": 21389.898660805466,
+        "liquidity": 5038.746123882663,
+        "holders": 220,
+        "holder_growth_1h": 54.929577464788736,
+        "holder_growth_5m": 1.8518518518518516,
+        "net_buyers_5m": 46,
+        "organic_buyers_5m": 0,
+        "organic_score": 0.0,
+        "price_change_1h": 319.36849822212616,
+        "price_change_5m": 17.975451026056884,
+        "buys_5m": 81,
+        "sells_5m": 53,
+        "traders_5m": 83,
+        "traders_1h": 1328,
+        "buy_vol_5m": 4304.7459445123095,
+        "sell_vol_5m": 3842.653337969853,
+        "buy_vol_1h": 115785.77206518383,
+        "sell_vol_1h": 111896.87244831212,
+        "organic_buy_vol_1h": 5057.630577556874,
+        "top_holders_pct": 20.822294216998483,
+        "dev_balance_pct": 0.0,
+        "dev_mints": 1121,
+        "launchpad": "pump.fun",
+        "graduated": true,
+        "social": true,
+        "quelle": "traded1h+traded5m+trend1h+trend5m",
+        "trades_24h": 5566,
+        "organic_label": "low",
+        "buy_organic_vol_5m": 31.540296391319416,
+        "jup_fees": null,
+        "hour_utc": 23
+      },
+      "bundle": {
+        "quelle": "experiment",
+        "text": "Serien-Dev: frueherer Coin AVERY bis 336,258 $"
+      },
+      "phase": "heiss",
+      "thesis": "Story verbreitet sich: Holder +55%/h, 46 Netto-Kaeufer 5m, 0 organisch; Serien-Dev: frueherer Coin AVERY bis 336,258 $; Dev-Coins 1121",
+      "exit_rule": "Haelfte bei 2x; Rest raus, wenn Holder schrumpfen und Netto-Verkaeufer 2x in Folge, Liquiditaet -30%, -40%, nach 1,5x nicht unter Einstand, nach 2x 30 % vom Hoch (ab 10x 25 %)",
+      "mitlaeufer": null,
+      "solana_tracker": null,
+      "graduated": true,
+      "liq_low_checks": 0,
+      "dev_exit": true,
+      "dev_pct_kauf": 0.0,
+      "serien_vorgaenger": {
+        "symbol": "AVERY",
+        "peak": 336258,
+        "zuerst": 1791216116,
+        "mint": "8QFGVLXehnTv28eMdXZkhY5d84SVF58LAfRGx8zWpH9b"
+      }
     }
   },
   "closed": [
@@ -10987,7 +11060,8 @@
     "DU148VhedGj3LHj7ZPDpw1q8S6ecTne33PPh7frdDkU4": 1791500368.1103463,
     "DMMyPAGPfnBJprrCictGinzgBUzJL1t7yCgpVzTHpump": 1791500469.8193007,
     "J7bhFegCHZAeRzdYDwmbSp1CJ1bDJkutSg26B4SXpump": 1791501120.5537949,
-    "FmbuCtNmJk8nubW4XgMJTPTEDTZrTfFRrDjUSoZaB2JT": 1791502008.0580122
+    "FmbuCtNmJk8nubW4XgMJTPTEDTZrTfFRrDjUSoZaB2JT": 1791502008.0580122,
+    "EUDqn3D6PdFdPJoWz7qqohJntquwHnvy63qZjFEX7Nzj": 1791503779.3062842
   },
   "watch": {
     "BwVrWfDgT6UFpJsfH7J8bqtRu8vekE2w1GyEAEuZKa9R": {
@@ -11165,7 +11239,7 @@
       "symbol": "ELM",
       "entry_fill_usd": 2.278408568387726e-05,
       "opened": 1791502008.0572298,
-      "peak_usd": 5.6455349633401604e-05,
+      "peak_usd": 8.500245328935809e-05,
       "exit_usd": 2.2766878666088963e-05,
       "exit_reason": "GEWINN_GESCHUETZT (Hoch 1.5x, zurueck auf Einstand)",
       "until": 1791523942.0130033
@@ -11182,5 +11256,5 @@
   },
   "runde": 1,
   "shadow": {},
-  "saved_at": 1791503449.8449316
+  "saved_at": 1791503787.9101968
 }
