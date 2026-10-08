@@ -251,7 +251,7 @@ def test_unlesbares_portfolio_wird_nie_ueberschrieben(sandbox):
 # ================================================================ Beendete Experimente und Notbremse 25 (04.10.)
 
 def test_beendete_experimente_kaufen_nicht_mehr(scan_env, monkeypatch):
-    assert set(core.EXP_BEENDET) == {"endspurt_ohne_filter", "ohne_limit"}
+    assert set(core.EXP_BEENDET) == {"endspurt_ohne_filter", "ohne_limit", "offene_tuer"}
     bundle_ok(monkeypatch)
     scan_env(MINT)
     gerufen = []
@@ -316,6 +316,7 @@ def test_quick_checks_ohne_sicherheit_nur_fuer_offene_tuer():
 
 
 def test_offene_tuer_kauft_unsicheren_coin_den_die_hauptstrategie_ablehnt(scan_env, monkeypatch):
+    monkeypatch.delitem(core.EXP_BEENDET, "offene_tuer")                   # Logik getestet, als waere sie noch aktiv
     bundle_ok(monkeypatch, "BUNDLE_VERDAECHTIG")                           # Hauptstrategie: Bundle-Check schlaegt an
     scan_env(MINT, freeze_disabled=False)                                  # und unsicherer Contract
     p = core.load_portfolio()
@@ -324,7 +325,18 @@ def test_offene_tuer_kauft_unsicheren_coin_den_die_hauptstrategie_ablehnt(scan_e
     assert p["positions"] == {} and set(exps["offene_tuer"]["positions"]) == {MINT}
 
 
+def test_offene_tuer_ist_beendet_und_kauft_nicht_mehr(scan_env, monkeypatch):
+    assert core.EXP_BEENDET["offene_tuer"] == "08.10."
+    bundle_ok(monkeypatch, "BUNDLE_VERDAECHTIG")
+    scan_env(MINT, freeze_disabled=False)
+    p = core.load_portfolio()
+    exps = {"offene_tuer": load("offene_tuer")}
+    core.scan(p, SOL, time.time(), exps)
+    assert exps["offene_tuer"]["positions"] == {}
+
+
 def test_offene_tuer_hoechstens_4_positionen(scan_env, monkeypatch):
+    monkeypatch.delitem(core.EXP_BEENDET, "offene_tuer")
     bundle_ok(monkeypatch)
     for i in range(6):
         scan_env(addr(f"M{i}"))

@@ -71,3 +71,6 @@ Noch offen:
 - Eingespeist: [[Q-2026-10-08-Tagesauswertung]], [[Q-2026-10-08-Nachrechnung]], [[Q-2026-10-08-Notbremse-Drittel-Nachrechnung]] und [[Q-2026-10-08-Entscheidungen]]. Ergänzt: Kernzahlen, [[Copy-Preisabstand]], Wallet-Entfernungen und Ausnahme [[4DOV]], Helius, Scout-Bots, Namenswellen sowie die Experimente [[Notbremse-25]], [[Drittel-Leiter]] und [[Offene-Tuer]].
 - Nachgeholt aus 07.10.: [[Q-2026-10-07-API-Pruefung]], [[Q-2026-10-07-Datenquellen]], [[Q-2026-10-07-DexScreener-API]], [[Q-2026-10-07-PumpPortal]], [[Q-2026-10-07-Bitquery-Abfragen]], [[Q-2026-10-07-Sicherheit]] und [[Q-2026-10-07-Backtest-Plan-Pruefung]]. Neue Seiten: [[GMGN]], [[Pump-fun]], [[PumpPortal]], [[Bitquery]], [[Dune]] und [[Sicherheit-im-Projekt]].
 - Linkprüfung: alle internen Wiki-Links haben eine Seite.
+
+## 08.10.2026 (Offene Tür beendet)
+- Eingespeist: [[Q-2026-10-08-Offene-Tuer-beendet]] in [[Offene-Tuer]] (Ergebnis nach 535 Trades, Lehre zu den Sicherheitsfiltern; frühere Aussage „läuft weiter“ als überholt markiert) und [[Entscheidungen]].

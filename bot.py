@@ -171,7 +171,7 @@ EXPERIMENTS = {"zweite_welle": "Zweite Welle", "heisse_coins": "Heisse Coins", "
                "offene_tuer": "Offene Tuer", "serien_devs": "Serien-Devs", "grosse_coins": "Grosse Coins",
                "drittel_leiter": "Drittel-Leiter", "listing_welle": "Listing-Welle"}
 # Beendete Experimente (Datum): keine neuen Kaeufe, offene Positionen laufen regulaer zu Ende, Daten bleiben.
-EXP_BEENDET = {"endspurt_ohne_filter": "04.10.", "ohne_limit": "04.10."}
+EXP_BEENDET = {"endspurt_ohne_filter": "04.10.", "ohne_limit": "04.10.", "offene_tuer": "08.10."}
 NOTBREMSE_25_PCT = -25.0                # Experiment Notbremse 25 (seit 04.10.): kauft genau wie die
 #                                         Hauptstrategie, nur die Notbremse greift schon bei -25 % statt -40 %
 # Experiment Offene Tuer (seit 04.10.): dieselben Story-Filter wie die Hauptstrategie, aber KEINE Sicherheits-

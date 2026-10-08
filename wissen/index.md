@@ -51,7 +51,7 @@ Das Wiki sammelt Wissen und beschließt nichts. Verbindlich bleiben `STRATEGIE.m
 - [[Kontrollgruppe]] – Experiment Kontrollgruppe
 - [[Listing-Welle]] – Experiment Listing-Welle (seit 04.10.)
 - [[Notbremse-25]] – Experiment Notbremse 25 (seit 04.10.)
-- [[Offene-Tuer]] – Experiment Offene Tür (seit 04.10.)
+- [[Offene-Tuer]] – Experiment Offene Tür (seit 04.10., beendet 08.10.)
 - [[Ohne-Limit]] – Experiment Ohne Limit (beendet 04.10.)
 - [[Serien-Devs]] – Experiment Serien-Devs (seit 04.10.)
 - [[Zweite-Welle]] – Experiment Zweite Welle
@@ -166,6 +166,7 @@ Das Wiki sammelt Wissen und beschließt nichts. Verbindlich bleiben `STRATEGIE.m
 - [[Q-Scout-Kandidaten]] – Quelle: scout/kandidaten.csv (nur Adressen)
 - [[Q-2026-10-07-Tag18-20]] – Quelle: Videos Tag 18–20 / Namenswelle
 - [[Q-2026-10-08-Entscheidungen]] – Quelle: Betreiberentscheidungen (08.10.2026)
+- [[Q-2026-10-08-Offene-Tuer-beendet]] – Quelle: Offene Tür beendet, Ergebnis und Lehre (08.10.2026)
 - [[Q-2026-10-08-Nachrechnung]] – Quelle: Nachrechnung Tagesauswertung (08.10.2026)
 - [[Q-2026-10-08-Notbremse-Drittel-Nachrechnung]] – Quelle: Nachrechnung Notbremse 25 und Drittel-Leiter (08.10.2026)
 - [[Q-2026-10-08-Tagesauswertung]] – Quelle: Tagesauswertung (08.10.2026)
