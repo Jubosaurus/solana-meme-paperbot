@@ -27,6 +27,7 @@ import requests
 
 import bot as core
 import copy_bot as cb
+import gmgn
 
 # ================================================================ Schalter (Entscheidung des Betreibers 04.10.)
 KEIN_PUSH = False                   # True nur mit --ohne-automatik: Gegenprobe pusht nichts (kein altes warteliste.csv zurueck)
@@ -1083,7 +1084,15 @@ def search(state, now, sol_usd):
             STATS["fehler"] += 1
             print(f"[SCOUT] {symbol}: {str(err)[:120]}")
         state["coins_erledigt"][mint] = now
+    gmgn_client = gmgn.Client()
+    gmgn_neue = set()
+    for w, quelle, coin in gmgn_client.kandidaten(coins):
+        if w not in found and w not in known and w not in recent and len(gmgn_neue) < 40:
+            found.setdefault(w, (quelle, coin))
+            gmgn_neue.add(w)
+    STATS.update(gmgn_client.stats)
     cands = [w for w in found if w not in known and w not in recent]
+    STATS["gmgn_neu"] = sum(w in gmgn_neue for w in cands)
     STATS["kandidaten"] = len(cands)
     rows, stage2_list = [], []
     for w in cands:
@@ -1200,6 +1209,7 @@ def run(nur_liste=False):
                  + (f" | {STATS['birdeye_fehler']}" if STATS["birdeye_fehler"] else "") if BIRDEYE_API_KEY
                  else "**Birdeye:** kein Key, nur Helius")
     lines.append(auto_status_line())
+    lines.append(gmgn.bericht(STATS))
     if STATS["fehler"]:
         lines.append(f"**Fehler:** {STATS['fehler']}")
     notify("🔭 Wallet-Scout", lines)
@@ -1208,6 +1218,7 @@ def run(nur_liste=False):
 
 def probe():
     print("[SCOUT PROBE] Birdeye-Key:", "gesetzt" if BIRDEYE_API_KEY else "FEHLT")
+    print("[SCOUT PROBE] GMGN-Key:", "gesetzt" if gmgn.Client().stats["gmgn_key"] else "FEHLT")
     print("[SCOUT PROBE] Discord-Kanal:", "Scout" if os.environ.get("DISCORD_WEBHOOK_SCOUT") else
           ("Copy (kein eigener Scout-Kanal)" if DISCORD_WEBHOOK_SCOUT else "FEHLT"))
     state = load_state()

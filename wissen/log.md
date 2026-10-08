@@ -74,3 +74,6 @@ Noch offen:
 
 ## 08.10.2026 (Offene Tür beendet)
 - Eingespeist: [[Q-2026-10-08-Offene-Tuer-beendet]] in [[Offene-Tuer]] (Ergebnis nach 535 Trades, Lehre zu den Sicherheitsfiltern; frühere Aussage „läuft weiter“ als überholt markiert) und [[Entscheidungen]].
+
+## 08.10.2026 (context-mode und GMGN-Lesetest)
+- Neu: [[Q-2026-10-08-context-mode]], [[Q-2026-10-08-GMGN-Lesetest]] und Werkzeugseite [[context-mode]]. Nachgeführt: [[GMGN]] und [[Entscheidungen]]; Index ergänzt. Aussagen aus den Prüfberichten übernommen, GMGN-Werte ausgelassen.

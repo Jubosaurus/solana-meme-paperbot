@@ -113,6 +113,8 @@ Das Wiki sammelt Wissen und beschließt nichts. Verbindlich bleiben `STRATEGIE.m
 
 ## Werkzeuge und Datenquellen
 
+- [[context-mode]] - context-mode-Plugin: Pruefung und Absicherung (08.10.)
+
 - [[Birdeye]] – Birdeye
 - [[Bitquery]] – Bitquery als mögliche Backtest-Datenquelle
 - [[Codex]] – Codex (OpenAI) als Prüfer und Helfer, Team mit Claude
@@ -173,6 +175,9 @@ Das Wiki sammelt Wissen und beschließt nichts. Verbindlich bleiben `STRATEGIE.m
 - [[Q-STRATEGIE]] – Quelle: STRATEGIE.md
 - [[Q-Videos-Regeln]] – Quelle: videos/regeln.md
 - [[Q-Zusammenfassung-Chat]] – Quelle: Zusammenfassung fürs Chat-Projekt
+
+- [[Q-2026-10-08-context-mode]] - Quelle: context-mode-Pruefung und Entscheidung (08.10.2026)
+- [[Q-2026-10-08-GMGN-Lesetest]] - Quelle: GMGN-Lesetest (08.10.2026)
 
 ## Eigene Notizen
 

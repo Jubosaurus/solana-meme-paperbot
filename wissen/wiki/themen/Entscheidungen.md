@@ -16,3 +16,6 @@
 - 08.10.: Jeder Coin gehört bei Namenswellen nur noch zu einer Welle; die Beobachtung bleibt ohne Strategie-Änderung. [[Q-2026-10-08-Entscheidungen]]
 - 08.10.: [[Notbremse-25]] und [[Drittel-Leiter]] laufen bis 200 Paaren weiter; [[Offene-Tuer]] wird nicht beendet und läuft weiter, bis die Testregel mit 200 Trades der Kontrollgruppe erfüllt ist. [[Q-2026-10-08-Entscheidungen]]
 - 08.10. (später): [[Offene-Tuer]] beendet nach 535 Trades (kein Vorteil gegenüber der Kontrollgruppe, Unterschied im Rauschen; Daten bleiben). Löst die frühere Entscheidung vom selben Tag („läuft weiter“) ab. [[Q-2026-10-08-Offene-Tuer-beendet]]
+
+- 08.10.: context-mode behalten und absichern; Marketplace-Auto-Update aus. Kein `ctx_upgrade` oder Plugin-Update ohne neue Pr?fung; `ctx_execute*` nie bei gesetzten Schl?ssel-Variablen. [[Q-2026-10-08-context-mode]]
+- 08.10.: GMGN-Wallet nur als Zugang, kein Handel. Schl?ssel nur als GitHub-Secret; keine GMGN-Werte im Repository. GMGN nur als Kandidatenquelle einbauen; Betreiberfreigabe am 08.10., Umsetzung l?uft. [[Q-2026-10-08-GMGN-Lesetest]]

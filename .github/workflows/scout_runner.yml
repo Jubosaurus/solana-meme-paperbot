@@ -48,6 +48,7 @@ jobs:
           JUPITER_API_KEY: ${{ secrets.JUPITER_API_KEY }}
           HELIUS_API_KEY: ${{ secrets.HELIUS_API_KEY }}
           BIRDEYE_API_KEY: ${{ secrets.BIRDEYE_API_KEY }}
+          GMGN_API_KEY: ${{ secrets.GMGN_API_KEY }}
           PYTHONUNBUFFERED: 1
         run: |
           if [ "${{ github.event.inputs.modus }}" = "probe" ]; then

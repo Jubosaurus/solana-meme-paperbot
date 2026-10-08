@@ -14,6 +14,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import bot as core          # noqa: E402
 import copy_bot as cb       # noqa: E402
 import scout_bot as scout   # noqa: E402
+import gmgn                 # noqa: E402
 
 _CB_STATS = copy.deepcopy(cb.STATS)
 _SCOUT_STATS = copy.deepcopy(scout.STATS)
@@ -64,6 +65,12 @@ def sandbox(tmp_path, monkeypatch):
     monkeypatch.chdir(tmp_path)
     net = []
     monkeypatch.setattr(core, "SESSION", BlockedSession(net))
+    monkeypatch.delenv("GMGN_API_KEY", raising=False)
+
+    def gmgn_blocked(path, params, headers):
+        net.append(("GMGN", path))
+        raise NetworkBlocked("GMGN-Netzwerk im Test gesperrt")
+    monkeypatch.setattr(gmgn, "abruf", gmgn_blocked)
     monkeypatch.setattr(core, "jup_get", lambda path: None)
     monkeypatch.setattr(core, "dex_get", lambda path: None)
 
