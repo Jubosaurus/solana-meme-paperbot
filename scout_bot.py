@@ -30,6 +30,7 @@ import copy_bot as cb
 import gmgn
 
 # ================================================================ Schalter (Entscheidung des Betreibers 04.10.)
+GMGN_MAX_KANDIDATEN = 40             # GMGN-Kandidaten je Lauf, fair auf Quellen verteilt (08.10.)
 KEIN_PUSH = False                   # True nur mit --ohne-automatik: Gegenprobe pusht nichts (kein altes warteliste.csv zurueck)
 AUTO_AUFNAHME = True                # True: Scout nimmt Copy-Wallets selbst auf und ersetzt sie. False: nur melden
 AUTO_MAX_WALLETS = 30               # hoechstens so viele aktive Wallets in copy_wallets.txt
@@ -1086,10 +1087,22 @@ def search(state, now, sol_usd):
         state["coins_erledigt"][mint] = now
     gmgn_client = gmgn.Client()
     gmgn_neue = set()
+    # 40 Plaetze fair auf die Quellen verteilen: erst je Quelle hoechstens ein Drittel, dann Rest auffuellen
+    pro_quelle = {}
     for w, quelle, coin in gmgn_client.kandidaten(coins):
-        if w not in found and w not in known and w not in recent and len(gmgn_neue) < 40:
-            found.setdefault(w, (quelle, coin))
-            gmgn_neue.add(w)
+        if w not in found and w not in known and w not in recent:
+            pro_quelle.setdefault(quelle, {}).setdefault(w, coin)
+    drittel = -(-GMGN_MAX_KANDIDATEN // 3)
+    for limit in (drittel, GMGN_MAX_KANDIDATEN):
+        for quelle, ws in pro_quelle.items():
+            n = sum(1 for w in gmgn_neue if found[w][0] == quelle)
+            for w, coin in ws.items():
+                if len(gmgn_neue) >= GMGN_MAX_KANDIDATEN or (limit < GMGN_MAX_KANDIDATEN and n >= limit):
+                    break
+                if w not in gmgn_neue and w not in found:
+                    found[w] = (quelle, coin)
+                    gmgn_neue.add(w)
+                    n += 1
     STATS.update(gmgn_client.stats)
     cands = [w for w in found if w not in known and w not in recent]
     STATS["gmgn_neu"] = sum(w in gmgn_neue for w in cands)
@@ -1197,7 +1210,7 @@ def run(nur_liste=False):
         lines.append("**Rangliste** (fuer uns erwartete Rendite nach Reibung | Treffer | Coins | "
                      "Kauf-Median | Trades/Tag | Haltedauer | Verkaeufe unter 60 s):")
         for i, r in enumerate(top, 1):
-            lines.append(f"{i}. `{r['wallet']}` ({r['quelle']}, {r['coin']})\n"
+            lines.append(f"{i}. `{r['wallet']}` ({r['quelle']}{', ' + str(r['coin']) if r.get('coin') else ''})\n"
                          f"   {r['punkte']:+.0f} % (Trader {r['rendite_pct']:+.0f} %, ohne besten {r['rendite_ohne_besten_pct']:+.0f} %) | "
                          f"{(r['trefferquote'] or 0):.0%} | {r['coins']} | {r['kauf_median_sol']} SOL | "
                          f"{r['trades_pro_tag']} | {r['haltedauer_median_min']} min | {_fast_text(r)}")

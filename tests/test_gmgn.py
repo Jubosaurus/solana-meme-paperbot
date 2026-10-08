@@ -301,7 +301,7 @@ def test_search_40_kandidaten_6_coins_und_stufe2_limit(fake, monkeypatch):
     monkeypatch.setattr(scout, "stage1", stage1)
     monkeypatch.setattr(scout, "stage2", lambda wallet, *a: stage2_calls.append(wallet) or {})
     scout.search(state, time.time(), 100.0)
-    assert stage1_calls == addresses[:40]
+    assert len(stage1_calls) == 40 and len(set(stage1_calls)) == 40 and set(stage1_calls) <= set(addresses)
     assert len(stage2_calls) == scout.STAGE2_PER_RUN
     assert [c[0] for c in calls] == [SMART, KOL] + [TOP] * 6
     assert [c[1]["address"] for c in calls[2:]] == [c[0] for c in coins[:6]]
@@ -322,6 +322,22 @@ def test_search_geprueft_wallets_verbrauchen_kein_kontingent(fake, monkeypatch):
     scout.search(state, now, 100.0)
     assert geprueft == neu
     assert scout.STATS["gmgn_neu"] == 2
+
+
+def test_search_40_plaetze_fair_auf_quellen(fake, monkeypatch):
+    calls, replies = fake
+    coin = (addr("MintX"), "X", 3.0)
+    state = suchquellen(monkeypatch, [coin])
+    smart = [addr("Sm" + chr(65 + i)) for i in range(50)]
+    kol = [addr("Ko" + chr(65 + i)) for i in range(3)]
+    top = [addr("Tp" + chr(65 + i)) for i in range(5)]
+    replies.extend([wallets(*smart), wallets(*kol), wallets(*top)])
+    quellen = {}
+    monkeypatch.setattr(scout, "stage1", lambda w, n: quellen.setdefault(w, None) or ({}, "zu wenig Transaktionen"))
+    _, rows, _ = scout.search(state, time.time(), 100.0)
+    import collections
+    z = collections.Counter(r["quelle"] for r in rows)
+    assert z == {"GMGN-smartmoney": 32, "GMGN-kol": 3, "GMGN-toptrader": 5}
 
 
 def test_search_ohne_coins_liefert_smartmoney_und_kol(fake, monkeypatch):
@@ -382,3 +398,20 @@ def test_discord_zeile_im_scout_lauf(fake, monkeypatch, sandbox, fall):
     assert expected in messages[0].splitlines()
     assert "TEST-PLATZHALTER" not in messages[0]
     assert len(calls) == (0 if fall == "kein_key" else 1 if fall == "429" else 3)
+
+
+def test_rangliste_ohne_leeres_coin_feld(fake, monkeypatch, sandbox):
+    calls, replies = fake
+    suchquellen(monkeypatch)
+    lauf_vorbereiten(monkeypatch)
+    replies.extend([wallets(addr("Smart")), Antwort()])
+    s2 = {"rendite_pct": 10, "rendite_ohne_besten_pct": 5, "trefferquote": 0.5, "coins": 5, "kauf_median_sol": 0.5,
+          "trades_pro_tag": 10, "haltedauer_median_min": 5, "verkaeufe_unter_60s": 0}
+    monkeypatch.setattr(scout, "stage1", lambda *a: ({"tx_pro_h": 1, "_page": []}, None))
+    monkeypatch.setattr(scout, "window_sigs", lambda *a: [])
+    monkeypatch.setattr(scout, "stage2", lambda *a: dict(s2))
+    monkeypatch.setattr(scout, "score", lambda s: 50.0)
+    monkeypatch.setattr(scout, "_fast_text", lambda r: "ok")
+    scout.run()
+    msg = [m for t, m in sandbox["discord"] if t == "🔭 Wallet-Scout"][0]
+    assert "(GMGN-smartmoney)\n" in msg and "GMGN-smartmoney, )" not in msg
