@@ -1,7 +1,7 @@
 {
   "strategy": "EXPERIMENT_endspurt",
   "started": "2026-09-30T09:53:19.214630+00:00",
-  "bankroll_sol": 7.651129,
+  "bankroll_sol": 7.449629,
   "positions": {
     "BjDqeXf3K6qLidvdhZeJUj3QQ93bndcYT1bs58SUpump": {
       "mint": "BjDqeXf3K6qLidvdhZeJUj3QQ93bndcYT1bs58SUpump",
@@ -17,7 +17,7 @@
       "tokens_left": 658127.569764,
       "decimals": 6,
       "proceeds_sol": 0.0,
-      "peak_usd": 3.3497082849648645e-05,
+      "peak_usd": 3.5509551303389626e-05,
       "tp1_done": false,
       "thesis_breaks": 0,
       "missing_loops": 0,
@@ -68,7 +68,75 @@
       "graduated": false,
       "liq_low_checks": 0,
       "exit_mode": "endspurt",
-      "entry_vsol": 98.78
+      "entry_vsol": 98.78,
+      "flug_last": 1791529961.4594212
+    },
+    "3ZwW1DmGH9qfLM23c2ZVmtVP1PBPrC1Tgc14v4YRTC91": {
+      "mint": "3ZwW1DmGH9qfLM23c2ZVmtVP1PBPrC1Tgc14v4YRTC91",
+      "symbol": "PQC",
+      "opened": 1791529972.5432322,
+      "invested_sol": 0.2,
+      "fees_sol": 0.0015,
+      "entry_signal_usd": 3.39814694161587e-05,
+      "entry_fill_usd": 3.188990602219699e-05,
+      "entry_slippage_pct": -6.16,
+      "roundtrip_cost_pct": 6.35,
+      "tokens_initial": 691007.132012,
+      "tokens_left": 691007.132012,
+      "decimals": 6,
+      "proceeds_sol": 0.0,
+      "peak_usd": 3.188990602219699e-05,
+      "tp1_done": false,
+      "thesis_breaks": 0,
+      "missing_loops": 0,
+      "entry_liquidity": 10940.989437951466,
+      "entry_view": {
+        "age_h": 4.634572061432732,
+        "mcap": 33981.4694161587,
+        "liquidity": 10940.989437951466,
+        "holders": 177,
+        "holder_growth_1h": 24.647887323943664,
+        "holder_growth_5m": 11.320754716981133,
+        "net_buyers_5m": 18,
+        "organic_buyers_5m": 0,
+        "organic_score": 40.24978469954129,
+        "price_change_1h": 105.80000497974483,
+        "price_change_5m": 82.37254945956141,
+        "buys_5m": 40,
+        "sells_5m": 16,
+        "traders_5m": 29,
+        "traders_1h": 93,
+        "buy_vol_5m": 3467.890904024207,
+        "sell_vol_5m": 845.7677419518878,
+        "buy_vol_1h": 9290.932382367579,
+        "sell_vol_1h": 6318.9990234206125,
+        "organic_buy_vol_1h": 10.902144820486559,
+        "top_holders_pct": 26.1046622311727,
+        "dev_balance_pct": 0.0,
+        "dev_mints": 13,
+        "launchpad": "pump.fun",
+        "graduated": false,
+        "social": false,
+        "quelle": "traded5m+trend1h+trend5m",
+        "trades_24h": 2575,
+        "organic_label": "medium",
+        "buy_organic_vol_5m": 0.0,
+        "jup_fees": null,
+        "hour_utc": 7
+      },
+      "bundle": {
+        "quelle": "experiment",
+        "text": "Endspurt: Kurve bei 100 von 115 vSol (82% Fortschritt), 2575 Trades, organisch medium"
+      },
+      "phase": "heiss",
+      "thesis": "Story verbreitet sich: Holder +25%/h, 18 Netto-Kaeufer 5m, 0 organisch; Endspurt: Kurve bei 100 von 115 vSol (82% Fortschritt), 2575 Trades, organisch medium; Dev-Coins 13",
+      "exit_rule": "Haelfte bei 2x; Rest raus, wenn Holder schrumpfen und Netto-Verkaeufer 2x in Folge, Liquiditaet -30%, -40%, nach 1,5x nicht unter Einstand, nach 2x 30 % vom Hoch (ab 10x 25 %)",
+      "mitlaeufer": null,
+      "solana_tracker": null,
+      "graduated": false,
+      "liq_low_checks": 0,
+      "exit_mode": "endspurt",
+      "entry_vsol": 99.64
     }
   },
   "closed": [
@@ -21945,12 +22013,13 @@
     "4Ts6pM5aKcd5Po3mqaLCtzZgqZrz9c1LTj8AGzDqpons": 1791526766.3628669,
     "GmsAcJAFKEtAXDoRUroaQP5GBdmPcGwA2sRdC9Mbpump": 1791528689.9754384,
     "Ar3ip7MiCfxFPcHVvdbNSFRkP1A52FxQ9NLa6zCMEN43": 1791529567.9668264,
-    "BjDqeXf3K6qLidvdhZeJUj3QQ93bndcYT1bs58SUpump": 1791529873.0673466
+    "BjDqeXf3K6qLidvdhZeJUj3QQ93bndcYT1bs58SUpump": 1791529873.0673466,
+    "3ZwW1DmGH9qfLM23c2ZVmtVP1PBPrC1Tgc14v4YRTC91": 1791529972.5446916
   },
   "watch": {},
   "runde": 1,
   "shadow": {},
-  "saved_at": 1791529874.6715617,
+  "saved_at": 1791529973.9204843,
   "dev_day": {
     "date": "2026-10-09",
     "devs": [
@@ -21968,7 +22037,8 @@
       "6qKWv82ETgDd7qn3G1UQFVeFWsvwRT5SxAV7Xada3Akr",
       "BCyNgSB1njYWrjHubBc56UXqDqzc4ixk8UHPhGbTQ5aQ",
       "HT9e1ZuEmTupYQjk4mRWu37EFYKB5ENFH82Zyi1YUp8i",
-      "DL5NHSFJixVve1vvuvvrvDAGxjdwAoNAiKgNB31cXYRr"
+      "DL5NHSFJixVve1vvuvvrvDAGxjdwAoNAiKgNB31cXYRr",
+      "7yuvYpPF6TR9ojoGFvS7mndfVyyqe4Hr6BrLfgyj4Wck"
     ]
   }
 }
