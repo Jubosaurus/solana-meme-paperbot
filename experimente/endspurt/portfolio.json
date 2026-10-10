@@ -1,7 +1,7 @@
 {
   "strategy": "EXPERIMENT_endspurt",
   "started": "2026-09-30T09:53:19.214630+00:00",
-  "bankroll_sol": 7.781214,
+  "bankroll_sol": 7.579714,
   "positions": {
     "78abFykXFfVq9CFS7ygS665vaqTqnbjwDfeaE8yEpump": {
       "mint": "78abFykXFfVq9CFS7ygS665vaqTqnbjwDfeaE8yEpump",
@@ -69,7 +69,74 @@
       "liq_low_checks": 0,
       "exit_mode": "endspurt",
       "entry_vsol": 99.88,
-      "flug_last": 1791624309.24274
+      "flug_last": 1791624576.919697
+    },
+    "88jUcA4vvbiyXxhhnk6RHyxuGaHhR7NQnfVwd6hBpump": {
+      "mint": "88jUcA4vvbiyXxhhnk6RHyxuGaHhR7NQnfVwd6hBpump",
+      "symbol": "Jef",
+      "opened": 1791624621.219225,
+      "invested_sol": 0.2,
+      "fees_sol": 0.0015,
+      "entry_signal_usd": 3.6894237723175356e-05,
+      "entry_fill_usd": 3.706171496035836e-05,
+      "entry_slippage_pct": 0.45,
+      "roundtrip_cost_pct": 2.51,
+      "tokens_initial": 593362.727487,
+      "tokens_left": 593362.727487,
+      "decimals": 6,
+      "proceeds_sol": 0.0,
+      "peak_usd": 3.706171496035836e-05,
+      "tp1_done": false,
+      "thesis_breaks": 0,
+      "missing_loops": 0,
+      "entry_liquidity": 11527.038592274675,
+      "entry_view": {
+        "age_h": 0.18333766990237765,
+        "mcap": 36894.237723175356,
+        "liquidity": 11527.038592274675,
+        "holders": 463,
+        "holder_growth_1h": 928.8888888888889,
+        "holder_growth_5m": 49.354838709677416,
+        "net_buyers_5m": 242,
+        "organic_buyers_5m": 0,
+        "organic_score": 0.0,
+        "price_change_1h": 781.7003642976265,
+        "price_change_5m": 112.5397565837873,
+        "buys_5m": 638,
+        "sells_5m": 463,
+        "traders_5m": 477,
+        "traders_1h": 926,
+        "buy_vol_5m": 20171.76482597993,
+        "sell_vol_5m": 18608.90630729352,
+        "buy_vol_1h": 70523.30820701706,
+        "sell_vol_1h": 66811.2080944551,
+        "organic_buy_vol_1h": 2661.6560052687555,
+        "top_holders_pct": 17.358411292839797,
+        "dev_balance_pct": 0.0,
+        "dev_mints": 5546,
+        "launchpad": "pump.fun",
+        "graduated": false,
+        "social": true,
+        "quelle": "traded1h+traded5m+trend1h+trend5m",
+        "trades_24h": 3339,
+        "organic_label": "low",
+        "buy_organic_vol_5m": 649.3119789757344,
+        "jup_fees": null,
+        "hour_utc": 9
+      },
+      "bundle": {
+        "quelle": "experiment",
+        "text": "Endspurt: Kurve bei 104 von 115 vSol (87% Fortschritt), 3339 Trades, organisch low"
+      },
+      "phase": "ruhig",
+      "thesis": "Story verbreitet sich: Holder +929%/h, 242 Netto-Kaeufer 5m, 0 organisch; Endspurt: Kurve bei 104 von 115 vSol (87% Fortschritt), 3339 Trades, organisch low; Dev-Coins 5546",
+      "exit_rule": "Haelfte bei 2x; Rest raus, wenn Holder schrumpfen und Netto-Verkaeufer 2x in Folge, Liquiditaet -30%, -40%, nach 1,5x nicht unter Einstand, nach 2x 30 % vom Hoch (ab 10x 25 %)",
+      "mitlaeufer": null,
+      "solana_tracker": null,
+      "graduated": false,
+      "liq_low_checks": 0,
+      "exit_mode": "endspurt",
+      "entry_vsol": 103.93
     }
   },
   "closed": [
@@ -24550,12 +24617,13 @@
     "9HLC3hvta1zNDqDfbmTq4xgwNRzRnaZST16pLs9pump": 1791609540.3753693,
     "6ACrzbARpvbmihosVdxXttxKj7jdc5gdX4jndGk16969": 1791615361.2320518,
     "3iy1YNY6AwYq1nNYGn7YnybJLGZPGzWLekHRyNHrpump": 1791620098.9201825,
-    "78abFykXFfVq9CFS7ygS665vaqTqnbjwDfeaE8yEpump": 1791623595.7053094
+    "78abFykXFfVq9CFS7ygS665vaqTqnbjwDfeaE8yEpump": 1791623595.7053094,
+    "88jUcA4vvbiyXxhhnk6RHyxuGaHhR7NQnfVwd6hBpump": 1791624621.2199452
   },
   "watch": {},
   "runde": 1,
   "shadow": {},
-  "saved_at": 1791624318.3108556,
+  "saved_at": 1791624629.9612703,
   "dev_day": {
     "date": "2026-10-10",
     "devs": [
@@ -24570,7 +24638,8 @@
       "3H4pbpNpHgkb5kV7U2bWdkyc314VEskKz3APyG8u1RSq",
       "DCfYmLHF8nzFFdwW1USPtEpiUSGpkFbctZyDSBtPn8rT",
       "4QwJ4AXMtSjnCwgM9kiDpsGtXmjEd3hAVRkDg3o3bDQs",
-      "3A88gHogmkJVbDximAadDuDDyf9cWbUX6ghaDXw8xB3w"
+      "3A88gHogmkJVbDximAadDuDDyf9cWbUX6ghaDXw8xB3w",
+      "866SrsMfwKsErATZDCLAPbxH3NuqjKn7zQ1xXMqixoz1"
     ]
   }
 }
