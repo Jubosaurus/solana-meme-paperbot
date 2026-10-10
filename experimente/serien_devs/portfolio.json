@@ -1,8 +1,82 @@
 {
   "strategy": "EXPERIMENT_serien_devs",
   "started": "2026-10-04T00:34:10.471102+00:00",
-  "bankroll_sol": 9.930377,
-  "positions": {},
+  "bankroll_sol": 9.728877,
+  "positions": {
+    "FDJqEqqS68jummd8XGtBqzJTu2Pgc3pGQjozrpUzpump": {
+      "mint": "FDJqEqqS68jummd8XGtBqzJTu2Pgc3pGQjozrpUzpump",
+      "symbol": "Altai",
+      "opened": 1791642429.425029,
+      "invested_sol": 0.2,
+      "fees_sol": 0.0015,
+      "entry_signal_usd": 0.0007039453993785413,
+      "entry_fill_usd": 0.0007060299460528416,
+      "entry_slippage_pct": 0.3,
+      "roundtrip_cost_pct": 0.86,
+      "tokens_initial": 31150.809461,
+      "tokens_left": 31150.809461,
+      "decimals": 6,
+      "proceeds_sol": 0.0,
+      "peak_usd": 0.0007060299460528416,
+      "tp1_done": false,
+      "thesis_breaks": 0,
+      "missing_loops": 0,
+      "entry_liquidity": 135388.65713001648,
+      "entry_view": {
+        "age_h": 0.9528171062469483,
+        "mcap": 670397.9201459275,
+        "liquidity": 135388.65713001648,
+        "holders": 2311,
+        "holder_growth_1h": 5677.5,
+        "holder_growth_5m": 22.925531914893618,
+        "net_buyers_5m": 588,
+        "organic_buyers_5m": 26,
+        "organic_score": 51.52497242835514,
+        "price_change_1h": 4897.947558341624,
+        "price_change_5m": 0.49850670870765684,
+        "buys_5m": 2011,
+        "sells_5m": 1920,
+        "traders_5m": 1192,
+        "traders_1h": 3558,
+        "buy_vol_5m": 165564.4858771092,
+        "sell_vol_5m": 218590.28190521445,
+        "buy_vol_1h": 1014167.360357954,
+        "sell_vol_1h": 1183817.3064690072,
+        "organic_buy_vol_1h": 38754.95551567897,
+        "top_holders_pct": 22.502121223636934,
+        "dev_balance_pct": 3.342323385569089,
+        "dev_mints": 2,
+        "launchpad": "pump.fun",
+        "graduated": true,
+        "social": false,
+        "quelle": "organic1h+organic5m+traded1h+traded5m",
+        "trades_24h": 23641,
+        "organic_label": "medium",
+        "buy_organic_vol_5m": 11614.068315040722,
+        "jup_fees": null,
+        "hour_utc": 14
+      },
+      "bundle": {
+        "quelle": "experiment",
+        "text": "Serien-Dev: frueherer Coin Tschuna bis 361,957 $"
+      },
+      "phase": "ruhig",
+      "thesis": "Story verbreitet sich: Holder +5678%/h, 588 Netto-Kaeufer 5m, 26 organisch; Serien-Dev: frueherer Coin Tschuna bis 361,957 $; Dev-Coins 2",
+      "exit_rule": "Haelfte bei 2x; Rest raus, wenn Holder schrumpfen und Netto-Verkaeufer 2x in Folge, Liquiditaet -30%, -40%, nach 1,5x nicht unter Einstand, nach 2x 30 % vom Hoch (ab 10x 25 %)",
+      "mitlaeufer": null,
+      "solana_tracker": null,
+      "graduated": true,
+      "liq_low_checks": 0,
+      "dev_exit": true,
+      "dev_pct_kauf": 3.342323385569089,
+      "serien_vorgaenger": {
+        "symbol": "Tschuna",
+        "peak": 361957,
+        "zuerst": 1791642416,
+        "mint": "95ccfn4UAUu3mQSvi7NJSJkHEnoLdW58qcRwwzmepump"
+      }
+    }
+  },
   "closed": [
     {
       "symbol": "GWC",
@@ -14817,18 +14891,10 @@
     "5bcMnxY6djMES8oTTtcvEuzdSE2Rnk5DsVyCf8yPpump": 1791639073.3447688,
     "AZ8fMEckm2hxuSyt9mfxNqPzyhqJDPYf7dyR2BxUpump": 1791639271.7252855,
     "95ccfn4UAUu3mQSvi7NJSJkHEnoLdW58qcRwwzmepump": 1791640957.208354,
-    "9pAbYE6q9t5F8tDdrJWrVyMKEYhZnPLwB6hNEHPSnkkt": 1791641570.6945698
+    "9pAbYE6q9t5F8tDdrJWrVyMKEYhZnPLwB6hNEHPSnkkt": 1791641570.6945698,
+    "FDJqEqqS68jummd8XGtBqzJTu2Pgc3pGQjozrpUzpump": 1791642429.425832
   },
   "watch": {
-    "3iy1YNY6AwYq1nNYGn7YnybJLGZPGzWLekHRyNHrpump": {
-      "symbol": "cow",
-      "entry_fill_usd": 2.9397116977553247e-05,
-      "opened": 1791620309.650211,
-      "peak_usd": 3.733063869698348e-05,
-      "exit_usd": 1.6488734913215846e-05,
-      "exit_reason": "NOTBREMSE (-44%)",
-      "until": 1791642412.1478956
-    },
     "EZ28qcPiqk7VKKSUUjaGXUc6dAWaiyCakUhbN16bpump": {
       "symbol": "SINK",
       "entry_fill_usd": 1.329186784383403e-05,
@@ -14986,7 +15052,7 @@
       "symbol": "Tschuna",
       "entry_fill_usd": 4.188175627254254e-05,
       "opened": 1791640957.2076213,
-      "peak_usd": 0.00027090854194216117,
+      "peak_usd": 0.0003739728452518468,
       "exit_usd": 0.00018706122033778662,
       "exit_reason": "STORY_ABGEKUEHLT (30% unter dem Hoch von 6.5x)",
       "until": 1791663115.1461732
@@ -15003,5 +15069,5 @@
   },
   "runde": 1,
   "shadow": {},
-  "saved_at": 1791642312.9188154
+  "saved_at": 1791642431.5643053
 }
