@@ -1,27 +1,27 @@
 {
   "strategy": "EXPERIMENT_serien_devs",
   "started": "2026-10-04T00:34:10.471102+00:00",
-  "bankroll_sol": 9.560922,
+  "bankroll_sol": 9.783974,
   "positions": {
     "HgqXvrriDxMyYgQ3yv4SGuDa6EVT1NCaszvNFA2Apump": {
       "mint": "HgqXvrriDxMyYgQ3yv4SGuDa6EVT1NCaszvNFA2Apump",
       "symbol": "JOE",
       "opened": 1791655368.360444,
       "invested_sol": 0.2,
-      "fees_sol": 0.0015,
+      "fees_sol": 0.003,
       "entry_signal_usd": 1.261738415143347e-05,
       "entry_fill_usd": 1.1094246408503867e-05,
       "entry_slippage_pct": -12.07,
       "roundtrip_cost_pct": 2.3,
       "tokens_initial": 1979864.29804,
-      "tokens_left": 1979864.29804,
+      "tokens_left": 989932.14902,
       "decimals": 6,
-      "proceeds_sol": 0.0,
-      "peak_usd": 1.8984980163601463e-05,
-      "tp1_done": false,
+      "proceeds_sol": 0.223051575,
+      "peak_usd": 5.329139321111557e-05,
+      "tp1_done": true,
       "thesis_breaks": 0,
       "missing_loops": 0,
-      "entry_liquidity": 7087.46932170242,
+      "entry_liquidity": 20706.41532091781,
       "entry_view": {
         "age_h": 0.828409531182713,
         "mcap": 12617.38415143347,
@@ -65,7 +65,7 @@
       "exit_rule": "Haelfte bei 2x; Rest raus, wenn Holder schrumpfen und Netto-Verkaeufer 2x in Folge, Liquiditaet -30%, -40%, nach 1,5x nicht unter Einstand, nach 2x 30 % vom Hoch (ab 10x 25 %)",
       "mitlaeufer": null,
       "solana_tracker": null,
-      "graduated": false,
+      "graduated": true,
       "liq_low_checks": 0,
       "dev_exit": true,
       "dev_pct_kauf": 0.0,
@@ -75,7 +75,8 @@
         "zuerst": 1791293123,
         "mint": "FeAWY9L9hr82TvTuEyi328V9FP7GxVuGLx7xNg6kzWVa"
       },
-      "flug_last": 1791655386.680325
+      "flug_last": 1791655450.971857,
+      "graduated_during": true
     }
   },
   "closed": [
@@ -15735,7 +15736,7 @@
       "symbol": "Snoopy",
       "entry_fill_usd": 2.7664347855673138e-05,
       "opened": 1791651301.1997008,
-      "peak_usd": 3.11113955064868e-05,
+      "peak_usd": 3.683652989135405e-05,
       "exit_usd": 1.2979675745928213e-05,
       "exit_reason": "NOTBREMSE (-53%)",
       "until": 1791673119.8465993
@@ -15744,7 +15745,7 @@
       "symbol": "JOEVER",
       "entry_fill_usd": 2.768329941472591e-05,
       "opened": 1791653459.8577209,
-      "peak_usd": 0.00010096795309761672,
+      "peak_usd": 0.0001235881312903855,
       "exit_usd": 3.8426131866071435e-05,
       "exit_reason": "STORY_ABGEKUEHLT (30% unter dem Hoch von 2.2x)",
       "until": 1791675322.9439392
@@ -15770,5 +15771,5 @@
   },
   "runde": 1,
   "shadow": {},
-  "saved_at": 1791655434.867947
+  "saved_at": 1791655512.5029588
 }
