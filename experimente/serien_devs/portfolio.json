@@ -1,8 +1,82 @@
 {
   "strategy": "EXPERIMENT_serien_devs",
   "started": "2026-10-04T00:34:10.471102+00:00",
-  "bankroll_sol": 10.26527,
-  "positions": {},
+  "bankroll_sol": 10.06377,
+  "positions": {
+    "XsvP4b65AoC8f2hEuXj3yAKzRCLtW4aCQupZcuK1vAe": {
+      "mint": "XsvP4b65AoC8f2hEuXj3yAKzRCLtW4aCQupZcuK1vAe",
+      "symbol": "XIAOx",
+      "opened": 1791619535.7738783,
+      "invested_sol": 0.2,
+      "fees_sol": 0.0015,
+      "entry_signal_usd": 3.320260584470675,
+      "entry_fill_usd": 3.3451495571896332,
+      "entry_slippage_pct": 0.75,
+      "roundtrip_cost_pct": 1.63,
+      "tokens_initial": 6.57400897,
+      "tokens_left": 6.57400897,
+      "decimals": 8,
+      "proceeds_sol": 0.0,
+      "peak_usd": 3.3451495571896332,
+      "tp1_done": false,
+      "thesis_breaks": 0,
+      "missing_loops": 0,
+      "entry_liquidity": 5765.9879438609305,
+      "entry_view": {
+        "age_h": 0.5699637257390552,
+        "mcap": 5467838.493186431,
+        "liquidity": 5765.9879438609305,
+        "holders": 19,
+        "holder_growth_1h": 11.76470588235294,
+        "holder_growth_5m": 5.555555555555555,
+        "net_buyers_5m": 1,
+        "organic_buyers_5m": 0,
+        "organic_score": 0.0,
+        "price_change_1h": 0.7401522515359572,
+        "price_change_5m": 0.0,
+        "buys_5m": 1,
+        "sells_5m": 0,
+        "traders_5m": 1,
+        "traders_1h": 3,
+        "buy_vol_5m": 768.5144596382288,
+        "sell_vol_5m": 0.0,
+        "buy_vol_1h": 886.4106968795429,
+        "sell_vol_1h": 119.17533015450553,
+        "organic_buy_vol_1h": 0.0,
+        "top_holders_pct": 72.55600428588626,
+        "dev_balance_pct": 22.276226396262974,
+        "dev_mints": 1518,
+        "launchpad": null,
+        "graduated": false,
+        "social": false,
+        "quelle": "trend1h",
+        "trades_24h": 5,
+        "organic_label": "low",
+        "buy_organic_vol_5m": 0.0,
+        "jup_fees": null,
+        "hour_utc": 8
+      },
+      "bundle": {
+        "quelle": "experiment",
+        "text": "Serien-Dev: frueherer Coin NFLXx bis 114,303,082 $"
+      },
+      "phase": "normal",
+      "thesis": "Story verbreitet sich: Holder +12%/h, 1 Netto-Kaeufer 5m, 0 organisch; Serien-Dev: frueherer Coin NFLXx bis 114,303,082 $; Dev-Coins 1518",
+      "exit_rule": "Haelfte bei 2x; Rest raus, wenn Holder schrumpfen und Netto-Verkaeufer 2x in Folge, Liquiditaet -30%, -40%, nach 1,5x nicht unter Einstand, nach 2x 30 % vom Hoch (ab 10x 25 %)",
+      "mitlaeufer": null,
+      "solana_tracker": null,
+      "graduated": false,
+      "liq_low_checks": 0,
+      "dev_exit": true,
+      "dev_pct_kauf": 22.276226396262974,
+      "serien_vorgaenger": {
+        "symbol": "NFLXx",
+        "peak": 114303082,
+        "zuerst": 1791122681,
+        "mint": "XsEH7wWfJJu2ZT3UCFeVfALnVA6CP5ur7Ee11KmzVpL"
+      }
+    }
+  },
   "closed": [
     {
       "symbol": "GWC",
@@ -13577,7 +13651,8 @@
     "5xy3G4rPu9kuiXvFDngCQrETUo6nFpzZD6BpW46Vpump": 1791605104.2057717,
     "EwYudQcf96PAGanfLA9q4Q8QSAUk1QzkbiC3jrbppump": 1791609825.9285157,
     "AKxM8oeZFSYiJCibp937W3uuAMFYw2GhzZ55CR9tpump": 1791618236.1005716,
-    "29s7BRSf68TjM8NqBhiuEsJM3E3mtanoEWy62JpDfKun": 1791618705.5398526
+    "29s7BRSf68TjM8NqBhiuEsJM3E3mtanoEWy62JpDfKun": 1791618705.5398526,
+    "XsvP4b65AoC8f2hEuXj3yAKzRCLtW4aCQupZcuK1vAe": 1791619535.7745173
   },
   "watch": {
     "2p69EhwN9g8tQ9hbWfnCdzm2eNMpiagAFCywhc4jpump": {
@@ -13646,5 +13721,5 @@
   },
   "runde": 1,
   "shadow": {},
-  "saved_at": 1791619387.2295718
+  "saved_at": 1791619537.4321702
 }
