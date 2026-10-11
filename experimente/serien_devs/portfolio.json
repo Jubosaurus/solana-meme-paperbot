@@ -1,8 +1,82 @@
 {
   "strategy": "EXPERIMENT_serien_devs",
   "started": "2026-10-04T00:34:10.471102+00:00",
-  "bankroll_sol": 8.457367,
-  "positions": {},
+  "bankroll_sol": 8.255867,
+  "positions": {
+    "A6zEqdpX2eB3CCzqt467Xq2TJQ5QpvTgVAv2DuEnpump": {
+      "mint": "A6zEqdpX2eB3CCzqt467Xq2TJQ5QpvTgVAv2DuEnpump",
+      "symbol": "Mert",
+      "opened": 1791730459.538408,
+      "invested_sol": 0.2,
+      "fees_sol": 0.0015,
+      "entry_signal_usd": 7.681315137997538e-05,
+      "entry_fill_usd": 7.89566599252151e-05,
+      "entry_slippage_pct": 2.79,
+      "roundtrip_cost_pct": 7.33,
+      "tokens_initial": 277604.38523,
+      "tokens_left": 277604.38523,
+      "decimals": 6,
+      "proceeds_sol": 0.0,
+      "peak_usd": 7.89566599252151e-05,
+      "tp1_done": false,
+      "thesis_breaks": 0,
+      "missing_loops": 0,
+      "entry_liquidity": 12119.621069086294,
+      "entry_view": {
+        "age_h": 0.26181685235765245,
+        "mcap": 74103.52357602931,
+        "liquidity": 12119.621069086294,
+        "holders": 1081,
+        "holder_growth_1h": 475.0,
+        "holder_growth_5m": -9.916666666666666,
+        "net_buyers_5m": 309,
+        "organic_buyers_5m": 0,
+        "organic_score": 0.0,
+        "price_change_1h": 924.013988302334,
+        "price_change_5m": 57.531351861653434,
+        "buys_5m": 1157,
+        "sells_5m": 1349,
+        "traders_5m": 958,
+        "traders_1h": 2194,
+        "buy_vol_5m": 44217.03418455143,
+        "sell_vol_5m": 58553.17701099871,
+        "buy_vol_1h": 175452.14623088104,
+        "sell_vol_1h": 202491.20925696025,
+        "organic_buy_vol_1h": 2126.406390145769,
+        "top_holders_pct": 17.836804749066733,
+        "dev_balance_pct": 0.0,
+        "dev_mints": 8314,
+        "launchpad": "pump.fun",
+        "graduated": true,
+        "social": true,
+        "quelle": "traded1h+traded5m",
+        "trades_24h": 9113,
+        "organic_label": "low",
+        "buy_organic_vol_5m": 635.7386513029656,
+        "jup_fees": null,
+        "hour_utc": 14
+      },
+      "bundle": {
+        "quelle": "experiment",
+        "text": "Serien-Dev: frueherer Coin MARU bis 329,230 $"
+      },
+      "phase": "normal",
+      "thesis": "Story verbreitet sich: Holder +475%/h, 309 Netto-Kaeufer 5m, 0 organisch; Serien-Dev: frueherer Coin MARU bis 329,230 $; Dev-Coins 8314",
+      "exit_rule": "Haelfte bei 2x; Rest raus, wenn Holder schrumpfen und Netto-Verkaeufer 2x in Folge, Liquiditaet -30%, -40%, nach 1,5x nicht unter Einstand, nach 2x 30 % vom Hoch (ab 10x 25 %)",
+      "mitlaeufer": null,
+      "solana_tracker": null,
+      "graduated": true,
+      "liq_low_checks": 0,
+      "dev_exit": true,
+      "dev_pct_kauf": 0.0,
+      "serien_vorgaenger": {
+        "symbol": "MARU",
+        "peak": 329230,
+        "zuerst": 1791582730,
+        "mint": "5iBXD3xQDgH6DnLaY9wC4dcXfWfrF6BpVdotFtKWpump"
+      }
+    }
+  },
   "closed": [
     {
       "symbol": "GWC",
@@ -18041,7 +18115,8 @@
     "4u3btNNYmtgZxuLHH3jXDUzh5STfARMTSi2frMV9pump": 1791725735.7367961,
     "E1Ay5MFuK4ADYgQDp3QmR1Q45UW3HQyfwQHeVotNmDMv": 1791726399.2519126,
     "7dvY8Ww9hYUeM2zN6vLXrn2JGwymjfbupQu4yz76pump": 1791726877.689912,
-    "BNRXJLnqCDKrYok4g36FEDr1j6u5Yf2xHkL3ZiS7xSuF": 1791728286.1445098
+    "BNRXJLnqCDKrYok4g36FEDr1j6u5Yf2xHkL3ZiS7xSuF": 1791728286.1445098,
+    "A6zEqdpX2eB3CCzqt467Xq2TJQ5QpvTgVAv2DuEnpump": 1791730459.5391312
   },
   "watch": {
     "BgpbXnqBmhic9FAczuLsjoJu7SuAN7sSH4xcm5XWpump": {
@@ -18164,5 +18239,5 @@
   },
   "runde": 1,
   "shadow": {},
-  "saved_at": 1791730155.588725
+  "saved_at": 1791730461.4678495
 }
