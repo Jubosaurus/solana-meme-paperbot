@@ -1,8 +1,82 @@
 {
   "strategy": "EXPERIMENT_serien_devs",
   "started": "2026-10-04T00:34:10.471102+00:00",
-  "bankroll_sol": 8.243742,
-  "positions": {},
+  "bankroll_sol": 8.042242,
+  "positions": {
+    "7DXG3wRapcXBZ997fTZQTrniAN2gnABp2b8XQpaWpump": {
+      "mint": "7DXG3wRapcXBZ997fTZQTrniAN2gnABp2b8XQpaWpump",
+      "symbol": "Juno",
+      "opened": 1791741007.5214832,
+      "invested_sol": 0.2,
+      "fees_sol": 0.0015,
+      "entry_signal_usd": 1.0794572657763517e-05,
+      "entry_fill_usd": 9.91570597164775e-06,
+      "entry_slippage_pct": -8.14,
+      "roundtrip_cost_pct": -8.3,
+      "tokens_initial": 2264957.370977,
+      "tokens_left": 2264957.370977,
+      "decimals": 6,
+      "proceeds_sol": 0.0,
+      "peak_usd": 9.91570597164775e-06,
+      "tp1_done": false,
+      "thesis_breaks": 0,
+      "missing_loops": 0,
+      "entry_liquidity": 6263.6030657832835,
+      "entry_view": {
+        "age_h": 0.2848758585585488,
+        "mcap": 10794.57265764266,
+        "liquidity": 6263.6030657832835,
+        "holders": 116,
+        "holder_growth_1h": 625.0,
+        "holder_growth_5m": -15.328467153284672,
+        "net_buyers_5m": 47,
+        "organic_buyers_5m": 0,
+        "organic_score": 0.0,
+        "price_change_1h": 128.81484719746027,
+        "price_change_5m": -56.87277415846882,
+        "buys_5m": 127,
+        "sells_5m": 161,
+        "traders_5m": 157,
+        "traders_1h": 503,
+        "buy_vol_5m": 7024.7874806079,
+        "sell_vol_5m": 11550.470213558314,
+        "buy_vol_1h": 38896.05519975396,
+        "sell_vol_1h": 37799.43112122179,
+        "organic_buy_vol_1h": 1536.433610211037,
+        "top_holders_pct": 27.055273697148813,
+        "dev_balance_pct": 0.0,
+        "dev_mints": 8324,
+        "launchpad": "pump.fun",
+        "graduated": false,
+        "social": true,
+        "quelle": "traded1h+traded5m",
+        "trades_24h": 1508,
+        "organic_label": "low",
+        "buy_organic_vol_5m": 54.8950737747697,
+        "jup_fees": null,
+        "hour_utc": 17
+      },
+      "bundle": {
+        "quelle": "experiment",
+        "text": "Serien-Dev: frueherer Coin MARU bis 329,230 $"
+      },
+      "phase": "normal",
+      "thesis": "Story verbreitet sich: Holder +625%/h, 47 Netto-Kaeufer 5m, 0 organisch; Serien-Dev: frueherer Coin MARU bis 329,230 $; Dev-Coins 8324",
+      "exit_rule": "Haelfte bei 2x; Rest raus, wenn Holder schrumpfen und Netto-Verkaeufer 2x in Folge, Liquiditaet -30%, -40%, nach 1,5x nicht unter Einstand, nach 2x 30 % vom Hoch (ab 10x 25 %)",
+      "mitlaeufer": null,
+      "solana_tracker": null,
+      "graduated": false,
+      "liq_low_checks": 0,
+      "dev_exit": true,
+      "dev_pct_kauf": 0.0,
+      "serien_vorgaenger": {
+        "symbol": "MARU",
+        "peak": 329230,
+        "zuerst": 1791582730,
+        "mint": "5iBXD3xQDgH6DnLaY9wC4dcXfWfrF6BpVdotFtKWpump"
+      }
+    }
+  },
   "closed": [
     {
       "symbol": "GWC",
@@ -18661,7 +18735,8 @@
     "FiLRrZ7Bt2HHGfs83RFJdGmp3mLceycq3zkDN6Apump": 1791736176.9559326,
     "AWdcytXBP5QFyT7n2aUVsSopZvLCZkrXfakCmwhZpump": 1791737767.738196,
     "CFRzhUKYiuVrtYQeRbc7neyZwgfNLPbxTCeRccF8pump": 1791739052.7180972,
-    "GWvCUwmkKDrEPv59gax9orJdP9Ap3ChVjfM9vntx84Yy": 1791739798.0160756
+    "GWvCUwmkKDrEPv59gax9orJdP9Ap3ChVjfM9vntx84Yy": 1791739798.0160756,
+    "7DXG3wRapcXBZ997fTZQTrniAN2gnABp2b8XQpaWpump": 1791741007.5223577
   },
   "watch": {
     "EQ46GCkgPctvueFDt2edutfa1hKxsDzo2EZeSMiHpump": {
@@ -18829,5 +18904,5 @@
   },
   "runde": 1,
   "shadow": {},
-  "saved_at": 1791740935.5412238
+  "saved_at": 1791741009.7697856
 }
