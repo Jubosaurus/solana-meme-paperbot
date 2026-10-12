@@ -1,8 +1,96 @@
 {
   "strategy": "NARRATIV",
   "started": "2026-09-26T02:46:00.825468+00:00",
-  "bankroll_sol": 9.936512,
-  "positions": {},
+  "bankroll_sol": 9.735012,
+  "positions": {
+    "8fC4E7kD9HHskb5nZjLuKUfdKe14caNifo1bmFHUpump": {
+      "mint": "8fC4E7kD9HHskb5nZjLuKUfdKe14caNifo1bmFHUpump",
+      "symbol": "Simple",
+      "opened": 1791829940.0132387,
+      "invested_sol": 0.2,
+      "fees_sol": 0.0015,
+      "entry_signal_usd": 2.468189434014525e-05,
+      "entry_fill_usd": 2.489620411140487e-05,
+      "entry_slippage_pct": 0.87,
+      "roundtrip_cost_pct": 2.92,
+      "tokens_initial": 864059.549816,
+      "tokens_left": 864059.549816,
+      "decimals": 6,
+      "proceeds_sol": 0.0,
+      "peak_usd": 2.489620411140487e-05,
+      "tp1_done": false,
+      "thesis_breaks": 0,
+      "missing_loops": 0,
+      "entry_liquidity": 9321.465683887694,
+      "entry_view": {
+        "age_h": 0.7143458999527825,
+        "mcap": 24681.89434014525,
+        "liquidity": 9321.465683887694,
+        "holders": 236,
+        "holder_growth_1h": 22.916666666666664,
+        "holder_growth_5m": 0.425531914893617,
+        "net_buyers_5m": 30,
+        "organic_buyers_5m": 8,
+        "organic_score": 38.94690917670833,
+        "price_change_1h": 5.53601306705211,
+        "price_change_5m": 19.90791160654233,
+        "buys_5m": 56,
+        "sells_5m": 52,
+        "traders_5m": 67,
+        "traders_1h": 851,
+        "buy_vol_5m": 1948.4090869854713,
+        "sell_vol_5m": 2028.3838937223018,
+        "buy_vol_1h": 83124.94563597393,
+        "sell_vol_1h": 82594.70828297478,
+        "organic_buy_vol_1h": 1468.6380006144618,
+        "top_holders_pct": 23.4158502668766,
+        "dev_balance_pct": 0.0,
+        "dev_mints": 6,
+        "launchpad": "pump.fun",
+        "graduated": false,
+        "social": true,
+        "quelle": "organic1h+organic5m+traded1h+traded5m",
+        "trades_24h": 3282,
+        "organic_label": "medium",
+        "buy_organic_vol_5m": 0.0,
+        "jup_fees": null,
+        "hour_utc": 18
+      },
+      "bundle": {
+        "quelle": "block0",
+        "slot": 456134566,
+        "block0_wallets": 0,
+        "block0_supply_pct": 0.0,
+        "block0_still_held_pct": 0.0,
+        "block0_exited": 0,
+        "early_tx_slot1_2": 18,
+        "bundle_holding_pct": 0.0,
+        "block0_tx_fehlend": 0,
+        "block0_halter_fehlend": 0,
+        "gebuendelt": false,
+        "rugcheck_insider_pct": 0
+      },
+      "phase": "normal",
+      "thesis": "Story verbreitet sich: Holder +23%/h, 30 Netto-Kaeufer 5m, 8 organisch; Block 0: 0 Kaeufer, 0.0% gekauft, 0.0% noch gehalten; Dev-Coins 6",
+      "exit_rule": "Haelfte bei 2x; Rest raus, wenn Holder schrumpfen und Netto-Verkaeufer 2x in Folge, Liquiditaet -30%, -40%, nach 1,5x nicht unter Einstand, nach 2x 30 % vom Hoch (ab 10x 25 %)",
+      "mitlaeufer": null,
+      "solana_tracker": {
+        "score": 6,
+        "rugged": false,
+        "snipers_pct": 5.2908,
+        "insiders_pct": 0,
+        "bundlers_pct": 0.0296,
+        "top10_pct": 23.415799999999997,
+        "risiken": [
+          "Bonding curve not complete",
+          "Top 10 Holders"
+        ]
+      },
+      "graduated": false,
+      "liq_low_checks": 0,
+      "flug_last": 1791829957.9280841
+    }
+  },
   "closed": [
     {
       "symbol": "SHOGGOTH",
@@ -17338,7 +17426,8 @@
     "4Y3KtMxxkJsoowtbXqnR8uNvak3FTqNHijd2u6P8pump": 1791805871.165339,
     "5v44XTW2jCQ2oM4bnxx5mo1cZPCESNQWK4BMsVBwdpad": 1791807758.436191,
     "a23Ezw7LcyDDz6dujd2xzqNTNgQrxR8dd2QLm7dpump": 1791811887.7601514,
-    "5Uycj5BUozB87WgocSPhFzGDvoUftvANadiWS4cKWLgG": 1791825702.9068356
+    "5Uycj5BUozB87WgocSPhFzGDvoUftvANadiWS4cKWLgG": 1791825702.9068356,
+    "8fC4E7kD9HHskb5nZjLuKUfdKe14caNifo1bmFHUpump": 1791829940.0137267
   },
   "watch": {
     "a23Ezw7LcyDDz6dujd2xzqNTNgQrxR8dd2QLm7dpump": {
@@ -17360,7 +17449,7 @@
       "until": 1791848196.3577197
     }
   },
-  "saved_at": 1791829909.6638775,
+  "saved_at": 1791829974.66285,
   "shadow": {
     "4FMSyEXUnXPJq7wKBVScRrCaYWPdDUNcqeuJuhC7pump": {
       "symbol": "WIRED",
@@ -17725,7 +17814,7 @@
   },
   "st_usage": {
     "date": "2026-10-12",
-    "count": 8
+    "count": 9
   },
   "wellen": {
     "SHADOW_1791813049": {
@@ -17849,7 +17938,7 @@
         "E3hhERNpo2fhoDTCNFxsq6NtY9v8qEX62DTsCtpegeno": "MarsX",
         "84AaR5LK7gf85pWrSfmy8RjWEqunSPNzZPkDZ9ckpump": "MarsX"
       },
-      "preis_usd": 0.00047366079689405377,
+      "preis_usd": 0.0005093901523195905,
       "start_geschrieben": true,
       "meta_stand": 1791829654.8630636,
       "meta_abrufe": 9
