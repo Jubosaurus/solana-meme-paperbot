@@ -380,3 +380,13 @@ def test_ohne_automatik_schreibt_nichts_in_wallet_liste(monkeypatch):
     assert scout.auto_wallets({}, NOW, 150.0, [cand]) == []
     assert open(cb.WALLET_FILE, encoding="utf-8").read() == vorher
     assert not os.path.exists(scout.WAIT_FILE)
+
+
+def test_automatik_im_echten_code_aus():
+    # 13.10.: Betriebsschalter muss im Quelltext aus sein (conftest schaltet ihn nur fuer Tests ein).
+    # Wird die Automatik nach Zustimmung des Betreibers wieder eingeschaltet, diesen Test anpassen.
+    import ast
+    quelle = open(scout.__file__, encoding="utf-8").read()
+    werte = [n.value.value for n in ast.parse(quelle).body
+             if isinstance(n, ast.Assign) and any(getattr(t, "id", None) == "AUTO_AUFNAHME" for t in n.targets)]
+    assert werte == [False]

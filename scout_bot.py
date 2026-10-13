@@ -32,7 +32,7 @@ import gmgn
 # ================================================================ Schalter (Entscheidung des Betreibers 04.10.)
 GMGN_MAX_KANDIDATEN = 40             # GMGN-Kandidaten je Lauf, fair auf Quellen verteilt (08.10.)
 KEIN_PUSH = False                   # True nur mit --ohne-automatik: Gegenprobe pusht nichts (kein altes warteliste.csv zurueck)
-AUTO_AUFNAHME = True                # True: Scout nimmt Copy-Wallets selbst auf und ersetzt sie. False: nur melden
+AUTO_AUFNAHME = False               # 13.10.: aus bis Bewertung korrigiert (CR5-1..4). True: Scout nimmt Copy-Wallets selbst auf und ersetzt sie. False: nur melden
 AUTO_MAX_WALLETS = 30               # hoechstens so viele aktive Wallets in copy_wallets.txt
 AUTO_STILL_MAX_PRO_LAUF = 2         # hoechstens so viele Entfernungen wegen Stille pro Scout-Lauf (seit 06.10.)
 AUTO_KONTEN_MAX_ALTER_H = 2         # copy/konten.json aelter -> Copy-Bot vermutlich ausgefallen: keine Entfernung wegen Stille

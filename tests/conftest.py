@@ -118,6 +118,7 @@ def sandbox(tmp_path, monkeypatch):
     monkeypatch.setattr(core, "HELIUS_RPC", None)
     monkeypatch.setattr(core, "SOLANA_TRACKER_API_KEY", "")
     monkeypatch.setattr(scout, "BIRDEYE_API_KEY", "")
+    monkeypatch.setattr(scout, "AUTO_AUFNAHME", True)      # Tests pruefen die Automatik-Logik, unabhaengig vom Betriebsschalter
     env = {"net": net, "git": git, "discord": msgs, "path": tmp_path}
     yield env
     core.CTX.clear()
