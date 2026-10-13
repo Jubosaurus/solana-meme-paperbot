@@ -1,8 +1,82 @@
 {
   "strategy": "EXPERIMENT_serien_devs",
   "started": "2026-10-04T00:34:10.471102+00:00",
-  "bankroll_sol": 6.208028,
-  "positions": {},
+  "bankroll_sol": 6.006528,
+  "positions": {
+    "8aypoBa471aqUqnri3g8mZNgGERUYeuBqf624xcepump": {
+      "mint": "8aypoBa471aqUqnri3g8mZNgGERUYeuBqf624xcepump",
+      "symbol": "Inu",
+      "opened": 1791859836.9463496,
+      "invested_sol": 0.2,
+      "fees_sol": 0.0015,
+      "entry_signal_usd": 4.704391934333538e-05,
+      "entry_fill_usd": 6.064391509848526e-05,
+      "entry_slippage_pct": 28.91,
+      "roundtrip_cost_pct": 4.55,
+      "tokens_initial": 350723.13432,
+      "tokens_left": 350723.13432,
+      "decimals": 6,
+      "proceeds_sol": 0.0,
+      "peak_usd": 6.064391509848526e-05,
+      "tp1_done": false,
+      "thesis_breaks": 0,
+      "missing_loops": 0,
+      "entry_liquidity": 19619.534988142033,
+      "entry_view": {
+        "age_h": 0.27387338320414223,
+        "mcap": 45655.34540713229,
+        "liquidity": 19619.534988142033,
+        "holders": 907,
+        "holder_growth_1h": 5946.666666666667,
+        "holder_growth_5m": 49.66996699669967,
+        "net_buyers_5m": 407,
+        "organic_buyers_5m": 0,
+        "organic_score": 0.0,
+        "price_change_1h": 823.1729601918652,
+        "price_change_5m": -12.705215386614995,
+        "buys_5m": 1704,
+        "sells_5m": 1589,
+        "traders_5m": 1026,
+        "traders_1h": 1464,
+        "buy_vol_5m": 57198.80751971868,
+        "sell_vol_5m": 70773.75049517746,
+        "buy_vol_1h": 116763.34301248784,
+        "sell_vol_1h": 123194.72030140451,
+        "organic_buy_vol_1h": 2540.9339399436303,
+        "top_holders_pct": 18.482164187392698,
+        "dev_balance_pct": 0.0,
+        "dev_mints": 221,
+        "launchpad": "pump.fun",
+        "graduated": true,
+        "social": true,
+        "quelle": "traded1h+traded5m",
+        "trades_24h": 5921,
+        "organic_label": "low",
+        "buy_organic_vol_5m": 1689.990231245447,
+        "jup_fees": null,
+        "hour_utc": 2
+      },
+      "bundle": {
+        "quelle": "experiment",
+        "text": "Serien-Dev: frueherer Coin SWOLF bis 2,880,004 $"
+      },
+      "phase": "normal",
+      "thesis": "Story verbreitet sich: Holder +5947%/h, 407 Netto-Kaeufer 5m, 0 organisch; Serien-Dev: frueherer Coin SWOLF bis 2,880,004 $; Dev-Coins 221",
+      "exit_rule": "Haelfte bei 2x; Rest raus, wenn Holder schrumpfen und Netto-Verkaeufer 2x in Folge, Liquiditaet -30%, -40%, nach 1,5x nicht unter Einstand, nach 2x 30 % vom Hoch (ab 10x 25 %)",
+      "mitlaeufer": null,
+      "solana_tracker": null,
+      "graduated": true,
+      "liq_low_checks": 0,
+      "dev_exit": true,
+      "dev_pct_kauf": 0.0,
+      "serien_vorgaenger": {
+        "symbol": "SWOLF",
+        "peak": 2880004,
+        "zuerst": 1791545123,
+        "mint": "HwJyyniKKDRLXxjRSzyLtpvxzqecqrhrbcSbKRm7STNK"
+      }
+    }
+  },
   "closed": [
     {
       "symbol": "GWC",
@@ -22629,18 +22703,10 @@
     "8LgZUKpre9yvcT12dSzCZ7i1WdfQth5ernVWSzSdpump": 1791853259.8008902,
     "G6ZGTgRbhAFy3Y2sMJcEccyGcQqDBK2zbq1ZX9eCpump": 1791853811.9843745,
     "HTEpDDSkCkFp3gJG2jsc8jHc8sDGV9UNR9foqHNEpump": 1791854998.285524,
-    "DS8QCKVBMDix6BkkTgoV8wB4G8t9sz57ZghkDkNWpump": 1791858012.094683
+    "DS8QCKVBMDix6BkkTgoV8wB4G8t9sz57ZghkDkNWpump": 1791858012.094683,
+    "8aypoBa471aqUqnri3g8mZNgGERUYeuBqf624xcepump": 1791859836.9470642
   },
   "watch": {
-    "EF8hU2RHaxJid6ey4LrYViYhrdiPRjp2aPeADw8dpump": {
-      "symbol": "WalterJr",
-      "entry_fill_usd": 9.875468204755436e-05,
-      "opened": 1791837952.200197,
-      "peak_usd": 9.875468204755436e-05,
-      "exit_usd": 5.8057665833022e-05,
-      "exit_reason": "NOTBREMSE (-41%)",
-      "until": 1791859644.546185
-    },
     "3gdGMT6zu2n2PeT79ywqU9dbdqsdkD46mMaCQ4CFpump": {
       "symbol": "Green",
       "entry_fill_usd": 3.2904281320491745e-05,
@@ -22779,5 +22845,5 @@
   },
   "runde": 1,
   "shadow": {},
-  "saved_at": 1791859606.8938615
+  "saved_at": 1791859843.305256
 }
