@@ -56,9 +56,10 @@ TX_RESULT_HEADER = ["zeit", "name", "wallet", "signatur", "block_zeit", "erfolgr
                     "mint", "live_filter", "sol_aenderung", "token_aenderung", "programme"]
 TX_CHECK_MAX = 40                   # hoechstens so viele Transaktionen je Wallet (Helius: ~1 Credit je Abfrage)
 LIST_FILE = os.path.join(SCOUT_DIR, "pruefen.txt")   # Pruefliste: Wallets, die du selbst gefunden hast
+LIST_ZEIT_MAX_S = 20 * 60           # Pruefliste: nach so langer Zeit Rest auf den naechsten Lauf schieben (Lauflimit 45 min, Zustand wird erst am Ende gespeichert)
 LIST_TX = 150                       # fuer die Pruefliste mehr Transaktionen je Wallet auswerten
 SCORING_VERSION = "4"               # 13.10.: Korrektur CR5-1..4 (Altbestand anteilig, Ueberweisungen, Rest zum Kurs, fehlende Transaktionen)
-# stammen aus Version 3 und werden von der Automatik nicht mehr uebernommen.
+#                                     (gespeicherte Bewertungen aus Version 3 uebernimmt die Automatik nicht mehr)
 DISCORD_WEBHOOK_SCOUT = (os.environ.get("DISCORD_WEBHOOK_SCOUT") or os.environ.get("DISCORD_WEBHOOK_COPY") or "").strip()
 BIRDEYE_API_KEY = (os.environ.get("BIRDEYE_API_KEY") or "").strip()
 BIRDEYE_BASE = "https://public-api.birdeye.so"
@@ -556,7 +557,21 @@ def check_list(state, now, sol_usd):
     if not todo:
         return [], []
     rows, lines = [], []
+    versuch = state.get("liste_versuch")
+    if not isinstance(versuch, dict):                               # kaputter Zustand darf den Scout nicht stoppen
+        versuch = state["liste_versuch"] = {}
+
+    def zuletzt(eintrag):                                           # am laengsten nicht versucht zuerst (stabil: Listenreihenfolge)
+        wert = core.as_float(versuch.get(eintrag[1]))
+        return wert if math.isfinite(wert) else 0.0
+    todo.sort(key=zuletzt)
+    start = time.time()
+    offen = set()
     for name, w in todo:
+        if time.time() - start > LIST_ZEIT_MAX_S:
+            offen.add(w)                            # Zeitbudget aufgebraucht: kommt im naechsten Lauf dran
+            continue
+        versuch[w] = now
         n_lines = len(lines)
         try:
             m, reason = stage1(w, now, LIST_MAX_IDLE_H)
@@ -591,9 +606,11 @@ def check_list(state, now, sol_usd):
                     eintrag.pop("version")           # noch nicht endgueltig bewertet: erneut versuchen
             memo[w] = eintrag
     new = {w for _, w in todo}
+    STATS["liste_offen"] = len(offen)
+    STATS["liste_neu"] = len(todo) - len(offen)
     for name, w in entries:                         # schon bewertete aus dem Speicher anzeigen
         m = memo.get(w)
-        if w in new or not m:
+        if w in new or w in offen or not m:
             continue
         when = datetime.fromtimestamp(m.get("zeit") or now, timezone.utc).strftime("%d.%m. %H:%M")
         lines.append((m.get("sort", -600), (m.get("zeile") or f"🗂️ **{name}** `{w}`\n   schon bewertet, Ergebnis im Dashboard")
@@ -1332,7 +1349,10 @@ def run(nur_liste=False):
             f"**{STATS.get('liste_neu', 0)} Wallets neu geprueft, {len(list_lines) - STATS.get('liste_neu', 0)} aus dem "
             f"Speicher, {good} fuer uns im Plus** (Rendite des Traders der letzten 7 Tage "
             f"auf den Einsatz, gehaltene Coins zum aktuellen Kurs, ohne seinen besten Coin, minus 3 bis 10 "
-            f"Prozentpunkte Reibung je nach Haltedauer)"] + list_lines + (versions_lines if nur_liste else []))
+            f"Prozentpunkte Reibung je nach Haltedauer)"]
+            + ([f"⏳ {STATS['liste_offen']} Wallets der Pruefliste kommen im naechsten Lauf dran (Zeitbudget)"]
+                if STATS.get("liste_offen") else [])
+            + list_lines + (versions_lines if nur_liste else []))
     elif nur_liste:
         notify("📋 Wallet-Scout: deine Pruefliste", ["Keine neuen Adressen, alle schon bewertet (Ergebnis im Dashboard)."]
                + versions_lines)

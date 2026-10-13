@@ -818,3 +818,60 @@ def test_versionswechsel_beschaedigte_spalte_der_warteliste_wird_nicht_ueberschr
         f.write(kaputt)
     assert scout.versionswechsel(state, now) == (0, 0)
     assert "speicher_version" not in state
+
+
+def test_pruefliste_zeitbudget_schiebt_den_rest_auf_den_naechsten_lauf(monkeypatch, clock):
+    zweite_wallet = addr("ListeZwei")
+    transactions = transaktionen_mit_luecken(0)
+    transactions.update({f"zweite_{k}": v for k, v in transaktionen_mit_luecken(0, zweite_wallet).items()})
+    calls = pruefliste_vorbereiten(monkeypatch, transactions)
+    monkeypatch.setattr(scout, "load_list", lambda: [("Probe", WALLET), ("Zwei", zweite_wallet)])
+    monkeypatch.setattr(scout, "LIST_ZEIT_MAX_S", 100)
+    original = scout.stage1
+
+    def stage1(*args, **kw):
+        clock.now += 150                              # jede Bewertung kostet 150 s
+        return original(*args, **kw)
+    monkeypatch.setattr(scout, "stage1", stage1)
+    state = {"wallets_geprueft": {}, "liste_bewertet": {}}
+    rows, lines = scout.check_list(state, 200001, 100.0)
+    assert [r["wallet"] for r in rows] == [WALLET]
+    assert scout.STATS["liste_neu"] == 1 and scout.STATS["liste_offen"] == 1
+    assert zweite_wallet not in state["liste_bewertet"]
+    assert all(zweite_wallet not in str(z) for z in lines)
+    state = json.loads(json.dumps(state))
+    rows, _ = scout.check_list(state, 200002, 100.0)                 # naechster Lauf: nur noch die zweite
+    assert [r["wallet"] for r in rows] == [zweite_wallet]
+    assert scout.STATS["liste_offen"] == 0
+
+
+def test_pruefliste_fehlerhafte_wallets_blockieren_die_hinteren_nicht(monkeypatch, clock):
+    kaputt = addr("ListeKaputt")
+    transactions = transaktionen_mit_luecken(0)
+    calls = pruefliste_vorbereiten(monkeypatch, transactions)
+    monkeypatch.setattr(scout, "load_list", lambda: [("Kaputt", kaputt), ("Probe", WALLET)])
+    monkeypatch.setattr(scout, "LIST_ZEIT_MAX_S", 100)
+    original = scout.stage1
+
+    def stage1(wallet, *args, **kw):
+        clock.now += 150
+        if wallet == kaputt:
+            raise RuntimeError("dauerhaft kaputt")
+        return original(wallet, *args, **kw)
+    monkeypatch.setattr(scout, "stage1", stage1)
+    state = {"wallets_geprueft": {}, "liste_bewertet": {}}
+    scout.check_list(state, 200001, 100.0)                          # kaputte Wallet verbraucht das Budget
+    state = json.loads(json.dumps(state))
+    rows, _ = scout.check_list(state, 200002, 100.0)                # jetzt kommt die hintere dran
+    assert [r["wallet"] for r in rows] == [WALLET]
+
+
+@pytest.mark.parametrize("kaputt", [None, [], "x", 5, {"__WALLET__": "NaN"}, {"__WALLET__": "Infinity"}])
+def test_pruefliste_kaputter_versuchszustand_stoppt_nichts(monkeypatch, kaputt):
+    pruefliste_vorbereiten(monkeypatch, transaktionen_mit_luecken(0))
+    monkeypatch.setattr(scout, "load_list", lambda: [("Probe", WALLET)])
+    if isinstance(kaputt, dict):
+        kaputt = {WALLET: v for v in kaputt.values()}
+    state = {"wallets_geprueft": {}, "liste_bewertet": {}, "liste_versuch": kaputt}
+    rows, _ = scout.check_list(state, 200001, 100.0)
+    assert [r["wallet"] for r in rows] == [WALLET]
