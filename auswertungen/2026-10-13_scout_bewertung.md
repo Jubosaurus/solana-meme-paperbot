@@ -73,3 +73,27 @@ Punkte = „für uns“ nach Reibung (Kopierkosten). Copy-Ergebnis 0,000 mit 0 g
 ## Einordnung (Claude)
 
 Die Rechenfehler CR5-1 bis CR5-4 sind real und jetzt behoben. Nach diesen Daten erklären sie aber nur einen kleinen Teil der Verluste. Das größere Problem: Ein gutes 7-Tage-Bild sagt wenig über die nächsten Tage voraus. Das ist eine Vermutung aus einer kleinen Stichprobe, keine bewiesene Tatsache.
+
+---
+
+## Wiederholung am 13.10. 14:35 UTC (Rohdaten neu, Version 4 live) und Vorschlag
+
+**Quelle:** Workflow `scout_gegenprobe.yml`, Lauf 38414268797 (Rohdaten 14:33 UTC, 0 Fehler, 1619 Helius-Aufrufe), Tabelle in `auswertungen/2026-10-13_scout_bewertung_neu.md`. Die Zahlen weichen von der Morgen-Tabelle ab, weil sich die letzten 60 Transaktionen und die Kurse bewegt haben. Nicht vom `daten-pruefer` nachgerechnet (Summen und Zählungen mit eigenem Skript aus der Tabelle gerechnet).
+
+**Frage: Hätte Version 4 die Verlierer abgelehnt?**
+- **Dior, C7bF, 6ANG:** Ja, aber das hätte schon die alte Rechnung getan (Dior zu wenig Coins; C7bF −30,4 und 6ANG −4,2 Punkte, alt und neu gleich). Version 4 ändert an ihnen nichts.
+- **Die 15 seit 09.10. Aufgenommenen** (Copy-Ergebnis zusammen −2,41 SOL, 13 noch aktiv, 4fy8 und FBXi schon entfernt): Mit heutigen Daten würden nur **9zWb und EToT** wieder aufgenommen (alt und neu). Version 4 fängt **3tgb** zusätzlich ab (alt +0,7 → neu −26,2). Alle anderen werden alt wie neu abgelehnt, 5ixS, FZb6, 7DFZ, HMHv nur wegen „letzte Aktivität nicht unter 24 h“ (gute Punkte, aber still).
+- **Grenze:** Das sind die Daten von **heute**, nicht die vom Aufnahmetag. Dass heute abgelehnt würde, heißt nicht, dass am Aufnahmetag abgelehnt worden wäre.
+
+**Rangkorrelation (Spearman, Punkte gegen unser Copy-Ergebnis):** mindestens 5 geschlossene Positionen (n = 12): alt 0,06, neu 0,27; alle mit Copy-Konto (n = 24): alt 0,44, neu 0,46. Am Morgen waren es 0,45 und 0,53 (n = 12). Ergebnis schwankt stark zwischen zwei Messungen, bei n = 12 **nicht belastbar**. Version 4 liegt beide Male etwas besser als Version 3, ohne dass man das beweisen kann.
+
+**Einordnung (Claude, Vermutung):** Die Rechenfehler waren real, erklären aber nur einen kleinen Teil der Verluste. Ein gutes 7-Tage-Bild sagt wenig über die folgenden Tage voraus.
+
+**Vorschlag `AUTO_AUFNAHME` (Entscheidung beim Betreiber):** **Aus lassen.** Gründe: (1) Version 4 ist erst zu 23 von 53 Prüflisten-Wallets bewertet und läuft noch an; (2) die Aufnahme der 15 hat bisher −2,41 SOL gekostet; (3) kein Nachweis, dass die Punkte die nächsten Tage vorhersagen. Erst wieder einschalten, wenn die Prüfliste komplett mit Version 4 bewertet ist und die Kriterien (z. B. Pflicht „nicht still“, Mindest-Kaufgröße) angeschaut wurden. Bis dahin: Aufnahme von Hand über die Prüfliste.
+
+**Vorschlag Wallets raus (von den 13 aktiven der 15), nichts ist entfernt:**
+- **Raus empfohlen:** 3tgb und 4u9a (Version 4 sagt klar nein: −26,2 und −30,2; noch kein kopierter Trade, kostet nichts außer Abfragen), **DPQX** (−76,7, Copy −0,44) und **7LnP** (−46,0, Copy −0,37, 6 überwiesene Coins).
+- **Beobachten:** 28ez (53 Positionen, −0,42), DuEo (−0,02), EoZs (−0,50): kleiner Verlust, die Wallet-Regel (30 Positionen und über 1 SOL Verlust) greift selbst.
+- **Behalten:** 9zWb, EToT (heute noch aufgenommen), 5ixS, FZb6, 7DFZ, HMHv (gute Punkte, derzeit still; die 72-Stunden-Regel greift selbst).
+
+**Betrieb (Nebenfund):** Der erste Scout-Lauf mit Version 4 brach nach 45 Minuten ab, weil alle 53 Prüflisten-Wallets in einem Lauf neu bewertet werden sollten. Behoben mit einem Zeitbudget von 20 Minuten je Lauf (Commit nach diesem Bericht, Codex Sol freigegeben); danach lief der Scout grün, Versionswechsel erledigt (577 gespeicherte Bewertungen gesperrt, 14 Wartelisten-Einträge zur Neuprüfung), `copy_wallets.txt` unverändert.
