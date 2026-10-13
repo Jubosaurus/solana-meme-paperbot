@@ -1,8 +1,101 @@
 {
   "strategy": "EXPERIMENT_notbremse_25",
   "started": "2026-10-04T00:34:10.470983+00:00",
-  "bankroll_sol": 9.789222,
-  "positions": {},
+  "bankroll_sol": 9.587722,
+  "positions": {
+    "6xFKa6tmiT3uwyBHZtVgnsDYCiC5KtaRhawGYoF77T22": {
+      "mint": "6xFKa6tmiT3uwyBHZtVgnsDYCiC5KtaRhawGYoF77T22",
+      "symbol": "METY",
+      "opened": 1791928598.2196026,
+      "invested_sol": 0.2,
+      "fees_sol": 0.0015,
+      "entry_signal_usd": 1.6280940012612173e-05,
+      "entry_fill_usd": 1.66737248951309e-05,
+      "entry_slippage_pct": 2.41,
+      "roundtrip_cost_pct": 4.8,
+      "tokens_initial": 1282617.300049,
+      "tokens_left": 1282617.300049,
+      "decimals": 6,
+      "proceeds_sol": 0.0,
+      "peak_usd": 1.66737248951309e-05,
+      "tp1_done": false,
+      "thesis_breaks": 0,
+      "missing_loops": 0,
+      "entry_liquidity": 5177.894406980054,
+      "entry_view": {
+        "age_h": 0.7515857181946437,
+        "mcap": 16280.940012612173,
+        "liquidity": 5177.894406980054,
+        "holders": 107,
+        "holder_growth_1h": 1428.5714285714287,
+        "holder_growth_5m": 4.901960784313726,
+        "net_buyers_5m": 12,
+        "organic_buyers_5m": 7,
+        "organic_score": 45.610972862517244,
+        "price_change_1h": 443.4254467077852,
+        "price_change_5m": 15.923393370434285,
+        "buys_5m": 20,
+        "sells_5m": 5,
+        "traders_5m": 17,
+        "traders_1h": 429,
+        "buy_vol_5m": 949.9961748856415,
+        "sell_vol_5m": 557.1434574207268,
+        "buy_vol_1h": 55117.43328676124,
+        "sell_vol_1h": 49788.901544363995,
+        "organic_buy_vol_1h": 3903.55729325838,
+        "top_holders_pct": 25.1863181268016,
+        "dev_balance_pct": 0.7421879532775,
+        "dev_mints": 1,
+        "launchpad": "met-dbc",
+        "graduated": true,
+        "social": false,
+        "quelle": "organic1h+organic5m+traded1h+trend1h+trend5m",
+        "trades_24h": 1541,
+        "organic_label": "medium",
+        "buy_organic_vol_5m": 0.0,
+        "jup_fees": null,
+        "hour_utc": 21
+      },
+      "bundle": {
+        "quelle": "block0",
+        "slot": 456585329,
+        "block0_wallets": 1,
+        "block0_supply_pct": 1.74,
+        "block0_still_held_pct": 0.74,
+        "block0_exited": 0,
+        "early_tx_slot1_2": 0,
+        "bundle_holding_pct": 0.74,
+        "block0_tx_fehlend": 0,
+        "block0_halter_fehlend": 0,
+        "gebuendelt": false,
+        "rugcheck_insider_pct": 0
+      },
+      "phase": "normal",
+      "thesis": "Story verbreitet sich: Holder +1429%/h, 12 Netto-Kaeufer 5m, 7 organisch; Block 0: 1 Kaeufer, 1.7% gekauft, 0.7% noch gehalten; Dev-Coins 1",
+      "exit_rule": "Haelfte bei 2x; Rest raus, wenn Holder schrumpfen und Netto-Verkaeufer 2x in Folge, Liquiditaet -30%, -25%, nach 1,5x nicht unter Einstand, nach 2x 30 % vom Hoch (ab 10x 25 %)",
+      "mitlaeufer": null,
+      "solana_tracker": {
+        "score": 4,
+        "rugged": false,
+        "snipers_pct": 0,
+        "insiders_pct": 0,
+        "bundlers_pct": 2.1124,
+        "top10_pct": 25.1865,
+        "risiken": [
+          "Top 10 Holders"
+        ]
+      },
+      "graduated": true,
+      "liq_low_checks": 0,
+      "stop_pct": -25.0,
+      "block0_flug": {
+        "supply": 1000000000000000.0,
+        "bought": {
+          "AAfqCkExqNdYnsRFMT3oZTn28duHmh8P47h2BjNv4fLd": 17393648328280.0
+        }
+      }
+    }
+  },
   "closed": [
     {
       "symbol": "TUX",
@@ -10976,7 +11069,8 @@
     "3sKaoPryg4KrXubLWtoqF7MznLT7QNqKRxMMkkxTpump": 1791886638.281763,
     "AdwbsoiUVdi8j3h1r65R1LwwcA7akcg8HuWahS3k4vxA": 1791914457.4071832,
     "5sTxhZbnBvTMnXNrqHTEe1qXZnhEiCnRnj9JDkgJpump": 1791915499.33333,
-    "BkwEy77BzTaDSwWsbKMdpTVE7dQVFN1RVFGjknyVpump": 1791925265.1732116
+    "BkwEy77BzTaDSwWsbKMdpTVE7dQVFN1RVFGjknyVpump": 1791925265.1732116,
+    "6xFKa6tmiT3uwyBHZtVgnsDYCiC5KtaRhawGYoF77T22": 1791928598.220275
   },
   "watch": {
     "5sTxhZbnBvTMnXNrqHTEe1qXZnhEiCnRnj9JDkgJpump": {
@@ -11009,5 +11103,5 @@
   },
   "runde": 1,
   "shadow": {},
-  "saved_at": 1791928410.379407
+  "saved_at": 1791928600.79428
 }

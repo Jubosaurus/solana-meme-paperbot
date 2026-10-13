@@ -1,8 +1,100 @@
 {
   "strategy": "NARRATIV",
   "started": "2026-09-26T02:46:00.825468+00:00",
-  "bankroll_sol": 9.511282,
-  "positions": {},
+  "bankroll_sol": 9.309782,
+  "positions": {
+    "6xFKa6tmiT3uwyBHZtVgnsDYCiC5KtaRhawGYoF77T22": {
+      "mint": "6xFKa6tmiT3uwyBHZtVgnsDYCiC5KtaRhawGYoF77T22",
+      "symbol": "METY",
+      "opened": 1791928594.9161263,
+      "invested_sol": 0.2,
+      "fees_sol": 0.0015,
+      "entry_signal_usd": 1.6280940012612173e-05,
+      "entry_fill_usd": 1.66737248951309e-05,
+      "entry_slippage_pct": 2.41,
+      "roundtrip_cost_pct": 4.8,
+      "tokens_initial": 1282617.300049,
+      "tokens_left": 1282617.300049,
+      "decimals": 6,
+      "proceeds_sol": 0.0,
+      "peak_usd": 1.66737248951309e-05,
+      "tp1_done": false,
+      "thesis_breaks": 0,
+      "missing_loops": 0,
+      "entry_liquidity": 5177.894406980054,
+      "entry_view": {
+        "age_h": 0.7515857181946437,
+        "mcap": 16280.940012612173,
+        "liquidity": 5177.894406980054,
+        "holders": 107,
+        "holder_growth_1h": 1428.5714285714287,
+        "holder_growth_5m": 4.901960784313726,
+        "net_buyers_5m": 12,
+        "organic_buyers_5m": 7,
+        "organic_score": 45.610972862517244,
+        "price_change_1h": 443.4254467077852,
+        "price_change_5m": 15.923393370434285,
+        "buys_5m": 20,
+        "sells_5m": 5,
+        "traders_5m": 17,
+        "traders_1h": 429,
+        "buy_vol_5m": 949.9961748856415,
+        "sell_vol_5m": 557.1434574207268,
+        "buy_vol_1h": 55117.43328676124,
+        "sell_vol_1h": 49788.901544363995,
+        "organic_buy_vol_1h": 3903.55729325838,
+        "top_holders_pct": 25.1863181268016,
+        "dev_balance_pct": 0.7421879532775,
+        "dev_mints": 1,
+        "launchpad": "met-dbc",
+        "graduated": true,
+        "social": false,
+        "quelle": "organic1h+organic5m+traded1h+trend1h+trend5m",
+        "trades_24h": 1541,
+        "organic_label": "medium",
+        "buy_organic_vol_5m": 0.0,
+        "jup_fees": null,
+        "hour_utc": 21
+      },
+      "bundle": {
+        "quelle": "block0",
+        "slot": 456585329,
+        "block0_wallets": 1,
+        "block0_supply_pct": 1.74,
+        "block0_still_held_pct": 0.74,
+        "block0_exited": 0,
+        "early_tx_slot1_2": 0,
+        "bundle_holding_pct": 0.74,
+        "block0_tx_fehlend": 0,
+        "block0_halter_fehlend": 0,
+        "gebuendelt": false,
+        "rugcheck_insider_pct": 0
+      },
+      "phase": "normal",
+      "thesis": "Story verbreitet sich: Holder +1429%/h, 12 Netto-Kaeufer 5m, 7 organisch; Block 0: 1 Kaeufer, 1.7% gekauft, 0.7% noch gehalten; Dev-Coins 1",
+      "exit_rule": "Haelfte bei 2x; Rest raus, wenn Holder schrumpfen und Netto-Verkaeufer 2x in Folge, Liquiditaet -30%, -40%, nach 1,5x nicht unter Einstand, nach 2x 30 % vom Hoch (ab 10x 25 %)",
+      "mitlaeufer": null,
+      "solana_tracker": {
+        "score": 4,
+        "rugged": false,
+        "snipers_pct": 0,
+        "insiders_pct": 0,
+        "bundlers_pct": 2.1124,
+        "top10_pct": 25.1865,
+        "risiken": [
+          "Top 10 Holders"
+        ]
+      },
+      "graduated": true,
+      "liq_low_checks": 0,
+      "block0_flug": {
+        "supply": 1000000000000000.0,
+        "bought": {
+          "AAfqCkExqNdYnsRFMT3oZTn28duHmh8P47h2BjNv4fLd": 17393648328280.0
+        }
+      }
+    }
+  },
   "closed": [
     {
       "symbol": "SHOGGOTH",
@@ -18341,7 +18433,8 @@
     "3sKaoPryg4KrXubLWtoqF7MznLT7QNqKRxMMkkxTpump": 1791886634.9804282,
     "AdwbsoiUVdi8j3h1r65R1LwwcA7akcg8HuWahS3k4vxA": 1791914452.9818041,
     "5sTxhZbnBvTMnXNrqHTEe1qXZnhEiCnRnj9JDkgJpump": 1791915496.0305629,
-    "BkwEy77BzTaDSwWsbKMdpTVE7dQVFN1RVFGjknyVpump": 1791925261.8701499
+    "BkwEy77BzTaDSwWsbKMdpTVE7dQVFN1RVFGjknyVpump": 1791925261.8701499,
+    "6xFKa6tmiT3uwyBHZtVgnsDYCiC5KtaRhawGYoF77T22": 1791928594.9167867
   },
   "watch": {
     "AdwbsoiUVdi8j3h1r65R1LwwcA7akcg8HuWahS3k4vxA": {
@@ -18372,7 +18465,7 @@
       "until": 1791947109.9827795
     }
   },
-  "saved_at": 1791928410.4718692,
+  "saved_at": 1791928600.8872423,
   "shadow": {
     "2WtRVhWmFic3RnDdwPziNrLhriYPsym4tgX39JEmpump": {
       "symbol": "HUNTERS",
@@ -18758,7 +18851,7 @@
       "detail": "+167% in 1 h (Grenze 150)",
       "ref_price": 6.194866150101703e-05,
       "since": 1791927113.083996,
-      "peak_usd": 6.816795313425254e-05,
+      "peak_usd": 6.871600945945907e-05,
       "until": 1791948713.083996
     },
     "ZbF6PEbkTLmK7v7UzKyb8oEo58VuyRmF8b2UJMfpump": {
@@ -18794,7 +18887,7 @@
       "detail": "Liquiditaet $4,628",
       "ref_price": 1.3004406479996851e-05,
       "since": 1791928398.8542378,
-      "peak_usd": 1.3004406479996851e-05,
+      "peak_usd": 1.4936092568631807e-05,
       "until": 1791949998.8542378
     },
     "EjzNdonYKP1JGArs5ki1WNJ8neBcN5H9zFLb8teUpump": {
@@ -18805,11 +18898,20 @@
       "since": 1791928398.8542378,
       "peak_usd": 1.4037614087315965e-05,
       "until": 1791949998.8542378
+    },
+    "GZxVWTF6dze5Pw61g5oXxub7kYK2e4UzBpUwqVnMpump": {
+      "symbol": "GLITCH",
+      "reason": "SCHON_GELAUFEN",
+      "detail": "+202% in 1 h (Grenze 150)",
+      "ref_price": 3.857703254543828e-05,
+      "since": 1791928584.7085855,
+      "peak_usd": 3.857703254543828e-05,
+      "until": 1791950184.7085855
     }
   },
   "st_usage": {
     "date": "2026-10-13",
-    "count": 8
+    "count": 9
   },
   "wellen": {
     "CRYPTO_1791902286": {
@@ -18870,8 +18972,8 @@
       },
       "preis_usd": 4.36436061955126e-06,
       "start_geschrieben": true,
-      "meta_stand": 1791928241.5655742,
-      "meta_abrufe": 22
+      "meta_stand": 1791928545.8230224,
+      "meta_abrufe": 23
     },
     "ACT_1791928042": {
       "id": "ACT_1791928042",
@@ -18896,10 +18998,10 @@
         "5cGG52KEFaZRBH7To7Q9cXNvuE9rA1oNN8YG1GLYpump": "ACTII",
         "5WNcMYDM7yBVknkfhwokSTUoFUWXTrCveQnCtknapump": "ACTII"
       },
-      "preis_usd": 1.631858461524445e-05,
+      "preis_usd": 1.567310804379097e-05,
       "start_geschrieben": true,
-      "meta_stand": 1791928241.5655742,
-      "meta_abrufe": 2
+      "meta_stand": 1791928545.8230224,
+      "meta_abrufe": 3
     }
   }
 }
