@@ -19,3 +19,5 @@
 
 - 08.10.: context-mode behalten und absichern; Marketplace-Auto-Update aus. Kein `ctx_upgrade` oder Plugin-Update ohne neue Pr?fung; `ctx_execute*` nie bei gesetzten Schl?ssel-Variablen. [[Q-2026-10-08-context-mode]]
 - 08.10.: GMGN-Wallet nur als Zugang, kein Handel. Schl?ssel nur als GitHub-Secret; keine GMGN-Werte im Repository. GMGN nur als Kandidatenquelle einbauen; Betreiberfreigabe am 08.10., Umsetzung l?uft. [[Q-2026-10-08-GMGN-Lesetest]]
+- 13.10.: [[Heisse-Coins]] und [[Endspurt-viele-Trades]] beendet (Testregeln; Endspurt trotz besser als Kontrollgruppe, weil absolut im Minus nach der 400-Trades-Regel). [[Q-2026-10-13-Experimente-beendet]]
+- 13.10.: `AUTO_AUFNAHME` bleibt aus; keine der 13 aktiven Wallets (aus den 15 seit 09.10. Aufgenommenen) wird entfernt, weil die Scout-Punkte unser Copy-Ergebnis nachweislich nicht vorhersagen (Rangkorrelation 0,06 bis 0,53 bei n = 12, Schwankung zwischen zwei Messungen). Entscheidung über Copy im Strategie-Review. [[Q-2026-10-13-Scout-Bewertung]]

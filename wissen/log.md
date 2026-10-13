@@ -91,3 +91,6 @@ Noch offen:
 
 ## 13.10.2026 (Pruefregel)
 - Eingespeist: Entscheidung des Betreibers (Codex-Pruefung Pflicht, code-pruefer freiwillig) aus [[Q-CLAUDE]] in [[Codex]].
+
+## 13.10.2026 (Experimente beendet, Scout-Entscheidung)
+- Eingespeist: [[Q-2026-10-13-Experimente-beendet]] in [[Heisse-Coins]], [[Endspurt-viele-Trades]], [[Entscheidungen]]; [[Q-2026-10-13-Scout-Bewertung]] in [[Entscheidungen]].

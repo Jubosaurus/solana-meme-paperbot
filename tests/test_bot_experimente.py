@@ -219,6 +219,8 @@ def test_ohne_limit_kauft_wenn_hauptstrategie_voll_ist(scan_env, monkeypatch):
 
 
 def test_heisse_coins_kauft_ohne_moeglichen_bundle_check(scan_env, monkeypatch):
+    """Mechanik (seit 13.10. beendet, siehe test_beendete_experimente_kaufen_nicht_mehr)."""
+    monkeypatch.setattr(core, "EXP_BEENDET", {})
     bundle_ok(monkeypatch, "BUNDLE_CHECK_NICHT_MOEGLICH")
     scan_env(MINT)
     p = core.load_portfolio()
@@ -251,17 +253,19 @@ def test_unlesbares_portfolio_wird_nie_ueberschrieben(sandbox):
 # ================================================================ Beendete Experimente und Notbremse 25 (04.10.)
 
 def test_beendete_experimente_kaufen_nicht_mehr(scan_env, monkeypatch):
-    assert set(core.EXP_BEENDET) == {"endspurt_ohne_filter", "ohne_limit", "offene_tuer"}
+    assert set(core.EXP_BEENDET) == {"endspurt_ohne_filter", "ohne_limit", "offene_tuer", "heisse_coins", "endspurt"}
+    assert core.EXP_BEENDET["heisse_coins"] == core.EXP_BEENDET["endspurt"] == "13.10."
     bundle_ok(monkeypatch)
     scan_env(MINT)
     gerufen = []
     monkeypatch.setattr(core, "endspurt_picks", lambda ep, views, sol, now, filt: gerufen.append(filt))
     p = core.load_portfolio()
     p["positions"] = {"a": {}, "b": {}}                                   # Hauptstrategie voll
-    exps = {n: load(n) for n in ("ohne_limit", "endspurt", "endspurt_ohne_filter")}
+    exps = {n: load(n) for n in ("ohne_limit", "endspurt", "endspurt_ohne_filter", "heisse_coins")}
     core.scan(p, SOL, time.time(), exps)
     assert exps["ohne_limit"]["positions"] == {}
-    assert gerufen == [True]                                              # nur "Endspurt viele Trades"
+    assert gerufen == []                                                  # seit 13.10. auch "Endspurt viele Trades" beendet
+    assert exps["heisse_coins"]["positions"] == {} and exps["endspurt"]["positions"] == {}
 
 
 def test_beendetes_experiment_laesst_offene_positionen_auslaufen(endspurt_pos, market):
@@ -453,3 +457,12 @@ def test_drittel_leiter_kurssprung_verkauft_eine_stufe_je_durchlauf(scan_env, mo
         assert ep["positions"][MINT]["leiter_stufe"] == stufe
     core.manage_experiments(p, exps, SOL, time.time())
     assert ep["positions"] == {} and ep["closed"][-1]["exit_reason"].startswith("DRITTEL_BEI_3X")
+
+
+def test_heisse_coins_beendet_kauft_auch_bei_unmoeglichem_bundle_check_nicht(scan_env, monkeypatch):
+    bundle_ok(monkeypatch, "BUNDLE_CHECK_NICHT_MOEGLICH")
+    scan_env(MINT)
+    p = core.load_portfolio()
+    exps = {"heisse_coins": load("heisse_coins")}
+    core.scan(p, SOL, time.time(), exps)
+    assert exps["heisse_coins"]["positions"] == {}

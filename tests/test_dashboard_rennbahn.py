@@ -54,7 +54,8 @@ def test_zahlen_wie_konto_strategie_und_strategieseite(key):
 
 
 @pytest.mark.parametrize("key,pct", [("hauptstrategie", 2), ("endspurt", 4)])
-def test_verlauf_start_null_und_kosten_nur_auf_bisherige_trades(key, pct):
+def test_verlauf_start_null_und_kosten_nur_auf_bisherige_trades(key, pct, monkeypatch):
+    monkeypatch.setattr(r.core, "EXP_BEENDET", {})                       # Kurvenlogik, als waere das Experiment noch aktiv
     k = konto(key, [trade(-0.2, "2026-10-03T12:00:00Z", 0.6),
                     trade(0.5, "2026-10-02T12:00:00Z", 0.4)])
     pts = punkte(r.rennbahn([k]), key)

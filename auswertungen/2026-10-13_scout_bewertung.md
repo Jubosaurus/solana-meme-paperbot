@@ -97,3 +97,8 @@ Die Rechenfehler CR5-1 bis CR5-4 sind real und jetzt behoben. Nach diesen Daten 
 - **Behalten:** 9zWb, EToT (heute noch aufgenommen), 5ixS, FZb6, 7DFZ, HMHv (gute Punkte, derzeit still; die 72-Stunden-Regel greift selbst).
 
 **Betrieb (Nebenfund):** Der erste Scout-Lauf mit Version 4 brach nach 45 Minuten ab, weil alle 53 Prüflisten-Wallets in einem Lauf neu bewertet werden sollten. Behoben mit einem Zeitbudget von 20 Minuten je Lauf (Commit nach diesem Bericht, Codex Sol freigegeben); danach lief der Scout grün, Versionswechsel erledigt (577 gespeicherte Bewertungen gesperrt, 14 Wartelisten-Einträge zur Neuprüfung), `copy_wallets.txt` unverändert.
+
+## Entscheidung des Betreibers (13.10.2026)
+
+- `AUTO_AUFNAHME` bleibt aus.
+- Keine der 13 aktiven Wallets (aus den 15 seit 09.10.) wird entfernt. Grund: Die Scout-Punkte sagen unser Ergebnis nachweislich nicht voraus (Rangkorrelation 0,06 bis 0,53 bei n = 12). Die Entscheidung über Copy fällt im Strategie-Review. Meine Vorschläge „raus/beobachten“ oben sind damit nicht umgesetzt.

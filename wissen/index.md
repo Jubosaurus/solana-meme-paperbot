@@ -170,6 +170,8 @@ Das Wiki sammelt Wissen und beschließt nichts. Verbindlich bleiben `STRATEGIE.m
 - [[Q-2026-10-07-Tag18-20]] – Quelle: Videos Tag 18–20 / Namenswelle
 - [[Q-2026-10-08-Entscheidungen]] – Quelle: Betreiberentscheidungen (08.10.2026)
 - [[Q-2026-10-08-Offene-Tuer-beendet]] – Quelle: Offene Tür beendet, Ergebnis und Lehre (08.10.2026)
+- [[Q-2026-10-13-Experimente-beendet]] – Quelle: Heiße Coins und Endspurt beendet, Endstand (13.10.2026)
+- [[Q-2026-10-13-Scout-Bewertung]] – Quelle: Scout-Gegenprobe Version 3 gegen 4 und Entscheidung zur Automatik (13.10.2026)
 - [[Q-2026-10-08-Nachrechnung]] – Quelle: Nachrechnung Tagesauswertung (08.10.2026)
 - [[Q-2026-10-08-Notbremse-Drittel-Nachrechnung]] – Quelle: Nachrechnung Notbremse 25 und Drittel-Leiter (08.10.2026)
 - [[Q-2026-10-08-Tagesauswertung]] – Quelle: Tagesauswertung (08.10.2026)

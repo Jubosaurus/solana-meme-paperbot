@@ -8,3 +8,4 @@
 - GRADUIERT 99 Trades (41 %), +6,04 SOL; KURVE_ZURUECK 114 Trades, −6,37 SOL; NOTBREMSE 18, −1,98 SOL. Gegen die Hauptstrategie kein Vorteil (−0,007 je Trade, Bereich −0,036 bis +0,019). Empfehlung der Auswertung: weiterführen; Entscheidung des Betreibers offen. [[Q-2026-10-06-Tagesauswertung]]
 - Entscheidung 06.10.: weiterführen. Neuer Prüfpunkt bei 400 Trades: erneut urteilen, bei Minus beenden. [[Q-2026-10-06-Entscheidungen]]
 - Bewertung zeigt seit 06.10. roh und mit Kostenaufschlag (Endspurt 4 % je Rundlauf statt 2 %), siehe [[Ausfuehrungskosten]]. [[Q-2026-10-06-Entscheidungen]]
+- **Beendet am 13.10.2026** nach der Regel vom 06.10. („bei 400 Trades im Minus beenden“): 515 Trades, Kontowert 6,32 SOL (mit Kosten 2,20). Ø je Trade roh −0,0071 (mit Kosten 4 % −0,0151, ohne 3 beste −0,0087) gegen Kontrollgruppe −0,0315 (−0,0355, −0,0343) bei 563 Trades: klar besser als Zufall, aber absolut im Minus. Daten bleiben. [[Q-2026-10-13-Experimente-beendet]]
