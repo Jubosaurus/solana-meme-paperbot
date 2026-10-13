@@ -12,7 +12,7 @@ Die Bots nehmen jede Änderung beim nächsten Start. Deshalb immer in dieser Rei
 1. Zustimmung des Betreibers liegt vor (bei Regeländerungen ausdrücklich).
 2. `git pull` – die Bots haben inzwischen Daten gepusht.
 3. Testsammlung ausführen: `python -m pytest` (alle grün, etwa 15 s). Bei Fehlern: nicht einspielen, Ursache erklären. Bei Verkaufsregeln muss `tests/test_regression.py` unverändert grün sein.
-4. Subagent **code-pruefer** prüfen lassen. Bei ❌ nicht einspielen.
+4. **Kritische Prüfung durch Codex** (`adversarial-review`, Aufruf siehe `.claude/codex-anleitung.md`) bei Bot-Logik, Copy-Wallet-Liste, Scout-Automatik, Workflows und schreibenden Dashboard-Funktionen: Pflicht. Bei offenen Funden nicht einspielen. Subagent **code-pruefer** seit 13.10. freiwillig (Entscheidung des Betreibers).
 
 ## 2. Einspielen
 

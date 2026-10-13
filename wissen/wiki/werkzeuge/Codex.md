@@ -4,6 +4,7 @@
 - Rollen: Claude plant, verantwortet Bot-Logik, Copy-Wallets und Scout-Automatik und spielt als Einziger ein; Codex prüft und erledigt abgegrenzte Aufgaben (Tests, Dashboard, Auswertungsskripte, Doku, Wiki). [[Q-CLAUDE]]
 - Codex arbeitet nur im Worktree `../paperbot-codex`, committet und pusht nie, ändert keine Daten-Dateien, sieht keine Schlüssel. [[Q-CLAUDE]]
 - Kritische Prüfung (`/codex:adversarial-review`) ist Pflicht vor Änderungen an Bot-Logik, Copy-Wallet-Liste, Scout-Automatik und schreibenden Dashboard-Funktionen; Funde von Codex und code-pruefer werden getrennt genannt. [[Q-CLAUDE]]
+- 13.10.: Entscheidung des Betreibers: Die kritische Prüfung durch Codex bleibt Pflicht (auch für Workflows und als Nachprüfung der Endfassung), der Subagent `code-pruefer` ist nur noch freiwillig. Anlass: Der Auftrag an `code-pruefer` wurde am 13.10. vom Auto-Modus blockiert. [[Q-CLAUDE]]
 - Modell-Leiter: Prüfung Sol → Terra → warten; Astra nur für die heikelsten Fälle; Arbeitsaufgaben Sol → Terra → Luna/Claude Sonnet; Einfaches Luna → Terra → Claude Sonnet. [[Q-CLAUDE]]
 - Nachtbetrieb (Karten nacheinander per `codex exec`, Patch + Protokoll je Karte) ist nur vorbereitet, nicht aktiv. [[Q-CLAUDE]]
 - Bewertung am 10.10.: Fand Codex etwas, das code-pruefer übersehen hat? Verbrauch beider Seiten. [[Q-CLAUDE]]

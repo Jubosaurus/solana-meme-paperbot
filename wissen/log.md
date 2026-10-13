@@ -88,3 +88,6 @@ Noch offen:
 
 ## 08.10.2026 (Wallet-Verlust-Regel geändert)
 - Eingespeist: [[Q-2026-10-08-Wallet-Regel-Probe]] in [[Code-Review-08-10]] und [[Copy-Trading]] (alte Regelaussage als überholt markiert).
+
+## 13.10.2026 (Pruefregel)
+- Eingespeist: Entscheidung des Betreibers (Codex-Pruefung Pflicht, code-pruefer freiwillig) aus [[Q-CLAUDE]] in [[Codex]].
