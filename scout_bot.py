@@ -57,8 +57,8 @@ TX_RESULT_HEADER = ["zeit", "name", "wallet", "signatur", "block_zeit", "erfolgr
 TX_CHECK_MAX = 40                   # hoechstens so viele Transaktionen je Wallet (Helius: ~1 Credit je Abfrage)
 LIST_FILE = os.path.join(SCOUT_DIR, "pruefen.txt")   # Pruefliste: Wallets, die du selbst gefunden hast
 LIST_TX = 150                       # fuer die Pruefliste mehr Transaktionen je Wallet auswerten
-SCORING_VERSION = "3"               # 02.10.: 7 Tage, gehaltene Coins zum Kurs, Reibung nach Haltedauer
-#                                     04.10.: Kleinstkaeufe (Median unter 0,05 SOL) werden nicht bewertet
+SCORING_VERSION = "4"               # 13.10.: Korrektur CR5-1..4 (Altbestand anteilig, Ueberweisungen, Rest zum Kurs, fehlende Transaktionen)
+# stammen aus Version 3 und werden von der Automatik nicht mehr uebernommen.
 DISCORD_WEBHOOK_SCOUT = (os.environ.get("DISCORD_WEBHOOK_SCOUT") or os.environ.get("DISCORD_WEBHOOK_COPY") or "").strip()
 BIRDEYE_API_KEY = (os.environ.get("BIRDEYE_API_KEY") or "").strip()
 BIRDEYE_BASE = "https://public-api.birdeye.so"
@@ -88,6 +88,7 @@ LIST_MAX_IDLE_H = 72                # Pruefliste: Trader, die Coins tagelang hal
 MIN_TX = 20
 WINDOW_DAYS = 7                     # Stufe 2: letzte 7 Tage wie GMGN 7D
 MAX_WINDOW_PAGES = 5
+MAX_TX_FEHLEND = 0.10               # ueber 10 % nicht abrufbare Transaktionen: Bewertung unsicher
 MIN_COINS = 3
 MIN_KAUF_SOL = 0.05                 # darunter blaeht die Rendite in % auf (z. B. 0,002 SOL -> 472.633 %), nicht kopierbar
 FRICTION_SHORT, FRICTION_MID, FRICTION_LONG = 10.0, 6.0, 3.0   # Reibung in Prozentpunkten je nach Haltedauer
@@ -304,29 +305,75 @@ def current_prices_sol(mints, sol_usd):
     return prices
 
 
+def _fenster_anteil(t, bestand):
+    """Anteil eines Abgangs aus den noch gehaltenen Fenster-Kaeufen."""
+    try:
+        vorher = t.get("pre_raw", 0) / 10 ** int(t.get("decimals") or 0)
+    except (TypeError, ValueError, OverflowError, ZeroDivisionError):
+        vorher = 0
+    anteil = t["tokens"] * min(1.0, bestand / vorher) if vorher > 0 else min(t["tokens"], bestand)
+    return min(bestand, anteil)
+
+
 def stage2(wallet, sigs, sol_usd):
     """Auswertung der letzten 7 Tage mit der Logik des Copy-Bots. Wie GMGN: noch gehaltene Coins zum aktuellen
     Kurs bewertet, Rendite auf den gesamten Einsatz. Coins, die vor dem Zeitraum gekauft wurden, zaehlen nicht."""
-    trades = []
-    for sig in sigs:
-        t = cb.parse_trade(cb.fetch_tx(sig), wallet, sol_usd)
-        if t and t["kind"] in ("KAUF", "VERKAUF"):
-            trades.append(t)
+    events = []
+    tx_abgerufen, tx_fehlend = 0, 0
+    # Aelteste zuerst: stabile Zeitsortierung erhaelt die Ausfuehrungsreihenfolge im Block.
+    for sig in reversed(sigs):
+        tx_abgerufen += 1
+        try:
+            tx = cb.fetch_tx(sig)
+            if tx is None:
+                tx_fehlend += 1
+                continue
+            t = cb.parse_trade(tx, wallet, sol_usd)
+            if not t or t.get("kind") not in ("KAUF", "VERKAUF", "UEBERWEISUNG"):
+                continue
+            t = dict(t)
+            for key in ("tokens", "sol", "other", "pre_raw", "delta_raw", "block_time"):
+                t[key] = float(t.get(key) or 0)
+                if not math.isfinite(t[key]):
+                    raise ValueError("Ungueltiger Zahlenwert")
+            if t["tokens"] <= 0 or t["sol"] < 0 or not isinstance(t.get("mint"), str) or not t["mint"]:
+                raise ValueError("Ungueltiger Trade")
+            events.append(t)
+        except Exception:
+            tx_fehlend += 1
+            STATS["fehler"] += 1                 # kaputter Datensatz darf die Auswertung nicht stoppen
+    trades = [t for t in events if t["kind"] in ("KAUF", "VERKAUF")]
     buys = [t for t in trades if t["kind"] == "KAUF"]
     sells = [t for t in trades if t["kind"] == "VERKAUF"]
     per = {}
-    for t in sorted(trades, key=lambda t: t["block_time"] or 0):
+    for t in sorted(events, key=lambda t: t["block_time"] or 0):
         p = per.setdefault(t["mint"], {"aus": 0.0, "ein": 0.0, "gekauft": 0.0, "verkauft": 0.0,
-                                       "t0": t["block_time"] or 0, "t1": t["block_time"] or 0})
-        p["aus" if t["kind"] == "KAUF" else "ein"] += t["sol"]
-        p["gekauft" if t["kind"] == "KAUF" else "verkauft"] += t["tokens"]
+                                       "bestand": 0.0, "ueberwiesen": 0.0,
+                                       "t0": 0, "t1": 0})
+        if t["kind"] == "KAUF":
+            if p["gekauft"] == 0:
+                p["t0"] = t["block_time"] or 0
+            p["bestand"] += t["tokens"]
+            p["aus"] += t["sol"]
+            p["gekauft"] += t["tokens"]
+        else:
+            anteil = _fenster_anteil(t, p["bestand"])
+            if anteil <= 0:
+                continue                            # Altbestand verschiebt die Haltedauer nicht
+            p["bestand"] -= anteil
+            if t["kind"] == "VERKAUF":
+                p["ein"] += t["sol"] * anteil / t["tokens"]
+                p["verkauft"] += anteil
+            else:
+                p["ueberwiesen"] += anteil
         p["t1"] = max(p["t1"], t["block_time"] or p["t1"])
     coins = {m: p for m, p in per.items() if p["aus"] > 0}             # im Zeitraum gekauft
-    held = {m for m, p in coins.items() if p["verkauft"] < 0.9 * p["gekauft"]}
-    prices = current_prices_sol(held, sol_usd) if held else {}
+    held = {m for m, p in coins.items() if p["bestand"] >= 0.1 * p["gekauft"]}
+    remaining = {m for m, p in coins.items() if p["bestand"] > 0}
+    prices = current_prices_sol(remaining, sol_usd) if remaining else {}
     gains = []
     for m, p in coins.items():
-        value = max(0.0, p["gekauft"] - p["verkauft"]) * prices.get(m, 0.0)   # ohne Kurs: Rest zaehlt als 0
+        value = p["bestand"] * prices.get(m, 0.0)                 # ohne Kurs: Rest zaehlt als 0
         gains.append((p["ein"] + value - p["aus"], p["aus"]))
     spent = sum(a for _, a in gains)
     total_gain = sum(g for g, _ in gains)
@@ -346,11 +393,13 @@ def stage2(wallet, sigs, sol_usd):
     times = [t["block_time"] for t in trades if t["block_time"]]
     span_d = max((max(times) - min(times)) / 86400, 1 / 24) if len(times) > 1 else None
     return {
+        "tx_abgerufen": tx_abgerufen, "tx_fehlend": tx_fehlend,
         "trades": len(trades), "kaeufe": len(buys), "verkaeufe": len(sells),
         "trades_pro_tag": round(len(trades) / span_d, 1) if span_d else None,
         "kauf_median_sol": round(median(t["sol"] for t in buys), 3) if buys else None,
         "anteil_kaeufe_ab_0_1": round(sum(t["sol"] >= 0.1 for t in buys) / len(buys), 2) if buys else None,
         "coins": len(coins), "coins_abgeschlossen": len(closed), "coins_gehalten": len(held),
+        "coins_ueberwiesen": sum(p["ueberwiesen"] > 0 for p in coins.values()),
         "trefferquote": round(sum(g > 0 for g, _ in gains) / len(gains), 2) if gains else None,
         "gewinn_sol": round(total_gain, 3),
         "rendite_pct": round(total_gain / spent * 100, 1) if spent else None,
@@ -365,6 +414,12 @@ def stage2(wallet, sigs, sol_usd):
 
 def not_rated_reason(s2):
     """Warum eine Wallet nicht bewertet wird (None = bewertbar)."""
+    tx_abgerufen = (s2 or {}).get("tx_abgerufen", 0) or 0
+    tx_fehlend = (s2 or {}).get("tx_fehlend", 0) or 0
+    if tx_abgerufen > 0:
+        anteil = tx_fehlend / tx_abgerufen
+        if anteil > MAX_TX_FEHLEND:
+            return f"unsicher ({anteil:.0%} der Transaktionen nicht abrufbar)"
     if s2 and s2.get("kauf_median_sol") is not None and s2["kauf_median_sol"] < MIN_KAUF_SOL:
         return f"Kleinstkaeufe (Median unter {MIN_KAUF_SOL:.2f} SOL)"
     if not s2 or (s2.get("coins") or 0) < MIN_COINS or s2.get("rendite_ohne_besten_pct") is None:
@@ -467,11 +522,13 @@ def _fast_text(s2):
 
 def _rating_line(name, w, s2, pts):
     """(Sortierwert, Discord-Zeile) fuer eine bewertete Wallet."""
-    detail = (f"7 Tage: {s2['coins']} Coins ({s2['coins_gehalten']} noch gehalten), Trader {s2.get('rendite_pct')} % "
+    detail = (f"7 Tage: {s2['coins']} Coins ({s2['coins_gehalten']} noch gehalten{', ' + str(s2['coins_ueberwiesen']) + ' Coins ueberwiesen' if s2.get('coins_ueberwiesen', 0) > 0 else ''}), Trader {s2.get('rendite_pct')} % "
               f"auf den Einsatz, ohne besten Coin {s2.get('rendite_ohne_besten_pct')} %, Treffer "
               f"{(s2.get('trefferquote') or 0):.0%}, Kauf-Median {s2.get('kauf_median_sol')} SOL, "
               f"{s2.get('trades_pro_tag')} Trades/Tag, Haltedauer {s2.get('haltedauer_median_min')} min, "
               f"{_fast_text(s2)}, Reibung {s2['reibung_pp']:.0f} Punkte")
+    if s2.get("tx_fehlend", 0) > 0:
+        detail += f", {s2['tx_fehlend']} von {s2.get('tx_abgerufen', 0)} Transaktionen fehlen"
     if pts is None:
         return -500, f"❔ **{name}** `{w}`\n   {not_rated_reason(s2)} | {detail}"
     return pts, f"{'✅' if pts > 0 else '➖'} **{name}** `{w}`\n   fuer uns {pts:+.0f} % | {detail}"
@@ -523,7 +580,16 @@ def check_list(state, now, sol_usd):
         if rows and rows[-1]["wallet"] == w and str(rows[-1].get("grund", "")).startswith("zu wenig Transaktionen"):
             continue                                # evtl. nur leere Helius-Antwort: naechster Lauf prueft erneut
         if len(lines) > n_lines:
-            memo[w] = {"version": SCORING_VERSION, "zeit": now, "sort": lines[-1][0], "zeile": lines[-1][1]}
+            eintrag = {"version": SCORING_VERSION, "zeit": now, "sort": lines[-1][0], "zeile": lines[-1][1]}
+            if str(rows[-1].get("ergebnis", "")).startswith("unsicher"):
+                try:
+                    versuche = max(0, int((memo.get(w) or {}).get("unsicher_versuche", 0))) + 1
+                except (TypeError, ValueError, OverflowError):
+                    versuche = 1                     # kaputter Zaehler darf den Scout nicht stoppen
+                eintrag["unsicher_versuche"] = versuche
+                if versuche < 3:
+                    eintrag.pop("version")           # noch nicht endgueltig bewertet: erneut versuchen
+            memo[w] = eintrag
     new = {w for _, w in todo}
     for name, w in entries:                         # schon bewertete aus dem Speicher anzeigen
         m = memo.get(w)
@@ -931,27 +997,67 @@ def _row_time(r, default):
         return default
 
 
-def stored_rows(state):
-    """Bewertungen aus dem Speicher (letzte Zeile je Wallet in scout/kandidaten.csv, auch die Pruefliste), die die
-    Automatik noch nicht gesehen hat. Keine neue Abfrage. Die Kopfzeile der Datei ist noch die alte (25 Spalten),
+def _latest_stored_rows():
+    """Letzte Zeile je Wallet aus kandidaten.csv. Die Kopfzeile der Datei ist noch die alte (25 Spalten),
     neuere Zeilen haben den Aufbau von CANDIDATES_HEADER: jede Zeile wird nach ihrer Laenge zugeordnet (wie im
-    Dashboard), andere Laengen werden uebersprungen."""
+    Dashboard), andere Laengen werden uebersprungen. Lesefehler behandelt der Aufrufer."""
     if not os.path.exists(CANDIDATES_FILE):
-        return []
+        return {}
     latest = {}
+    with open(CANDIDATES_FILE, newline="", encoding="utf-8") as f:
+        rd = csv.reader(f)
+        header = next(rd, [])
+        for row in rd:
+            if len(row) in (len(CANDIDATES_HEADER), OLD_ROW_LEN):      # (Spalte rendite_ohne_besten_pct doppelt: die hintere zaehlt)
+                r = dict(zip(CANDIDATES_HEADER, row))
+            elif len(row) == len(header):
+                r = dict(zip(header, row))
+            else:
+                continue
+            if r.get("wallet") and r.get("zeit", "") >= latest.get(r["wallet"], {}).get("zeit", ""):
+                latest[r["wallet"]] = r
+    return latest
+
+
+def versionswechsel(state, now):
+    """Alte Speicher-Bewertungen sperren und Warteliste bei neuer Bewertung neu pruefen lassen.
+    Bewertungen, die nach dem ersten Versuch entstanden sind, bleiben ungesperrt (neue Version)."""
+    if state.get("speicher_version") == SCORING_VERSION:
+        return 0, 0
     try:
-        with open(CANDIDATES_FILE, newline="", encoding="utf-8") as f:
-            rd = csv.reader(f)
-            header = next(rd, [])
-            for row in rd:
-                if len(row) in (len(CANDIDATES_HEADER), OLD_ROW_LEN):      # (Spalte rendite_ohne_besten_pct doppelt: die hintere zaehlt)
-                    r = dict(zip(CANDIDATES_HEADER, row))
-                elif len(row) == len(header):
-                    r = dict(zip(header, row))
-                else:
-                    continue
-                if r.get("wallet") and r.get("zeit", "") >= latest.get(r["wallet"], {}).get("zeit", ""):
-                    latest[r["wallet"]] = r
+        start = core.as_float(state.setdefault("wechsel_start", now))
+        latest = _latest_stored_rows()
+        wait = load_waitlist()
+        if os.path.exists(WAIT_FILE):
+            with open(WAIT_FILE, newline="", encoding="utf-8") as f:
+                rd = csv.DictReader(f)
+                if not {"wallet", "seit", "bewertet", "punkte"} <= set(rd.fieldnames or []):
+                    raise ValueError("Warteliste: Kopfzeile unlesbar")
+                if any(any(v for v in r.values()) and not r.get("wallet") for r in rd):
+                    raise ValueError("Warteliste: Zeile ohne Adresse")
+            for e in wait.values():
+                e["bewertet"] = 0
+            save_waitlist(wait)
+        seen = state.get("speicher_geprueft")
+        if not isinstance(seen, dict):
+            seen = {}
+        for w, r in latest.items():
+            if _row_time(r, 0) < int(start):          # Zeilen derselben Sekunde gelten als neu (CSV kennt nur ganze Sekunden)
+                seen[w] = r.get("zeit")
+        state["speicher_geprueft"] = seen
+    except Exception as err:                         # Fehler beim Lesen oder Speichern: naechster Lauf versucht es erneut
+        STATS["fehler"] += 1
+        print(f"[SCOUT] Versionswechsel fehlgeschlagen: {str(err)[:100]}")
+        return 0, 0
+    state["speicher_version"] = SCORING_VERSION
+    state.pop("wechsel_start", None)
+    return len(latest), len(wait)
+
+
+def stored_rows(state):
+    """Gespeicherte Bewertungen (letzte Zeile je Wallet), die die Automatik noch nicht gesehen hat."""
+    try:
+        latest = _latest_stored_rows()
     except (OSError, csv.Error, UnicodeDecodeError) as err:  # kaputte Datei darf die Automatik nie stoppen
         STATS["fehler"] += 1
         print(f"[SCOUT] kandidaten.csv nicht lesbar: {str(err)[:100]}")
@@ -966,6 +1072,8 @@ def auto_wallets(state, now, sol_usd, rows):
     Schreibt nur copy_wallets.txt (eigener Commit) und scout/warteliste.csv. Rueckgabe: Discord-Zeilen."""
     if not AUTO_AUFNAHME:
         return []
+    if state.get("speicher_version") != SCORING_VERSION:
+        return [f"Automatik pausiert: Umstellung auf Bewertung Version {SCORING_VERSION} noch nicht abgeschlossen"]
     known = set(ADDR_RE.findall(open(cb.WALLET_FILE, encoding="utf-8").read())) \
         if os.path.exists(cb.WALLET_FILE) else set()
     wait = load_waitlist()
@@ -1193,6 +1301,9 @@ def run(nur_liste=False):
     now = time.time()
     core.git_sync_start()
     state = load_state()
+    gesperrt, neu_pruefen = (0, 0) if KEIN_PUSH else versionswechsel(state, now)   # Gegenprobe (--ohne-automatik) aendert nichts
+    versions_lines = ([f"Bewertung Version {SCORING_VERSION}: {gesperrt} alte Bewertungen gesperrt, "
+                       f"{neu_pruefen} Warteliste neu zu pruefen"] if gesperrt or neu_pruefen else [])
     sol_usd = core.sol_price()
     list_rows, list_lines = check_list(state, now, sol_usd)
     coins, rows, ranked = [], [], []
@@ -1221,9 +1332,10 @@ def run(nur_liste=False):
             f"**{STATS.get('liste_neu', 0)} Wallets neu geprueft, {len(list_lines) - STATS.get('liste_neu', 0)} aus dem "
             f"Speicher, {good} fuer uns im Plus** (Rendite des Traders der letzten 7 Tage "
             f"auf den Einsatz, gehaltene Coins zum aktuellen Kurs, ohne seinen besten Coin, minus 3 bis 10 "
-            f"Prozentpunkte Reibung je nach Haltedauer)"] + list_lines)
+            f"Prozentpunkte Reibung je nach Haltedauer)"] + list_lines + (versions_lines if nur_liste else []))
     elif nur_liste:
-        notify("📋 Wallet-Scout: deine Pruefliste", ["Keine neuen Adressen, alle schon bewertet (Ergebnis im Dashboard)."])
+        notify("📋 Wallet-Scout: deine Pruefliste", ["Keine neuen Adressen, alle schon bewertet (Ergebnis im Dashboard)."]
+               + versions_lines)
     if auto_lines:
         notify("🔁 Wallet-Scout: Copy-Wallets automatisch geaendert", auto_lines)
     if nur_liste:
@@ -1262,6 +1374,7 @@ def run(nur_liste=False):
                  else "**Birdeye:** kein Key, nur Helius")
     lines.append(auto_status_line())
     lines.append(gmgn.bericht(STATS))
+    lines.extend(versions_lines)
     if STATS["fehler"]:
         lines.append(f"**Fehler:** {STATS['fehler']}")
     notify("🔭 Wallet-Scout", lines)

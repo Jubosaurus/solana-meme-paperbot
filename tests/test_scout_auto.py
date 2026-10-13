@@ -4,7 +4,6 @@ Warteliste, nur copy_wallets.txt wird geschrieben)."""
 import csv
 import json
 import os
-import time
 from datetime import datetime, timezone
 
 import pytest
@@ -13,8 +12,16 @@ import copy_bot as cb
 import scout_bot as scout
 from helpers import addr
 
-NOW = time.time()
+NOW = datetime(2026, 10, 5, 12, tzinfo=timezone.utc).timestamp()
 LETTERS = "abcdefghijkmnopqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ"   # Base58 ohne 0, O, I, l
+
+
+pytestmark = pytest.mark.usefixtures("auto_version")
+
+
+@pytest.fixture(autouse=True)
+def feste_uhr(clock):
+    clock.now = NOW
 
 
 def kand(i):

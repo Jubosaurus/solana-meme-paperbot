@@ -248,7 +248,8 @@ def test_search_gmgn_durch_eigene_stufen_und_csv(fake, monkeypatch):
     stage1_calls, stage2_calls, window_calls = [], [], []
     original_stage1, original_stage2, original_window = scout.stage1, scout.stage2, scout.window_sigs
     monkeypatch.setattr(core, "rpc", lambda method, params: signatures.get(params[0], []))
-    monkeypatch.setattr(cb, "fetch_tx", lambda sig: transactions.get(sig))
+    leer = {"meta": {"err": "fehlgeschlagen"}}       # abrufbar, aber keine Handelsaktion (seit CR5-4 zaehlt None als fehlend)
+    monkeypatch.setattr(cb, "fetch_tx", lambda sig: transactions.get(sig, leer))
 
     def stage1(wallet, at):
         stage1_calls.append(wallet)

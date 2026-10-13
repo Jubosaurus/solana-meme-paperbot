@@ -4,6 +4,8 @@ import json
 import os
 import time
 
+from datetime import datetime, timezone
+
 import pytest
 
 import bot as core
@@ -11,7 +13,13 @@ import copy_bot as cb
 import scout_bot as scout
 from helpers import buy_tx, sell_tx, tok, addr, WALLET, MINT, MINT2
 
-NOW = time.time()
+NOW = datetime(2026, 10, 5, 12, tzinfo=timezone.utc).timestamp()   # feste Zeit, unabhaengig von der Uhrzeit des Laufs
+pytestmark = pytest.mark.usefixtures("auto_version")
+
+
+@pytest.fixture(autouse=True)
+def feste_uhr(clock):
+    clock.now = NOW
 
 
 def sigs(n, per_h=10.0, failed=0.0, last_ago_h=1.0):
@@ -120,7 +128,7 @@ def test_grund_fuer_keine_bewertung():
     assert scout.not_rated_reason({"coins": 10, "rendite_ohne_besten_pct": 9e5, "kauf_median_sol": 0.002})         == "Kleinstkaeufe (Median unter 0.05 SOL)"
     assert scout.not_rated_reason({"coins": 2, "rendite_ohne_besten_pct": 5, "kauf_median_sol": 0.5})         == "zu wenig Coins im Zeitraum"
     assert scout.not_rated_reason({"coins": 5, "rendite_ohne_besten_pct": 5, "kauf_median_sol": 0.5}) is None
-    assert scout.SCORING_VERSION == "3"                                         # Pruefliste wird neu bewertet
+    assert scout.SCORING_VERSION == "4"                                         # Pruefliste wird neu bewertet
 
 
 def test_reibung_nach_haltedauer(chain, monkeypatch):

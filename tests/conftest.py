@@ -143,3 +143,14 @@ def clock(monkeypatch):
     monkeypatch.setattr(time, "time", c.time)
     monkeypatch.setattr(time, "sleep", c.sleep)
     return c
+
+
+@pytest.fixture
+def auto_version(monkeypatch):
+    """Die Automatik laeuft nur nach abgeschlossenem Versionswechsel: Tests bekommen den aktuellen Stand im Zustand."""
+    orig = scout.auto_wallets
+
+    def mit_version(state, *args, **kw):
+        state.setdefault("speicher_version", scout.SCORING_VERSION)
+        return orig(state, *args, **kw)
+    monkeypatch.setattr(scout, "auto_wallets", mit_version)

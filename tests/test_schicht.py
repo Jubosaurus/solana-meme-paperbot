@@ -191,7 +191,7 @@ def test_scout_lauf(monkeypatch, sandbox):
         if method == "getSignaturesForAddress":
             return sigs if params[0] == cand else []
         if method == "getTransaction":
-            return txs.get(params[0])
+            return txs.get(params[0], {"meta": {"err": "fehlgeschlagen"}})   # abrufbar, keine Handelsaktion (CR5-4)
         return None
     monkeypatch.setattr(core, "rpc", rpc)
 
