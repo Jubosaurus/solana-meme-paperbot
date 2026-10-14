@@ -1,8 +1,101 @@
 {
   "strategy": "NARRATIV",
   "started": "2026-09-26T02:46:00.825468+00:00",
-  "bankroll_sol": 9.198363,
-  "positions": {},
+  "bankroll_sol": 8.996863,
+  "positions": {
+    "D4NJ5CHS5pUw1bKJKNfoKrzK9dr8LMUDYNpKxPQXpump": {
+      "mint": "D4NJ5CHS5pUw1bKJKNfoKrzK9dr8LMUDYNpKxPQXpump",
+      "symbol": "TAKOPI",
+      "opened": 1791970148.3894472,
+      "invested_sol": 0.2,
+      "fees_sol": 0.0015,
+      "entry_signal_usd": 7.4866678872655075e-06,
+      "entry_fill_usd": 7.5827039200518216e-06,
+      "entry_slippage_pct": 1.28,
+      "roundtrip_cost_pct": 3.27,
+      "tokens_initial": 2811469.584496,
+      "tokens_left": 2811469.584496,
+      "decimals": 6,
+      "proceeds_sol": 0.0,
+      "peak_usd": 7.5827039200518216e-06,
+      "tp1_done": false,
+      "thesis_breaks": 0,
+      "missing_loops": 0,
+      "entry_liquidity": 5080.067551656341,
+      "entry_view": {
+        "age_h": 0.6016962477233675,
+        "mcap": 7472.361123994382,
+        "liquidity": 5080.067551656341,
+        "holders": 86,
+        "holder_growth_1h": 1128.5714285714287,
+        "holder_growth_5m": 7.5,
+        "net_buyers_5m": 11,
+        "organic_buyers_5m": 4,
+        "organic_score": 36.77090460273817,
+        "price_change_1h": 116.70439695493533,
+        "price_change_5m": 17.183714421014635,
+        "buys_5m": 19,
+        "sells_5m": 6,
+        "traders_5m": 18,
+        "traders_1h": 500,
+        "buy_vol_5m": 798.6239055592955,
+        "sell_vol_5m": 291.2956020080452,
+        "buy_vol_1h": 34234.84268618709,
+        "sell_vol_1h": 35409.10670286159,
+        "organic_buy_vol_1h": 1035.1096913507004,
+        "top_holders_pct": 25.141088443053988,
+        "dev_balance_pct": 0.0,
+        "dev_mints": 1,
+        "launchpad": "pump.fun",
+        "graduated": false,
+        "social": true,
+        "quelle": "organic1h+organic5m",
+        "trades_24h": 1821,
+        "organic_label": "medium",
+        "buy_organic_vol_5m": 0.0,
+        "jup_fees": null,
+        "hour_utc": 9
+      },
+      "bundle": {
+        "quelle": "block0",
+        "slot": 456778740,
+        "block0_wallets": 1,
+        "block0_supply_pct": 3.43,
+        "block0_still_held_pct": 0.0,
+        "block0_exited": 1,
+        "early_tx_slot1_2": 10,
+        "bundle_holding_pct": 0.0,
+        "block0_tx_fehlend": 0,
+        "block0_halter_fehlend": 0,
+        "gebuendelt": false,
+        "rugcheck_insider_pct": 0
+      },
+      "phase": "normal",
+      "thesis": "Story verbreitet sich: Holder +1129%/h, 11 Netto-Kaeufer 5m, 4 organisch; Block 0: 1 Kaeufer, 3.4% gekauft, 0.0% noch gehalten; Dev-Coins 1",
+      "exit_rule": "Haelfte bei 2x; Rest raus, wenn Holder schrumpfen und Netto-Verkaeufer 2x in Folge, Liquiditaet -30%, -40%, nach 1,5x nicht unter Einstand, nach 2x 30 % vom Hoch (ab 10x 25 %)",
+      "mitlaeufer": null,
+      "solana_tracker": {
+        "score": 6,
+        "rugged": false,
+        "snipers_pct": 0,
+        "insiders_pct": 0,
+        "bundlers_pct": 0.2891,
+        "top10_pct": 25.0931,
+        "risiken": [
+          "Bonding curve not complete",
+          "Top 10 Holders"
+        ]
+      },
+      "graduated": false,
+      "liq_low_checks": 0,
+      "block0_flug": {
+        "supply": 998089034603036.0,
+        "bought": {
+          "9ChnNHQXqPLmsqwUSaKtKxXrLFGeoUBjmwxwFydztBuJ": 34199203120618.0
+        }
+      }
+    }
+  },
   "closed": [
     {
       "symbol": "SHOGGOTH",
@@ -18757,7 +18850,8 @@
     "GLr8PTf4cvqXUNKVkMaygqBcm8ma8RPQsjtHBXcFby5": 1791928996.6424353,
     "5q5pEZZwhkuazS4rGa66LcNotdsnUE9KcJ7xQmXSpump": 1791931918.500868,
     "Cpmh1RGTsidffX34pM8dLXSAHrY4FRbC3LAWWSGYpump": 1791947782.233738,
-    "3a59FjtCPyDbz6UWKR3kixUiZSYbLTK7bw3QoCNmpump": 1791955495.8623729
+    "3a59FjtCPyDbz6UWKR3kixUiZSYbLTK7bw3QoCNmpump": 1791955495.8623729,
+    "D4NJ5CHS5pUw1bKJKNfoKrzK9dr8LMUDYNpKxPQXpump": 1791970148.3902361
   },
   "watch": {
     "Cpmh1RGTsidffX34pM8dLXSAHrY4FRbC3LAWWSGYpump": {
@@ -18779,17 +18873,8 @@
       "until": 1791977877.858907
     }
   },
-  "saved_at": 1791970004.3718514,
+  "saved_at": 1791970154.3670564,
   "shadow": {
-    "HL3zprmgvuz1hfeeVbKyQ6pTjE3X14uQaQG1U3Espump": {
-      "symbol": "Altai",
-      "reason": "STORY_ZU_ALT",
-      "detail": "7.0 h alt (Grenze 6)",
-      "ref_price": 3.15458747505658e-05,
-      "since": 1791948534.117959,
-      "peak_usd": 4.171769075019025e-05,
-      "until": 1791970134.117959
-    },
     "EMUZChJXbptGGLpQa8bTK6vD4B8tB2dVeQVY8SNTpump": {
       "symbol": "SI",
       "reason": "SCHON_GELAUFEN",
@@ -19090,7 +19175,7 @@
   },
   "st_usage": {
     "date": "2026-10-14",
-    "count": 2
+    "count": 3
   },
   "wellen": {
     "ACT_1791928042": {
