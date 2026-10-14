@@ -1,27 +1,27 @@
 {
   "strategy": "EXPERIMENT_serien_devs",
   "started": "2026-10-04T00:34:10.471102+00:00",
-  "bankroll_sol": 4.032578,
+  "bankroll_sol": 4.228522,
   "positions": {
     "4r4jzMDj8e8FJodYWQTPojHKiiGGNJC3vQBCc3T9pump": {
       "mint": "4r4jzMDj8e8FJodYWQTPojHKiiGGNJC3vQBCc3T9pump",
       "symbol": "AI",
       "opened": 1791982458.3386748,
       "invested_sol": 0.2,
-      "fees_sol": 0.0015,
+      "fees_sol": 0.003,
       "entry_signal_usd": 2.4512364247856014e-05,
       "entry_fill_usd": 2.316253527784633e-05,
       "entry_slippage_pct": -5.51,
       "roundtrip_cost_pct": 3.12,
       "tokens_initial": 912575.977073,
-      "tokens_left": 912575.977073,
+      "tokens_left": 456287.9885365,
       "decimals": 6,
-      "proceeds_sol": 0.0,
-      "peak_usd": 2.9409777646930163e-05,
-      "tp1_done": false,
+      "proceeds_sol": 0.195943628,
+      "peak_usd": 4.6785338270887416e-05,
+      "tp1_done": true,
       "thesis_breaks": 0,
       "missing_loops": 0,
-      "entry_liquidity": 9137.38554345084,
+      "entry_liquidity": 11823.022533197687,
       "entry_view": {
         "age_h": 0.2698118052879969,
         "mcap": 24508.038365059594,
@@ -65,7 +65,7 @@
       "exit_rule": "Haelfte bei 2x; Rest raus, wenn Holder schrumpfen und Netto-Verkaeufer 2x in Folge, Liquiditaet -30%, -40%, nach 1,5x nicht unter Einstand, nach 2x 30 % vom Hoch (ab 10x 25 %)",
       "mitlaeufer": null,
       "solana_tracker": null,
-      "graduated": false,
+      "graduated": true,
       "liq_low_checks": 0,
       "dev_exit": true,
       "dev_pct_kauf": 0.0,
@@ -75,7 +75,8 @@
         "zuerst": 1791216116,
         "mint": "8QFGVLXehnTv28eMdXZkhY5d84SVF58LAfRGx8zWpH9b"
       },
-      "flug_last": 1791983355.0615258
+      "flug_last": 1791983498.8229735,
+      "graduated_during": true
     }
   },
   "closed": [
@@ -26459,5 +26460,5 @@
   },
   "runde": 1,
   "shadow": {},
-  "saved_at": 1791983392.9103222
+  "saved_at": 1791983530.288419
 }
