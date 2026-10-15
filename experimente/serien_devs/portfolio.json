@@ -1,8 +1,82 @@
 {
   "strategy": "EXPERIMENT_serien_devs",
   "started": "2026-10-04T00:34:10.471102+00:00",
-  "bankroll_sol": 2.290064,
-  "positions": {},
+  "bankroll_sol": 2.088564,
+  "positions": {
+    "DDDX2SW13jrZcSDoZ8CZrsYAFvjHmRwFmxjjzmh6pump": {
+      "mint": "DDDX2SW13jrZcSDoZ8CZrsYAFvjHmRwFmxjjzmh6pump",
+      "symbol": "UNSAID",
+      "opened": 1792043720.030047,
+      "invested_sol": 0.2,
+      "fees_sol": 0.0015,
+      "entry_signal_usd": 1.5535282221333213e-05,
+      "entry_fill_usd": 1.5847331124875372e-05,
+      "entry_slippage_pct": 2.01,
+      "roundtrip_cost_pct": 3.01,
+      "tokens_initial": 1280756.371749,
+      "tokens_left": 1280756.371749,
+      "decimals": 6,
+      "proceeds_sol": 0.0,
+      "peak_usd": 1.5847331124875372e-05,
+      "tp1_done": false,
+      "thesis_breaks": 0,
+      "missing_loops": 0,
+      "entry_liquidity": 7147.019673148861,
+      "entry_view": {
+        "age_h": 0.265286959277259,
+        "mcap": 15535.282221333213,
+        "liquidity": 7147.019673148861,
+        "holders": 138,
+        "holder_growth_1h": 119.04761904761905,
+        "holder_growth_5m": 1.4705882352941175,
+        "net_buyers_5m": 44,
+        "organic_buyers_5m": 0,
+        "organic_score": 0.0,
+        "price_change_1h": 48.6088291179076,
+        "price_change_5m": 29.255577201096276,
+        "buys_5m": 110,
+        "sells_5m": 90,
+        "traders_5m": 104,
+        "traders_1h": 551,
+        "buy_vol_5m": 4283.242586115172,
+        "sell_vol_5m": 3352.0999448882967,
+        "buy_vol_1h": 58902.24522003375,
+        "sell_vol_1h": 57539.789057517795,
+        "organic_buy_vol_1h": 2912.9026090226625,
+        "top_holders_pct": 20.156617661903805,
+        "dev_balance_pct": 0.0,
+        "dev_mints": 21949,
+        "launchpad": "pump.fun",
+        "graduated": false,
+        "social": true,
+        "quelle": "traded1h+traded5m+trend1h+trend5m",
+        "trades_24h": 2300,
+        "organic_label": "low",
+        "buy_organic_vol_5m": 10.32234388763408,
+        "jup_fees": null,
+        "hour_utc": 5
+      },
+      "bundle": {
+        "quelle": "experiment",
+        "text": "Serien-Dev: frueherer Coin CATE bis 68,696,246 $"
+      },
+      "phase": "normal",
+      "thesis": "Story verbreitet sich: Holder +119%/h, 44 Netto-Kaeufer 5m, 0 organisch; Serien-Dev: frueherer Coin CATE bis 68,696,246 $; Dev-Coins 21949",
+      "exit_rule": "Haelfte bei 2x; Rest raus, wenn Holder schrumpfen und Netto-Verkaeufer 2x in Folge, Liquiditaet -30%, -40%, nach 1,5x nicht unter Einstand, nach 2x 30 % vom Hoch (ab 10x 25 %)",
+      "mitlaeufer": null,
+      "solana_tracker": null,
+      "graduated": false,
+      "liq_low_checks": 0,
+      "dev_exit": true,
+      "dev_pct_kauf": 0.0,
+      "serien_vorgaenger": {
+        "symbol": "CATE",
+        "peak": 68696246,
+        "zuerst": 1791074049,
+        "mint": "Ai66LHZG9MCzg1WKdawwqduVAXpNDUuV8M3uyq5ppump"
+      }
+    }
+  },
   "closed": [
     {
       "symbol": "GWC",
@@ -28705,18 +28779,10 @@
     "9FJBWviV2ceg6FrEN6WPPC6q9eNLx7Zi91ZifCtEpump": 1792039189.639702,
     "4TM1GKNMJhSTnHN9hE4vgrmC9vNf2E7Eb7jaqpgv8Jha": 1792041181.9695952,
     "CoHH4XfCpEcAuQga8iSr3hCta3vyFxYW6BtQRAV3xQMo": 1792041285.5560145,
-    "2ay4jNY3JxfuXJzhZ8DrAKkGzpirgD7Dv2ccL9zmpump": 1792041583.8314757
+    "2ay4jNY3JxfuXJzhZ8DrAKkGzpirgD7Dv2ccL9zmpump": 1792041583.8314757,
+    "DDDX2SW13jrZcSDoZ8CZrsYAFvjHmRwFmxjjzmh6pump": 1792043720.0308077
   },
   "watch": {
-    "4Nt14Wi4nUig4aHThbNZuUgQMvDzoWX9mEg6DwEapump": {
-      "symbol": "WAIT",
-      "entry_fill_usd": 2.898016850484118e-05,
-      "opened": 1792021111.7662802,
-      "peak_usd": 4.0931427569997574e-05,
-      "exit_usd": 1.7043445662139238e-05,
-      "exit_reason": "NOTBREMSE (-41%)",
-      "until": 1792043665.8680012
-    },
     "GCbzXZfCztdP6tko3booum11umJ74mY8Um5RBhntpump": {
       "symbol": "MUSECRAFT",
       "entry_fill_usd": 3.0091299224908073e-05,
@@ -28837,5 +28903,5 @@
   },
   "runde": 1,
   "shadow": {},
-  "saved_at": 1792043478.670371
+  "saved_at": 1792043721.7954216
 }
