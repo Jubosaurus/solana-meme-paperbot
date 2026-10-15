@@ -1,8 +1,83 @@
 {
   "strategy": "EXPERIMENT_serien_devs",
   "started": "2026-10-04T00:34:10.471102+00:00",
-  "bankroll_sol": 2.170887,
-  "positions": {},
+  "bankroll_sol": 1.969387,
+  "positions": {
+    "4RW29wkTMDHkYSyByDKTpxDfCTwwGZYnTfQZ9VHKpump": {
+      "mint": "4RW29wkTMDHkYSyByDKTpxDfCTwwGZYnTfQZ9VHKpump",
+      "symbol": "Koda",
+      "opened": 1792030920.420698,
+      "invested_sol": 0.2,
+      "fees_sol": 0.0015,
+      "entry_signal_usd": 3.525943838662406e-05,
+      "entry_fill_usd": 3.962685696534747e-05,
+      "entry_slippage_pct": 12.39,
+      "roundtrip_cost_pct": 4.0,
+      "tokens_initial": 521543.303609,
+      "tokens_left": 521543.303609,
+      "decimals": 6,
+      "proceeds_sol": 0.0,
+      "peak_usd": 3.962685696534747e-05,
+      "tp1_done": false,
+      "thesis_breaks": 0,
+      "missing_loops": 0,
+      "entry_liquidity": 6325.233417162973,
+      "entry_view": {
+        "age_h": 0.2687239107820723,
+        "mcap": 34812.256237623216,
+        "liquidity": 6325.233417162973,
+        "holders": 293,
+        "holder_growth_1h": 184.46601941747574,
+        "holder_growth_5m": 54.21052631578947,
+        "net_buyers_5m": 122,
+        "organic_buyers_5m": 0,
+        "organic_score": 0.0,
+        "price_change_1h": 125.81529942774029,
+        "price_change_5m": 13.61023965750996,
+        "buys_5m": 265,
+        "sells_5m": 214,
+        "traders_5m": 238,
+        "traders_1h": 589,
+        "buy_vol_5m": 6717.174207542639,
+        "sell_vol_5m": 9388.781368540727,
+        "buy_vol_1h": 52235.324613783654,
+        "sell_vol_1h": 52215.647330726875,
+        "organic_buy_vol_1h": 430.72695417471647,
+        "top_holders_pct": 15.770311727352599,
+        "dev_balance_pct": 0.1257982599001666,
+        "dev_mints": 2,
+        "launchpad": "pump.fun",
+        "graduated": true,
+        "social": false,
+        "quelle": "traded1h+traded5m",
+        "trades_24h": 2006,
+        "organic_label": "low",
+        "buy_organic_vol_5m": 102.2364595532898,
+        "jup_fees": null,
+        "hour_utc": 2
+      },
+      "bundle": {
+        "quelle": "experiment",
+        "text": "Serien-Dev: frueherer Coin Ollie bis 301,023 $"
+      },
+      "phase": "normal",
+      "thesis": "Story verbreitet sich: Holder +184%/h, 122 Netto-Kaeufer 5m, 0 organisch; Serien-Dev: frueherer Coin Ollie bis 301,023 $; Dev-Coins 2",
+      "exit_rule": "Haelfte bei 2x; Rest raus, wenn Holder schrumpfen und Netto-Verkaeufer 2x in Folge, Liquiditaet -30%, -40%, nach 1,5x nicht unter Einstand, nach 2x 30 % vom Hoch (ab 10x 25 %)",
+      "mitlaeufer": null,
+      "solana_tracker": null,
+      "graduated": true,
+      "liq_low_checks": 0,
+      "dev_exit": true,
+      "dev_pct_kauf": 0.1257982599001666,
+      "serien_vorgaenger": {
+        "symbol": "Ollie",
+        "peak": 301023,
+        "zuerst": 1791682134,
+        "mint": "564TGXSRPH2a7vJvdp1uSaZ4M1qDmeKgoMZyfBvYpump"
+      },
+      "flug_last": 1792030934.2569788
+    }
+  },
   "closed": [
     {
       "symbol": "GWC",
@@ -28147,7 +28222,8 @@
     "GCbzXZfCztdP6tko3booum11umJ74mY8Um5RBhntpump": 1792023160.7470784,
     "FMmMrCBqZqgPF27RVNRSGmGErVmWihjAsyB4AWtopump": 1792024899.879724,
     "DAJw4aRTSK2CJdFCHEZvN2BJ77TzWDeJg8KvqJhCpump": 1792027858.4489222,
-    "34fph3wNfMY19U1Xe3gJmPMh7mRvGqgyKUbXpMrqpump": 1792030048.0855882
+    "34fph3wNfMY19U1Xe3gJmPMh7mRvGqgyKUbXpMrqpump": 1792030048.0855882,
+    "4RW29wkTMDHkYSyByDKTpxDfCTwwGZYnTfQZ9VHKpump": 1792030920.4215798
   },
   "watch": {
     "DBhA2yVBEmugtCCMVcgzg2HMpyeFQxyjLBiUY1gjpump": {
@@ -28261,5 +28337,5 @@
   },
   "runde": 1,
   "shadow": {},
-  "saved_at": 1792030876.9127908
+  "saved_at": 1792030951.0723593
 }
