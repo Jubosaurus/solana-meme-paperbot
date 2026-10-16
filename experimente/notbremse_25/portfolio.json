@@ -1,8 +1,101 @@
 {
   "strategy": "EXPERIMENT_notbremse_25",
   "started": "2026-10-04T00:34:10.470983+00:00",
-  "bankroll_sol": 9.002358,
-  "positions": {},
+  "bankroll_sol": 8.800858,
+  "positions": {
+    "4BsfttrYqyGneG6C5MxA7Rq3XDuv5ajGFjdRjjd6T4kf": {
+      "mint": "4BsfttrYqyGneG6C5MxA7Rq3XDuv5ajGFjdRjjd6T4kf",
+      "symbol": "ROADSTER",
+      "opened": 1792129988.605451,
+      "invested_sol": 0.2,
+      "fees_sol": 0.0015,
+      "entry_signal_usd": 4.251205261347848e-05,
+      "entry_fill_usd": 2.9883462989526883e-05,
+      "entry_slippage_pct": -29.71,
+      "roundtrip_cost_pct": 6.17,
+      "tokens_initial": 708132.31132,
+      "tokens_left": 708132.31132,
+      "decimals": 6,
+      "proceeds_sol": 0.0,
+      "peak_usd": 2.9883462989526883e-05,
+      "tp1_done": false,
+      "thesis_breaks": 0,
+      "missing_loops": 0,
+      "entry_liquidity": 9019.687544324637,
+      "entry_view": {
+        "age_h": 1.5292435004313787,
+        "mcap": 42512.05222512352,
+        "liquidity": 9019.687544324637,
+        "holders": 391,
+        "holder_growth_1h": 956.7567567567569,
+        "holder_growth_5m": 5.10752688172043,
+        "net_buyers_5m": 42,
+        "organic_buyers_5m": 6,
+        "organic_score": 42.65167879873091,
+        "price_change_1h": 363.5781998137864,
+        "price_change_5m": -6.70666544868013,
+        "buys_5m": 99,
+        "sells_5m": 73,
+        "traders_5m": 86,
+        "traders_1h": 644,
+        "buy_vol_5m": 7109.246724385213,
+        "sell_vol_5m": 6177.560330772527,
+        "buy_vol_1h": 81804.82046316218,
+        "sell_vol_1h": 75293.0545841659,
+        "organic_buy_vol_1h": 3389.5443816377137,
+        "top_holders_pct": 27.75557953681042,
+        "dev_balance_pct": 0.0,
+        "dev_mints": 2,
+        "launchpad": "met-dbc",
+        "graduated": true,
+        "social": false,
+        "quelle": "organic1h+organic5m+traded1h+traded5m+trend1h",
+        "trades_24h": 3299,
+        "organic_label": "medium",
+        "buy_organic_vol_5m": 15.381098797892788,
+        "jup_fees": null,
+        "hour_utc": 5
+      },
+      "bundle": {
+        "quelle": "block0",
+        "slot": 457501860,
+        "block0_wallets": 0,
+        "block0_supply_pct": 0.0,
+        "block0_still_held_pct": 0.0,
+        "block0_exited": 0,
+        "early_tx_slot1_2": 0,
+        "bundle_holding_pct": 0.0,
+        "block0_tx_fehlend": 0,
+        "block0_halter_fehlend": 0,
+        "gebuendelt": false,
+        "rugcheck_insider_pct": 0
+      },
+      "phase": "normal",
+      "thesis": "Story verbreitet sich: Holder +957%/h, 42 Netto-Kaeufer 5m, 6 organisch; Block 0: 0 Kaeufer, 0.0% gekauft, 0.0% noch gehalten; Dev-Coins 2",
+      "exit_rule": "Haelfte bei 2x; Rest raus, wenn Holder schrumpfen und Netto-Verkaeufer 2x in Folge, Liquiditaet -30%, -25%, nach 1,5x nicht unter Einstand, nach 2x 30 % vom Hoch (ab 10x 25 %)",
+      "mitlaeufer": {
+        "teil": "ROADSTER",
+        "leader": "FTR",
+        "leader_mint": "DFMt2FyLpB6ekPNAzVErLXgpSnJ9CRf1VnxBAkTLpump",
+        "leader_mcap": 6574751
+      },
+      "solana_tracker": {
+        "score": 5,
+        "rugged": false,
+        "snipers_pct": 1.3373,
+        "insiders_pct": 0,
+        "bundlers_pct": 4.8843,
+        "top10_pct": 27.7556,
+        "risiken": [
+          "No social media",
+          "Top 10 Holders"
+        ]
+      },
+      "graduated": true,
+      "liq_low_checks": 0,
+      "stop_pct": -25.0
+    }
+  },
   "closed": [
     {
       "symbol": "TUX",
@@ -12638,10 +12731,11 @@
     "3T34dh9wmcTvVGfCzLVYRNUZDGDze7tYM9vGbRz5pump": 1792075884.025787,
     "6rnnJiAXBTFf6vdd416HkBtGU3mGTCMoTGSU4HkSN7go": 1792082478.9227867,
     "G8mF2dtUPBZKpj8QACqm9mYCr1qdKvc6XVDcgCASDboo": 1792100630.786247,
-    "4ezvQPYcM17aEe6MER3EfdrfqRt45akrEorJdY34pump": 1792104351.9979193
+    "4ezvQPYcM17aEe6MER3EfdrfqRt45akrEorJdY34pump": 1792104351.9979193,
+    "4BsfttrYqyGneG6C5MxA7Rq3XDuv5ajGFjdRjjd6T4kf": 1792129988.6059916
   },
   "watch": {},
   "runde": 1,
   "shadow": {},
-  "saved_at": 1792129891.4980934
+  "saved_at": 1792129991.280563
 }
