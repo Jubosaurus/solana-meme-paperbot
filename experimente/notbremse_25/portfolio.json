@@ -1,8 +1,102 @@
 {
   "strategy": "EXPERIMENT_notbremse_25",
   "started": "2026-10-04T00:34:10.470983+00:00",
-  "bankroll_sol": 9.643521,
-  "positions": {},
+  "bankroll_sol": 9.442021,
+  "positions": {
+    "58EAJ5tD4YP5sBAcuTQ8AfarpnkmnH8KKimkNAiqpump": {
+      "mint": "58EAJ5tD4YP5sBAcuTQ8AfarpnkmnH8KKimkNAiqpump",
+      "symbol": "Akatsuki",
+      "opened": 1792359103.3317394,
+      "invested_sol": 0.2,
+      "fees_sol": 0.0015,
+      "entry_signal_usd": 2.221741881093734e-05,
+      "entry_fill_usd": 2.2242954411133795e-05,
+      "entry_slippage_pct": 0.11,
+      "roundtrip_cost_pct": 2.99,
+      "tokens_initial": 912372.137483,
+      "tokens_left": 912372.137483,
+      "decimals": 6,
+      "proceeds_sol": 0.0,
+      "peak_usd": 2.2242954411133795e-05,
+      "tp1_done": false,
+      "thesis_breaks": 0,
+      "missing_loops": 0,
+      "entry_liquidity": 8514.945280453008,
+      "entry_view": {
+        "age_h": 0.3878088745805952,
+        "mcap": 22217.081097494534,
+        "liquidity": 8514.945280453008,
+        "holders": 359,
+        "holder_growth_1h": 925.7142857142858,
+        "holder_growth_5m": 2.2792022792022792,
+        "net_buyers_5m": 42,
+        "organic_buyers_5m": 6,
+        "organic_score": 42.29836668474744,
+        "price_change_1h": 338.39411369915405,
+        "price_change_5m": 3.6354284320270573,
+        "buys_5m": 74,
+        "sells_5m": 67,
+        "traders_5m": 85,
+        "traders_1h": 766,
+        "buy_vol_5m": 1660.7482355130026,
+        "sell_vol_5m": 2708.167938393177,
+        "buy_vol_1h": 50674.509102661425,
+        "sell_vol_1h": 51221.85574383474,
+        "organic_buy_vol_1h": 1944.5299826749279,
+        "top_holders_pct": 25.457647111347825,
+        "dev_balance_pct": 0.0,
+        "dev_mints": 1,
+        "launchpad": "pump.fun",
+        "graduated": false,
+        "social": false,
+        "quelle": "organic1h+organic5m+traded1h+traded5m",
+        "trades_24h": 2735,
+        "organic_label": "medium",
+        "buy_organic_vol_5m": 254.92388072905106,
+        "jup_fees": null,
+        "hour_utc": 21
+      },
+      "bundle": {
+        "quelle": "block0",
+        "slot": 458578580,
+        "block0_wallets": 1,
+        "block0_supply_pct": 9.75,
+        "block0_still_held_pct": 0.0,
+        "block0_exited": 1,
+        "early_tx_slot1_2": 21,
+        "bundle_holding_pct": 0.0,
+        "block0_tx_fehlend": 0,
+        "block0_halter_fehlend": 0,
+        "gebuendelt": false,
+        "rugcheck_insider_pct": 0
+      },
+      "phase": "normal",
+      "thesis": "Story verbreitet sich: Holder +926%/h, 42 Netto-Kaeufer 5m, 6 organisch; Block 0: 1 Kaeufer, 9.8% gekauft, 0.0% noch gehalten; Dev-Coins 1",
+      "exit_rule": "Haelfte bei 2x; Rest raus, wenn Holder schrumpfen und Netto-Verkaeufer 2x in Folge, Liquiditaet -30%, -25%, nach 1,5x nicht unter Einstand, nach 2x 30 % vom Hoch (ab 10x 25 %)",
+      "mitlaeufer": null,
+      "solana_tracker": {
+        "score": 6,
+        "rugged": false,
+        "snipers_pct": 0.0068,
+        "insiders_pct": 0,
+        "bundlers_pct": 0,
+        "top10_pct": 25.4573,
+        "risiken": [
+          "Bonding curve not complete",
+          "Top 10 Holders"
+        ]
+      },
+      "graduated": false,
+      "liq_low_checks": 0,
+      "stop_pct": -25.0,
+      "block0_flug": {
+        "supply": 999984799609456.0,
+        "bought": {
+          "ArxPYZQ53FKmoUkLwWopjB87P2yEgJg6NDXgMd5MGDW6": 97545454545453.0
+        }
+      }
+    }
+  },
   "closed": [
     {
       "symbol": "TUX",
@@ -14474,7 +14568,8 @@
     "GNA7ztNeHzUdrTFMSAfLr1Dinnw97KAXrwkNnNbxpump": 1792283479.2518988,
     "6WD2yXtb1oRHZtibxvTdcPs28dx5jLDmw1ZqyPwppump": 1792314409.7666838,
     "GoLdZWYNg9jg4z5SGCLJx69xag2vMjLaSQK5S7TUGoLd": 1792333429.649285,
-    "ByQ4cTwVyrZtzb7aFKW8QXPBMXdCWx6UdVMshLZipump": 1792352964.6534052
+    "ByQ4cTwVyrZtzb7aFKW8QXPBMXdCWx6UdVMshLZipump": 1792352964.6534052,
+    "58EAJ5tD4YP5sBAcuTQ8AfarpnkmnH8KKimkNAiqpump": 1792359103.33221
   },
   "watch": {
     "ByQ4cTwVyrZtzb7aFKW8QXPBMXdCWx6UdVMshLZipump": {
@@ -14489,5 +14584,5 @@
   },
   "runde": 1,
   "shadow": {},
-  "saved_at": 1792358877.5934758
+  "saved_at": 1792359105.8131247
 }
