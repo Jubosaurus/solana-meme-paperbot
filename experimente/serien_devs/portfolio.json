@@ -1,8 +1,82 @@
 {
   "strategy": "EXPERIMENT_serien_devs",
   "started": "2026-10-04T00:34:10.471102+00:00",
-  "bankroll_sol": 7.744774,
-  "positions": {},
+  "bankroll_sol": 7.543274,
+  "positions": {
+    "72bBC6JoWu45rMuVrLz8XEybTy4vxQn1ADoAVuYupump": {
+      "mint": "72bBC6JoWu45rMuVrLz8XEybTy4vxQn1ADoAVuYupump",
+      "symbol": "REXCOIN",
+      "opened": 1792314039.960032,
+      "invested_sol": 0.2,
+      "fees_sol": 0.0015,
+      "entry_signal_usd": 0.00010690135299063115,
+      "entry_fill_usd": 0.0001018016511836904,
+      "entry_slippage_pct": -4.77,
+      "roundtrip_cost_pct": 0.12,
+      "tokens_initial": 202541.036149,
+      "tokens_left": 202541.036149,
+      "decimals": 6,
+      "proceeds_sol": 0.0,
+      "peak_usd": 0.0001018016511836904,
+      "tp1_done": false,
+      "thesis_breaks": 0,
+      "missing_loops": 0,
+      "entry_liquidity": 25633.758687279966,
+      "entry_view": {
+        "age_h": 0.2630407500267029,
+        "mcap": 101963.5562483725,
+        "liquidity": 25633.758687279966,
+        "holders": 683,
+        "holder_growth_1h": 2034.375,
+        "holder_growth_5m": 35.785288270377734,
+        "net_buyers_5m": 292,
+        "organic_buyers_5m": 0,
+        "organic_score": 0.0,
+        "price_change_1h": 1945.4784195389482,
+        "price_change_5m": -11.647752592518481,
+        "buys_5m": 988,
+        "sells_5m": 839,
+        "traders_5m": 542,
+        "traders_1h": 1158,
+        "buy_vol_5m": 42162.94919119473,
+        "sell_vol_5m": 48616.890814401835,
+        "buy_vol_1h": 129123.25605805221,
+        "sell_vol_1h": 131858.01775864762,
+        "organic_buy_vol_1h": 6569.028308997943,
+        "top_holders_pct": 17.81416441248547,
+        "dev_balance_pct": 0.0,
+        "dev_mints": 4628,
+        "launchpad": "pump.fun",
+        "graduated": true,
+        "social": true,
+        "quelle": "traded1h+traded5m",
+        "trades_24h": 5309,
+        "organic_label": "low",
+        "buy_organic_vol_5m": 1717.2151649686725,
+        "jup_fees": null,
+        "hour_utc": 9
+      },
+      "bundle": {
+        "quelle": "experiment",
+        "text": "Serien-Dev: frueherer Coin Musk bis 331,113 $"
+      },
+      "phase": "normal",
+      "thesis": "Story verbreitet sich: Holder +2034%/h, 292 Netto-Kaeufer 5m, 0 organisch; Serien-Dev: frueherer Coin Musk bis 331,113 $; Dev-Coins 4628",
+      "exit_rule": "Haelfte bei 2x; Rest raus, wenn Holder schrumpfen und Netto-Verkaeufer 2x in Folge, Liquiditaet -30%, -40%, nach 1,5x nicht unter Einstand, nach 2x 30 % vom Hoch (ab 10x 25 %)",
+      "mitlaeufer": null,
+      "solana_tracker": null,
+      "graduated": true,
+      "liq_low_checks": 0,
+      "dev_exit": true,
+      "dev_pct_kauf": 0.0,
+      "serien_vorgaenger": {
+        "symbol": "Musk",
+        "peak": 331113,
+        "zuerst": 1791616353,
+        "mint": "64GXmXjTQmVxc3XwZG5aMZdbmq4UrkedCLyqHFzppump"
+      }
+    }
+  },
   "closed": [
     {
       "symbol": "GWC",
@@ -37633,7 +37707,8 @@
     "CPjsjLo5igHVusArVGVkcDhqdK2jwj1sVjE5oxrqpain": 1792306721.3673851,
     "38Afjux8G5M5LXFHKyh6iSu3nL1Bvr5N9iygwetfpump": 1792307270.523161,
     "EnEkfiz7RyDNabMbwAE5mmosEwNfZkh7UhURT7fqpump": 1792308974.3537486,
-    "AVs51WhFi7kfMS3ZB3p8dyiadumUsM4WZF7jFV8fpump": 1792312096.585987
+    "AVs51WhFi7kfMS3ZB3p8dyiadumUsM4WZF7jFV8fpump": 1792312096.585987,
+    "72bBC6JoWu45rMuVrLz8XEybTy4vxQn1ADoAVuYupump": 1792314039.9607124
   },
   "watch": {
     "7gaSwUhZHFwdUCuzxppShRq6CjGgu19xoQTMSVinpump": {
@@ -37729,5 +37804,5 @@
   },
   "runde": 2,
   "shadow": {},
-  "saved_at": 1792313861.174998
+  "saved_at": 1792314041.5329564
 }
