@@ -1,8 +1,82 @@
 {
   "strategy": "EXPERIMENT_serien_devs",
   "started": "2026-10-04T00:34:10.471102+00:00",
-  "bankroll_sol": 6.027116,
-  "positions": {},
+  "bankroll_sol": 5.825616,
+  "positions": {
+    "9nLHf6SWaPavnVcYwWVm4Ug7HEM4eXU7adiLnq23pump": {
+      "mint": "9nLHf6SWaPavnVcYwWVm4Ug7HEM4eXU7adiLnq23pump",
+      "symbol": "seyooong",
+      "opened": 1792425906.9693017,
+      "invested_sol": 0.2,
+      "fees_sol": 0.0015,
+      "entry_signal_usd": 1.393543589560517e-05,
+      "entry_fill_usd": 1.0535595082046365e-05,
+      "entry_slippage_pct": -24.4,
+      "roundtrip_cost_pct": -7.87,
+      "tokens_initial": 1973925.460338,
+      "tokens_left": 1973925.460338,
+      "decimals": 6,
+      "proceeds_sol": 0.0,
+      "peak_usd": 1.0535595082046365e-05,
+      "tp1_done": false,
+      "thesis_breaks": 0,
+      "missing_loops": 0,
+      "entry_liquidity": 6836.333919378582,
+      "entry_view": {
+        "age_h": 0.2547068154811859,
+        "mcap": 13935.216038635543,
+        "liquidity": 6836.333919378582,
+        "holders": 233,
+        "holder_growth_1h": 130.6930693069307,
+        "holder_growth_5m": -6.048387096774194,
+        "net_buyers_5m": 55,
+        "organic_buyers_5m": 0,
+        "organic_score": 0.0,
+        "price_change_1h": 46.03519703483411,
+        "price_change_5m": -10.634886668995245,
+        "buys_5m": 134,
+        "sells_5m": 160,
+        "traders_5m": 158,
+        "traders_1h": 799,
+        "buy_vol_5m": 5846.177454846046,
+        "sell_vol_5m": 7437.813595401266,
+        "buy_vol_1h": 54712.55539564589,
+        "sell_vol_1h": 56093.71409329721,
+        "organic_buy_vol_1h": 2168.527259525025,
+        "top_holders_pct": 21.01637020962353,
+        "dev_balance_pct": 0.24254345132121652,
+        "dev_mints": 13384,
+        "launchpad": "pump.fun",
+        "graduated": false,
+        "social": true,
+        "quelle": "traded1h+traded5m",
+        "trades_24h": 2717,
+        "organic_label": "low",
+        "buy_organic_vol_5m": 360.6864226023695,
+        "jup_fees": null,
+        "hour_utc": 16
+      },
+      "bundle": {
+        "quelle": "experiment",
+        "text": "Serien-Dev: frueherer Coin Incognito bis 1,578,051 $"
+      },
+      "phase": "normal",
+      "thesis": "Story verbreitet sich: Holder +131%/h, 55 Netto-Kaeufer 5m, 0 organisch; Serien-Dev: frueherer Coin Incognito bis 1,578,051 $; Dev-Coins 13384",
+      "exit_rule": "Haelfte bei 2x; Rest raus, wenn Holder schrumpfen und Netto-Verkaeufer 2x in Folge, Liquiditaet -30%, -40%, nach 1,5x nicht unter Einstand, nach 2x 30 % vom Hoch (ab 10x 25 %)",
+      "mitlaeufer": null,
+      "solana_tracker": null,
+      "graduated": false,
+      "liq_low_checks": 0,
+      "dev_exit": true,
+      "dev_pct_kauf": 0.24254345132121652,
+      "serien_vorgaenger": {
+        "symbol": "Incognito",
+        "peak": 1578051,
+        "zuerst": 1791697608,
+        "mint": "BBZ3sgY66QVsxcXXBVpuQfDzH2b5Ub8qmfKNQJjBpump"
+      }
+    }
+  },
   "closed": [
     {
       "symbol": "GWC",
@@ -42779,7 +42853,8 @@
     "1qV5QEr1DXFUHPTP5uMZaJvrBGnNGEccoRy4CUvpump": 1792423892.7114835,
     "BkhbP6uTywbRFcQzrREbTbpKW98PNzVZ9fidRbG7pump": 1792423995.0081956,
     "h2eZNEC4E4nUSDHtbgCkU46idD9BCvj7qwXZmyppump": 1792424281.7388341,
-    "4j63mR9Ee341iV8V6PjnKVmm6GcEgfJG3SYCoJ7Vpump": 1792424748.9052436
+    "4j63mR9Ee341iV8V6PjnKVmm6GcEgfJG3SYCoJ7Vpump": 1792424748.9052436,
+    "9nLHf6SWaPavnVcYwWVm4Ug7HEM4eXU7adiLnq23pump": 1792425906.9709494
   },
   "watch": {
     "68xW3Bpf5ax6ML91yLbAHCRNjxPAo4R5XTyLqA5bNPtM": {
@@ -42921,7 +42996,7 @@
       "symbol": "Octo",
       "entry_fill_usd": 3.192651544062112e-05,
       "opened": 1792424281.7378948,
-      "peak_usd": 0.00019288292846065118,
+      "peak_usd": 0.0002004981464645031,
       "exit_usd": 9.302298200282918e-05,
       "exit_reason": "STORY_ABGEKUEHLT (30% unter dem Hoch von 4.4x)",
       "until": 1792446863.4935355
@@ -42929,5 +43004,5 @@
   },
   "runde": 2,
   "shadow": {},
-  "saved_at": 1792425808.1937551
+  "saved_at": 1792425908.655779
 }
