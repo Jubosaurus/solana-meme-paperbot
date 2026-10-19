@@ -1,8 +1,82 @@
 {
   "strategy": "EXPERIMENT_serien_devs",
   "started": "2026-10-04T00:34:10.471102+00:00",
-  "bankroll_sol": 5.063353,
-  "positions": {},
+  "bankroll_sol": 4.861853,
+  "positions": {
+    "6kWZTb1LS4vNTtPSXpcBQ5iWitB25YtVDmjXs1nopump": {
+      "mint": "6kWZTb1LS4vNTtPSXpcBQ5iWitB25YtVDmjXs1nopump",
+      "symbol": "KIBSHI",
+      "opened": 1792450400.0747893,
+      "invested_sol": 0.2,
+      "fees_sol": 0.0015,
+      "entry_signal_usd": 4.466804159829978e-05,
+      "entry_fill_usd": 5.573078914518519e-05,
+      "entry_slippage_pct": 24.77,
+      "roundtrip_cost_pct": 8.41,
+      "tokens_initial": 377094.015817,
+      "tokens_left": 377094.015817,
+      "decimals": 6,
+      "proceeds_sol": 0.0,
+      "peak_usd": 5.573078914518519e-05,
+      "tp1_done": false,
+      "thesis_breaks": 0,
+      "missing_loops": 0,
+      "entry_liquidity": 16049.805365949767,
+      "entry_view": {
+        "age_h": 1.1522624474101597,
+        "mcap": 44668.041592519294,
+        "liquidity": 16049.805365949767,
+        "holders": 149,
+        "holder_growth_1h": 893.3333333333334,
+        "holder_growth_5m": 93.5064935064935,
+        "net_buyers_5m": 99,
+        "organic_buyers_5m": 0,
+        "organic_score": 0.0,
+        "price_change_1h": 614.9081895568439,
+        "price_change_5m": 136.14802887747427,
+        "buys_5m": 262,
+        "sells_5m": 235,
+        "traders_5m": 175,
+        "traders_1h": 316,
+        "buy_vol_5m": 32595.494713285916,
+        "sell_vol_5m": 26940.042714390718,
+        "buy_vol_1h": 49526.27078989723,
+        "sell_vol_1h": 39227.76923020623,
+        "organic_buy_vol_1h": 1552.0051546499233,
+        "top_holders_pct": 27.8881289103717,
+        "dev_balance_pct": 3.0150901975318827,
+        "dev_mints": 14163,
+        "launchpad": "pump.fun",
+        "graduated": false,
+        "social": true,
+        "quelle": "traded1h+traded5m+trend1h+trend5m",
+        "trades_24h": 1309,
+        "organic_label": "low",
+        "buy_organic_vol_5m": 983.2318545149197,
+        "jup_fees": null,
+        "hour_utc": 22
+      },
+      "bundle": {
+        "quelle": "experiment",
+        "text": "Serien-Dev: frueherer Coin 4206066 bis 815,728 $"
+      },
+      "phase": "normal",
+      "thesis": "Story verbreitet sich: Holder +893%/h, 99 Netto-Kaeufer 5m, 0 organisch; Serien-Dev: frueherer Coin 4206066 bis 815,728 $; Dev-Coins 14163",
+      "exit_rule": "Haelfte bei 2x; Rest raus, wenn Holder schrumpfen und Netto-Verkaeufer 2x in Folge, Liquiditaet -30%, -40%, nach 1,5x nicht unter Einstand, nach 2x 30 % vom Hoch (ab 10x 25 %)",
+      "mitlaeufer": null,
+      "solana_tracker": null,
+      "graduated": false,
+      "liq_low_checks": 0,
+      "dev_exit": true,
+      "dev_pct_kauf": 3.0150901975318827,
+      "serien_vorgaenger": {
+        "symbol": "4206066",
+        "peak": 815728,
+        "zuerst": 1791462631,
+        "mint": "Ca5VuKu5NyyFkixnewTnokmzXpmNuG8Mk5odwHJypRNq"
+      }
+    }
+  },
   "closed": [
     {
       "symbol": "GWC",
@@ -44267,18 +44341,10 @@
     "7PvDXoFaHGoAAfPopE3vNfqRJcDCsz2fVbVYionopump": 1792445634.817604,
     "6cZxLsvJiQmedv86mLDaoAKCtBn57CLCehnQStWPpump": 1792446092.776549,
     "DER1KeNskuJuBh8roxvSD6iuJhSFFAYKqsa5WZbfWTsZ": 1792446379.9035776,
-    "ACpHjSKJqt7QWjXMTM8d3FQFVojTQkG4aNyGtkeDpump": 1792448860.1614857
+    "ACpHjSKJqt7QWjXMTM8d3FQFVojTQkG4aNyGtkeDpump": 1792448860.1614857,
+    "6kWZTb1LS4vNTtPSXpcBQ5iWitB25YtVDmjXs1nopump": 1792450400.0757084
   },
   "watch": {
-    "6Qx34CyV3Q3Wso6SQcC5iwftAPLe8StGCsRsobraSnbi": {
-      "symbol": "PUMPKIN",
-      "entry_fill_usd": 2.9828075102598195e-05,
-      "opened": 1792428044.2912676,
-      "peak_usd": 2.9828075102598195e-05,
-      "exit_usd": 1.763973628268553e-05,
-      "exit_reason": "NOTBREMSE (-41%)",
-      "until": 1792450378.6304948
-    },
     "9rJsyktbXsmqga2Q4S2Hiwj8UaBMzbc88jBiPGaPpump": {
       "symbol": "ALTCOIN",
       "entry_fill_usd": 0.00015849833051381838,
@@ -44310,7 +44376,7 @@
       "symbol": "PikaJew",
       "entry_fill_usd": 1.2557606526864569e-05,
       "opened": 1792433902.8729,
-      "peak_usd": 3.656879018946925e-05,
+      "peak_usd": 3.6595668445848835e-05,
       "exit_usd": 7.117156375978672e-06,
       "exit_reason": "NOTBREMSE (-43%)",
       "until": 1792456322.4159422
@@ -44480,5 +44546,5 @@
   },
   "runde": 2,
   "shadow": {},
-  "saved_at": 1792450285.471436
+  "saved_at": 1792450401.6979933
 }
