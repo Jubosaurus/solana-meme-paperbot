@@ -1,8 +1,82 @@
 {
   "strategy": "EXPERIMENT_serien_devs",
   "started": "2026-10-04T00:34:10.471102+00:00",
-  "bankroll_sol": 5.568977,
-  "positions": {},
+  "bankroll_sol": 5.367477,
+  "positions": {
+    "EXy9hxExXMLNsrUiryuD51vmQ7Y4rV2j9uG8DKtxpump": {
+      "mint": "EXy9hxExXMLNsrUiryuD51vmQ7Y4rV2j9uG8DKtxpump",
+      "symbol": "MAG7",
+      "opened": 1792415787.3971646,
+      "invested_sol": 0.2,
+      "fees_sol": 0.0015,
+      "entry_signal_usd": 2.266383310992873e-05,
+      "entry_fill_usd": 2.6014974953206948e-05,
+      "entry_slippage_pct": 14.79,
+      "roundtrip_cost_pct": null,
+      "tokens_initial": 808235.695475,
+      "tokens_left": 808235.695475,
+      "decimals": 6,
+      "proceeds_sol": 0.0,
+      "peak_usd": 2.6014974953206948e-05,
+      "tp1_done": false,
+      "thesis_breaks": 0,
+      "missing_loops": 0,
+      "entry_liquidity": 5787.991392878986,
+      "entry_view": {
+        "age_h": 0.2681867422660192,
+        "mcap": 21288.492508093375,
+        "liquidity": 5787.991392878986,
+        "holders": 393,
+        "holder_growth_1h": 627.7777777777777,
+        "holder_growth_5m": -19.1358024691358,
+        "net_buyers_5m": 154,
+        "organic_buyers_5m": 0,
+        "organic_score": 0.0,
+        "price_change_1h": 239.5790331177003,
+        "price_change_5m": -9.263321044088325,
+        "buys_5m": 529,
+        "sells_5m": 511,
+        "traders_5m": 453,
+        "traders_1h": 1336,
+        "buy_vol_5m": 17452.63673453965,
+        "sell_vol_5m": 20870.891644810334,
+        "buy_vol_1h": 108957.3838434204,
+        "sell_vol_1h": 115413.62967332885,
+        "organic_buy_vol_1h": 3955.00238510233,
+        "top_holders_pct": 19.613005389934948,
+        "dev_balance_pct": 0.0,
+        "dev_mints": 14074,
+        "launchpad": "pump.fun",
+        "graduated": true,
+        "social": true,
+        "quelle": "traded1h+traded5m",
+        "trades_24h": 5429,
+        "organic_label": "low",
+        "buy_organic_vol_5m": 647.6306898361992,
+        "jup_fees": null,
+        "hour_utc": 13
+      },
+      "bundle": {
+        "quelle": "experiment",
+        "text": "Serien-Dev: frueherer Coin 4206066 bis 815,728 $"
+      },
+      "phase": "normal",
+      "thesis": "Story verbreitet sich: Holder +628%/h, 154 Netto-Kaeufer 5m, 0 organisch; Serien-Dev: frueherer Coin 4206066 bis 815,728 $; Dev-Coins 14074",
+      "exit_rule": "Haelfte bei 2x; Rest raus, wenn Holder schrumpfen und Netto-Verkaeufer 2x in Folge, Liquiditaet -30%, -40%, nach 1,5x nicht unter Einstand, nach 2x 30 % vom Hoch (ab 10x 25 %)",
+      "mitlaeufer": null,
+      "solana_tracker": null,
+      "graduated": true,
+      "liq_low_checks": 0,
+      "dev_exit": true,
+      "dev_pct_kauf": 0.0,
+      "serien_vorgaenger": {
+        "symbol": "4206066",
+        "peak": 815728,
+        "zuerst": 1791462631,
+        "mint": "Ca5VuKu5NyyFkixnewTnokmzXpmNuG8Mk5odwHJypRNq"
+      }
+    }
+  },
   "closed": [
     {
       "symbol": "GWC",
@@ -42221,18 +42295,10 @@
     "Dbz3NpeVgH3mg2yVkRGzKUb3cpMXn2JhfRNMDzd5vaUU": 1792410708.704884,
     "2upcUSrhq9RJtZ31ShsDRqVJDGqnhwEJCE9CsEKYpump": 1792410808.4737585,
     "9uWtQGQciv9ZWXKoVwqSSdVBZ1jwKB2zpfoMNRsrE39w": 1792412685.3040638,
-    "6vr7kdTLYxpdBLFJdtmzeFs3cWiRU7SZkQGV48Cwt5Qe": 1792413651.224355
+    "6vr7kdTLYxpdBLFJdtmzeFs3cWiRU7SZkQGV48Cwt5Qe": 1792413651.224355,
+    "EXy9hxExXMLNsrUiryuD51vmQ7Y4rV2j9uG8DKtxpump": 1792415787.3979528
   },
   "watch": {
-    "HL5GESD1z8RFMLXNhrKtghdDjVx9RZ9AKnfw7Fidpump": {
-      "symbol": "ALPACAS",
-      "entry_fill_usd": 1.106095031171105e-05,
-      "opened": 1792393335.7729838,
-      "peak_usd": 1.106095031171105e-05,
-      "exit_usd": 5.8717693916922596e-06,
-      "exit_reason": "NOTBREMSE (-47%)",
-      "until": 1792415755.822457
-    },
     "5ZBdUzozdJPAbReBYTsjkDkssrnmPky2Ks4kdKaART5K": {
       "symbol": "UHI",
       "entry_fill_usd": 2.4876910917530408e-05,
@@ -42371,5 +42437,5 @@
   },
   "runde": 2,
   "shadow": {},
-  "saved_at": 1792415534.9733043
+  "saved_at": 1792415796.8534908
 }
