@@ -1,8 +1,82 @@
 {
   "strategy": "EXPERIMENT_serien_devs",
   "started": "2026-10-04T00:34:10.471102+00:00",
-  "bankroll_sol": 4.273895,
-  "positions": {},
+  "bankroll_sol": 4.072395,
+  "positions": {
+    "DYixvwQJoisu7qYbh2ThoK7WRLCnKWQxpRw7xVS694ZG": {
+      "mint": "DYixvwQJoisu7qYbh2ThoK7WRLCnKWQxpRw7xVS694ZG",
+      "symbol": "CMC",
+      "opened": 1792518109.1477778,
+      "invested_sol": 0.2,
+      "fees_sol": 0.0015,
+      "entry_signal_usd": 2.3135142683960565e-05,
+      "entry_fill_usd": 2.22765259083422e-05,
+      "entry_slippage_pct": -3.71,
+      "roundtrip_cost_pct": 9.52,
+      "tokens_initial": 956894.801326,
+      "tokens_left": 956894.801326,
+      "decimals": 6,
+      "proceeds_sol": 0.0,
+      "peak_usd": 2.22765259083422e-05,
+      "tp1_done": false,
+      "thesis_breaks": 0,
+      "missing_loops": 0,
+      "entry_liquidity": 8952.620112712442,
+      "entry_view": {
+        "age_h": 0.257816814382871,
+        "mcap": 23135.142683901293,
+        "liquidity": 8952.620112712442,
+        "holders": 331,
+        "holder_growth_1h": 2658.333333333333,
+        "holder_growth_5m": 5.079365079365079,
+        "net_buyers_5m": 112,
+        "organic_buyers_5m": 0,
+        "organic_score": 0.0,
+        "price_change_1h": 239.539196252237,
+        "price_change_5m": -3.59423474703933,
+        "buys_5m": 302,
+        "sells_5m": 249,
+        "traders_5m": 262,
+        "traders_1h": 909,
+        "buy_vol_5m": 12739.004914845767,
+        "sell_vol_5m": 13549.525906089859,
+        "buy_vol_1h": 68701.06108833241,
+        "sell_vol_1h": 72830.75768316444,
+        "organic_buy_vol_1h": 2022.6398437480084,
+        "top_holders_pct": 0.0,
+        "dev_balance_pct": 0.0,
+        "dev_mints": 16506,
+        "launchpad": "pump.fun",
+        "graduated": false,
+        "social": true,
+        "quelle": "traded1h+traded5m",
+        "trades_24h": 3312,
+        "organic_label": "low",
+        "buy_organic_vol_5m": 634.7793421963845,
+        "jup_fees": null,
+        "hour_utc": 17
+      },
+      "bundle": {
+        "quelle": "experiment",
+        "text": "Serien-Dev: frueherer Coin CAPYBARA bis 933,065 $"
+      },
+      "phase": "normal",
+      "thesis": "Story verbreitet sich: Holder +2658%/h, 112 Netto-Kaeufer 5m, 0 organisch; Serien-Dev: frueherer Coin CAPYBARA bis 933,065 $; Dev-Coins 16506",
+      "exit_rule": "Haelfte bei 2x; Rest raus, wenn Holder schrumpfen und Netto-Verkaeufer 2x in Folge, Liquiditaet -30%, -40%, nach 1,5x nicht unter Einstand, nach 2x 30 % vom Hoch (ab 10x 25 %)",
+      "mitlaeufer": null,
+      "solana_tracker": null,
+      "graduated": false,
+      "liq_low_checks": 0,
+      "dev_exit": true,
+      "dev_pct_kauf": 0.0,
+      "serien_vorgaenger": {
+        "symbol": "CAPYBARA",
+        "peak": 933065,
+        "zuerst": 1791433612,
+        "mint": "3xrw3JKyaSYjzksYc8nrZE1kReQAxoHT3epi3P1mpZVf"
+      }
+    }
+  },
   "closed": [
     {
       "symbol": "GWC",
@@ -46623,18 +46697,10 @@
     "AfrJ94Z9F93GYpU5uytkr3pgLrwv5XYqMSUUgyyipump": 1792511268.6179292,
     "3DxMEfqRYGMoFkmcDetu37pGS3CBpZmmvMMrSsKRpump": 1792512568.6760886,
     "49DgV5ZeQBEiqrVCcXw2pmdjse3xGrBe2YLJ2Wmtpump": 1792515650.1126225,
-    "7vroZUHnZax2xvSmHFQE26iL2Dn1jPjVJKDvxHy2pump": 1792516241.632768
+    "7vroZUHnZax2xvSmHFQE26iL2Dn1jPjVJKDvxHy2pump": 1792516241.632768,
+    "DYixvwQJoisu7qYbh2ThoK7WRLCnKWQxpRw7xVS694ZG": 1792518109.1483543
   },
   "watch": {
-    "HKWZBprcVJ6tJmESJKq4Wt9hVkg1swWFRKFoumYVpump": {
-      "symbol": "GENGAR",
-      "entry_fill_usd": 8.811934985426615e-06,
-      "opened": 1792494584.2783623,
-      "peak_usd": 9.726652923683285e-06,
-      "exit_usd": 8.062806132835998e-06,
-      "exit_reason": "THESE_GEBROCHEN (Holder schrumpfen, Netto-Verkaeufer)",
-      "until": 1792517884.5515308
-    },
     "4xcATYzwt6aoQH7NnPjqdRGhdp9o1DvKu5zdE8zmpump": {
       "symbol": "CRIME",
       "entry_fill_usd": 8.140277861263168e-05,
@@ -46764,5 +46830,5 @@
   },
   "runde": 2,
   "shadow": {},
-  "saved_at": 1792517881.5736682
+  "saved_at": 1792518112.3737018
 }
