@@ -1,8 +1,82 @@
 {
   "strategy": "EXPERIMENT_serien_devs",
   "started": "2026-10-04T00:34:10.471102+00:00",
-  "bankroll_sol": 5.07724,
-  "positions": {},
+  "bankroll_sol": 4.87574,
+  "positions": {
+    "HSGH2UfDZjvr9ihNVENHZdnNjvWK8ajkLmNpkUtPWsSh": {
+      "mint": "HSGH2UfDZjvr9ihNVENHZdnNjvWK8ajkLmNpkUtPWsSh",
+      "symbol": "Tractor",
+      "opened": 1792463850.087206,
+      "invested_sol": 0.2,
+      "fees_sol": 0.0015,
+      "entry_signal_usd": 1.5137745351672158e-05,
+      "entry_fill_usd": 1.5249821725324137e-05,
+      "entry_slippage_pct": 0.74,
+      "roundtrip_cost_pct": 3.03,
+      "tokens_initial": 1371083.606905,
+      "tokens_left": 1371083.606905,
+      "decimals": 6,
+      "proceeds_sol": 0.0,
+      "peak_usd": 1.5249821725324137e-05,
+      "tp1_done": false,
+      "thesis_breaks": 0,
+      "missing_loops": 0,
+      "entry_liquidity": 7157.180876653776,
+      "entry_view": {
+        "age_h": 0.2506017960442437,
+        "mcap": 15137.745338219576,
+        "liquidity": 7157.180876653776,
+        "holders": 137,
+        "holder_growth_1h": 1041.6666666666665,
+        "holder_growth_5m": 5.384615384615385,
+        "net_buyers_5m": 52,
+        "organic_buyers_5m": 0,
+        "organic_score": 0.0,
+        "price_change_1h": 214.95145108972613,
+        "price_change_5m": 15.427351905699933,
+        "buys_5m": 179,
+        "sells_5m": 183,
+        "traders_5m": 138,
+        "traders_1h": 535,
+        "buy_vol_5m": 9452.543996343067,
+        "sell_vol_5m": 10090.085485680193,
+        "buy_vol_1h": 53501.81789194835,
+        "sell_vol_1h": 52397.6016414389,
+        "organic_buy_vol_1h": 1050.7242939260075,
+        "top_holders_pct": 24.476986048803756,
+        "dev_balance_pct": 0.0,
+        "dev_mints": 4774,
+        "launchpad": "pump.fun",
+        "graduated": false,
+        "social": false,
+        "quelle": "traded1h+traded5m",
+        "trades_24h": 2084,
+        "organic_label": "low",
+        "buy_organic_vol_5m": 269.8030627641569,
+        "jup_fees": null,
+        "hour_utc": 2
+      },
+      "bundle": {
+        "quelle": "experiment",
+        "text": "Serien-Dev: frueherer Coin Musk bis 331,113 $"
+      },
+      "phase": "normal",
+      "thesis": "Story verbreitet sich: Holder +1042%/h, 52 Netto-Kaeufer 5m, 0 organisch; Serien-Dev: frueherer Coin Musk bis 331,113 $; Dev-Coins 4774",
+      "exit_rule": "Haelfte bei 2x; Rest raus, wenn Holder schrumpfen und Netto-Verkaeufer 2x in Folge, Liquiditaet -30%, -40%, nach 1,5x nicht unter Einstand, nach 2x 30 % vom Hoch (ab 10x 25 %)",
+      "mitlaeufer": null,
+      "solana_tracker": null,
+      "graduated": false,
+      "liq_low_checks": 0,
+      "dev_exit": true,
+      "dev_pct_kauf": 0.0,
+      "serien_vorgaenger": {
+        "symbol": "Musk",
+        "peak": 331113,
+        "zuerst": 1791616353,
+        "mint": "64GXmXjTQmVxc3XwZG5aMZdbmq4UrkedCLyqHFzppump"
+      }
+    }
+  },
   "closed": [
     {
       "symbol": "GWC",
@@ -44701,18 +44775,10 @@
     "6tgusToBREdH1PqFhAgjo8hrBrXmYjpUzJm4mDWnpump": 1792457161.9231608,
     "GuPQbwQhku7eec7kmsdMvBYH9GdnTDfUk1fbjT3Lpump": 1792457362.496152,
     "34UP5PyixivH2bSwp8KpY2ate1F7Cs93RzWj9EFDpump": 1792461066.7878551,
-    "ARvS1ZAVDG5GsFc17S2ZT95cdL83GHwL9iSL3us6cpCd": 1792461070.088913
+    "ARvS1ZAVDG5GsFc17S2ZT95cdL83GHwL9iSL3us6cpCd": 1792461070.088913,
+    "HSGH2UfDZjvr9ihNVENHZdnNjvWK8ajkLmNpkUtPWsSh": 1792463850.0890415
   },
   "watch": {
-    "2Fq7sRssDo7dzT4Eax35urVmKjFAm99Gd5Rqv7Nt67Jm": {
-      "symbol": "Quinelings",
-      "entry_fill_usd": 5.7812757619984924e-05,
-      "opened": 1792442011.2784064,
-      "peak_usd": 5.7812757619984924e-05,
-      "exit_usd": 3.1175300466487695e-05,
-      "exit_reason": "NOTBREMSE (-46%)",
-      "until": 1792463687.2502148
-    },
     "AcLEFAt6YX7tpC8tafagpfZbVw42aowmiXEJaKN1pump": {
       "symbol": "Un",
       "entry_fill_usd": 9.854728006057469e-06,
@@ -44860,5 +44926,5 @@
   },
   "runde": 2,
   "shadow": {},
-  "saved_at": 1792463611.6290596
+  "saved_at": 1792463851.7921298
 }
