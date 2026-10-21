@@ -1,8 +1,82 @@
 {
   "strategy": "EXPERIMENT_serien_devs",
   "started": "2026-10-04T00:34:10.471102+00:00",
-  "bankroll_sol": 1.180746,
-  "positions": {},
+  "bankroll_sol": 0.979246,
+  "positions": {
+    "GqhXpkFMGLteLB7Rii9AKWwBAUy2sGAiPGF9orxpump": {
+      "mint": "GqhXpkFMGLteLB7Rii9AKWwBAUy2sGAiPGF9orxpump",
+      "symbol": "FINLEY",
+      "opened": 1792592211.7229476,
+      "invested_sol": 0.2,
+      "fees_sol": 0.0015,
+      "entry_signal_usd": 2.818020411642336e-05,
+      "entry_fill_usd": 2.9648585068025374e-05,
+      "entry_slippage_pct": 5.21,
+      "roundtrip_cost_pct": 2.88,
+      "tokens_initial": 717541.634111,
+      "tokens_left": 717541.634111,
+      "decimals": 6,
+      "proceeds_sol": 0.0,
+      "peak_usd": 2.9648585068025374e-05,
+      "tp1_done": false,
+      "thesis_breaks": 0,
+      "missing_loops": 0,
+      "entry_liquidity": 9917.280590944714,
+      "entry_view": {
+        "age_h": 0.3771415536271201,
+        "mcap": 28180.20411642336,
+        "liquidity": 9917.280590944714,
+        "holders": 137,
+        "holder_growth_1h": 6750.0,
+        "holder_growth_5m": 3.787878787878788,
+        "net_buyers_5m": 56,
+        "organic_buyers_5m": 0,
+        "organic_score": 0.0,
+        "price_change_1h": 594.3960123569391,
+        "price_change_5m": 9.200182000974658,
+        "buys_5m": 157,
+        "sells_5m": 136,
+        "traders_5m": 128,
+        "traders_1h": 329,
+        "buy_vol_5m": 13065.298692732309,
+        "sell_vol_5m": 12586.044537237978,
+        "buy_vol_1h": 37318.13531859193,
+        "sell_vol_1h": 31513.472120906965,
+        "organic_buy_vol_1h": 1418.7239138311284,
+        "top_holders_pct": 19.433328058520303,
+        "dev_balance_pct": 0.0,
+        "dev_mints": 1454,
+        "launchpad": "pump.fun",
+        "graduated": false,
+        "social": true,
+        "quelle": "traded1h+traded5m+trend1h+trend5m",
+        "trades_24h": 952,
+        "organic_label": "low",
+        "buy_organic_vol_5m": 398.8536311526929,
+        "jup_fees": null,
+        "hour_utc": 14
+      },
+      "bundle": {
+        "quelle": "experiment",
+        "text": "Serien-Dev: frueherer Coin 1 bis 3,546,776 $"
+      },
+      "phase": "normal",
+      "thesis": "Story verbreitet sich: Holder +6750%/h, 56 Netto-Kaeufer 5m, 0 organisch; Serien-Dev: frueherer Coin 1 bis 3,546,776 $; Dev-Coins 1454",
+      "exit_rule": "Haelfte bei 2x; Rest raus, wenn Holder schrumpfen und Netto-Verkaeufer 2x in Folge, Liquiditaet -30%, -40%, nach 1,5x nicht unter Einstand, nach 2x 30 % vom Hoch (ab 10x 25 %)",
+      "mitlaeufer": null,
+      "solana_tracker": null,
+      "graduated": false,
+      "liq_low_checks": 0,
+      "dev_exit": true,
+      "dev_pct_kauf": 0.0,
+      "serien_vorgaenger": {
+        "symbol": "1",
+        "peak": 3546776,
+        "zuerst": 1792097192,
+        "mint": "2bCCHQadi4QeHWPKG3w13siCyWWQPgkFtniouTqVpump"
+      }
+    }
+  },
   "closed": [
     {
       "symbol": "GWC",
@@ -50281,18 +50355,10 @@
     "HXuAgtMSuuv3sJH6UPg2cG4Txqovc19kD6PtyHxmpump": 1792582648.6831868,
     "E8LtoeEff9HuYv8J9YDn9X8MKsn8KCs1H6rrumMxpump": 1792583582.8527002,
     "5HXPF4to31qarAohtHD2tiPQwhx9yGgJ8q5nnhPws9gp": 1792589461.646801,
-    "5iib9k6W8xMwuEfSLMXatv7msr94oBNQwcdaLhtkpump": 1792589949.4865046
+    "5iib9k6W8xMwuEfSLMXatv7msr94oBNQwcdaLhtkpump": 1792589949.4865046,
+    "GqhXpkFMGLteLB7Rii9AKWwBAUy2sGAiPGF9orxpump": 1792592211.723829
   },
   "watch": {
-    "BZ6M2dAsnx6v3Vp3U7jsSM1zshvKxG9ejAVrLiBfNa9P": {
-      "symbol": "Samba",
-      "entry_fill_usd": 7.332702040078953e-06,
-      "opened": 1792568795.2659607,
-      "peak_usd": 1.3617149234970215e-05,
-      "exit_usd": 7.2182122298665265e-06,
-      "exit_reason": "GEWINN_GESCHUETZT (Hoch 1.9x, zurueck auf Einstand)",
-      "until": 1792592185.045186
-    },
     "4gk3n1iCFj2n84MkuRenGHDRZHBRvXy81vLa35krpump": {
       "symbol": "MEME",
       "entry_fill_usd": 0.00010675534127010224,
@@ -50377,5 +50443,5 @@
   },
   "runde": 2,
   "shadow": {},
-  "saved_at": 1792592114.5106416
+  "saved_at": 1792592213.3613868
 }
