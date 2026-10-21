@@ -1,8 +1,82 @@
 {
   "strategy": "EXPERIMENT_serien_devs",
   "started": "2026-10-04T00:34:10.471102+00:00",
-  "bankroll_sol": 1.156204,
-  "positions": {},
+  "bankroll_sol": 0.954704,
+  "positions": {
+    "E8LtoeEff9HuYv8J9YDn9X8MKsn8KCs1H6rrumMxpump": {
+      "mint": "E8LtoeEff9HuYv8J9YDn9X8MKsn8KCs1H6rrumMxpump",
+      "symbol": "TSUTSUJI",
+      "opened": 1792583582.8519564,
+      "invested_sol": 0.2,
+      "fees_sol": 0.0015,
+      "entry_signal_usd": 1.0154957121844047e-05,
+      "entry_fill_usd": 1.0792808286917516e-05,
+      "entry_slippage_pct": 6.28,
+      "roundtrip_cost_pct": 9.44,
+      "tokens_initial": 1978505.469347,
+      "tokens_left": 1978505.469347,
+      "decimals": 6,
+      "proceeds_sol": 0.0,
+      "peak_usd": 1.0792808286917516e-05,
+      "tp1_done": false,
+      "thesis_breaks": 0,
+      "missing_loops": 0,
+      "entry_liquidity": 5911.606193700662,
+      "entry_view": {
+        "age_h": 0.4108141403728061,
+        "mcap": 10154.957121844047,
+        "liquidity": 5911.606193700662,
+        "holders": 117,
+        "holder_growth_1h": 234.2857142857143,
+        "holder_growth_5m": -19.863013698630137,
+        "net_buyers_5m": 27,
+        "organic_buyers_5m": 0,
+        "organic_score": 0.0,
+        "price_change_1h": -28.042423289168163,
+        "price_change_5m": -14.67274607180066,
+        "buys_5m": 74,
+        "sells_5m": 71,
+        "traders_5m": 87,
+        "traders_1h": 495,
+        "buy_vol_5m": 2974.1612596787486,
+        "sell_vol_5m": 3206.931490763739,
+        "buy_vol_1h": 43856.68520637471,
+        "sell_vol_1h": 42627.22439644719,
+        "organic_buy_vol_1h": 1538.2238503487392,
+        "top_holders_pct": 21.9381706483367,
+        "dev_balance_pct": 0.0,
+        "dev_mints": 2,
+        "launchpad": "pump.fun",
+        "graduated": false,
+        "social": false,
+        "quelle": "traded1h+traded5m",
+        "trades_24h": 1552,
+        "organic_label": "low",
+        "buy_organic_vol_5m": 90.2881355520338,
+        "jup_fees": null,
+        "hour_utc": 11
+      },
+      "bundle": {
+        "quelle": "experiment",
+        "text": "Serien-Dev: frueherer Coin PANDA bis 583,459 $"
+      },
+      "phase": "normal",
+      "thesis": "Story verbreitet sich: Holder +234%/h, 27 Netto-Kaeufer 5m, 0 organisch; Serien-Dev: frueherer Coin PANDA bis 583,459 $; Dev-Coins 2",
+      "exit_rule": "Haelfte bei 2x; Rest raus, wenn Holder schrumpfen und Netto-Verkaeufer 2x in Folge, Liquiditaet -30%, -40%, nach 1,5x nicht unter Einstand, nach 2x 30 % vom Hoch (ab 10x 25 %)",
+      "mitlaeufer": null,
+      "solana_tracker": null,
+      "graduated": false,
+      "liq_low_checks": 0,
+      "dev_exit": true,
+      "dev_pct_kauf": 0.0,
+      "serien_vorgaenger": {
+        "symbol": "PANDA",
+        "peak": 583459,
+        "zuerst": 1791478251,
+        "mint": "2bN9YoTKiejNonS4Q1EjhypvRfndZLEiYJZUHLwYpump"
+      }
+    }
+  },
   "closed": [
     {
       "symbol": "GWC",
@@ -50095,7 +50169,8 @@
     "GAJiA7j8CSCgMzKvKRxtAuUFchbhBMaprFWjANnspump": 1792576927.0455987,
     "F5jgHyqd13JY3T3qKSp3nryNePN9gQKVx8wCAAZsfart": 1792579035.9844544,
     "5ag99jdTZDF2iUsHd94bDec7jrwSdjjiYYjgouzypump": 1792581607.0052629,
-    "HXuAgtMSuuv3sJH6UPg2cG4Txqovc19kD6PtyHxmpump": 1792582648.6831868
+    "HXuAgtMSuuv3sJH6UPg2cG4Txqovc19kD6PtyHxmpump": 1792582648.6831868,
+    "E8LtoeEff9HuYv8J9YDn9X8MKsn8KCs1H6rrumMxpump": 1792583582.8527002
   },
   "watch": {
     "Cbkg5w7V7W2J2sUmecnyN825CbvwvXwasfhduVtNpump": {
@@ -50200,5 +50275,5 @@
   },
   "runde": 2,
   "shadow": {},
-  "saved_at": 1792583528.0407016
+  "saved_at": 1792583601.5397875
 }
