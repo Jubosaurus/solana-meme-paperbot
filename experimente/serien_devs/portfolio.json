@@ -1,8 +1,82 @@
 {
   "strategy": "EXPERIMENT_serien_devs",
   "started": "2026-10-04T00:34:10.471102+00:00",
-  "bankroll_sol": 8.515616,
-  "positions": {},
+  "bankroll_sol": 8.314116,
+  "positions": {
+    "3HqYs4E5UiotUcEstJneSzWC7nL6L2w25jn5L7Pyz1v5": {
+      "mint": "3HqYs4E5UiotUcEstJneSzWC7nL6L2w25jn5L7Pyz1v5",
+      "symbol": "KENZO",
+      "opened": 1792702509.0419202,
+      "invested_sol": 0.2,
+      "fees_sol": 0.0015,
+      "entry_signal_usd": 4.95971454683687e-05,
+      "entry_fill_usd": 5.2763672088895546e-05,
+      "entry_slippage_pct": 6.38,
+      "roundtrip_cost_pct": 8.06,
+      "tokens_initial": 390488.537495,
+      "tokens_left": 390488.537495,
+      "decimals": 6,
+      "proceeds_sol": 0.0,
+      "peak_usd": 5.2763672088895546e-05,
+      "tp1_done": false,
+      "thesis_breaks": 0,
+      "missing_loops": 0,
+      "entry_liquidity": 7740.935984953895,
+      "entry_view": {
+        "age_h": 0.2528106184800466,
+        "mcap": 44209.180992945105,
+        "liquidity": 7740.935984953895,
+        "holders": 320,
+        "holder_growth_1h": 841.1764705882354,
+        "holder_growth_5m": 30.612244897959183,
+        "net_buyers_5m": 117,
+        "organic_buyers_5m": 0,
+        "organic_score": 0.0,
+        "price_change_1h": 460.7040853505798,
+        "price_change_5m": 127.35927402219363,
+        "buys_5m": 418,
+        "sells_5m": 356,
+        "traders_5m": 283,
+        "traders_1h": 1069,
+        "buy_vol_5m": 17262.378973045532,
+        "sell_vol_5m": 15849.525753186448,
+        "buy_vol_1h": 96608.91099492344,
+        "sell_vol_1h": 91859.67648388272,
+        "organic_buy_vol_1h": 3579.9463166522632,
+        "top_holders_pct": 23.648884443170665,
+        "dev_balance_pct": 0.0,
+        "dev_mints": 3186,
+        "launchpad": "pump.fun",
+        "graduated": true,
+        "social": true,
+        "quelle": "traded1h+traded5m+trend1h+trend5m",
+        "trades_24h": 4200,
+        "organic_label": "low",
+        "buy_organic_vol_5m": 767.6324672363047,
+        "jup_fees": null,
+        "hour_utc": 20
+      },
+      "bundle": {
+        "quelle": "experiment",
+        "text": "Serien-Dev: frueherer Coin McRib bis 356,456 $"
+      },
+      "phase": "normal",
+      "thesis": "Story verbreitet sich: Holder +841%/h, 117 Netto-Kaeufer 5m, 0 organisch; Serien-Dev: frueherer Coin McRib bis 356,456 $; Dev-Coins 3186",
+      "exit_rule": "Haelfte bei 2x; Rest raus, wenn Holder schrumpfen und Netto-Verkaeufer 2x in Folge, Liquiditaet -30%, -40%, nach 1,5x nicht unter Einstand, nach 2x 30 % vom Hoch (ab 10x 25 %)",
+      "mitlaeufer": null,
+      "solana_tracker": null,
+      "graduated": true,
+      "liq_low_checks": 0,
+      "dev_exit": true,
+      "dev_pct_kauf": 0.0,
+      "serien_vorgaenger": {
+        "symbol": "McRib",
+        "peak": 356456,
+        "zuerst": 1792697173,
+        "mint": "3nyNjt55pxCePAkevhXYQZrRWbTPZd912GGutModTyHB"
+      }
+    }
+  },
   "closed": [
     {
       "symbol": "GWC",
@@ -55117,7 +55191,8 @@
     "AASYpBPvy3zVuURyFuHveWQ5nNGmeDi7dhNFBqcXpump": 1792698851.6269212,
     "fUkSnEAsbNW9pkZRFoNnCYPFRzbDuE62kK6VLdvTmZi": 1792698959.996781,
     "26V6DpPGhXJYrSY8Tp7TvFJhUhFgLmJxZz3GY3rkpump": 1792700367.4946263,
-    "5wgCSXNnH5W9XAGPMbBFvhy96n9YydrwQXa1tAyJpump": 1792700654.4022048
+    "5wgCSXNnH5W9XAGPMbBFvhy96n9YydrwQXa1tAyJpump": 1792700654.4022048,
+    "3HqYs4E5UiotUcEstJneSzWC7nL6L2w25jn5L7Pyz1v5": 1792702509.0422156
   },
   "watch": {
     "7uFobQL8fvvRRuJufTs5TJMS9LLnuNKJLTKxpCHHpump": {
@@ -55276,5 +55351,5 @@
   },
   "runde": 3,
   "shadow": {},
-  "saved_at": 1792702366.6764696
+  "saved_at": 1792702510.7384646
 }
