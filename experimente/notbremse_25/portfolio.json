@@ -1,8 +1,101 @@
 {
   "strategy": "EXPERIMENT_notbremse_25",
   "started": "2026-10-04T00:34:10.470983+00:00",
-  "bankroll_sol": 8.823781,
-  "positions": {},
+  "bankroll_sol": 8.622281,
+  "positions": {
+    "9JE8ezAfLc3ymR3uTM4ZyQUGJqDUgMrHKx8ptQ9Ppump": {
+      "mint": "9JE8ezAfLc3ymR3uTM4ZyQUGJqDUgMrHKx8ptQ9Ppump",
+      "symbol": "Billy",
+      "opened": 1792660120.0273502,
+      "invested_sol": 0.2,
+      "fees_sol": 0.0015,
+      "entry_signal_usd": 2.796169473373248e-05,
+      "entry_fill_usd": 2.8543410320503256e-05,
+      "entry_slippage_pct": 2.08,
+      "roundtrip_cost_pct": 2.97,
+      "tokens_initial": 726207.941365,
+      "tokens_left": 726207.941365,
+      "decimals": 6,
+      "proceeds_sol": 0.0,
+      "peak_usd": 2.8543410320503256e-05,
+      "tp1_done": false,
+      "thesis_breaks": 0,
+      "missing_loops": 0,
+      "entry_liquidity": 5339.62310311063,
+      "entry_view": {
+        "age_h": 5.814082889358203,
+        "mcap": 26448.6641747279,
+        "liquidity": 5339.62310311063,
+        "holders": 238,
+        "holder_growth_1h": 16.097560975609756,
+        "holder_growth_5m": 3.0303030303030303,
+        "net_buyers_5m": 10,
+        "organic_buyers_5m": 4,
+        "organic_score": 49.871661914466465,
+        "price_change_1h": 27.11071726220912,
+        "price_change_5m": 14.197201308383692,
+        "buys_5m": 17,
+        "sells_5m": 8,
+        "traders_5m": 18,
+        "traders_1h": 259,
+        "buy_vol_5m": 452.71059304608957,
+        "sell_vol_5m": 314.53262239693913,
+        "buy_vol_1h": 10992.30463428737,
+        "sell_vol_1h": 14507.83544619945,
+        "organic_buy_vol_1h": 1309.6771133140655,
+        "top_holders_pct": 24.351763932751226,
+        "dev_balance_pct": 0.0,
+        "dev_mints": 1,
+        "launchpad": "pump.fun",
+        "graduated": true,
+        "social": true,
+        "quelle": "organic1h+organic5m+traded1h+trend5m",
+        "trades_24h": 3512,
+        "organic_label": "medium",
+        "buy_organic_vol_5m": 0.0,
+        "jup_fees": null,
+        "hour_utc": 9
+      },
+      "bundle": {
+        "quelle": "block0",
+        "slot": 459880086,
+        "block0_wallets": 1,
+        "block0_supply_pct": 0.32,
+        "block0_still_held_pct": 0.0,
+        "block0_exited": 1,
+        "early_tx_slot1_2": 1,
+        "bundle_holding_pct": 0.0,
+        "block0_tx_fehlend": 0,
+        "block0_halter_fehlend": 0,
+        "gebuendelt": false,
+        "rugcheck_insider_pct": 0
+      },
+      "phase": "normal",
+      "thesis": "Story verbreitet sich: Holder +16%/h, 10 Netto-Kaeufer 5m, 4 organisch; Block 0: 1 Kaeufer, 0.3% gekauft, 0.0% noch gehalten; Dev-Coins 1",
+      "exit_rule": "Haelfte bei 2x; Rest raus, wenn Holder schrumpfen und Netto-Verkaeufer 2x in Folge, Liquiditaet -30%, -25%, nach 1,5x nicht unter Einstand, nach 2x 30 % vom Hoch (ab 10x 25 %)",
+      "mitlaeufer": null,
+      "solana_tracker": {
+        "score": 4,
+        "rugged": false,
+        "snipers_pct": 0,
+        "insiders_pct": 0,
+        "bundlers_pct": 1.2784,
+        "top10_pct": 23.0342,
+        "risiken": [
+          "Top 10 Holders"
+        ]
+      },
+      "graduated": true,
+      "liq_low_checks": 0,
+      "stop_pct": -25.0,
+      "block0_flug": {
+        "supply": 945889168256340.0,
+        "bought": {
+          "J9wc6y6V9Ecc8g12u2ub4ivTCFaZwsVh6oF9wSrACw2W": 2994254714674.0
+        }
+      }
+    }
+  },
   "closed": [
     {
       "symbol": "TUX",
@@ -16635,10 +16728,11 @@
     "GDv4YUaTKzBNWkzPRLJJcF3PkZ3pfX868SSoQ7ZQpump": 1792594234.265373,
     "89LqzC9Fcf9eQzJKCrMRuhiqKURR9uLvWLobiHLXpump": 1792596759.823319,
     "9WCRVSmrrG1sPYrypXbhxYfnhcXcT3YtvpC1H5s3pump": 1792599438.6023629,
-    "jyBGb2QxTH9rdJMT4zaMW8jjio61bER8K8JNFSspump": 1792604141.352006
+    "jyBGb2QxTH9rdJMT4zaMW8jjio61bER8K8JNFSspump": 1792604141.352006,
+    "9JE8ezAfLc3ymR3uTM4ZyQUGJqDUgMrHKx8ptQ9Ppump": 1792660120.0279582
   },
   "watch": {},
   "runde": 1,
   "shadow": {},
-  "saved_at": 1792659877.6781464
+  "saved_at": 1792660122.5723488
 }
