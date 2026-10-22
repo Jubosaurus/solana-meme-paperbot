@@ -1,8 +1,82 @@
 {
   "strategy": "EXPERIMENT_serien_devs",
   "started": "2026-10-04T00:34:10.471102+00:00",
-  "bankroll_sol": 8.307347,
-  "positions": {},
+  "bankroll_sol": 8.105847,
+  "positions": {
+    "79hQSeQtMsVLFH8vCT8LysFnJDqiwSxQyTA7cMVgyaHB": {
+      "mint": "79hQSeQtMsVLFH8vCT8LysFnJDqiwSxQyTA7cMVgyaHB",
+      "symbol": "MEMEMAN",
+      "opened": 1792705710.698098,
+      "invested_sol": 0.2,
+      "fees_sol": 0.0015,
+      "entry_signal_usd": 9.167787397971847e-05,
+      "entry_fill_usd": 7.6162674594766e-05,
+      "entry_slippage_pct": -16.92,
+      "roundtrip_cost_pct": 10.36,
+      "tokens_initial": 271502.994217,
+      "tokens_left": 271502.994217,
+      "decimals": 6,
+      "proceeds_sol": 0.0,
+      "peak_usd": 7.6162674594766e-05,
+      "tp1_done": false,
+      "thesis_breaks": 0,
+      "missing_loops": 0,
+      "entry_liquidity": 13358.059120909415,
+      "entry_view": {
+        "age_h": 0.27349895536899566,
+        "mcap": 91677.87397971847,
+        "liquidity": 13358.059120909415,
+        "holders": 826,
+        "holder_growth_1h": 3833.3333333333335,
+        "holder_growth_5m": 12.687585266030013,
+        "net_buyers_5m": 530,
+        "organic_buyers_5m": 0,
+        "organic_score": 0.0,
+        "price_change_1h": 797.8341384674137,
+        "price_change_5m": -14.188050328382634,
+        "buys_5m": 1146,
+        "sells_5m": 822,
+        "traders_5m": 824,
+        "traders_1h": 1894,
+        "buy_vol_5m": 45557.15872419718,
+        "sell_vol_5m": 44800.17841744652,
+        "buy_vol_1h": 174288.34782900638,
+        "sell_vol_1h": 157705.20238922443,
+        "organic_buy_vol_1h": 7860.708940075762,
+        "top_holders_pct": 21.430296076933,
+        "dev_balance_pct": 0.0,
+        "dev_mints": 3873,
+        "launchpad": "stonkfun",
+        "graduated": true,
+        "social": true,
+        "quelle": "traded1h+traded5m+trend1h",
+        "trades_24h": 7642,
+        "organic_label": "low",
+        "buy_organic_vol_5m": 1305.7569650701257,
+        "jup_fees": null,
+        "hour_utc": 21
+      },
+      "bundle": {
+        "quelle": "experiment",
+        "text": "Serien-Dev: frueherer Coin hi bis 1,203,255 $"
+      },
+      "phase": "normal",
+      "thesis": "Story verbreitet sich: Holder +3833%/h, 530 Netto-Kaeufer 5m, 0 organisch; Serien-Dev: frueherer Coin hi bis 1,203,255 $; Dev-Coins 3873",
+      "exit_rule": "Haelfte bei 2x; Rest raus, wenn Holder schrumpfen und Netto-Verkaeufer 2x in Folge, Liquiditaet -30%, -40%, nach 1,5x nicht unter Einstand, nach 2x 30 % vom Hoch (ab 10x 25 %)",
+      "mitlaeufer": null,
+      "solana_tracker": null,
+      "graduated": true,
+      "liq_low_checks": 0,
+      "dev_exit": true,
+      "dev_pct_kauf": 0.0,
+      "serien_vorgaenger": {
+        "symbol": "hi",
+        "peak": 1203255,
+        "zuerst": 1791852633,
+        "mint": "6x4Z2dr5DgHUBCKvta8T8GNsFTxJhsBZxNrycWQ8pump"
+      }
+    }
+  },
   "closed": [
     {
       "symbol": "GWC",
@@ -55241,7 +55315,8 @@
     "26V6DpPGhXJYrSY8Tp7TvFJhUhFgLmJxZz3GY3rkpump": 1792700367.4946263,
     "5wgCSXNnH5W9XAGPMbBFvhy96n9YydrwQXa1tAyJpump": 1792700654.4022048,
     "3HqYs4E5UiotUcEstJneSzWC7nL6L2w25jn5L7Pyz1v5": 1792702509.0422156,
-    "EHs8DcjX1qraz89ehTdQisagNg6qFwY2cMHNdtNWpump": 1792702612.0941622
+    "EHs8DcjX1qraz89ehTdQisagNg6qFwY2cMHNdtNWpump": 1792702612.0941622,
+    "79hQSeQtMsVLFH8vCT8LysFnJDqiwSxQyTA7cMVgyaHB": 1792705710.6983342
   },
   "watch": {
     "HUVsMfavxRZ6jpRYK2JYfaoAvqSgYhJvqDZUe2wFyo1S": {
@@ -55400,5 +55475,5 @@
   },
   "runde": 3,
   "shadow": {},
-  "saved_at": 1792705568.2582932
+  "saved_at": 1792705715.040754
 }
