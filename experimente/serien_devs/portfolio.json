@@ -1,8 +1,82 @@
 {
   "strategy": "EXPERIMENT_serien_devs",
   "started": "2026-10-04T00:34:10.471102+00:00",
-  "bankroll_sol": 10.133014,
-  "positions": {},
+  "bankroll_sol": 9.931514,
+  "positions": {
+    "8kRseiWsKue5ZypgjctvXb33vPbovXsarnviVk8Vpump": {
+      "mint": "8kRseiWsKue5ZypgjctvXb33vPbovXsarnviVk8Vpump",
+      "symbol": "FRANKENPHP",
+      "opened": 1792647157.6079488,
+      "invested_sol": 0.2,
+      "fees_sol": 0.0015,
+      "entry_signal_usd": 2.5654094636609976e-05,
+      "entry_fill_usd": 2.635125018049861e-05,
+      "entry_slippage_pct": 2.72,
+      "roundtrip_cost_pct": 5.48,
+      "tokens_initial": 797230.278738,
+      "tokens_left": 797230.278738,
+      "decimals": 6,
+      "proceeds_sol": 0.0,
+      "peak_usd": 2.635125018049861e-05,
+      "tp1_done": false,
+      "thesis_breaks": 0,
+      "missing_loops": 0,
+      "entry_liquidity": 5313.9971506238535,
+      "entry_view": {
+        "age_h": 0.366303020450804,
+        "mcap": 25204.592241780483,
+        "liquidity": 5313.9971506238535,
+        "holders": 430,
+        "holder_growth_1h": 2429.4117647058824,
+        "holder_growth_5m": 102.8301886792453,
+        "net_buyers_5m": 299,
+        "organic_buyers_5m": 0,
+        "organic_score": 0.0,
+        "price_change_1h": 419.1543343027154,
+        "price_change_5m": -2.9170489474219097,
+        "buys_5m": 1180,
+        "sells_5m": 925,
+        "traders_5m": 622,
+        "traders_1h": 786,
+        "buy_vol_5m": 35964.11486691849,
+        "sell_vol_5m": 41858.83864317399,
+        "buy_vol_1h": 52659.509230458476,
+        "sell_vol_1h": 53590.344631444175,
+        "organic_buy_vol_1h": 1108.850580052123,
+        "top_holders_pct": 21.324569471862056,
+        "dev_balance_pct": 0.0,
+        "dev_mints": 223,
+        "launchpad": "pump.fun",
+        "graduated": true,
+        "social": true,
+        "quelle": "traded1h",
+        "trades_24h": 2838,
+        "organic_label": "low",
+        "buy_organic_vol_5m": 205.2292541934005,
+        "jup_fees": null,
+        "hour_utc": 5
+      },
+      "bundle": {
+        "quelle": "experiment",
+        "text": "Serien-Dev: frueherer Coin AnyPS5 bis 971,094 $"
+      },
+      "phase": "normal",
+      "thesis": "Story verbreitet sich: Holder +2429%/h, 299 Netto-Kaeufer 5m, 0 organisch; Serien-Dev: frueherer Coin AnyPS5 bis 971,094 $; Dev-Coins 223",
+      "exit_rule": "Haelfte bei 2x; Rest raus, wenn Holder schrumpfen und Netto-Verkaeufer 2x in Folge, Liquiditaet -30%, -40%, nach 1,5x nicht unter Einstand, nach 2x 30 % vom Hoch (ab 10x 25 %)",
+      "mitlaeufer": null,
+      "solana_tracker": null,
+      "graduated": true,
+      "liq_low_checks": 0,
+      "dev_exit": true,
+      "dev_pct_kauf": 0.0,
+      "serien_vorgaenger": {
+        "symbol": "AnyPS5",
+        "peak": 971094,
+        "zuerst": 1791407237,
+        "mint": "CWKbSd7jwMXXexP3pbwLAWMzr4HXAXTvt4R9pk2Vyyyc"
+      }
+    }
+  },
   "closed": [
     {
       "symbol": "GWC",
@@ -52823,7 +52897,8 @@
     "AUsNAncoUQZQJFg5TBohiyTWcuLyKEx7RCzfc8fPpump": 1792639955.999466,
     "E3MbXgxn8UsuRXBJPQfZZNPD1wksmQBhJdZdynNDZAS4": 1792641564.0978093,
     "EDeuGfmFSJpEq3s5S6CCZoTnJY2rSMRCVeqXSd3HcJRZ": 1792641665.6648643,
-    "2GEPkAjmz1gSMYxXYuLMxPviXZxRvWRHRAtfZJMWpump": 1792643659.6621912
+    "2GEPkAjmz1gSMYxXYuLMxPviXZxRvWRHRAtfZJMWpump": 1792643659.6621912,
+    "8kRseiWsKue5ZypgjctvXb33vPbovXsarnviVk8Vpump": 1792647157.608722
   },
   "watch": {
     "21qjavef4eWJNTGHVDr4Xw3T9eeXVxvUXuAq7D5Qpump": {
@@ -52982,5 +53057,5 @@
   },
   "runde": 3,
   "shadow": {},
-  "saved_at": 1792647092.8956761
+  "saved_at": 1792647159.1950088
 }
