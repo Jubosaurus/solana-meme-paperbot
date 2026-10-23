@@ -1,8 +1,82 @@
 {
   "strategy": "EXPERIMENT_serien_devs",
   "started": "2026-10-04T00:34:10.471102+00:00",
-  "bankroll_sol": 5.444111,
-  "positions": {},
+  "bankroll_sol": 5.242611,
+  "positions": {
+    "2Nyb2GXVoXM42hVQxJg5RppTbiN5SCZFL4LtZVVDpump": {
+      "mint": "2Nyb2GXVoXM42hVQxJg5RppTbiN5SCZFL4LtZVVDpump",
+      "symbol": "Peekhole",
+      "opened": 1792782247.0425901,
+      "invested_sol": 0.2,
+      "fees_sol": 0.0015,
+      "entry_signal_usd": 4.353631413180231e-05,
+      "entry_fill_usd": 4.363875598432095e-05,
+      "entry_slippage_pct": 0.24,
+      "roundtrip_cost_pct": 0.33,
+      "tokens_initial": 475901.606279,
+      "tokens_left": 475901.606279,
+      "decimals": 6,
+      "proceeds_sol": 0.0,
+      "peak_usd": 4.363875598432095e-05,
+      "tp1_done": false,
+      "thesis_breaks": 0,
+      "missing_loops": 0,
+      "entry_liquidity": 7241.504823668615,
+      "entry_view": {
+        "age_h": 3.3614042035738625,
+        "mcap": 42040.12964900314,
+        "liquidity": 7241.504823668615,
+        "holders": 249,
+        "holder_growth_1h": 215.18987341772151,
+        "holder_growth_5m": 9.210526315789473,
+        "net_buyers_5m": 37,
+        "organic_buyers_5m": 5,
+        "organic_score": 46.62834265560791,
+        "price_change_1h": 382.852447778165,
+        "price_change_5m": 13.144385748422796,
+        "buys_5m": 113,
+        "sells_5m": 133,
+        "traders_5m": 109,
+        "traders_1h": 242,
+        "buy_vol_5m": 5515.7076892767045,
+        "sell_vol_5m": 7951.89918905912,
+        "buy_vol_1h": 22869.69626955112,
+        "sell_vol_1h": 23774.069881572956,
+        "organic_buy_vol_1h": 1917.2601947531455,
+        "top_holders_pct": 24.884100738832128,
+        "dev_balance_pct": 0.0,
+        "dev_mints": 7464,
+        "launchpad": "pump.fun",
+        "graduated": true,
+        "social": true,
+        "quelle": "organic1h+organic5m+traded1h+traded5m",
+        "trades_24h": 3687,
+        "organic_label": "medium",
+        "buy_organic_vol_5m": 174.8161031709277,
+        "jup_fees": null,
+        "hour_utc": 19
+      },
+      "bundle": {
+        "quelle": "experiment",
+        "text": "Serien-Dev: frueherer Coin YMB bis 682,010 $"
+      },
+      "phase": "heiss",
+      "thesis": "Story verbreitet sich: Holder +215%/h, 37 Netto-Kaeufer 5m, 5 organisch; Serien-Dev: frueherer Coin YMB bis 682,010 $; Dev-Coins 7464",
+      "exit_rule": "Haelfte bei 2x; Rest raus, wenn Holder schrumpfen und Netto-Verkaeufer 2x in Folge, Liquiditaet -30%, -40%, nach 1,5x nicht unter Einstand, nach 2x 30 % vom Hoch (ab 10x 25 %)",
+      "mitlaeufer": null,
+      "solana_tracker": null,
+      "graduated": true,
+      "liq_low_checks": 0,
+      "dev_exit": true,
+      "dev_pct_kauf": 0.0,
+      "serien_vorgaenger": {
+        "symbol": "YMB",
+        "peak": 682010,
+        "zuerst": 1792782238,
+        "mint": "2TKDNLwVTbhVVy7jCvSDz6ic4REAqQshZ9n9ZTxmpump"
+      }
+    }
+  },
   "closed": [
     {
       "symbol": "GWC",
@@ -58899,18 +58973,10 @@
     "8jbWfB4kFMkT7i6sEhCJ7m1jQpNE7fj5JqVVkayMpkxE": 1792778376.7086349,
     "Cfb6HGH9W4NBL3hkENQaU3KLcBFwwCzqVbja71dapump": 1792778482.1222107,
     "2kVqK4GyKTtfV4ebGa7QcZkVAdYnV2qBoojTuhQFpump": 1792779935.5582225,
-    "HG4cqsbAYxnqUv4ZiGQesgA31TBwwR3zGceiSgTupump": 1792781683.2814689
+    "HG4cqsbAYxnqUv4ZiGQesgA31TBwwR3zGceiSgTupump": 1792781683.2814689,
+    "2Nyb2GXVoXM42hVQxJg5RppTbiN5SCZFL4LtZVVDpump": 1792782247.0441592
   },
   "watch": {
-    "ecatcLBCFkbNWxrdpDtGnZkVcKThqFXHPs7jUT1XJ7L": {
-      "symbol": "eCat",
-      "entry_fill_usd": 2.6059386265894384e-05,
-      "opened": 1792758429.588952,
-      "peak_usd": 3.913289001091499e-05,
-      "exit_usd": 2.0913082200536855e-05,
-      "exit_reason": "GEWINN_GESCHUETZT (Hoch 1.5x, zurueck auf Einstand)",
-      "until": 1792782152.8034334
-    },
     "84qut46jTfT8nqdviG4HBZ5JQMN1sJg7hBzJgXvfpump": {
       "symbol": "TC67",
       "entry_fill_usd": 2.7795004657031302e-05,
@@ -58987,7 +59053,7 @@
       "symbol": "SQUADS",
       "entry_fill_usd": 5.705687627747473e-05,
       "opened": 1792768799.71976,
-      "peak_usd": 0.00024160299759421424,
+      "peak_usd": 0.0002589835134009495,
       "exit_usd": 5.4306274442968546e-05,
       "exit_reason": "GEWINN_GESCHUETZT (Hoch 1.5x, zurueck auf Einstand)",
       "until": 1792790688.5457568
@@ -59112,5 +59178,5 @@
   },
   "runde": 3,
   "shadow": {},
-  "saved_at": 1792782091.573365
+  "saved_at": 1792782248.5676436
 }
