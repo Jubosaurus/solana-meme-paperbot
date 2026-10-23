@@ -1,8 +1,83 @@
 {
   "strategy": "EXPERIMENT_serien_devs",
   "started": "2026-10-04T00:34:10.471102+00:00",
-  "bankroll_sol": 5.273278,
-  "positions": {},
+  "bankroll_sol": 5.071778,
+  "positions": {
+    "AAPLEDt8RpzPgXyhvFzkMBofvFSQw9gpeMCoUdPdLnB8": {
+      "mint": "AAPLEDt8RpzPgXyhvFzkMBofvFSQw9gpeMCoUdPdLnB8",
+      "symbol": "AAPL",
+      "opened": 1792784531.7295167,
+      "invested_sol": 0.2,
+      "fees_sol": 0.0015,
+      "entry_signal_usd": 348.1560168002122,
+      "entry_fill_usd": 346.8568263011521,
+      "entry_slippage_pct": -0.37,
+      "roundtrip_cost_pct": 0.2,
+      "tokens_initial": 0.059759,
+      "tokens_left": 0.059759,
+      "decimals": 6,
+      "proceeds_sol": 0.0,
+      "peak_usd": 348.1560168002122,
+      "tp1_done": false,
+      "thesis_breaks": 0,
+      "missing_loops": 0,
+      "entry_liquidity": 219050.29208713403,
+      "entry_view": {
+        "age_h": 1.9360510084364149,
+        "mcap": 213436.26240017626,
+        "liquidity": 219050.29208713403,
+        "holders": 157,
+        "holder_growth_1h": 15600.0,
+        "holder_growth_5m": 4.666666666666667,
+        "net_buyers_5m": 5,
+        "organic_buyers_5m": 1,
+        "organic_score": 48.03198936118602,
+        "price_change_1h": -1.9641137793753083,
+        "price_change_5m": 1.6638736082497168,
+        "buys_5m": 9,
+        "sells_5m": 9,
+        "traders_5m": 5,
+        "traders_1h": 587,
+        "buy_vol_5m": 1556.2893680033444,
+        "sell_vol_5m": 1737.9180756419266,
+        "buy_vol_1h": 207130.3680985976,
+        "sell_vol_1h": 248201.7400864331,
+        "organic_buy_vol_1h": 9101.730733236307,
+        "top_holders_pct": 51.362306201046025,
+        "dev_balance_pct": 0.0,
+        "dev_mints": 35,
+        "launchpad": null,
+        "graduated": false,
+        "social": false,
+        "quelle": "organic1h+traded1h",
+        "trades_24h": 3536,
+        "organic_label": "medium",
+        "buy_organic_vol_5m": 0.0,
+        "jup_fees": null,
+        "hour_utc": 19
+      },
+      "bundle": {
+        "quelle": "experiment",
+        "text": "Serien-Dev: frueherer Coin SKHY bis 3,314,889 $"
+      },
+      "phase": "heiss",
+      "thesis": "Story verbreitet sich: Holder +15600%/h, 5 Netto-Kaeufer 5m, 1 organisch; Serien-Dev: frueherer Coin SKHY bis 3,314,889 $; Dev-Coins 35",
+      "exit_rule": "Haelfte bei 2x; Rest raus, wenn Holder schrumpfen und Netto-Verkaeufer 2x in Folge, Liquiditaet -30%, -40%, nach 1,5x nicht unter Einstand, nach 2x 30 % vom Hoch (ab 10x 25 %)",
+      "mitlaeufer": null,
+      "solana_tracker": null,
+      "graduated": false,
+      "liq_low_checks": 0,
+      "dev_exit": true,
+      "dev_pct_kauf": 0.0,
+      "serien_vorgaenger": {
+        "symbol": "SKHY",
+        "peak": 3314889,
+        "zuerst": 1791074049,
+        "mint": "SKHYhSjuRWHgikq8eRKbtBbpABgJSkd7ytQV14i9EQ3"
+      },
+      "flug_last": 1792784545.9069097
+    }
+  },
   "closed": [
     {
       "symbol": "GWC",
@@ -59085,7 +59160,8 @@
     "HG4cqsbAYxnqUv4ZiGQesgA31TBwwR3zGceiSgTupump": 1792781683.2814689,
     "2Nyb2GXVoXM42hVQxJg5RppTbiN5SCZFL4LtZVVDpump": 1792782247.0441592,
     "ASMC2yvNH9eMzPeeoR2WMNe16rqqQ6uqYie15YqsX5i": 1792783094.605754,
-    "3YhHpiGo8CTAa6K2TUDBxBTToiRJow6q7Ni2p4NVidxK": 1792783857.9643369
+    "3YhHpiGo8CTAa6K2TUDBxBTToiRJow6q7Ni2p4NVidxK": 1792783857.9643369,
+    "AAPLEDt8RpzPgXyhvFzkMBofvFSQw9gpeMCoUdPdLnB8": 1792784531.7311954
   },
   "watch": {
     "5uJRVbPzY4oMXVnVUTMs15ySFWtwpA8b5BPt3Lrhpump": {
@@ -59290,7 +59366,7 @@
       "symbol": "Peekhole",
       "entry_fill_usd": 4.363875598432095e-05,
       "opened": 1792782247.0425901,
-      "peak_usd": 7.133593920183163e-05,
+      "peak_usd": 7.813978825378817e-05,
       "exit_usd": 4.299576187010832e-05,
       "exit_reason": "GEWINN_GESCHUETZT (Hoch 1.5x, zurueck auf Einstand)",
       "until": 1792805477.7389648
@@ -59307,5 +59383,5 @@
   },
   "runde": 3,
   "shadow": {},
-  "saved_at": 1792784490.51641
+  "saved_at": 1792784563.8016984
 }
