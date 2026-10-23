@@ -1,8 +1,82 @@
 {
   "strategy": "EXPERIMENT_serien_devs",
   "started": "2026-10-04T00:34:10.471102+00:00",
-  "bankroll_sol": 4.825802,
-  "positions": {},
+  "bankroll_sol": 4.624302,
+  "positions": {
+    "2AtTPkKrTBh12Zr1grKTDkx1PBxiu3CJf4P5re4ZCXCJ": {
+      "mint": "2AtTPkKrTBh12Zr1grKTDkx1PBxiu3CJf4P5re4ZCXCJ",
+      "symbol": "ELON",
+      "opened": 1792799437.267012,
+      "invested_sol": 0.2,
+      "fees_sol": 0.0015,
+      "entry_signal_usd": 4.5476383840258145e-05,
+      "entry_fill_usd": 4.411715490928554e-05,
+      "entry_slippage_pct": -2.99,
+      "roundtrip_cost_pct": 3.83,
+      "tokens_initial": 465898.906234,
+      "tokens_left": 465898.906234,
+      "decimals": 6,
+      "proceeds_sol": 0.0,
+      "peak_usd": 4.411715490928554e-05,
+      "tp1_done": false,
+      "thesis_breaks": 0,
+      "missing_loops": 0,
+      "entry_liquidity": 7374.361297076162,
+      "entry_view": {
+        "age_h": 0.26926118089093104,
+        "mcap": 45408.069783560684,
+        "liquidity": 7374.361297076162,
+        "holders": 343,
+        "holder_growth_1h": 512.5,
+        "holder_growth_5m": 58.79629629629629,
+        "net_buyers_5m": 164,
+        "organic_buyers_5m": 0,
+        "organic_score": 0.0,
+        "price_change_1h": 661.2413868746885,
+        "price_change_5m": 195.17687712459932,
+        "buys_5m": 365,
+        "sells_5m": 266,
+        "traders_5m": 323,
+        "traders_1h": 1035,
+        "buy_vol_5m": 18299.088188763773,
+        "sell_vol_5m": 17030.678098190107,
+        "buy_vol_1h": 93387.30411208644,
+        "sell_vol_1h": 92117.6266355114,
+        "organic_buy_vol_1h": 3198.388934471535,
+        "top_holders_pct": 23.560835059703134,
+        "dev_balance_pct": 0.0,
+        "dev_mints": 175475,
+        "launchpad": "pump.fun",
+        "graduated": true,
+        "social": true,
+        "quelle": "traded1h+traded5m+trend1h+trend5m",
+        "trades_24h": 3799,
+        "organic_label": "low",
+        "buy_organic_vol_5m": 255.65817736545605,
+        "jup_fees": null,
+        "hour_utc": 23
+      },
+      "bundle": {
+        "quelle": "experiment",
+        "text": "Serien-Dev: frueherer Coin CLAUDIA bis 11,079,320 $"
+      },
+      "phase": "normal",
+      "thesis": "Story verbreitet sich: Holder +512%/h, 164 Netto-Kaeufer 5m, 0 organisch; Serien-Dev: frueherer Coin CLAUDIA bis 11,079,320 $; Dev-Coins 175475",
+      "exit_rule": "Haelfte bei 2x; Rest raus, wenn Holder schrumpfen und Netto-Verkaeufer 2x in Folge, Liquiditaet -30%, -40%, nach 1,5x nicht unter Einstand, nach 2x 30 % vom Hoch (ab 10x 25 %)",
+      "mitlaeufer": null,
+      "solana_tracker": null,
+      "graduated": true,
+      "liq_low_checks": 0,
+      "dev_exit": true,
+      "dev_pct_kauf": 0.0,
+      "serien_vorgaenger": {
+        "symbol": "CLAUDIA",
+        "peak": 11079320,
+        "zuerst": 1791342484,
+        "mint": "2j5SaS7xy776qCBpyPQbZjyQSAtKiFgrwjfErthnW2ZM"
+      }
+    }
+  },
   "closed": [
     {
       "symbol": "GWC",
@@ -59705,7 +59779,8 @@
     "472FgQyy5JRycJxegxrQqDkhBx8xSZ9kv8UL5fPvpump": 1792791474.442589,
     "Ad6VdigRAwP7ioqiqWd1jbeAcNVvkzjLmKco8PHDpump": 1792793189.4143877,
     "3iFDcnkt4knBRkGEiKtTYLjtuWzDMg7JCD6gfv8sFcCM": 1792793192.7217739,
-    "EDqML4vnQSkkL6UktQVxPX2Nh32aaBGwTzwxyBvApump": 1792799058.303126
+    "EDqML4vnQSkkL6UktQVxPX2Nh32aaBGwTzwxyBvApump": 1792799058.303126,
+    "2AtTPkKrTBh12Zr1grKTDkx1PBxiu3CJf4P5re4ZCXCJ": 1792799437.267658
   },
   "watch": {
     "DPDgaGst4sZM91R8H3nfyhkUJAZf224ckTnrBZpzpump": {
@@ -59873,5 +59948,5 @@
   },
   "runde": 3,
   "shadow": {},
-  "saved_at": 1792799205.2846644
+  "saved_at": 1792799438.9015532
 }
