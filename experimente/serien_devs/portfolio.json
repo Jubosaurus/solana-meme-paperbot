@@ -1,8 +1,83 @@
 {
   "strategy": "EXPERIMENT_serien_devs",
   "started": "2026-10-04T00:34:10.471102+00:00",
-  "bankroll_sol": 5.851033,
-  "positions": {},
+  "bankroll_sol": 5.649533,
+  "positions": {
+    "8jbWfB4kFMkT7i6sEhCJ7m1jQpNE7fj5JqVVkayMpkxE": {
+      "mint": "8jbWfB4kFMkT7i6sEhCJ7m1jQpNE7fj5JqVVkayMpkxE",
+      "symbol": "Melania",
+      "opened": 1792778376.7078876,
+      "invested_sol": 0.2,
+      "fees_sol": 0.0015,
+      "entry_signal_usd": 1.2604206174644142e-05,
+      "entry_fill_usd": 1.212854164204594e-05,
+      "entry_slippage_pct": -3.77,
+      "roundtrip_cost_pct": 3.1,
+      "tokens_initial": 1722372.823158,
+      "tokens_left": 1722372.823158,
+      "decimals": 6,
+      "proceeds_sol": 0.0,
+      "peak_usd": 1.212854164204594e-05,
+      "tp1_done": false,
+      "thesis_breaks": 0,
+      "missing_loops": 0,
+      "entry_liquidity": 6477.207758482369,
+      "entry_view": {
+        "age_h": 0.2682619643873639,
+        "mcap": 12604.206174644141,
+        "liquidity": 6477.207758482369,
+        "holders": 141,
+        "holder_growth_1h": 907.1428571428571,
+        "holder_growth_5m": -35.90909090909091,
+        "net_buyers_5m": 45,
+        "organic_buyers_5m": 0,
+        "organic_score": 0.0,
+        "price_change_1h": 88.22932658470566,
+        "price_change_5m": 14.523694757833455,
+        "buys_5m": 148,
+        "sells_5m": 199,
+        "traders_5m": 200,
+        "traders_1h": 630,
+        "buy_vol_5m": 4770.173115921854,
+        "sell_vol_5m": 6031.970934015363,
+        "buy_vol_1h": 45242.59872709922,
+        "sell_vol_1h": 46278.23979777155,
+        "organic_buy_vol_1h": 1086.2501026134369,
+        "top_holders_pct": 24.0240573791832,
+        "dev_balance_pct": 0.0,
+        "dev_mints": 175334,
+        "launchpad": "pump.fun",
+        "graduated": false,
+        "social": true,
+        "quelle": "traded1h+traded5m",
+        "trades_24h": 2299,
+        "organic_label": "low",
+        "buy_organic_vol_5m": 272.3961200553737,
+        "jup_fees": null,
+        "hour_utc": 17
+      },
+      "bundle": {
+        "quelle": "experiment",
+        "text": "Serien-Dev: frueherer Coin CLAUDIA bis 11,079,320 $"
+      },
+      "phase": "normal",
+      "thesis": "Story verbreitet sich: Holder +907%/h, 45 Netto-Kaeufer 5m, 0 organisch; Serien-Dev: frueherer Coin CLAUDIA bis 11,079,320 $; Dev-Coins 175334",
+      "exit_rule": "Haelfte bei 2x; Rest raus, wenn Holder schrumpfen und Netto-Verkaeufer 2x in Folge, Liquiditaet -30%, -40%, nach 1,5x nicht unter Einstand, nach 2x 30 % vom Hoch (ab 10x 25 %)",
+      "mitlaeufer": null,
+      "solana_tracker": null,
+      "graduated": false,
+      "liq_low_checks": 0,
+      "dev_exit": true,
+      "dev_pct_kauf": 0.0,
+      "serien_vorgaenger": {
+        "symbol": "CLAUDIA",
+        "peak": 11079320,
+        "zuerst": 1791342484,
+        "mint": "2j5SaS7xy776qCBpyPQbZjyQSAtKiFgrwjfErthnW2ZM"
+      },
+      "flug_last": 1792778390.3436377
+    }
+  },
   "closed": [
     {
       "symbol": "GWC",
@@ -58651,18 +58726,10 @@
     "HoxevtmrvxHYDbLqfcFBc6jH7siyx61Zpj771q53MP4X": 1792774073.5796106,
     "DScrtpcfGVrZdVMHKQe9aNdPq171rNiSMrqYENuZpump": 1792775018.8865516,
     "3PeYH2jeRkYrEPf9HE6fNP63ucy6kSFhF5h8RwTEpump": 1792776474.7547104,
-    "DPDgaGst4sZM91R8H3nfyhkUJAZf224ckTnrBZpzpump": 1792777916.5348694
+    "DPDgaGst4sZM91R8H3nfyhkUJAZf224ckTnrBZpzpump": 1792777916.5348694,
+    "8jbWfB4kFMkT7i6sEhCJ7m1jQpNE7fj5JqVVkayMpkxE": 1792778376.7086349
   },
   "watch": {
-    "Fibm8BJKqy7kzyHabj9RGsa7vnmHjL42cf8VSwV3pump": {
-      "symbol": "HILA",
-      "entry_fill_usd": 1.2108704154694556e-05,
-      "opened": 1792752127.4785924,
-      "peak_usd": 1.5837483573466414e-05,
-      "exit_usd": 1.3935376200362918e-05,
-      "exit_reason": "THESE_GEBROCHEN (Holder schrumpfen, Netto-Verkaeufer)",
-      "until": 1792778345.9405737
-    },
     "4WkgcMVPX164U9ByxB1oDvftiSKJCe5eAv5CrLqJpump": {
       "symbol": "McGruff",
       "entry_fill_usd": 1.422757868866434e-05,
@@ -58846,5 +58913,5 @@
   },
   "runde": 3,
   "shadow": {},
-  "saved_at": 1792778335.7653081
+  "saved_at": 1792778406.9286718
 }
