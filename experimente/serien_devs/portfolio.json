@@ -1,7 +1,7 @@
 {
   "strategy": "EXPERIMENT_serien_devs",
   "started": "2026-10-04T00:34:10.471102+00:00",
-  "bankroll_sol": 3.401576,
+  "bankroll_sol": 3.200076,
   "positions": {
     "9QKaSS6Kh7y51QKpcuCUETjFfZRGauxDybsLM1RtSpSz": {
       "mint": "9QKaSS6Kh7y51QKpcuCUETjFfZRGauxDybsLM1RtSpSz",
@@ -17,7 +17,7 @@
       "tokens_left": 1954279.299757,
       "decimals": 6,
       "proceeds_sol": 0.0,
-      "peak_usd": 1.3893371667212685e-05,
+      "peak_usd": 1.4114035021347026e-05,
       "tp1_done": false,
       "thesis_breaks": 0,
       "missing_loops": 0,
@@ -75,7 +75,7 @@
         "zuerst": 1791342484,
         "mint": "2j5SaS7xy776qCBpyPQbZjyQSAtKiFgrwjfErthnW2ZM"
       },
-      "flug_last": 1792874333.9495173
+      "flug_last": 1792874503.1068282
     },
     "HPXKMXwnAAYB5kR95Ft75ZQ5M4mU8v7T6YejaGQ4pump": {
       "mint": "HPXKMXwnAAYB5kR95Ft75ZQ5M4mU8v7T6YejaGQ4pump",
@@ -149,7 +149,7 @@
         "zuerst": 1792034525,
         "mint": "DFMt2FyLpB6ekPNAzVErLXgpSnJ9CRf1VnxBAkTLpump"
       },
-      "flug_last": 1792874333.9495173
+      "flug_last": 1792874503.1068282
     },
     "AQBTDs9tw2Qf1Mk2NGC6xyrHPpXDLZyh2xigsynzpump": {
       "mint": "AQBTDs9tw2Qf1Mk2NGC6xyrHPpXDLZyh2xigsynzpump",
@@ -222,6 +222,80 @@
         "peak": 2573471,
         "zuerst": 1791074049,
         "mint": "XkeTXo1125vz5H9svJpGiw4JvLbN8VmMu9cmMvspump"
+      },
+      "flug_last": 1792874503.1068282
+    },
+    "FHuWQyb6wkpdursz7PzjYLERw883DiGu72Cm6tHXpump": {
+      "mint": "FHuWQyb6wkpdursz7PzjYLERw883DiGu72Cm6tHXpump",
+      "symbol": "bbCoin",
+      "opened": 1792874529.7607682,
+      "invested_sol": 0.2,
+      "fees_sol": 0.0015,
+      "entry_signal_usd": 3.9851039390381136e-05,
+      "entry_fill_usd": 3.827617526130342e-05,
+      "entry_slippage_pct": -3.95,
+      "roundtrip_cost_pct": 2.24,
+      "tokens_initial": 529374.731368,
+      "tokens_left": 529374.731368,
+      "decimals": 6,
+      "proceeds_sol": 0.0,
+      "peak_usd": 3.827617526130342e-05,
+      "tp1_done": false,
+      "thesis_breaks": 0,
+      "missing_loops": 0,
+      "entry_liquidity": 6964.488051317568,
+      "entry_view": {
+        "age_h": 0.2765687294138802,
+        "mcap": 38367.71185101048,
+        "liquidity": 6964.488051317568,
+        "holders": 294,
+        "holder_growth_1h": 359.375,
+        "holder_growth_5m": 79.26829268292683,
+        "net_buyers_5m": 185,
+        "organic_buyers_5m": 0,
+        "organic_score": 0.0,
+        "price_change_1h": 342.60401426764406,
+        "price_change_5m": 60.616593598848056,
+        "buys_5m": 565,
+        "sells_5m": 478,
+        "traders_5m": 430,
+        "traders_1h": 788,
+        "buy_vol_5m": 28524.40921055294,
+        "sell_vol_5m": 29335.913390353377,
+        "buy_vol_1h": 78143.57992624509,
+        "sell_vol_1h": 79586.85702208756,
+        "organic_buy_vol_1h": 2454.5575417467985,
+        "top_holders_pct": 27.601156653069786,
+        "dev_balance_pct": 0.0,
+        "dev_mints": 1707,
+        "launchpad": "pump.fun",
+        "graduated": true,
+        "social": true,
+        "quelle": "traded1h+traded5m",
+        "trades_24h": 2988,
+        "organic_label": "low",
+        "buy_organic_vol_5m": 2028.3514920621762,
+        "jup_fees": null,
+        "hour_utc": 20
+      },
+      "bundle": {
+        "quelle": "experiment",
+        "text": "Serien-Dev: frueherer Coin SHEKEL bis 304,360 $"
+      },
+      "phase": "normal",
+      "thesis": "Story verbreitet sich: Holder +359%/h, 185 Netto-Kaeufer 5m, 0 organisch; Serien-Dev: frueherer Coin SHEKEL bis 304,360 $; Dev-Coins 1707",
+      "exit_rule": "Haelfte bei 2x; Rest raus, wenn Holder schrumpfen und Netto-Verkaeufer 2x in Folge, Liquiditaet -30%, -40%, nach 1,5x nicht unter Einstand, nach 2x 30 % vom Hoch (ab 10x 25 %)",
+      "mitlaeufer": null,
+      "solana_tracker": null,
+      "graduated": true,
+      "liq_low_checks": 0,
+      "dev_exit": true,
+      "dev_pct_kauf": 0.0,
+      "serien_vorgaenger": {
+        "symbol": "SHEKEL",
+        "peak": 304360,
+        "zuerst": 1792774442,
+        "mint": "CP3YBLFEQcaudRX1gga9p4HjsVSfXGCYzKJLL8Pcpump"
       }
     }
   },
@@ -61914,7 +61988,8 @@
     "HPXKMXwnAAYB5kR95Ft75ZQ5M4mU8v7T6YejaGQ4pump": 1792871722.0153303,
     "GMBHjdLsSCnZd2ttZm4MmRG9cVvYz4xqmWRmXhEcpump": 1792872184.2706432,
     "6mQvSQvbYDBvWbQdXTx7jhqDfwzz5GVcX6tNacs1pump": 1792872284.037086,
-    "AQBTDs9tw2Qf1Mk2NGC6xyrHPpXDLZyh2xigsynzpump": 1792874405.286675
+    "AQBTDs9tw2Qf1Mk2NGC6xyrHPpXDLZyh2xigsynzpump": 1792874405.286675,
+    "FHuWQyb6wkpdursz7PzjYLERw883DiGu72Cm6tHXpump": 1792874529.7615232
   },
   "watch": {
     "3qcqSKnw2aYAT6Txbt6en2wJRTNFycrKvk1qPHQapump": {
@@ -62019,5 +62094,5 @@
   },
   "runde": 3,
   "shadow": {},
-  "saved_at": 1792874424.04858
+  "saved_at": 1792874531.3180041
 }
