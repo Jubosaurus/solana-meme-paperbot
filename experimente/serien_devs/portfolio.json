@@ -1,27 +1,27 @@
 {
   "strategy": "EXPERIMENT_serien_devs",
   "started": "2026-10-04T00:34:10.471102+00:00",
-  "bankroll_sol": 3.517873,
+  "bankroll_sol": 3.716383,
   "positions": {
     "DozH6htaN3Ptn6dfzwqgp1G3LkdUh2DgFwvhjUKjpump": {
       "mint": "DozH6htaN3Ptn6dfzwqgp1G3LkdUh2DgFwvhjUKjpump",
       "symbol": "SOL",
       "opened": 1792837858.3309853,
       "invested_sol": 0.2,
-      "fees_sol": 0.0015,
+      "fees_sol": 0.003,
       "entry_signal_usd": 2.203085274028115e-05,
       "entry_fill_usd": 2.3296725182655166e-05,
       "entry_slippage_pct": 5.75,
       "roundtrip_cost_pct": 2.92,
       "tokens_initial": 871031.144349,
-      "tokens_left": 871031.144349,
+      "tokens_left": 435515.5721745,
       "decimals": 6,
-      "proceeds_sol": 0.0,
-      "peak_usd": 2.877450086523306e-05,
-      "tp1_done": false,
+      "proceeds_sol": 0.198509972,
+      "peak_usd": 4.752871688517285e-05,
+      "tp1_done": true,
       "thesis_breaks": 0,
       "missing_loops": 0,
-      "entry_liquidity": 8479.714905346253,
+      "entry_liquidity": 11338.871625342805,
       "entry_view": {
         "age_h": 0.2617691630125046,
         "mcap": 22030.852740259117,
@@ -65,7 +65,7 @@
       "exit_rule": "Haelfte bei 2x; Rest raus, wenn Holder schrumpfen und Netto-Verkaeufer 2x in Folge, Liquiditaet -30%, -40%, nach 1,5x nicht unter Einstand, nach 2x 30 % vom Hoch (ab 10x 25 %)",
       "mitlaeufer": null,
       "solana_tracker": null,
-      "graduated": false,
+      "graduated": true,
       "liq_low_checks": 0,
       "dev_exit": true,
       "dev_pct_kauf": 0.0,
@@ -75,7 +75,8 @@
         "zuerst": 1791293123,
         "mint": "FeAWY9L9hr82TvTuEyi328V9FP7GxVuGLx7xNg6kzWVa"
       },
-      "flug_last": 1792838579.6503918
+      "flug_last": 1792838725.2115777,
+      "graduated_during": true
     },
     "Cggjah6mVhhh6uwCbjGUfPLnapsBbzUL2aAZokHo3iYT": {
       "mint": "Cggjah6mVhhh6uwCbjGUfPLnapsBbzUL2aAZokHo3iYT",
@@ -91,7 +92,7 @@
       "tokens_left": 205995.0996605,
       "decimals": 6,
       "proceeds_sol": 0.206534199,
-      "peak_usd": 0.00010798063371729928,
+      "peak_usd": 0.00013057829088602884,
       "tp1_done": true,
       "thesis_breaks": 0,
       "missing_loops": 0,
@@ -149,7 +150,7 @@
         "zuerst": 1791742955,
         "mint": "BXuuLQQsHsAjweVvTXHAgJSnTj9MLKpiK5cLP7c3wLxB"
       },
-      "flug_last": 1792838579.6503918
+      "flug_last": 1792838725.2115777
     }
   },
   "closed": [
@@ -60926,5 +60927,5 @@
   },
   "runde": 3,
   "shadow": {},
-  "saved_at": 1792838581.3369033
+  "saved_at": 1792838727.3752759
 }
