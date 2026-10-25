@@ -1,8 +1,82 @@
 {
   "strategy": "EXPERIMENT_serien_devs",
   "started": "2026-10-04T00:34:10.471102+00:00",
-  "bankroll_sol": 1.533375,
-  "positions": {},
+  "bankroll_sol": 1.331875,
+  "positions": {
+    "3MaNagqqosGhZZucApqNLAQ2p6PDBMicxtLG5NoEpump": {
+      "mint": "3MaNagqqosGhZZucApqNLAQ2p6PDBMicxtLG5NoEpump",
+      "symbol": "Tanuki",
+      "opened": 1792940827.2144985,
+      "invested_sol": 0.2,
+      "fees_sol": 0.0015,
+      "entry_signal_usd": 1.7133201155074643e-05,
+      "entry_fill_usd": 1.78032916833252e-05,
+      "entry_slippage_pct": 3.91,
+      "roundtrip_cost_pct": 2.98,
+      "tokens_initial": 1140065.94347,
+      "tokens_left": 1140065.94347,
+      "decimals": 6,
+      "proceeds_sol": 0.0,
+      "peak_usd": 1.78032916833252e-05,
+      "tp1_done": false,
+      "thesis_breaks": 0,
+      "missing_loops": 0,
+      "entry_liquidity": 7554.759003151523,
+      "entry_view": {
+        "age_h": 1.4634060161643558,
+        "mcap": 17133.20115507463,
+        "liquidity": 7554.759003151523,
+        "holders": 103,
+        "holder_growth_1h": 51.470588235294116,
+        "holder_growth_5m": 17.045454545454543,
+        "net_buyers_5m": 11,
+        "organic_buyers_5m": 0,
+        "organic_score": 0.0,
+        "price_change_1h": 47.95821754357957,
+        "price_change_5m": 22.928527288605512,
+        "buys_5m": 18,
+        "sells_5m": 2,
+        "traders_5m": 12,
+        "traders_1h": 112,
+        "buy_vol_5m": 836.9912179338424,
+        "sell_vol_5m": 75.1856823400866,
+        "buy_vol_1h": 5589.49926588152,
+        "sell_vol_1h": 5818.405061722522,
+        "organic_buy_vol_1h": 535.0507734604705,
+        "top_holders_pct": 29.047830521580227,
+        "dev_balance_pct": 0.0,
+        "dev_mints": 194,
+        "launchpad": "pump.fun",
+        "graduated": false,
+        "social": true,
+        "quelle": "trend5m",
+        "trades_24h": 807,
+        "organic_label": "low",
+        "buy_organic_vol_5m": 73.60169375310936,
+        "jup_fees": null,
+        "hour_utc": 15
+      },
+      "bundle": {
+        "quelle": "experiment",
+        "text": "Serien-Dev: frueherer Coin LouLou bis 314,183 $"
+      },
+      "phase": "normal",
+      "thesis": "Story verbreitet sich: Holder +51%/h, 11 Netto-Kaeufer 5m, 0 organisch; Serien-Dev: frueherer Coin LouLou bis 314,183 $; Dev-Coins 194",
+      "exit_rule": "Haelfte bei 2x; Rest raus, wenn Holder schrumpfen und Netto-Verkaeufer 2x in Folge, Liquiditaet -30%, -40%, nach 1,5x nicht unter Einstand, nach 2x 30 % vom Hoch (ab 10x 25 %)",
+      "mitlaeufer": null,
+      "solana_tracker": null,
+      "graduated": false,
+      "liq_low_checks": 0,
+      "dev_exit": true,
+      "dev_pct_kauf": 0.0,
+      "serien_vorgaenger": {
+        "symbol": "LouLou",
+        "peak": 314183,
+        "zuerst": 1792204041,
+        "mint": "2N8c4pXu6T2oBxE8ZDBYb3QgwMkyTe673HiBaYSNpump"
+      }
+    }
+  },
   "closed": [
     {
       "symbol": "GWC",
@@ -64665,7 +64739,8 @@
     "5wdfrLNVZYMBTzCUEWWUZYPXNb6pXVdbnYMfo4Ewpump": 1792929957.1130798,
     "CHxkeLQ2Mc95vvk13vjRwwnNphCYZ83a8wtvM6tzpump": 1792934238.347659,
     "39CBv1APeFCS5FjXQH8ifW7diJD1T3MKaEPH8TwCpump": 1792935176.4673922,
-    "AjvGSTUMdfCEQVAyWqVvDobzrQesMAddoPWrworVpiWe": 1792940368.0107508
+    "AjvGSTUMdfCEQVAyWqVvDobzrQesMAddoPWrworVpiWe": 1792940368.0107508,
+    "3MaNagqqosGhZZucApqNLAQ2p6PDBMicxtLG5NoEpump": 1792940827.215275
   },
   "watch": {
     "CGjCtjEztGYKptwjm9NUdJDkbxdCiXLM4opZB9zDpump": {
@@ -64734,5 +64809,5 @@
   },
   "runde": 3,
   "shadow": {},
-  "saved_at": 1792940645.2020383
+  "saved_at": 1792940828.7513552
 }
