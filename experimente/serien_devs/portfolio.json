@@ -1,8 +1,82 @@
 {
   "strategy": "EXPERIMENT_serien_devs",
   "started": "2026-10-04T00:34:10.471102+00:00",
-  "bankroll_sol": 1.951075,
-  "positions": {},
+  "bankroll_sol": 1.749575,
+  "positions": {
+    "D2MSYa6LnnhJ7WdqAfux4DAK7stmYig7DaeuEeKVpump": {
+      "mint": "D2MSYa6LnnhJ7WdqAfux4DAK7stmYig7DaeuEeKVpump",
+      "symbol": "BabyBTC",
+      "opened": 1792957424.455565,
+      "invested_sol": 0.2,
+      "fees_sol": 0.0015,
+      "entry_signal_usd": 2.8747922508643817e-05,
+      "entry_fill_usd": 3.010539198581269e-05,
+      "entry_slippage_pct": 4.72,
+      "roundtrip_cost_pct": 3.21,
+      "tokens_initial": 675491.764891,
+      "tokens_left": 675491.764891,
+      "decimals": 6,
+      "proceeds_sol": 0.0,
+      "peak_usd": 3.010539198581269e-05,
+      "tp1_done": false,
+      "thesis_breaks": 0,
+      "missing_loops": 0,
+      "entry_liquidity": 5479.247600649351,
+      "entry_view": {
+        "age_h": 0.27064059529039597,
+        "mcap": 28278.989648889987,
+        "liquidity": 5479.247600649351,
+        "holders": 567,
+        "holder_growth_1h": 1081.25,
+        "holder_growth_5m": 25.442477876106196,
+        "net_buyers_5m": 245,
+        "organic_buyers_5m": 0,
+        "organic_score": 0.0,
+        "price_change_1h": 157.92092325319595,
+        "price_change_5m": 9.390468665870483,
+        "buys_5m": 671,
+        "sells_5m": 578,
+        "traders_5m": 538,
+        "traders_1h": 1042,
+        "buy_vol_5m": 16317.75503792145,
+        "sell_vol_5m": 19551.683568339246,
+        "buy_vol_1h": 56910.24103725223,
+        "sell_vol_1h": 58670.69812960705,
+        "organic_buy_vol_1h": 531.8374991779051,
+        "top_holders_pct": 17.663852645886998,
+        "dev_balance_pct": 0.05281902522127638,
+        "dev_mints": 20,
+        "launchpad": "pump.fun",
+        "graduated": true,
+        "social": true,
+        "quelle": "traded1h+traded5m",
+        "trades_24h": 3461,
+        "organic_label": "low",
+        "buy_organic_vol_5m": 49.52724500243911,
+        "jup_fees": null,
+        "hour_utc": 19
+      },
+      "bundle": {
+        "quelle": "experiment",
+        "text": "Serien-Dev: frueherer Coin BABYCATE bis 497,182 $"
+      },
+      "phase": "normal",
+      "thesis": "Story verbreitet sich: Holder +1081%/h, 245 Netto-Kaeufer 5m, 0 organisch; Serien-Dev: frueherer Coin BABYCATE bis 497,182 $; Dev-Coins 20",
+      "exit_rule": "Haelfte bei 2x; Rest raus, wenn Holder schrumpfen und Netto-Verkaeufer 2x in Folge, Liquiditaet -30%, -40%, nach 1,5x nicht unter Einstand, nach 2x 30 % vom Hoch (ab 10x 25 %)",
+      "mitlaeufer": null,
+      "solana_tracker": null,
+      "graduated": true,
+      "liq_low_checks": 0,
+      "dev_exit": true,
+      "dev_pct_kauf": 0.05281902522127638,
+      "serien_vorgaenger": {
+        "symbol": "BABYCATE",
+        "peak": 497182,
+        "zuerst": 1791074049,
+        "mint": "DDVUsN8sDFxbaX6gNBoD44kjZhFETWJnwAn4EX1dpump"
+      }
+    }
+  },
   "closed": [
     {
       "symbol": "GWC",
@@ -65719,7 +65793,8 @@
     "rjALAN7kNCRyWNg51sHgEfhn4raev8kEcnP2kEkpump": 1792953492.930663,
     "E7oFPRJpMh1h48Uzuda1MxEqKkxTgLs5XEDcFUomKzcB": 1792954359.195121,
     "8iz8hvmiwJJCtU5RrUeUzUgwYUKAzNFBUhpNJWujpump": 1792954565.4495013,
-    "PWRDXNBbauWxU2ndLqvW99sdL4ZmsA21LzQoDcmpump": 1792954850.5044954
+    "PWRDXNBbauWxU2ndLqvW99sdL4ZmsA21LzQoDcmpump": 1792954850.5044954,
+    "D2MSYa6LnnhJ7WdqAfux4DAK7stmYig7DaeuEeKVpump": 1792957424.4561603
   },
   "watch": {
     "5wdfrLNVZYMBTzCUEWWUZYPXNb6pXVdbnYMfo4Ewpump": {
@@ -65905,5 +65980,5 @@
   },
   "runde": 3,
   "shadow": {},
-  "saved_at": 1792957343.5812283
+  "saved_at": 1792957426.1390262
 }
