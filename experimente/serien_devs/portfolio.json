@@ -1,7 +1,7 @@
 {
   "strategy": "EXPERIMENT_serien_devs",
   "started": "2026-10-04T00:34:10.471102+00:00",
-  "bankroll_sol": 3.033747,
+  "bankroll_sol": 2.832247,
   "positions": {
     "6rvBYFVRPgf9NvFruKQnFsd7Wj2iLoGtZgxTeCgxsgp2": {
       "mint": "6rvBYFVRPgf9NvFruKQnFsd7Wj2iLoGtZgxTeCgxsgp2",
@@ -75,7 +75,80 @@
         "zuerst": 1791342484,
         "mint": "2j5SaS7xy776qCBpyPQbZjyQSAtKiFgrwjfErthnW2ZM"
       },
-      "flug_last": 1792894116.0149324
+      "flug_last": 1792894379.318512
+    },
+    "B1DPPHcPymoitLeHPjyDeKjKf4hs9ubtVrncobpspump": {
+      "mint": "B1DPPHcPymoitLeHPjyDeKjKf4hs9ubtVrncobpspump",
+      "symbol": "Bambo",
+      "opened": 1792894389.3667972,
+      "invested_sol": 0.2,
+      "fees_sol": 0.0015,
+      "entry_signal_usd": 9.648937060826315e-06,
+      "entry_fill_usd": 1.0007608269082788e-05,
+      "entry_slippage_pct": 3.72,
+      "roundtrip_cost_pct": -0.31,
+      "tokens_initial": 2046278.523576,
+      "tokens_left": 2046278.523576,
+      "decimals": 6,
+      "proceeds_sol": 0.0,
+      "peak_usd": 1.0007608269082788e-05,
+      "tp1_done": false,
+      "thesis_breaks": 0,
+      "missing_loops": 0,
+      "entry_liquidity": 5650.653091561537,
+      "entry_view": {
+        "age_h": 0.258144031100803,
+        "mcap": 9648.937060826314,
+        "liquidity": 5650.653091561537,
+        "holders": 100,
+        "holder_growth_1h": 426.3157894736843,
+        "holder_growth_5m": 4.166666666666666,
+        "net_buyers_5m": 32,
+        "organic_buyers_5m": 0,
+        "organic_score": 0.0,
+        "price_change_1h": 46.807965088538836,
+        "price_change_5m": 35.12107709576495,
+        "buys_5m": 100,
+        "sells_5m": 84,
+        "traders_5m": 84,
+        "traders_1h": 688,
+        "buy_vol_5m": 4572.245670679876,
+        "sell_vol_5m": 4554.588506017833,
+        "buy_vol_1h": 40415.64453722325,
+        "sell_vol_1h": 44975.44795807778,
+        "organic_buy_vol_1h": 2441.62323704038,
+        "top_holders_pct": 26.608724411280193,
+        "dev_balance_pct": 0.0,
+        "dev_mints": 2260,
+        "launchpad": "pump.fun",
+        "graduated": false,
+        "social": true,
+        "quelle": "traded1h",
+        "trades_24h": 2520,
+        "organic_label": "low",
+        "buy_organic_vol_5m": 256.257749040197,
+        "jup_fees": null,
+        "hour_utc": 2
+      },
+      "bundle": {
+        "quelle": "experiment",
+        "text": "Serien-Dev: frueherer Coin Machi bis 424,245 $"
+      },
+      "phase": "normal",
+      "thesis": "Story verbreitet sich: Holder +426%/h, 32 Netto-Kaeufer 5m, 0 organisch; Serien-Dev: frueherer Coin Machi bis 424,245 $; Dev-Coins 2260",
+      "exit_rule": "Haelfte bei 2x; Rest raus, wenn Holder schrumpfen und Netto-Verkaeufer 2x in Folge, Liquiditaet -30%, -40%, nach 1,5x nicht unter Einstand, nach 2x 30 % vom Hoch (ab 10x 25 %)",
+      "mitlaeufer": null,
+      "solana_tracker": null,
+      "graduated": false,
+      "liq_low_checks": 0,
+      "dev_exit": true,
+      "dev_pct_kauf": 0.0,
+      "serien_vorgaenger": {
+        "symbol": "Machi",
+        "peak": 424245,
+        "zuerst": 1791113383,
+        "mint": "ATBR4i19gcQ31Rfr7ymA2XvkCQEAkNFGBtVKTmdqpump"
+      }
     }
   },
   "closed": [
@@ -63191,18 +63264,10 @@
     "28ZdKbDwAWSsKPFMwxJTUiB9HbjWxetsHvK1NYwtpump": 1792891776.2262583,
     "9eotcRTX94K8Zq8HxGmsaRmZ2FDqk974txmR2LUUpump": 1792892796.5423353,
     "6rvBYFVRPgf9NvFruKQnFsd7Wj2iLoGtZgxTeCgxsgp2": 1792893277.6174574,
-    "5ZgPFhQpCPjz5rPgUTjnWdiFC6jWtfKrgpYaaEEhpump": 1792893717.64593
+    "5ZgPFhQpCPjz5rPgUTjnWdiFC6jWtfKrgpYaaEEhpump": 1792893717.64593,
+    "B1DPPHcPymoitLeHPjyDeKjKf4hs9ubtVrncobpspump": 1792894389.367514
   },
   "watch": {
-    "GMBHjdLsSCnZd2ttZm4MmRG9cVvYz4xqmWRmXhEcpump": {
-      "symbol": "Ethan",
-      "entry_fill_usd": 2.4123453343322743e-05,
-      "opened": 1792872184.2699301,
-      "peak_usd": 4.208680510018927e-05,
-      "exit_usd": 4.208680510018927e-05,
-      "exit_reason": "LIQUIDITAET_ABGEZOGEN",
-      "until": 1792894205.8042307
-    },
     "6mQvSQvbYDBvWbQdXTx7jhqDfwzz5GVcX6tNacs1pump": {
       "symbol": "Finder",
       "entry_fill_usd": 4.1590518222141584e-05,
@@ -63422,5 +63487,5 @@
   },
   "runde": 3,
   "shadow": {},
-  "saved_at": 1792894119.7476902
+  "saved_at": 1792894394.0679646
 }
