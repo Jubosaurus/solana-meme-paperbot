@@ -1,7 +1,7 @@
 {
   "strategy": "EXPERIMENT_serien_devs",
   "started": "2026-10-04T00:34:10.471102+00:00",
-  "bankroll_sol": 2.197266,
+  "bankroll_sol": 1.995766,
   "positions": {
     "2LVYAfg3ZtgFLp2B9QrTZy18sVzxqmocNmAgBS9Vpump": {
       "mint": "2LVYAfg3ZtgFLp2B9QrTZy18sVzxqmocNmAgBS9Vpump",
@@ -75,7 +75,80 @@
         "zuerst": 1792320116,
         "mint": "3A3qjns31YZA6Ung91ZpoPD7J3p1bDFbTJ4ANFAPpump"
       },
-      "flug_last": 1792913720.4892042
+      "flug_last": 1792913976.4059625
+    },
+    "98GagoDV7JTYw8dLkHbUsWk3ePyQi8UChHmYbWEqbekJ": {
+      "mint": "98GagoDV7JTYw8dLkHbUsWk3ePyQi8UChHmYbWEqbekJ",
+      "symbol": "150MS",
+      "opened": 1792913986.4730706,
+      "invested_sol": 0.2,
+      "fees_sol": 0.0015,
+      "entry_signal_usd": 1.019785270322012e-05,
+      "entry_fill_usd": 1.0765749056715568e-05,
+      "entry_slippage_pct": 5.57,
+      "roundtrip_cost_pct": 2.7,
+      "tokens_initial": 1886661.03646,
+      "tokens_left": 1886661.03646,
+      "decimals": 6,
+      "proceeds_sol": 0.0,
+      "peak_usd": 1.0765749056715568e-05,
+      "tp1_done": false,
+      "thesis_breaks": 0,
+      "missing_loops": 0,
+      "entry_liquidity": 5874.985210705447,
+      "entry_view": {
+        "age_h": 0.32372387846310935,
+        "mcap": 10197.593154411757,
+        "liquidity": 5874.985210705447,
+        "holders": 248,
+        "holder_growth_1h": 300.0,
+        "holder_growth_5m": -25.970149253731346,
+        "net_buyers_5m": 66,
+        "organic_buyers_5m": 0,
+        "organic_score": 0.0,
+        "price_change_1h": 18.84354402629871,
+        "price_change_5m": -40.02819430111359,
+        "buys_5m": 173,
+        "sells_5m": 256,
+        "traders_5m": 190,
+        "traders_1h": 708,
+        "buy_vol_5m": 3190.8736558806886,
+        "sell_vol_5m": 6421.320524558709,
+        "buy_vol_1h": 41692.05788771382,
+        "sell_vol_1h": 47459.0591405379,
+        "organic_buy_vol_1h": 412.85343924254096,
+        "top_holders_pct": 18.861968340519784,
+        "dev_balance_pct": 0.0,
+        "dev_mints": 16854,
+        "launchpad": "pump.fun",
+        "graduated": false,
+        "social": true,
+        "quelle": "traded1h+traded5m",
+        "trades_24h": 2855,
+        "organic_label": "low",
+        "buy_organic_vol_5m": 163.09203619853116,
+        "jup_fees": null,
+        "hour_utc": 7
+      },
+      "bundle": {
+        "quelle": "experiment",
+        "text": "Serien-Dev: frueherer Coin CAPYBARA bis 933,065 $"
+      },
+      "phase": "normal",
+      "thesis": "Story verbreitet sich: Holder +300%/h, 66 Netto-Kaeufer 5m, 0 organisch; Serien-Dev: frueherer Coin CAPYBARA bis 933,065 $; Dev-Coins 16854",
+      "exit_rule": "Haelfte bei 2x; Rest raus, wenn Holder schrumpfen und Netto-Verkaeufer 2x in Folge, Liquiditaet -30%, -40%, nach 1,5x nicht unter Einstand, nach 2x 30 % vom Hoch (ab 10x 25 %)",
+      "mitlaeufer": null,
+      "solana_tracker": null,
+      "graduated": false,
+      "liq_low_checks": 0,
+      "dev_exit": true,
+      "dev_pct_kauf": 0.0,
+      "serien_vorgaenger": {
+        "symbol": "CAPYBARA",
+        "peak": 933065,
+        "zuerst": 1791433612,
+        "mint": "3xrw3JKyaSYjzksYc8nrZE1kReQAxoHT3epi3P1mpZVf"
+      }
     }
   },
   "closed": [
@@ -64059,18 +64132,10 @@
     "35fWL6pdJqpconRZPrawUAQegw1QF3p2tgN7mzhTpump": 1792908964.657224,
     "EzUu4tYyDPUZ6dgf5VvjrdQTqXiE9j7rA3K11DbXpump": 1792909153.0966465,
     "B1Tu97vshWAhqt2CsMUJvX8UTw4XssTVFTGHCLDzxG1q": 1792909436.6039944,
-    "2LVYAfg3ZtgFLp2B9QrTZy18sVzxqmocNmAgBS9Vpump": 1792913425.804562
+    "2LVYAfg3ZtgFLp2B9QrTZy18sVzxqmocNmAgBS9Vpump": 1792913425.804562,
+    "98GagoDV7JTYw8dLkHbUsWk3ePyQi8UChHmYbWEqbekJ": 1792913986.4739485
   },
   "watch": {
-    "28ZdKbDwAWSsKPFMwxJTUiB9HbjWxetsHvK1NYwtpump": {
-      "symbol": "PUMP",
-      "entry_fill_usd": 0.00012239919417099236,
-      "opened": 1792891776.2254572,
-      "peak_usd": 0.00027902456239325,
-      "exit_usd": 7.058254016218566e-05,
-      "exit_reason": "NOTBREMSE (-42%)",
-      "until": 1792913866.4581494
-    },
     "9eotcRTX94K8Zq8HxGmsaRmZ2FDqk974txmR2LUUpump": {
       "symbol": "Official",
       "entry_fill_usd": 1.5510832916431568e-05,
@@ -64218,5 +64283,5 @@
   },
   "runde": 3,
   "shadow": {},
-  "saved_at": 1792913748.7312765
+  "saved_at": 1792913988.1513772
 }
