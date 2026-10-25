@@ -1,8 +1,82 @@
 {
   "strategy": "EXPERIMENT_serien_devs",
   "started": "2026-10-04T00:34:10.471102+00:00",
-  "bankroll_sol": 2.350133,
-  "positions": {},
+  "bankroll_sol": 2.148633,
+  "positions": {
+    "EWdT7ebn7s5aoy3KVVa2tdjfLW4vgkkpBzANia4zpump": {
+      "mint": "EWdT7ebn7s5aoy3KVVa2tdjfLW4vgkkpBzANia4zpump",
+      "symbol": "ICARUS",
+      "opened": 1792916162.2197895,
+      "invested_sol": 0.2,
+      "fees_sol": 0.0015,
+      "entry_signal_usd": 3.538307026737957e-05,
+      "entry_fill_usd": 3.625495795427352e-05,
+      "entry_slippage_pct": 2.46,
+      "roundtrip_cost_pct": 2.33,
+      "tokens_initial": 558970.363755,
+      "tokens_left": 558970.363755,
+      "decimals": 6,
+      "proceeds_sol": 0.0,
+      "peak_usd": 3.625495795427352e-05,
+      "tp1_done": false,
+      "thesis_breaks": 0,
+      "missing_loops": 0,
+      "entry_liquidity": 6472.339882645432,
+      "entry_view": {
+        "age_h": 0.2709099156326718,
+        "mcap": 34235.62501048975,
+        "liquidity": 6472.339882645432,
+        "holders": 602,
+        "holder_growth_1h": 634.1463414634146,
+        "holder_growth_5m": 57.59162303664922,
+        "net_buyers_5m": 285,
+        "organic_buyers_5m": 0,
+        "organic_score": 0.0,
+        "price_change_1h": 418.06909138961015,
+        "price_change_5m": 16.685011706242403,
+        "buys_5m": 752,
+        "sells_5m": 934,
+        "traders_5m": 580,
+        "traders_1h": 1086,
+        "buy_vol_5m": 25883.88422942108,
+        "sell_vol_5m": 30022.128590126365,
+        "buy_vol_1h": 76348.34220056733,
+        "sell_vol_1h": 78738.85170397407,
+        "organic_buy_vol_1h": 4248.647290691908,
+        "top_holders_pct": 20.763450894361053,
+        "dev_balance_pct": 0.0,
+        "dev_mints": 614,
+        "launchpad": "pump.fun",
+        "graduated": true,
+        "social": false,
+        "quelle": "traded1h+traded5m",
+        "trades_24h": 4291,
+        "organic_label": "low",
+        "buy_organic_vol_5m": 502.98939484883203,
+        "jup_fees": null,
+        "hour_utc": 8
+      },
+      "bundle": {
+        "quelle": "experiment",
+        "text": "Serien-Dev: frueherer Coin CHILLHOUSE bis 1,608,478 $"
+      },
+      "phase": "normal",
+      "thesis": "Story verbreitet sich: Holder +634%/h, 285 Netto-Kaeufer 5m, 0 organisch; Serien-Dev: frueherer Coin CHILLHOUSE bis 1,608,478 $; Dev-Coins 614",
+      "exit_rule": "Haelfte bei 2x; Rest raus, wenn Holder schrumpfen und Netto-Verkaeufer 2x in Folge, Liquiditaet -30%, -40%, nach 1,5x nicht unter Einstand, nach 2x 30 % vom Hoch (ab 10x 25 %)",
+      "mitlaeufer": null,
+      "solana_tracker": null,
+      "graduated": true,
+      "liq_low_checks": 0,
+      "dev_exit": true,
+      "dev_pct_kauf": 0.0,
+      "serien_vorgaenger": {
+        "symbol": "CHILLHOUSE",
+        "peak": 1608478,
+        "zuerst": 1791080133,
+        "mint": "GkyPYa7NnCFbduLknCfBfP7p8564X1VZhwZYJ6CZpump"
+      }
+    }
+  },
   "closed": [
     {
       "symbol": "GWC",
@@ -64169,7 +64243,8 @@
     "B1Tu97vshWAhqt2CsMUJvX8UTw4XssTVFTGHCLDzxG1q": 1792909436.6039944,
     "2LVYAfg3ZtgFLp2B9QrTZy18sVzxqmocNmAgBS9Vpump": 1792913425.804562,
     "98GagoDV7JTYw8dLkHbUsWk3ePyQi8UChHmYbWEqbekJ": 1792913986.4739485,
-    "5qoHvHtDpjrNf9LqppiQwwEH5VBq5be25hhX5Gc1pump": 1792915629.4163973
+    "5qoHvHtDpjrNf9LqppiQwwEH5VBq5be25hhX5Gc1pump": 1792915629.4163973,
+    "EWdT7ebn7s5aoy3KVVa2tdjfLW4vgkkpBzANia4zpump": 1792916162.2204995
   },
   "watch": {
     "8zsFH5cS1YT93nhb3ZWzCYk7gvADt7Nqc9P2PgGUpump": {
@@ -64328,5 +64403,5 @@
   },
   "runde": 3,
   "shadow": {},
-  "saved_at": 1792915897.43876
+  "saved_at": 1792916164.0219958
 }
