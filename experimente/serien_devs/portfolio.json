@@ -1,7 +1,7 @@
 {
   "strategy": "EXPERIMENT_serien_devs",
   "started": "2026-10-04T00:34:10.471102+00:00",
-  "bankroll_sol": 3.461294,
+  "bankroll_sol": 3.259794,
   "positions": {
     "GPieo9s4rz6ungQnsqyiUrznqDypMgrNXmFSDM2vpump": {
       "mint": "GPieo9s4rz6ungQnsqyiUrznqDypMgrNXmFSDM2vpump",
@@ -75,7 +75,80 @@
         "zuerst": 1791502743,
         "mint": "J7bhFegCHZAeRzdYDwmbSp1CJ1bDJkutSg26B4SXpump"
       },
-      "flug_last": 1792887231.175511
+      "flug_last": 1792887434.68707
+    },
+    "ECu55nr64oyY3bCV39zbt5fknU1SjQtYaLfmxYLpump": {
+      "mint": "ECu55nr64oyY3bCV39zbt5fknU1SjQtYaLfmxYLpump",
+      "symbol": "SKINWALKER",
+      "opened": 1792887446.5700748,
+      "invested_sol": 0.2,
+      "fees_sol": 0.0015,
+      "entry_signal_usd": 6.222327786795726e-05,
+      "entry_fill_usd": 7.334497796708798e-05,
+      "entry_slippage_pct": 17.87,
+      "roundtrip_cost_pct": 7.34,
+      "tokens_initial": 278602.800075,
+      "tokens_left": 278602.800075,
+      "decimals": 6,
+      "proceeds_sol": 0.0,
+      "peak_usd": 7.334497796708798e-05,
+      "tp1_done": false,
+      "thesis_breaks": 0,
+      "missing_loops": 0,
+      "entry_liquidity": 21113.585282419346,
+      "entry_view": {
+        "age_h": 0.2726908527480231,
+        "mcap": 59239.88804859899,
+        "liquidity": 21113.585282419346,
+        "holders": 652,
+        "holder_growth_1h": 1937.5,
+        "holder_growth_5m": 39.91416309012876,
+        "net_buyers_5m": 282,
+        "organic_buyers_5m": 0,
+        "organic_score": 0.0,
+        "price_change_1h": 1119.2649569441796,
+        "price_change_5m": 36.55695786441597,
+        "buys_5m": 794,
+        "sells_5m": 676,
+        "traders_5m": 586,
+        "traders_1h": 1300,
+        "buy_vol_5m": 23284.76878150753,
+        "sell_vol_5m": 30252.757013965474,
+        "buy_vol_1h": 83606.02502904108,
+        "sell_vol_1h": 88818.16552650552,
+        "organic_buy_vol_1h": 4465.352048315965,
+        "top_holders_pct": 26.059560362884053,
+        "dev_balance_pct": 0.0,
+        "dev_mints": 12144,
+        "launchpad": "pump.fun",
+        "graduated": true,
+        "social": true,
+        "quelle": "traded1h+traded5m",
+        "trades_24h": 4706,
+        "organic_label": "low",
+        "buy_organic_vol_5m": 548.0131605254603,
+        "jup_fees": null,
+        "hour_utc": 0
+      },
+      "bundle": {
+        "quelle": "experiment",
+        "text": "Serien-Dev: frueherer Coin Dacity bis 16,381,212 $"
+      },
+      "phase": "normal",
+      "thesis": "Story verbreitet sich: Holder +1938%/h, 282 Netto-Kaeufer 5m, 0 organisch; Serien-Dev: frueherer Coin Dacity bis 16,381,212 $; Dev-Coins 12144",
+      "exit_rule": "Haelfte bei 2x; Rest raus, wenn Holder schrumpfen und Netto-Verkaeufer 2x in Folge, Liquiditaet -30%, -40%, nach 1,5x nicht unter Einstand, nach 2x 30 % vom Hoch (ab 10x 25 %)",
+      "mitlaeufer": null,
+      "solana_tracker": null,
+      "graduated": true,
+      "liq_low_checks": 0,
+      "dev_exit": true,
+      "dev_pct_kauf": 0.0,
+      "serien_vorgaenger": {
+        "symbol": "Dacity",
+        "peak": 16381212,
+        "zuerst": 1791718184,
+        "mint": "nxPqZ4F7ux8Vph5NFu25rEP6Kx9Gr1U6Fmj36Rjpump"
+      }
     }
   },
   "closed": [
@@ -62695,7 +62768,8 @@
     "CFmqi78RbyNgnKWcc3nsWyQDm6jqmEXXguL1hnA3pump": 1792885810.1464136,
     "6N9i6Bb22txCWegLNZenD7KJ81taSqPdoSzoMrJ8WvSh": 1792886192.6726065,
     "4b7hUYrtSjndqRwbc6PxMuXvSKZd8s7rkm66xSTshvCR": 1792886286.2745235,
-    "46MjHjwCnu47ySpCC32rfUZ5jYqnbxrhdT9HPJhKpump": 1792886861.4042368
+    "46MjHjwCnu47ySpCC32rfUZ5jYqnbxrhdT9HPJhKpump": 1792886861.4042368,
+    "ECu55nr64oyY3bCV39zbt5fknU1SjQtYaLfmxYLpump": 1792887446.5709867
   },
   "watch": {
     "2sdwsnPizUaYLJSnLq6XeAa3bMSw5STboKmrYEpWpump": {
@@ -62882,7 +62956,7 @@
       "symbol": "pumpfun",
       "entry_fill_usd": 3.408821697975558e-05,
       "opened": 1792886861.4033275,
-      "peak_usd": 4.544449234937896e-05,
+      "peak_usd": 5.0839102011527506e-05,
       "exit_usd": 1.602452105008247e-05,
       "exit_reason": "NOTBREMSE (-53%)",
       "until": 1792908853.7649498
@@ -62890,5 +62964,5 @@
   },
   "runde": 3,
   "shadow": {},
-  "saved_at": 1792887271.0604632
+  "saved_at": 1792887448.4921856
 }
