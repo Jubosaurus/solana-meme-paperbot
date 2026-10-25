@@ -1,27 +1,27 @@
 {
   "strategy": "EXPERIMENT_serien_devs",
   "started": "2026-10-04T00:34:10.471102+00:00",
-  "bankroll_sol": 1.469545,
+  "bankroll_sol": 1.6962,
   "positions": {
     "57efDh62UeTXKidU6v9qhp8JUyGrgKiy2jB8twmpump": {
       "mint": "57efDh62UeTXKidU6v9qhp8JUyGrgKiy2jB8twmpump",
       "symbol": "Spidoge",
       "opened": 1792965961.903952,
       "invested_sol": 0.2,
-      "fees_sol": 0.0015,
+      "fees_sol": 0.003,
       "entry_signal_usd": 1.6996325165829512e-05,
       "entry_fill_usd": 2.0246934549936203e-05,
       "entry_slippage_pct": 19.13,
       "roundtrip_cost_pct": 6.8,
       "tokens_initial": 1006357.823476,
-      "tokens_left": 1006357.823476,
+      "tokens_left": 503178.911738,
       "decimals": 6,
-      "proceeds_sol": 0.0,
-      "peak_usd": 2.386714208848582e-05,
-      "tp1_done": false,
+      "proceeds_sol": 0.226654837,
+      "peak_usd": 5.002632326874336e-05,
+      "tp1_done": true,
       "thesis_breaks": 0,
       "missing_loops": 0,
-      "entry_liquidity": 7615.749399459367,
+      "entry_liquidity": 21136.931800128586,
       "entry_view": {
         "age_h": 0.38469668964544934,
         "mcap": 16996.325165829512,
@@ -65,7 +65,7 @@
       "exit_rule": "Haelfte bei 2x; Rest raus, wenn Holder schrumpfen und Netto-Verkaeufer 2x in Folge, Liquiditaet -30%, -40%, nach 1,5x nicht unter Einstand, nach 2x 30 % vom Hoch (ab 10x 25 %)",
       "mitlaeufer": null,
       "solana_tracker": null,
-      "graduated": false,
+      "graduated": true,
       "liq_low_checks": 0,
       "dev_exit": true,
       "dev_pct_kauf": 0.0,
@@ -75,7 +75,8 @@
         "zuerst": 1791083032,
         "mint": "2gafU5vS2nVKN4poA9zeQTDM5MXbwWJfcayeJBw5pump"
       },
-      "flug_last": 1792966403.7481945
+      "flug_last": 1792966688.0757957,
+      "graduated_during": true
     },
     "DsySnSucgCjd1Mcih2pocvdvomEPiGf8cbFyW5afpump": {
       "mint": "DsySnSucgCjd1Mcih2pocvdvomEPiGf8cbFyW5afpump",
@@ -91,7 +92,7 @@
       "tokens_left": 1094541.536394,
       "decimals": 6,
       "proceeds_sol": 0.0,
-      "peak_usd": 1.8557265820176995e-05,
+      "peak_usd": 2.0419274057588698e-05,
       "tp1_done": false,
       "thesis_breaks": 0,
       "missing_loops": 0,
@@ -149,7 +150,7 @@
         "zuerst": 1791318550,
         "mint": "HzYCHqAN2uoHGRnL9v2ChCfFQX3bvJuJd5zu2Hd5MZQy"
       },
-      "flug_last": 1792966377.9951098
+      "flug_last": 1792966659.2067814
     }
   },
   "closed": [
@@ -66632,7 +66633,7 @@
       "symbol": "ASSCOIN",
       "entry_fill_usd": 1.3317704084297409e-05,
       "opened": 1792961190.8342972,
-      "peak_usd": 1.3317704084297409e-05,
+      "peak_usd": 3.849648247216338e-05,
       "exit_usd": 1.030334411349966e-05,
       "exit_reason": "LIQUIDITAET_ABGEZOGEN",
       "until": 1792982829.5725186
@@ -66712,5 +66713,5 @@
   },
   "runde": 3,
   "shadow": {},
-  "saved_at": 1792966414.466912
+  "saved_at": 1792966710.8893347
 }
