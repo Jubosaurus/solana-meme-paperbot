@@ -1,8 +1,82 @@
 {
   "strategy": "EXPERIMENT_serien_devs",
   "started": "2026-10-04T00:34:10.471102+00:00",
-  "bankroll_sol": 2.943565,
-  "positions": {},
+  "bankroll_sol": 2.742065,
+  "positions": {
+    "FRTPvNho8w98wwqiRoUbfMrRp1TFsYSkjbgk8gBgpump": {
+      "mint": "FRTPvNho8w98wwqiRoUbfMrRp1TFsYSkjbgk8gBgpump",
+      "symbol": "LIKECAT",
+      "opened": 1792896905.892083,
+      "invested_sol": 0.2,
+      "fees_sol": 0.0015,
+      "entry_signal_usd": 3.049505592334592e-05,
+      "entry_fill_usd": 2.9532008233389425e-05,
+      "entry_slippage_pct": -3.16,
+      "roundtrip_cost_pct": -2.49,
+      "tokens_initial": 692616.972808,
+      "tokens_left": 692616.972808,
+      "decimals": 6,
+      "proceeds_sol": 0.0,
+      "peak_usd": 2.9532008233389425e-05,
+      "tp1_done": false,
+      "thesis_breaks": 0,
+      "missing_loops": 0,
+      "entry_liquidity": 6364.0571829169685,
+      "entry_view": {
+        "age_h": 0.2504880756139755,
+        "mcap": 29374.2652448231,
+        "liquidity": 6364.0571829169685,
+        "holders": 413,
+        "holder_growth_1h": 637.5,
+        "holder_growth_5m": -14.315352697095435,
+        "net_buyers_5m": 108,
+        "organic_buyers_5m": 0,
+        "organic_score": 0.0,
+        "price_change_1h": 292.131926130856,
+        "price_change_5m": 2.1951771663233717,
+        "buys_5m": 248,
+        "sells_5m": 261,
+        "traders_5m": 270,
+        "traders_1h": 1489,
+        "buy_vol_5m": 14331.73762905788,
+        "sell_vol_5m": 14568.149415246238,
+        "buy_vol_1h": 187364.82825683116,
+        "sell_vol_1h": 183674.33538011403,
+        "organic_buy_vol_1h": 4585.485303218413,
+        "top_holders_pct": 22.050639903109325,
+        "dev_balance_pct": 0.0,
+        "dev_mints": 13946,
+        "launchpad": "pump.fun",
+        "graduated": true,
+        "social": true,
+        "quelle": "traded1h+traded5m+trend1h+trend5m",
+        "trades_24h": 7203,
+        "organic_label": "low",
+        "buy_organic_vol_5m": 359.14555261361716,
+        "jup_fees": null,
+        "hour_utc": 2
+      },
+      "bundle": {
+        "quelle": "experiment",
+        "text": "Serien-Dev: frueherer Coin Incognito bis 1,578,051 $"
+      },
+      "phase": "normal",
+      "thesis": "Story verbreitet sich: Holder +638%/h, 108 Netto-Kaeufer 5m, 0 organisch; Serien-Dev: frueherer Coin Incognito bis 1,578,051 $; Dev-Coins 13946",
+      "exit_rule": "Haelfte bei 2x; Rest raus, wenn Holder schrumpfen und Netto-Verkaeufer 2x in Folge, Liquiditaet -30%, -40%, nach 1,5x nicht unter Einstand, nach 2x 30 % vom Hoch (ab 10x 25 %)",
+      "mitlaeufer": null,
+      "solana_tracker": null,
+      "graduated": true,
+      "liq_low_checks": 0,
+      "dev_exit": true,
+      "dev_pct_kauf": 0.0,
+      "serien_vorgaenger": {
+        "symbol": "Incognito",
+        "peak": 1578051,
+        "zuerst": 1791697608,
+        "mint": "BBZ3sgY66QVsxcXXBVpuQfDzH2b5Ub8qmfKNQJjBpump"
+      }
+    }
+  },
   "closed": [
     {
       "symbol": "GWC",
@@ -63301,18 +63375,10 @@
     "6rvBYFVRPgf9NvFruKQnFsd7Wj2iLoGtZgxTeCgxsgp2": 1792893277.6174574,
     "5ZgPFhQpCPjz5rPgUTjnWdiFC6jWtfKrgpYaaEEhpump": 1792893717.64593,
     "B1DPPHcPymoitLeHPjyDeKjKf4hs9ubtVrncobpspump": 1792894389.367514,
-    "8zsFH5cS1YT93nhb3ZWzCYk7gvADt7Nqc9P2PgGUpump": 1792894684.5100915
+    "8zsFH5cS1YT93nhb3ZWzCYk7gvADt7Nqc9P2PgGUpump": 1792894684.5100915,
+    "FRTPvNho8w98wwqiRoUbfMrRp1TFsYSkjbgk8gBgpump": 1792896905.8939443
   },
   "watch": {
-    "HPXKMXwnAAYB5kR95Ft75ZQ5M4mU8v7T6YejaGQ4pump": {
-      "symbol": "AVON",
-      "entry_fill_usd": 1.7352604379094025e-05,
-      "opened": 1792871722.0145323,
-      "peak_usd": 2.203509874918092e-05,
-      "exit_usd": 9.674642381908091e-06,
-      "exit_reason": "NOTBREMSE (-44%)",
-      "until": 1792896884.0550466
-    },
     "JBdcnX7qT4yVsTWHQzzCzTbsR7QsNd8YvziA5ziJpump": {
       "symbol": "Wolves",
       "entry_fill_usd": 2.2393459063836553e-05,
@@ -63514,5 +63580,5 @@
   },
   "runde": 3,
   "shadow": {},
-  "saved_at": 1792896674.8826306
+  "saved_at": 1792896907.5252984
 }
