@@ -1,7 +1,7 @@
 {
   "strategy": "EXPERIMENT_kontrollgruppe",
   "started": "2026-09-29T08:33:20.747785+00:00",
-  "bankroll_sol": 9.3119,
+  "bankroll_sol": 9.1104,
   "positions": {
     "FAuc5ZDyHcsmLq6kGKHgNnsiQbGMCFAQvDdPvC9DeT16": {
       "mint": "FAuc5ZDyHcsmLq6kGKHgNnsiQbGMCFAQvDdPvC9DeT16",
@@ -67,7 +67,7 @@
       "solana_tracker": null,
       "graduated": true,
       "liq_low_checks": 0,
-      "flug_last": 1792891767.2556334
+      "flug_last": 1792891897.529803
     },
     "GPieo9s4rz6ungQnsqyiUrznqDypMgrNXmFSDM2vpump": {
       "mint": "GPieo9s4rz6ungQnsqyiUrznqDypMgrNXmFSDM2vpump",
@@ -83,7 +83,7 @@
       "tokens_left": 1696424.925848,
       "decimals": 6,
       "proceeds_sol": 0.0,
-      "peak_usd": 1.715505771998288e-05,
+      "peak_usd": 1.7617322799046672e-05,
       "tp1_done": false,
       "thesis_breaks": 0,
       "missing_loops": 0,
@@ -133,7 +133,72 @@
       "solana_tracker": null,
       "graduated": false,
       "liq_low_checks": 0,
-      "flug_last": 1792891767.2556334
+      "flug_last": 1792891897.529803
+    },
+    "7PHPSS4btbBoRkheZ2guBKw9y3GPLJTNopTV48wupump": {
+      "mint": "7PHPSS4btbBoRkheZ2guBKw9y3GPLJTNopTV48wupump",
+      "symbol": "FATS",
+      "opened": 1792891968.3879886,
+      "invested_sol": 0.2,
+      "fees_sol": 0.0015,
+      "entry_signal_usd": 3.058383044428592e-05,
+      "entry_fill_usd": 3.117981364963258e-05,
+      "entry_slippage_pct": 1.95,
+      "roundtrip_cost_pct": 2.99,
+      "tokens_initial": 655040.575917,
+      "tokens_left": 655040.575917,
+      "decimals": 6,
+      "proceeds_sol": 0.0,
+      "peak_usd": 3.117981364963258e-05,
+      "tp1_done": false,
+      "thesis_breaks": 0,
+      "missing_loops": 0,
+      "entry_liquidity": 5683.383160039364,
+      "entry_view": {
+        "age_h": 2.3081191090742745,
+        "mcap": 29191.92897667111,
+        "liquidity": 5683.383160039364,
+        "holders": 313,
+        "holder_growth_1h": -21.35678391959799,
+        "holder_growth_5m": -1.8808777429467085,
+        "net_buyers_5m": 9,
+        "organic_buyers_5m": 5,
+        "organic_score": 53.51815767307939,
+        "price_change_1h": 13.863954123252368,
+        "price_change_5m": -12.341923349237547,
+        "buys_5m": 18,
+        "sells_5m": 26,
+        "traders_5m": 28,
+        "traders_1h": 483,
+        "buy_vol_5m": 726.5184762290202,
+        "sell_vol_5m": 1262.6909117706587,
+        "buy_vol_1h": 30594.524316565552,
+        "sell_vol_1h": 41605.76358898918,
+        "organic_buy_vol_1h": 1494.08618035524,
+        "top_holders_pct": 23.971942448265608,
+        "dev_balance_pct": 0.0,
+        "dev_mints": 35,
+        "launchpad": "pump.fun",
+        "graduated": true,
+        "social": true,
+        "quelle": "organic1h+organic5m+traded1h+traded5m",
+        "trades_24h": 6823,
+        "organic_label": "medium",
+        "buy_organic_vol_5m": 521.3584128294485,
+        "jup_fees": null,
+        "hour_utc": 1
+      },
+      "bundle": {
+        "quelle": "experiment",
+        "text": "Kontrollgruppe: zufaellig aus 7 sicheren jungen Coins"
+      },
+      "phase": "normal",
+      "thesis": "Story verbreitet sich: Holder +-21%/h, 9 Netto-Kaeufer 5m, 5 organisch; Kontrollgruppe: zufaellig aus 7 sicheren jungen Coins; Dev-Coins 35",
+      "exit_rule": "Haelfte bei 2x; Rest raus, wenn Holder schrumpfen und Netto-Verkaeufer 2x in Folge, Liquiditaet -30%, -40%, nach 1,5x nicht unter Einstand, nach 2x 30 % vom Hoch (ab 10x 25 %)",
+      "mitlaeufer": null,
+      "solana_tracker": null,
+      "graduated": true,
+      "liq_low_checks": 0
     }
   },
   "closed": [
@@ -68512,11 +68577,12 @@
     "8cZoLsFTdCBDDeXr4AsKRe5rTMmyvAERmxxbkdN8pump": 1792884648.1503427,
     "FAuc5ZDyHcsmLq6kGKHgNnsiQbGMCFAQvDdPvC9DeT16": 1792886469.6470463,
     "GPieo9s4rz6ungQnsqyiUrznqDypMgrNXmFSDM2vpump": 1792888271.7436416,
-    "8BqMeQLvypnnKbHS9hFHMzfxcY9Fea6mB5AnVoKNpump": 1792890130.6097012
+    "8BqMeQLvypnnKbHS9hFHMzfxcY9Fea6mB5AnVoKNpump": 1792890130.6097012,
+    "7PHPSS4btbBoRkheZ2guBKw9y3GPLJTNopTV48wupump": 1792891968.3888187
   },
   "watch": {},
   "runde": 4,
   "shadow": {},
-  "saved_at": 1792891777.6454601,
-  "next_pick": 1792891919.4374647
+  "saved_at": 1792891969.8651667,
+  "next_pick": 1792893757.2287927
 }
