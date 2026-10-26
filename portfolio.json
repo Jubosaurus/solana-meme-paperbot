@@ -1,8 +1,105 @@
 {
   "strategy": "NARRATIV",
   "started": "2026-09-26T02:46:00.825468+00:00",
-  "bankroll_sol": 8.111649,
-  "positions": {},
+  "bankroll_sol": 7.910149,
+  "positions": {
+    "7frsXQZiA1dkv67CLwrocKskQ7hZRRsWqAa9Wwvpi7iE": {
+      "mint": "7frsXQZiA1dkv67CLwrocKskQ7hZRRsWqAa9Wwvpi7iE",
+      "symbol": "SMCP",
+      "opened": 1793019359.5754378,
+      "invested_sol": 0.2,
+      "fees_sol": 0.0015,
+      "entry_signal_usd": 7.789591864394931e-05,
+      "entry_fill_usd": 7.828283894303278e-05,
+      "entry_slippage_pct": 0.5,
+      "roundtrip_cost_pct": 2.81,
+      "tokens_initial": 259576.569112,
+      "tokens_left": 259576.569112,
+      "decimals": 6,
+      "proceeds_sol": 0.0,
+      "peak_usd": 7.828283894303278e-05,
+      "tp1_done": false,
+      "thesis_breaks": 0,
+      "missing_loops": 0,
+      "entry_liquidity": 11993.600641755176,
+      "entry_view": {
+        "age_h": 4.608439190122816,
+        "mcap": 77895.91864204498,
+        "liquidity": 11993.600641755176,
+        "holders": 496,
+        "holder_growth_1h": 65.33333333333333,
+        "holder_growth_5m": 11.711711711711711,
+        "net_buyers_5m": 72,
+        "organic_buyers_5m": 5,
+        "organic_score": 53.60170934137963,
+        "price_change_1h": 90.39670853950821,
+        "price_change_5m": 1.563868490431845,
+        "buys_5m": 162,
+        "sells_5m": 91,
+        "traders_5m": 112,
+        "traders_1h": 673,
+        "buy_vol_5m": 8217.64451889309,
+        "sell_vol_5m": 8694.963077397297,
+        "buy_vol_1h": 57427.89841536304,
+        "sell_vol_1h": 53365.59076419005,
+        "organic_buy_vol_1h": 2853.7397869830415,
+        "top_holders_pct": 23.060004228112145,
+        "dev_balance_pct": 1.0000000000244469e-13,
+        "dev_mints": 1,
+        "launchpad": "stonkfun",
+        "graduated": true,
+        "social": false,
+        "quelle": "organic1h+organic5m+traded1h+traded5m+trend1h",
+        "trades_24h": 4408,
+        "organic_label": "medium",
+        "buy_organic_vol_5m": 125.83457140397432,
+        "jup_fees": null,
+        "hour_utc": 12
+      },
+      "bundle": {
+        "quelle": "block0",
+        "slot": 461593689,
+        "block0_wallets": 5,
+        "block0_supply_pct": 8.73,
+        "block0_still_held_pct": 0.0,
+        "block0_exited": 5,
+        "early_tx_slot1_2": 4,
+        "bundle_holding_pct": 0.0,
+        "block0_tx_fehlend": 0,
+        "block0_halter_fehlend": 0,
+        "gebuendelt": false,
+        "rugcheck_insider_pct": 0
+      },
+      "phase": "normal",
+      "thesis": "Story verbreitet sich: Holder +65%/h, 72 Netto-Kaeufer 5m, 5 organisch; Block 0: 5 Kaeufer, 8.7% gekauft, 0.0% noch gehalten; Dev-Coins 1",
+      "exit_rule": "Haelfte bei 2x; Rest raus, wenn Holder schrumpfen und Netto-Verkaeufer 2x in Folge, Liquiditaet -30%, -40%, nach 1,5x nicht unter Einstand, nach 2x 30 % vom Hoch (ab 10x 25 %)",
+      "mitlaeufer": null,
+      "solana_tracker": {
+        "score": 5,
+        "rugged": false,
+        "snipers_pct": 0,
+        "insiders_pct": 0,
+        "bundlers_pct": 0.3624,
+        "top10_pct": 23.0599,
+        "risiken": [
+          "No social media",
+          "Top 10 Holders"
+        ]
+      },
+      "graduated": true,
+      "liq_low_checks": 0,
+      "block0_flug": {
+        "supply": 999999999975553.0,
+        "bought": {
+          "6ezFoyjKWot1MMw2wCAmzgDtgTMQYynG7T72SWcv31J4": 23372044476000.0,
+          "9D6GtdTPCpiKhAqw2s8etE7yNC2qj7SrAnQTND8WXuE": 22640818885343.0,
+          "BMdxkakEnqKxb6NrKpCwAvm1KrPn1HsWr5HxQLbesgz2": 15440753038288.0,
+          "7zEV7EgrsRuzcUM1bt3FoX1tJaDLXSmtV9j22sQCYjcn": 15340077956758.0,
+          "EVSEy3Cgwri1uWZzXPVjHSLogL6aemNpxdg5rz9CsFdo": 10457585672487.0
+        }
+      }
+    }
+  },
   "closed": [
     {
       "symbol": "SHOGGOTH",
@@ -25478,7 +25575,8 @@
     "EyX3HYebzwqW8VT1SZi7HmaWPpbSAfatWp18bEZipump": 1792944916.260745,
     "AKGgo5MkbCBP1hSCzAVz4XH55fAyuc9svUsJaumTMain": 1792994748.3358092,
     "4hj5Pf5UNtu5UCjv3kCLQscj6B9TroUDcDMnGzEhpump": 1793001882.291515,
-    "HEPG65DZHGePLKrTqkkkJLUb7vt9A2436kdTxTJSSTNK": 1793006172.5114644
+    "HEPG65DZHGePLKrTqkkkJLUb7vt9A2436kdTxTJSSTNK": 1793006172.5114644,
+    "7frsXQZiA1dkv67CLwrocKskQ7hZRRsWqAa9Wwvpi7iE": 1793019359.5758557
   },
   "watch": {
     "4hj5Pf5UNtu5UCjv3kCLQscj6B9TroUDcDMnGzEhpump": {
@@ -25500,7 +25598,7 @@
       "until": 1793038376.3245642
     }
   },
-  "saved_at": 1793019202.341272,
+  "saved_at": 1793019365.447682,
   "shadow": {
     "7obyeVxYHx18WTCkBcUP2n1FgfKShvE6S4PR1Uaqpump": {
       "symbol": "Brain",
@@ -25733,7 +25831,7 @@
       "detail": "+175% in 1 h (Grenze 150)",
       "ref_price": 7.442294508724054e-05,
       "since": 1793018194.3172286,
-      "peak_usd": 8.705256626815573e-05,
+      "peak_usd": 8.965755495154256e-05,
       "until": 1793039794.3172286
     },
     "7frsXQZiA1dkv67CLwrocKskQ7hZRRsWqAa9Wwvpi7iE": {
@@ -25757,7 +25855,7 @@
   },
   "st_usage": {
     "date": "2026-10-26",
-    "count": 3
+    "count": 4
   },
   "wellen": {
     "BOW_1792977485": {
@@ -25843,10 +25941,10 @@
         "5EUVUTweP2LBimfuKHbNxobj57GVkWrjw9UmkmMnzFWL": "ADDICT",
         "CzK3wMBHMFzrdDdWqRr8i7Mcjh6QNzphTp9nJjSmpump": "ADDICT"
       },
-      "preis_usd": 1.1063390412049788e-05,
+      "preis_usd": 1.0806097314793896e-05,
       "start_geschrieben": true,
-      "meta_stand": 1793018914.8307745,
-      "meta_abrufe": 52
+      "meta_stand": 1793019219.2657897,
+      "meta_abrufe": 53
     }
   }
 }
