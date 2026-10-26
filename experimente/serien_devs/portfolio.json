@@ -1,7 +1,7 @@
 {
   "strategy": "EXPERIMENT_serien_devs",
   "started": "2026-10-04T00:34:10.471102+00:00",
-  "bankroll_sol": 0.21069,
+  "bankroll_sol": 0.00919,
   "positions": {
     "9SMAUcBgWooqKyaeVUDUeJ6Y3UUkL726CC4zj4ZTXD2c": {
       "mint": "9SMAUcBgWooqKyaeVUDUeJ6Y3UUkL726CC4zj4ZTXD2c",
@@ -75,7 +75,81 @@
         "zuerst": 1791342484,
         "mint": "2j5SaS7xy776qCBpyPQbZjyQSAtKiFgrwjfErthnW2ZM"
       },
-      "flug_last": 1793034165.666457
+      "flug_last": 1793034239.7728093
+    },
+    "MSFThX899B1DddH5jkyMpdArWXzP85VXLYDrbGGcRJM": {
+      "mint": "MSFThX899B1DddH5jkyMpdArWXzP85VXLYDrbGGcRJM",
+      "symbol": "MSFT",
+      "opened": 1793034210.1213336,
+      "invested_sol": 0.2,
+      "fees_sol": 0.0015,
+      "entry_signal_usd": 526.4092344918146,
+      "entry_fill_usd": 531.611028209872,
+      "entry_slippage_pct": 0.99,
+      "roundtrip_cost_pct": 0.98,
+      "tokens_initial": 0.038114,
+      "tokens_left": 0.038114,
+      "decimals": 6,
+      "proceeds_sol": 0.0,
+      "peak_usd": 531.611028209872,
+      "tp1_done": false,
+      "thesis_breaks": 0,
+      "missing_loops": 0,
+      "entry_liquidity": 179220.49562875662,
+      "entry_view": {
+        "age_h": 2.634193922215038,
+        "mcap": 216461.03486795904,
+        "liquidity": 179220.49562875662,
+        "holders": 60,
+        "holder_growth_1h": 2900.0,
+        "holder_growth_5m": 5.263157894736842,
+        "net_buyers_5m": 5,
+        "organic_buyers_5m": 0,
+        "organic_score": 0.0,
+        "price_change_1h": -3.1144590152959553,
+        "price_change_5m": -0.5128822173289936,
+        "buys_5m": 35,
+        "sells_5m": 35,
+        "traders_5m": 28,
+        "traders_1h": 201,
+        "buy_vol_5m": 3300.3460274844197,
+        "sell_vol_5m": 14248.656314821968,
+        "buy_vol_1h": 69291.66641271261,
+        "sell_vol_1h": 71986.62273158185,
+        "organic_buy_vol_1h": 2167.189699735035,
+        "top_holders_pct": 39.43543290504385,
+        "dev_balance_pct": 0.0,
+        "dev_mints": 1146,
+        "launchpad": null,
+        "graduated": false,
+        "social": false,
+        "quelle": "traded1h+traded5m",
+        "trades_24h": 1039,
+        "organic_label": "low",
+        "buy_organic_vol_5m": 65.41305952231909,
+        "jup_fees": null,
+        "hour_utc": 17
+      },
+      "bundle": {
+        "quelle": "experiment",
+        "text": "Serien-Dev: frueherer Coin DJT bis 1,798,933 $"
+      },
+      "phase": "normal",
+      "thesis": "Story verbreitet sich: Holder +2900%/h, 5 Netto-Kaeufer 5m, 0 organisch; Serien-Dev: frueherer Coin DJT bis 1,798,933 $; Dev-Coins 1146",
+      "exit_rule": "Haelfte bei 2x; Rest raus, wenn Holder schrumpfen und Netto-Verkaeufer 2x in Folge, Liquiditaet -30%, -40%, nach 1,5x nicht unter Einstand, nach 2x 30 % vom Hoch (ab 10x 25 %)",
+      "mitlaeufer": null,
+      "solana_tracker": null,
+      "graduated": false,
+      "liq_low_checks": 0,
+      "dev_exit": true,
+      "dev_pct_kauf": 0.0,
+      "serien_vorgaenger": {
+        "symbol": "DJT",
+        "peak": 1798933,
+        "zuerst": 1791074049,
+        "mint": "DJTu7vi8norVzdVAffgvb39VP7wjKeTsgaMBJrzfxvoF"
+      },
+      "flug_last": 1793034223.750226
     }
   },
   "closed": [
@@ -69081,7 +69155,8 @@
     "HVn4S2LWzus5VnB8MeZiwhn2YpDUHxtyXU3LX2Sbpump": 1793029060.2422786,
     "HaN5BxkS3YEVbQQftzFnqdoLvvafYit3fFNhXR3tpump": 1793032710.4086387,
     "9SMAUcBgWooqKyaeVUDUeJ6Y3UUkL726CC4zj4ZTXD2c": 1793033718.4807954,
-    "F7Pwpisgpnxq3Ho8nEHJovMA5kxqr9a5pDH6BDDCpump": 1793033721.7788136
+    "F7Pwpisgpnxq3Ho8nEHJovMA5kxqr9a5pDH6BDDCpump": 1793033721.7788136,
+    "MSFThX899B1DddH5jkyMpdArWXzP85VXLYDrbGGcRJM": 1793034210.1220431
   },
   "watch": {
     "JVtVUduUFx3HL3fA87YA77YDGn5iQoYDeDaLFNopump": {
@@ -69276,5 +69351,5 @@
   },
   "runde": 3,
   "shadow": {},
-  "saved_at": 1793034182.389173
+  "saved_at": 1793034255.4837196
 }
