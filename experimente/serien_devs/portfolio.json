@@ -1,8 +1,82 @@
 {
   "strategy": "EXPERIMENT_serien_devs",
   "started": "2026-10-04T00:34:10.471102+00:00",
-  "bankroll_sol": 1.132147,
-  "positions": {},
+  "bankroll_sol": 0.930647,
+  "positions": {
+    "EWQ4fvN23dmYLMR2uzRuzrbKhZmuiPRzJNGZbrsqyR8K": {
+      "mint": "EWQ4fvN23dmYLMR2uzRuzrbKhZmuiPRzJNGZbrsqyR8K",
+      "symbol": "5%",
+      "opened": 1793025268.635273,
+      "invested_sol": 0.2,
+      "fees_sol": 0.0015,
+      "entry_signal_usd": 9.445039501874331e-06,
+      "entry_fill_usd": 9.685394984527849e-06,
+      "entry_slippage_pct": 2.54,
+      "roundtrip_cost_pct": 5.72,
+      "tokens_initial": 2086861.161977,
+      "tokens_left": 2086861.161977,
+      "decimals": 6,
+      "proceeds_sol": 0.0,
+      "peak_usd": 9.685394984527849e-06,
+      "tp1_done": false,
+      "thesis_breaks": 0,
+      "missing_loops": 0,
+      "entry_liquidity": 5789.958996697529,
+      "entry_view": {
+        "age_h": 0.26128141158156926,
+        "mcap": 9445.039501874331,
+        "liquidity": 5789.958996697529,
+        "holders": 119,
+        "holder_growth_1h": 600.0,
+        "holder_growth_5m": -2.459016393442623,
+        "net_buyers_5m": 29,
+        "organic_buyers_5m": 0,
+        "organic_score": 0.0,
+        "price_change_1h": 34.071365300724636,
+        "price_change_5m": -10.369298695898346,
+        "buys_5m": 106,
+        "sells_5m": 96,
+        "traders_5m": 81,
+        "traders_1h": 569,
+        "buy_vol_5m": 6602.100162371531,
+        "sell_vol_5m": 6310.025993397261,
+        "buy_vol_1h": 63254.2499259859,
+        "sell_vol_1h": 62570.49951487526,
+        "organic_buy_vol_1h": 1282.3796156457647,
+        "top_holders_pct": 25.552690805964502,
+        "dev_balance_pct": 0.0,
+        "dev_mints": 176478,
+        "launchpad": "pump.fun",
+        "graduated": false,
+        "social": true,
+        "quelle": "traded1h+traded5m",
+        "trades_24h": 2007,
+        "organic_label": "low",
+        "buy_organic_vol_5m": 363.4021976189512,
+        "jup_fees": null,
+        "hour_utc": 14
+      },
+      "bundle": {
+        "quelle": "experiment",
+        "text": "Serien-Dev: frueherer Coin CLAUDIA bis 11,079,320 $"
+      },
+      "phase": "normal",
+      "thesis": "Story verbreitet sich: Holder +600%/h, 29 Netto-Kaeufer 5m, 0 organisch; Serien-Dev: frueherer Coin CLAUDIA bis 11,079,320 $; Dev-Coins 176478",
+      "exit_rule": "Haelfte bei 2x; Rest raus, wenn Holder schrumpfen und Netto-Verkaeufer 2x in Folge, Liquiditaet -30%, -40%, nach 1,5x nicht unter Einstand, nach 2x 30 % vom Hoch (ab 10x 25 %)",
+      "mitlaeufer": null,
+      "solana_tracker": null,
+      "graduated": false,
+      "liq_low_checks": 0,
+      "dev_exit": true,
+      "dev_pct_kauf": 0.0,
+      "serien_vorgaenger": {
+        "symbol": "CLAUDIA",
+        "peak": 11079320,
+        "zuerst": 1791342484,
+        "mint": "2j5SaS7xy776qCBpyPQbZjyQSAtKiFgrwjfErthnW2ZM"
+      }
+    }
+  },
   "closed": [
     {
       "symbol": "GWC",
@@ -68323,18 +68397,10 @@
     "4inoWXQcHjFb9kspvbVpkQRTS5EQp7kthG2jXeRTCMcd": 1793020260.1179557,
     "3bzqGFeB9ik8owLqSLgnhdTVVMwNN4UW1KLPxb63pump": 1793021721.0275564,
     "Ekb1Ej4uAnxjJKuZyY2Tskwqe5h2j6nmFt8H1jAvpump": 1793023489.1499543,
-    "C9tZY4SCS9qu568Etby4yBjhniRz7vFML4hMFA896TGy": 1793024227.6493282
+    "C9tZY4SCS9qu568Etby4yBjhniRz7vFML4hMFA896TGy": 1793024227.6493282,
+    "EWQ4fvN23dmYLMR2uzRuzrbKhZmuiPRzJNGZbrsqyR8K": 1793025268.6359284
   },
   "watch": {
-    "BEwvuL9EsEukMbETMcgRDJ2MVvVjTyEz4SAUxLuh2zL1": {
-      "symbol": "LAB",
-      "entry_fill_usd": 0.00016391411376757474,
-      "opened": 1793002558.0669653,
-      "peak_usd": 0.00039523177452053756,
-      "exit_usd": 0.0001256853728955205,
-      "exit_reason": "LIQUIDITAET_ABGEZOGEN",
-      "until": 1793025171.1603665
-    },
     "9nD4xwTKJtEBacuEmZcv3LxvKZ5kpUdhm7j7DpwsNbfc": {
       "symbol": "BeReady",
       "entry_fill_usd": 1.7229088960690198e-05,
@@ -68446,5 +68512,5 @@
   },
   "runde": 3,
   "shadow": {},
-  "saved_at": 1793025036.9134529
+  "saved_at": 1793025270.2126708
 }
