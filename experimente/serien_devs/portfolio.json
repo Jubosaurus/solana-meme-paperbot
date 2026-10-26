@@ -1,7 +1,7 @@
 {
   "strategy": "EXPERIMENT_serien_devs",
   "started": "2026-10-04T00:34:10.471102+00:00",
-  "bankroll_sol": 1.759439,
+  "bankroll_sol": 1.557939,
   "positions": {
     "5ejn3WqMHKgf57puQywbuYGyhPuuP9UXizKqV332pump": {
       "mint": "5ejn3WqMHKgf57puQywbuYGyhPuuP9UXizKqV332pump",
@@ -75,7 +75,80 @@
         "zuerst": 1791714842,
         "mint": "DzMwArmdzPqcqgvyqAmTxy79XdA9NwK9mMteqWLJpump"
       },
-      "flug_last": 1792972861.5152838
+      "flug_last": 1792973066.9232686
+    },
+    "3R6wME5qd4f3dooiVpTk3vEi8hPPEpYPuByYvR23pump": {
+      "mint": "3R6wME5qd4f3dooiVpTk3vEi8hPPEpYPuByYvR23pump",
+      "symbol": "carti",
+      "opened": 1792973126.4309814,
+      "invested_sol": 0.2,
+      "fees_sol": 0.0015,
+      "entry_signal_usd": 0.0003982518182668907,
+      "entry_fill_usd": 0.00039316003239208677,
+      "entry_slippage_pct": -1.28,
+      "roundtrip_cost_pct": 2.25,
+      "tokens_initial": 51480.352071,
+      "tokens_left": 51480.352071,
+      "decimals": 6,
+      "proceeds_sol": 0.0,
+      "peak_usd": 0.00039316003239208677,
+      "tp1_done": false,
+      "thesis_breaks": 0,
+      "missing_loops": 0,
+      "entry_liquidity": 27637.760121753374,
+      "entry_view": {
+        "age_h": 0.25287968986564213,
+        "mcap": 396009.4687687526,
+        "liquidity": 27637.760121753374,
+        "holders": 706,
+        "holder_growth_1h": 530.3571428571429,
+        "holder_growth_5m": 76.05985037406484,
+        "net_buyers_5m": 364,
+        "organic_buyers_5m": 0,
+        "organic_score": 0.0,
+        "price_change_1h": 281.55077352042736,
+        "price_change_5m": -19.755541259406268,
+        "buys_5m": 1111,
+        "sells_5m": 1087,
+        "traders_5m": 828,
+        "traders_1h": 1307,
+        "buy_vol_5m": 62818.23775864737,
+        "sell_vol_5m": 103255.14953379458,
+        "buy_vol_1h": 176712.24194531498,
+        "sell_vol_1h": 204835.98581285746,
+        "organic_buy_vol_1h": 9225.21752336703,
+        "top_holders_pct": 84.8843996635442,
+        "dev_balance_pct": 79.76683448017216,
+        "dev_mints": 407,
+        "launchpad": "pump.fun",
+        "graduated": true,
+        "social": true,
+        "quelle": "traded1h+traded5m",
+        "trades_24h": 4580,
+        "organic_label": "low",
+        "buy_organic_vol_5m": 1244.2682538808137,
+        "jup_fees": null,
+        "hour_utc": 0
+      },
+      "bundle": {
+        "quelle": "experiment",
+        "text": "Serien-Dev: frueherer Coin SAPIJIJU bis 495,951 $"
+      },
+      "phase": "heiss",
+      "thesis": "Story verbreitet sich: Holder +530%/h, 364 Netto-Kaeufer 5m, 0 organisch; Serien-Dev: frueherer Coin SAPIJIJU bis 495,951 $; Dev-Coins 407",
+      "exit_rule": "Haelfte bei 2x; Rest raus, wenn Holder schrumpfen und Netto-Verkaeufer 2x in Folge, Liquiditaet -30%, -40%, nach 1,5x nicht unter Einstand, nach 2x 30 % vom Hoch (ab 10x 25 %)",
+      "mitlaeufer": null,
+      "solana_tracker": null,
+      "graduated": true,
+      "liq_low_checks": 0,
+      "dev_exit": true,
+      "dev_pct_kauf": 79.76683448017216,
+      "serien_vorgaenger": {
+        "symbol": "SAPIJIJU",
+        "peak": 495951,
+        "zuerst": 1791134597,
+        "mint": "8jayQDfRc3GYxftBJ2VAwjqmRBdYPC9KnjY15rc9pump"
+      }
     }
   },
   "closed": [
@@ -66725,18 +66798,10 @@
     "Ak7bfBEarCNptt3yFTvNMN2xHFKsH9RqtXk7putGpump": 1792967081.4615571,
     "GpxRDGMPz81fMDyNucFKpvbhLKBG1GYnWEbBW8oqpump": 1792968079.1914403,
     "4i5X3V9j2DnKwyo8MCgPksCLJ9bRAYHkcGrXMmigpump": 1792970230.9686182,
-    "5ejn3WqMHKgf57puQywbuYGyhPuuP9UXizKqV332pump": 1792971205.8065546
+    "5ejn3WqMHKgf57puQywbuYGyhPuuP9UXizKqV332pump": 1792971205.8065546,
+    "3R6wME5qd4f3dooiVpTk3vEi8hPPEpYPuByYvR23pump": 1792973126.4317327
   },
   "watch": {
-    "CwjxuMZWwYrdRfqiLL2He3QZTxhc4MVUdUcMwdboBysz": {
-      "symbol": "STONK",
-      "entry_fill_usd": 2.0727155013466717e-05,
-      "opened": 1792951062.8521593,
-      "peak_usd": 2.255729419470702e-05,
-      "exit_usd": 1.3688212018608631e-05,
-      "exit_reason": "LIQUIDITAET_ABGEZOGEN",
-      "until": 1792972943.4336095
-    },
     "E7oFPRJpMh1h48Uzuda1MxEqKkxTgLs5XEDcFUomKzcB": {
       "symbol": "RATIO",
       "entry_fill_usd": 2.5203325233847983e-05,
@@ -66920,5 +66985,5 @@
   },
   "runde": 3,
   "shadow": {},
-  "saved_at": 1792972880.924079
+  "saved_at": 1792973127.9973512
 }
