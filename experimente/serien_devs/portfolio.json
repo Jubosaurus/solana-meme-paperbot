@@ -1,8 +1,82 @@
 {
   "strategy": "EXPERIMENT_serien_devs",
   "started": "2026-10-04T00:34:10.471102+00:00",
-  "bankroll_sol": 1.233031,
-  "positions": {},
+  "bankroll_sol": 1.031531,
+  "positions": {
+    "JVtVUduUFx3HL3fA87YA77YDGn5iQoYDeDaLFNopump": {
+      "mint": "JVtVUduUFx3HL3fA87YA77YDGn5iQoYDeDaLFNopump",
+      "symbol": "Shitcoin",
+      "opened": 1793014056.0696087,
+      "invested_sol": 0.2,
+      "fees_sol": 0.0015,
+      "entry_signal_usd": 3.976374585506298e-05,
+      "entry_fill_usd": 3.794269807010655e-05,
+      "entry_slippage_pct": -4.58,
+      "roundtrip_cost_pct": 3.29,
+      "tokens_initial": 533603.18264,
+      "tokens_left": 533603.18264,
+      "decimals": 6,
+      "proceeds_sol": 0.0,
+      "peak_usd": 3.794269807010655e-05,
+      "tp1_done": false,
+      "thesis_breaks": 0,
+      "missing_loops": 0,
+      "entry_liquidity": 7140.696922423002,
+      "entry_view": {
+        "age_h": 0.2725137475464079,
+        "mcap": 38035.692373633654,
+        "liquidity": 7140.696922423002,
+        "holders": 516,
+        "holder_growth_1h": 4590.909090909091,
+        "holder_growth_5m": 9.787234042553191,
+        "net_buyers_5m": 241,
+        "organic_buyers_5m": 0,
+        "organic_score": 0.0,
+        "price_change_1h": 661.6362221564451,
+        "price_change_5m": 1.657806799191912,
+        "buys_5m": 770,
+        "sells_5m": 555,
+        "traders_5m": 567,
+        "traders_1h": 991,
+        "buy_vol_5m": 20299.67727602784,
+        "sell_vol_5m": 22246.808642180324,
+        "buy_vol_1h": 71057.36095345225,
+        "sell_vol_1h": 67037.15347099549,
+        "organic_buy_vol_1h": 1673.2535761494266,
+        "top_holders_pct": 21.233725563971852,
+        "dev_balance_pct": 0.0,
+        "dev_mints": 4334,
+        "launchpad": "pump.fun",
+        "graduated": true,
+        "social": true,
+        "quelle": "traded1h+traded5m+trend1h",
+        "trades_24h": 3453,
+        "organic_label": "low",
+        "buy_organic_vol_5m": 301.86541846820097,
+        "jup_fees": null,
+        "hour_utc": 11
+      },
+      "bundle": {
+        "quelle": "experiment",
+        "text": "Serien-Dev: frueherer Coin JITI bis 417,190 $"
+      },
+      "phase": "normal",
+      "thesis": "Story verbreitet sich: Holder +4591%/h, 241 Netto-Kaeufer 5m, 0 organisch; Serien-Dev: frueherer Coin JITI bis 417,190 $; Dev-Coins 4334",
+      "exit_rule": "Haelfte bei 2x; Rest raus, wenn Holder schrumpfen und Netto-Verkaeufer 2x in Folge, Liquiditaet -30%, -40%, nach 1,5x nicht unter Einstand, nach 2x 30 % vom Hoch (ab 10x 25 %)",
+      "mitlaeufer": null,
+      "solana_tracker": null,
+      "graduated": true,
+      "liq_low_checks": 0,
+      "dev_exit": true,
+      "dev_pct_kauf": 0.0,
+      "serien_vorgaenger": {
+        "symbol": "JITI",
+        "peak": 417190,
+        "zuerst": 1791208418,
+        "mint": "6YuVyHbjdwxiH1CLCSusP9yjXmsVvQfcTbSSPcFuXDew"
+      }
+    }
+  },
   "closed": [
     {
       "symbol": "GWC",
@@ -67703,7 +67777,8 @@
     "CzK3wMBHMFzrdDdWqRr8i7Mcjh6QNzphTp9nJjSmpump": 1793000370.843502,
     "BEwvuL9EsEukMbETMcgRDJ2MVvVjTyEz4SAUxLuh2zL1": 1793002558.0678515,
     "9nD4xwTKJtEBacuEmZcv3LxvKZ5kpUdhm7j7DpwsNbfc": 1793003580.5201173,
-    "3P1CM6VJFrqPgewDgFvkJY1qrWR3tmsUT1AKkYbRpump": 1793011336.1314504
+    "3P1CM6VJFrqPgewDgFvkJY1qrWR3tmsUT1AKkYbRpump": 1793011336.1314504,
+    "JVtVUduUFx3HL3fA87YA77YDGn5iQoYDeDaLFNopump": 1793014056.0705519
   },
   "watch": {
     "5EUVUTweP2LBimfuKHbNxobj57GVkWrjw9UmkmMnzFWL": {
@@ -67763,5 +67838,5 @@
   },
   "runde": 3,
   "shadow": {},
-  "saved_at": 1793013982.3044505
+  "saved_at": 1793014057.7015696
 }
