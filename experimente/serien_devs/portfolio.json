@@ -1,8 +1,82 @@
 {
   "strategy": "EXPERIMENT_serien_devs",
   "started": "2026-10-04T00:34:10.471102+00:00",
-  "bankroll_sol": 1.503233,
-  "positions": {},
+  "bankroll_sol": 1.301733,
+  "positions": {
+    "3NvWgrT8swoLLHt26EpZsjXqJmB4HLj78HkKuTB1CX5T": {
+      "mint": "3NvWgrT8swoLLHt26EpZsjXqJmB4HLj78HkKuTB1CX5T",
+      "symbol": "JORKIN",
+      "opened": 1792988647.1007535,
+      "invested_sol": 0.2,
+      "fees_sol": 0.0015,
+      "entry_signal_usd": 1.7907384374260224e-05,
+      "entry_fill_usd": 1.7899337413793184e-05,
+      "entry_slippage_pct": -0.04,
+      "roundtrip_cost_pct": 2.98,
+      "tokens_initial": 1122791.776761,
+      "tokens_left": 1122791.776761,
+      "decimals": 6,
+      "proceeds_sol": 0.0,
+      "peak_usd": 1.7899337413793184e-05,
+      "tp1_done": false,
+      "thesis_breaks": 0,
+      "missing_loops": 0,
+      "entry_liquidity": 7618.273612651615,
+      "entry_view": {
+        "age_h": 0.2626716858148575,
+        "mcap": 17907.384374260222,
+        "liquidity": 7618.273612651615,
+        "holders": 314,
+        "holder_growth_1h": 630.2325581395348,
+        "holder_growth_5m": -5.9880239520958085,
+        "net_buyers_5m": 80,
+        "organic_buyers_5m": 0,
+        "organic_score": 0.0,
+        "price_change_1h": 318.1373077543032,
+        "price_change_5m": -14.332024008727878,
+        "buys_5m": 217,
+        "sells_5m": 190,
+        "traders_5m": 207,
+        "traders_1h": 767,
+        "buy_vol_5m": 4964.2255280339905,
+        "sell_vol_5m": 7014.222584000884,
+        "buy_vol_1h": 42167.47656426652,
+        "sell_vol_1h": 47292.5305094585,
+        "organic_buy_vol_1h": 1522.4742278975075,
+        "top_holders_pct": 24.657128162462502,
+        "dev_balance_pct": 0.0,
+        "dev_mints": 16939,
+        "launchpad": "pump.fun",
+        "graduated": false,
+        "social": true,
+        "quelle": "traded1h+traded5m",
+        "trades_24h": 3054,
+        "organic_label": "low",
+        "buy_organic_vol_5m": 14.149055753840853,
+        "jup_fees": null,
+        "hour_utc": 4
+      },
+      "bundle": {
+        "quelle": "experiment",
+        "text": "Serien-Dev: frueherer Coin CAPYBARA bis 933,065 $"
+      },
+      "phase": "normal",
+      "thesis": "Story verbreitet sich: Holder +630%/h, 80 Netto-Kaeufer 5m, 0 organisch; Serien-Dev: frueherer Coin CAPYBARA bis 933,065 $; Dev-Coins 16939",
+      "exit_rule": "Haelfte bei 2x; Rest raus, wenn Holder schrumpfen und Netto-Verkaeufer 2x in Folge, Liquiditaet -30%, -40%, nach 1,5x nicht unter Einstand, nach 2x 30 % vom Hoch (ab 10x 25 %)",
+      "mitlaeufer": null,
+      "solana_tracker": null,
+      "graduated": false,
+      "liq_low_checks": 0,
+      "dev_exit": true,
+      "dev_pct_kauf": 0.0,
+      "serien_vorgaenger": {
+        "symbol": "CAPYBARA",
+        "peak": 933065,
+        "zuerst": 1791433612,
+        "mint": "3xrw3JKyaSYjzksYc8nrZE1kReQAxoHT3epi3P1mpZVf"
+      }
+    }
+  },
   "closed": [
     {
       "symbol": "GWC",
@@ -67269,27 +67343,10 @@
     "5qDiSWLy5mXog6L5u1rZGwCerDN29X5tFtVBp8j5pump": 1792978290.2067647,
     "6iaMAnGphKAiXN7q1VkhL8YJsp7Qbg9r9j4ismC8pump": 1792979694.4239857,
     "G9VebqfyEKLP7BbdLC7wfni1thk2Q5h38pgUjzvRy7uk": 1792980884.937393,
-    "BZauEfvf2483384MS6okHUA2fe7tbM5bFZaCnj5zpump": 1792984344.418647
+    "BZauEfvf2483384MS6okHUA2fe7tbM5bFZaCnj5zpump": 1792984344.418647,
+    "3NvWgrT8swoLLHt26EpZsjXqJmB4HLj78HkKuTB1CX5T": 1792988647.101405
   },
   "watch": {
-    "DsySnSucgCjd1Mcih2pocvdvomEPiGf8cbFyW5afpump": {
-      "symbol": "GENNY",
-      "entry_fill_usd": 1.8557265820176995e-05,
-      "opened": 1792966232.2903905,
-      "peak_usd": 2.0419274057588698e-05,
-      "exit_usd": 1.1101801279151057e-05,
-      "exit_reason": "NOTBREMSE (-40%)",
-      "until": 1792988408.5332272
-    },
-    "57efDh62UeTXKidU6v9qhp8JUyGrgKiy2jB8twmpump": {
-      "symbol": "Spidoge",
-      "entry_fill_usd": 2.0246934549936203e-05,
-      "opened": 1792965961.903952,
-      "peak_usd": 8.81792106711786e-05,
-      "exit_usd": 3.2665837275049903e-05,
-      "exit_reason": "STORY_ABGEKUEHLT (30% unter dem Hoch von 2.5x)",
-      "until": 1792988578.90206
-    },
     "Ak7bfBEarCNptt3yFTvNMN2xHFKsH9RqtXk7putGpump": {
       "symbol": "KIMCHI",
       "entry_fill_usd": 9.711681439198535e-06,
@@ -67410,5 +67467,5 @@
   },
   "runde": 3,
   "shadow": {},
-  "saved_at": 1792988355.0356367
+  "saved_at": 1792988648.6423206
 }
