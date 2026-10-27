@@ -1,8 +1,82 @@
 {
   "strategy": "EXPERIMENT_serien_devs",
   "started": "2026-10-04T00:34:10.471102+00:00",
-  "bankroll_sol": 9.271006,
-  "positions": {},
+  "bankroll_sol": 9.069506,
+  "positions": {
+    "FwRpfeVuhW2TLF6fdAQfCSwE6wdS3g2WidPoz35Xpump": {
+      "mint": "FwRpfeVuhW2TLF6fdAQfCSwE6wdS3g2WidPoz35Xpump",
+      "symbol": "Mochimaru",
+      "opened": 1793069795.4778244,
+      "invested_sol": 0.2,
+      "fees_sol": 0.0015,
+      "entry_signal_usd": 1.4912082485772363e-05,
+      "entry_fill_usd": 1.5093442771917933e-05,
+      "entry_slippage_pct": 1.22,
+      "roundtrip_cost_pct": 3.97,
+      "tokens_initial": 1326355.667407,
+      "tokens_left": 1326355.667407,
+      "decimals": 6,
+      "proceeds_sol": 0.0,
+      "peak_usd": 1.5093442771917933e-05,
+      "tp1_done": false,
+      "thesis_breaks": 0,
+      "missing_loops": 0,
+      "entry_liquidity": 6959.349395903563,
+      "entry_view": {
+        "age_h": 0.8047418896357218,
+        "mcap": 14911.923651157193,
+        "liquidity": 6959.349395903563,
+        "holders": 116,
+        "holder_growth_1h": 96.61016949152543,
+        "holder_growth_5m": 17.17171717171717,
+        "net_buyers_5m": 44,
+        "organic_buyers_5m": 0,
+        "organic_score": 0.0,
+        "price_change_1h": 172.6605913549,
+        "price_change_5m": 32.21443276319235,
+        "buys_5m": 107,
+        "sells_5m": 90,
+        "traders_5m": 96,
+        "traders_1h": 534,
+        "buy_vol_5m": 7729.87590398973,
+        "sell_vol_5m": 7148.628195328884,
+        "buy_vol_1h": 34648.996708598446,
+        "sell_vol_1h": 35949.72692468711,
+        "organic_buy_vol_1h": 358.3773431917649,
+        "top_holders_pct": 24.067313870569045,
+        "dev_balance_pct": 0.0,
+        "dev_mints": 2293,
+        "launchpad": "pump.fun",
+        "graduated": false,
+        "social": true,
+        "quelle": "traded1h+traded5m+trend5m",
+        "trades_24h": 1664,
+        "organic_label": "low",
+        "buy_organic_vol_5m": 0.0,
+        "jup_fees": null,
+        "hour_utc": 2
+      },
+      "bundle": {
+        "quelle": "experiment",
+        "text": "Serien-Dev: frueherer Coin Machi bis 424,245 $"
+      },
+      "phase": "normal",
+      "thesis": "Story verbreitet sich: Holder +97%/h, 44 Netto-Kaeufer 5m, 0 organisch; Serien-Dev: frueherer Coin Machi bis 424,245 $; Dev-Coins 2293",
+      "exit_rule": "Haelfte bei 2x; Rest raus, wenn Holder schrumpfen und Netto-Verkaeufer 2x in Folge, Liquiditaet -30%, -40%, nach 1,5x nicht unter Einstand, nach 2x 30 % vom Hoch (ab 10x 25 %)",
+      "mitlaeufer": null,
+      "solana_tracker": null,
+      "graduated": false,
+      "liq_low_checks": 0,
+      "dev_exit": true,
+      "dev_pct_kauf": 0.0,
+      "serien_vorgaenger": {
+        "symbol": "Machi",
+        "peak": 424245,
+        "zuerst": 1791113383,
+        "mint": "ATBR4i19gcQ31Rfr7ymA2XvkCQEAkNFGBtVKTmdqpump"
+      }
+    }
+  },
   "closed": [
     {
       "symbol": "GWC",
@@ -70493,14 +70567,15 @@
     "9iwFdRxvSW5HEcffSLXnAHioA4UJ2TAqLgyri6Xwpump": 1793061551.0356164,
     "Fp4JkqEcKYKBKhb9iMu9NSDeo71HWgq2q9QtXaaKpump": 1793065315.9666834,
     "5z8QQsMjaCdWGpRcBBrn2rkjvBsajf8vpcjspExMpump": 1793065709.8068798,
-    "EKZGtEsT2VbXH6car15x2zMHyeiYkB28DvMnBZqRpump": 1793065833.8351781
+    "EKZGtEsT2VbXH6car15x2zMHyeiYkB28DvMnBZqRpump": 1793065833.8351781,
+    "FwRpfeVuhW2TLF6fdAQfCSwE6wdS3g2WidPoz35Xpump": 1793069795.4785225
   },
   "watch": {
     "51SfaAyrYaR8FpibXT4TXtxEpnZSNoDwYVRojtKupump": {
       "symbol": "Nothing",
       "entry_fill_usd": 8.454465878379016e-05,
       "opened": 1793049415.3784778,
-      "peak_usd": 0.0007643257531795839,
+      "peak_usd": 0.0007984202086501389,
       "exit_usd": 4.407451754253158e-05,
       "exit_reason": "NOTBREMSE (-48%)",
       "until": 1793071135.613153
@@ -70608,7 +70683,7 @@
       "symbol": "wiener",
       "entry_fill_usd": 2.2802239195524623e-05,
       "opened": 1793065833.8344402,
-      "peak_usd": 2.9495982658696e-05,
+      "peak_usd": 3.0387857411378366e-05,
       "exit_usd": 8.426342227990655e-06,
       "exit_reason": "NOTBREMSE (-63%)",
       "until": 1793087642.481717
@@ -70625,5 +70700,5 @@
   },
   "runde": 4,
   "shadow": {},
-  "saved_at": 1793069564.8177671
+  "saved_at": 1793069796.030707
 }
