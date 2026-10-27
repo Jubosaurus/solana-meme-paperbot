@@ -1,8 +1,82 @@
 {
   "strategy": "EXPERIMENT_serien_devs",
   "started": "2026-10-04T00:34:10.471102+00:00",
-  "bankroll_sol": 7.085838,
-  "positions": {},
+  "bankroll_sol": 6.884338,
+  "positions": {
+    "9i63FDzq2bkfVxdNA27vLBQ5tN1cWBDEjN9hST2FeTew": {
+      "mint": "9i63FDzq2bkfVxdNA27vLBQ5tN1cWBDEjN9hST2FeTew",
+      "symbol": "Frongus",
+      "opened": 1793128675.3699474,
+      "invested_sol": 0.2,
+      "fees_sol": 0.0015,
+      "entry_signal_usd": 2.5761300647228405e-05,
+      "entry_fill_usd": 2.6557381952504493e-05,
+      "entry_slippage_pct": 3.09,
+      "roundtrip_cost_pct": 5.65,
+      "tokens_initial": 760169.618733,
+      "tokens_left": 760169.618733,
+      "decimals": 6,
+      "proceeds_sol": 0.0,
+      "peak_usd": 2.6557381952504493e-05,
+      "tp1_done": false,
+      "thesis_breaks": 0,
+      "missing_loops": 0,
+      "entry_liquidity": 6156.0462966023915,
+      "entry_view": {
+        "age_h": 1.1112279305855433,
+        "mcap": 25761.056676325145,
+        "liquidity": 6156.0462966023915,
+        "holders": 131,
+        "holder_growth_1h": 28.431372549019606,
+        "holder_growth_5m": 61.72839506172839,
+        "net_buyers_5m": 86,
+        "organic_buyers_5m": 0,
+        "organic_score": 41.737984117867676,
+        "price_change_1h": 276.46655203711657,
+        "price_change_5m": 208.85150580099244,
+        "buys_5m": 123,
+        "sells_5m": 82,
+        "traders_5m": 101,
+        "traders_1h": 209,
+        "buy_vol_5m": 9772.069858704013,
+        "sell_vol_5m": 4889.286177048135,
+        "buy_vol_1h": 13932.762479616425,
+        "sell_vol_1h": 8941.275070510947,
+        "organic_buy_vol_1h": 239.45785981307256,
+        "top_holders_pct": 26.435361641566303,
+        "dev_balance_pct": 0.0,
+        "dev_mints": 4218,
+        "launchpad": "stonkfun",
+        "graduated": false,
+        "social": true,
+        "quelle": "organic1h+traded1h+traded5m+trend1h+trend5m",
+        "trades_24h": 2655,
+        "organic_label": "medium",
+        "buy_organic_vol_5m": 158.65409204632564,
+        "jup_fees": null,
+        "hour_utc": 19
+      },
+      "bundle": {
+        "quelle": "experiment",
+        "text": "Serien-Dev: frueherer Coin Frongus bis 781,022 $"
+      },
+      "phase": "normal",
+      "thesis": "Story verbreitet sich: Holder +28%/h, 86 Netto-Kaeufer 5m, 0 organisch; Serien-Dev: frueherer Coin Frongus bis 781,022 $; Dev-Coins 4218",
+      "exit_rule": "Haelfte bei 2x; Rest raus, wenn Holder schrumpfen und Netto-Verkaeufer 2x in Folge, Liquiditaet -30%, -40%, nach 1,5x nicht unter Einstand, nach 2x 30 % vom Hoch (ab 10x 25 %)",
+      "mitlaeufer": null,
+      "solana_tracker": null,
+      "graduated": false,
+      "liq_low_checks": 0,
+      "dev_exit": true,
+      "dev_pct_kauf": 0.0,
+      "serien_vorgaenger": {
+        "symbol": "Frongus",
+        "peak": 781022,
+        "zuerst": 1793128012,
+        "mint": "2BJDwUdMbnJhRRfhacFDjrDNhxUWdzE9H6LEND89pump"
+      }
+    }
+  },
   "closed": [
     {
       "symbol": "GWC",
@@ -72787,7 +72861,8 @@
     "5RvL4VWX6nduCt17P5k3FKJA8jo3wRkUZ29aHQThpump": 1793121193.7699091,
     "qaPb6QAhBozPZRno6cUpquNumuRLJrJYMsN7tHipump": 1793124576.3000069,
     "2j4iCzjv54siy96t6ySqGmatbhSwr4bmNRRzpJ8C9KBV": 1793125632.5429006,
-    "7vxaR4KfpDVrANa9bxcAWXMRMjCZJsduxyGcq5bGpump": 1793126403.6352816
+    "7vxaR4KfpDVrANa9bxcAWXMRMjCZJsduxyGcq5bGpump": 1793126403.6352816,
+    "9i63FDzq2bkfVxdNA27vLBQ5tN1cWBDEjN9hST2FeTew": 1793128675.3708494
   },
   "watch": {
     "89ngGGtJmmC73yQmpSAzMXSnCW1WB2QEEC1TeJMzkz11": {
@@ -72946,5 +73021,5 @@
   },
   "runde": 4,
   "shadow": {},
-  "saved_at": 1793128391.0478525
+  "saved_at": 1793128677.3498516
 }
