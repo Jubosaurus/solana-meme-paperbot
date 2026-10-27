@@ -1,8 +1,82 @@
 {
   "strategy": "EXPERIMENT_serien_devs",
   "started": "2026-10-04T00:34:10.471102+00:00",
-  "bankroll_sol": 7.641471,
-  "positions": {},
+  "bankroll_sol": 7.439971,
+  "positions": {
+    "HEWdkYEQVeCCm7a9GEp8ZuHSNP64orRgyQ42KyAnBAGS": {
+      "mint": "HEWdkYEQVeCCm7a9GEp8ZuHSNP64orRgyQ42KyAnBAGS",
+      "symbol": "LANA",
+      "opened": 1793116708.7365577,
+      "invested_sol": 0.2,
+      "fees_sol": 0.0015,
+      "entry_signal_usd": 6.991153624226687e-05,
+      "entry_fill_usd": 7.095310023353104e-05,
+      "entry_slippage_pct": 1.49,
+      "roundtrip_cost_pct": -2.01,
+      "tokens_initial": 284193.864233407,
+      "tokens_left": 284193.864233407,
+      "decimals": 9,
+      "proceeds_sol": 0.0,
+      "peak_usd": 7.095310023353104e-05,
+      "tp1_done": false,
+      "thesis_breaks": 0,
+      "missing_loops": 0,
+      "entry_liquidity": 10498.679877779234,
+      "entry_view": {
+        "age_h": 0.9293609233697255,
+        "mcap": 69911.53624226687,
+        "liquidity": 10498.679877779234,
+        "holders": 395,
+        "holder_growth_1h": 19650.0,
+        "holder_growth_5m": 406.4102564102564,
+        "net_buyers_5m": 208,
+        "organic_buyers_5m": 0,
+        "organic_score": 0.0,
+        "price_change_1h": 2142.1502004212643,
+        "price_change_5m": 201.73131931200382,
+        "buys_5m": 651,
+        "sells_5m": 452,
+        "traders_5m": 374,
+        "traders_1h": 500,
+        "buy_vol_5m": 41273.97741093468,
+        "sell_vol_5m": 36774.41928345093,
+        "buy_vol_1h": 57628.227561072614,
+        "sell_vol_1h": 47556.72270087635,
+        "organic_buy_vol_1h": 1065.1039552234872,
+        "top_holders_pct": 26.658784152933528,
+        "dev_balance_pct": 0.0,
+        "dev_mints": 192615,
+        "launchpad": "bags.fun",
+        "graduated": true,
+        "social": false,
+        "quelle": "traded1h+traded5m+trend1h+trend5m",
+        "trades_24h": 1534,
+        "organic_label": "low",
+        "buy_organic_vol_5m": 472.9425226154097,
+        "jup_fees": null,
+        "hour_utc": 15
+      },
+      "bundle": {
+        "quelle": "experiment",
+        "text": "Serien-Dev: frueherer Coin LORIA bis 2,869,479 $"
+      },
+      "phase": "normal",
+      "thesis": "Story verbreitet sich: Holder +19650%/h, 208 Netto-Kaeufer 5m, 0 organisch; Serien-Dev: frueherer Coin LORIA bis 2,869,479 $; Dev-Coins 192615",
+      "exit_rule": "Haelfte bei 2x; Rest raus, wenn Holder schrumpfen und Netto-Verkaeufer 2x in Folge, Liquiditaet -30%, -40%, nach 1,5x nicht unter Einstand, nach 2x 30 % vom Hoch (ab 10x 25 %)",
+      "mitlaeufer": null,
+      "solana_tracker": null,
+      "graduated": true,
+      "liq_low_checks": 0,
+      "dev_exit": true,
+      "dev_pct_kauf": 0.0,
+      "serien_vorgaenger": {
+        "symbol": "LORIA",
+        "peak": 2869479,
+        "zuerst": 1791113481,
+        "mint": "Gj4TowizfdkRJNsTgBEkj2WpBZZmGE7o9nN8q6RhBAGS"
+      }
+    }
+  },
   "closed": [
     {
       "symbol": "GWC",
@@ -72229,7 +72303,8 @@
     "GTY2zzTwF8Vy6UFMdFND83qH3vRLymUrK49qMVeLhyyc": 1793114857.8217404,
     "4d7PW4vsGcfvZVxmc87eQ9aAgWbdq8cqGQZWdMLgh2PS": 1793114861.1316288,
     "3SGJPK6m1shAU23hXdZrYXtiTfGviBeZLDNPqKH4kSPE": 1793115151.5820706,
-    "HxxgMeRaCcJFyL5K7XHoLuN3wB8SKS4rVvoUyHaKHrq8": 1793116207.5375032
+    "HxxgMeRaCcJFyL5K7XHoLuN3wB8SKS4rVvoUyHaKHrq8": 1793116207.5375032,
+    "HEWdkYEQVeCCm7a9GEp8ZuHSNP64orRgyQ42KyAnBAGS": 1793116708.737067
   },
   "watch": {
     "Cb25tqhpsErLPBTDDEkbdNBP17rpjRptcg1CuYP2x6iS": {
@@ -72352,5 +72427,5 @@
   },
   "runde": 4,
   "shadow": {},
-  "saved_at": 1793116608.9043317
+  "saved_at": 1793116710.3242486
 }
