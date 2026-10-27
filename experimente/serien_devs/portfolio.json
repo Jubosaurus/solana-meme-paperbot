@@ -1,8 +1,82 @@
 {
   "strategy": "EXPERIMENT_serien_devs",
   "started": "2026-10-04T00:34:10.471102+00:00",
-  "bankroll_sol": 8.68126,
-  "positions": {},
+  "bankroll_sol": 8.47976,
+  "positions": {
+    "Nwjeu8QowWv2VpQF8uDus2yUvWgDs2dTnfvuKNYSLEa": {
+      "mint": "Nwjeu8QowWv2VpQF8uDus2yUvWgDs2dTnfvuKNYSLEa",
+      "symbol": "MMGA",
+      "opened": 1793098797.3160343,
+      "invested_sol": 0.2,
+      "fees_sol": 0.0015,
+      "entry_signal_usd": 6.216206276865081e-05,
+      "entry_fill_usd": 5.905419553492325e-05,
+      "entry_slippage_pct": -5.0,
+      "roundtrip_cost_pct": 0.88,
+      "tokens_initial": 338111.694433,
+      "tokens_left": 338111.694433,
+      "decimals": 6,
+      "proceeds_sol": 0.0,
+      "peak_usd": 5.905419553492325e-05,
+      "tp1_done": false,
+      "thesis_breaks": 0,
+      "missing_loops": 0,
+      "entry_liquidity": 12520.608077452262,
+      "entry_view": {
+        "age_h": 0.25844538198577033,
+        "mcap": 59902.87522650607,
+        "liquidity": 12520.608077452262,
+        "holders": 709,
+        "holder_growth_1h": 425.18518518518516,
+        "holder_growth_5m": 10.43613707165109,
+        "net_buyers_5m": 182,
+        "organic_buyers_5m": 0,
+        "organic_score": 0.0,
+        "price_change_1h": 461.5072529919871,
+        "price_change_5m": 5.179845543409545,
+        "buys_5m": 428,
+        "sells_5m": 297,
+        "traders_5m": 330,
+        "traders_1h": 1127,
+        "buy_vol_5m": 12072.018938896661,
+        "sell_vol_5m": 11604.38569509957,
+        "buy_vol_1h": 86888.42684864035,
+        "sell_vol_1h": 73836.57285805354,
+        "organic_buy_vol_1h": 5844.692084117034,
+        "top_holders_pct": 18.826956608450885,
+        "dev_balance_pct": 0.0,
+        "dev_mints": 2900,
+        "launchpad": "raydium-launchlab",
+        "graduated": true,
+        "social": true,
+        "quelle": "traded1h+traded5m+trend1h+trend5m",
+        "trades_24h": 3918,
+        "organic_label": "low",
+        "buy_organic_vol_5m": 974.4497690402127,
+        "jup_fees": null,
+        "hour_utc": 10
+      },
+      "bundle": {
+        "quelle": "experiment",
+        "text": "Serien-Dev: frueherer Coin LAUNCH bis 3,937,202 $"
+      },
+      "phase": "normal",
+      "thesis": "Story verbreitet sich: Holder +425%/h, 182 Netto-Kaeufer 5m, 0 organisch; Serien-Dev: frueherer Coin LAUNCH bis 3,937,202 $; Dev-Coins 2900",
+      "exit_rule": "Haelfte bei 2x; Rest raus, wenn Holder schrumpfen und Netto-Verkaeufer 2x in Folge, Liquiditaet -30%, -40%, nach 1,5x nicht unter Einstand, nach 2x 30 % vom Hoch (ab 10x 25 %)",
+      "mitlaeufer": null,
+      "solana_tracker": null,
+      "graduated": true,
+      "liq_low_checks": 0,
+      "dev_exit": true,
+      "dev_pct_kauf": 0.0,
+      "serien_vorgaenger": {
+        "symbol": "LAUNCH",
+        "peak": 3937202,
+        "zuerst": 1792945676,
+        "mint": "AhBidGAgv6QbKSWfrSCegGrzFLcBx4E5FNYTKHNQQj6C"
+      }
+    }
+  },
   "closed": [
     {
       "symbol": "GWC",
@@ -71485,18 +71559,10 @@
     "7rkfsCSDbeTQPgNWaFUFdpkbsLX86kGWqR79pczpump": 1793089349.6530282,
     "Hqni8pYDuwytkdysYautBGy71bPwpQstvMoUgpCApdEy": 1793091519.4808784,
     "3RkcTGVXFPGEYFCEKiMXemraJrDah5fcU4o9pNNgHjk7": 1793093114.2619524,
-    "Cb25tqhpsErLPBTDDEkbdNBP17rpjRptcg1CuYP2x6iS": 1793096768.0752435
+    "Cb25tqhpsErLPBTDDEkbdNBP17rpjRptcg1CuYP2x6iS": 1793096768.0752435,
+    "Nwjeu8QowWv2VpQF8uDus2yUvWgDs2dTnfvuKNYSLEa": 1793098797.316819
   },
   "watch": {
-    "2dTEDPpbSLGiYmwVrbzAYCgRe3bjf6STB7H9UrXUHDUK": {
-      "symbol": "SC",
-      "entry_fill_usd": 9.106790795755617e-06,
-      "opened": 1793076682.0588639,
-      "peak_usd": 9.93538015838613e-06,
-      "exit_usd": 5.2457576685078835e-06,
-      "exit_reason": "NOTBREMSE (-42%)",
-      "until": 1793098690.1964977
-    },
     "GVKcQQurZKZxV2pQG5MvkCnuMxgqTiup3d1azCiCpump": {
       "symbol": "ELUN",
       "entry_fill_usd": 4.365878797895952e-05,
@@ -71599,5 +71665,5 @@
   },
   "runde": 4,
   "shadow": {},
-  "saved_at": 1793098567.9357598
+  "saved_at": 1793098799.0316997
 }
