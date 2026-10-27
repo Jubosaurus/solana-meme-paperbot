@@ -1,8 +1,82 @@
 {
   "strategy": "EXPERIMENT_serien_devs",
   "started": "2026-10-04T00:34:10.471102+00:00",
-  "bankroll_sol": 8.766209,
-  "positions": {},
+  "bankroll_sol": 8.564709,
+  "positions": {
+    "Cb25tqhpsErLPBTDDEkbdNBP17rpjRptcg1CuYP2x6iS": {
+      "mint": "Cb25tqhpsErLPBTDDEkbdNBP17rpjRptcg1CuYP2x6iS",
+      "symbol": "ANYTHING",
+      "opened": 1793096768.0744488,
+      "invested_sol": 0.2,
+      "fees_sol": 0.0015,
+      "entry_signal_usd": 1.8473569145640906e-05,
+      "entry_fill_usd": 1.720600160710671e-05,
+      "entry_slippage_pct": -6.86,
+      "roundtrip_cost_pct": 3.17,
+      "tokens_initial": 1152975.288899,
+      "tokens_left": 1152975.288899,
+      "decimals": 6,
+      "proceeds_sol": 0.0,
+      "peak_usd": 1.720600160710671e-05,
+      "tp1_done": false,
+      "thesis_breaks": 0,
+      "missing_loops": 0,
+      "entry_liquidity": 5745.67885304213,
+      "entry_view": {
+        "age_h": 1.3644516381952498,
+        "mcap": 18473.477699934305,
+        "liquidity": 5745.67885304213,
+        "holders": 503,
+        "holder_growth_1h": 99.60317460317461,
+        "holder_growth_5m": -13.126079447322972,
+        "net_buyers_5m": 39,
+        "organic_buyers_5m": 11,
+        "organic_score": 54.76774195498907,
+        "price_change_1h": -13.34740501829201,
+        "price_change_5m": -40.629176996263496,
+        "buys_5m": 68,
+        "sells_5m": 108,
+        "traders_5m": 126,
+        "traders_1h": 1313,
+        "buy_vol_5m": 1403.0064763668029,
+        "sell_vol_5m": 2944.4602859263664,
+        "buy_vol_1h": 79793.9617067401,
+        "sell_vol_1h": 77089.2249542951,
+        "organic_buy_vol_1h": 3534.4583677952933,
+        "top_holders_pct": 21.488758666920177,
+        "dev_balance_pct": 0.0,
+        "dev_mints": 2821,
+        "launchpad": "raydium-launchlab",
+        "graduated": true,
+        "social": true,
+        "quelle": "organic1h+organic5m+traded1h+traded5m",
+        "trades_24h": 6121,
+        "organic_label": "medium",
+        "buy_organic_vol_5m": 62.778331664640206,
+        "jup_fees": null,
+        "hour_utc": 10
+      },
+      "bundle": {
+        "quelle": "experiment",
+        "text": "Serien-Dev: frueherer Coin LAUNCH bis 3,937,202 $"
+      },
+      "phase": "normal",
+      "thesis": "Story verbreitet sich: Holder +100%/h, 39 Netto-Kaeufer 5m, 11 organisch; Serien-Dev: frueherer Coin LAUNCH bis 3,937,202 $; Dev-Coins 2821",
+      "exit_rule": "Haelfte bei 2x; Rest raus, wenn Holder schrumpfen und Netto-Verkaeufer 2x in Folge, Liquiditaet -30%, -40%, nach 1,5x nicht unter Einstand, nach 2x 30 % vom Hoch (ab 10x 25 %)",
+      "mitlaeufer": null,
+      "solana_tracker": null,
+      "graduated": true,
+      "liq_low_checks": 0,
+      "dev_exit": true,
+      "dev_pct_kauf": 0.0,
+      "serien_vorgaenger": {
+        "symbol": "LAUNCH",
+        "peak": 3937202,
+        "zuerst": 1792945676,
+        "mint": "AhBidGAgv6QbKSWfrSCegGrzFLcBx4E5FNYTKHNQQj6C"
+      }
+    }
+  },
   "closed": [
     {
       "symbol": "GWC",
@@ -71423,7 +71497,8 @@
     "CyXDdjGUeV1nGzzr4g9octqkJNcqC19DD1gmfVq5hjrH": 1793088509.966093,
     "7rkfsCSDbeTQPgNWaFUFdpkbsLX86kGWqR79pczpump": 1793089349.6530282,
     "Hqni8pYDuwytkdysYautBGy71bPwpQstvMoUgpCApdEy": 1793091519.4808784,
-    "3RkcTGVXFPGEYFCEKiMXemraJrDah5fcU4o9pNNgHjk7": 1793093114.2619524
+    "3RkcTGVXFPGEYFCEKiMXemraJrDah5fcU4o9pNNgHjk7": 1793093114.2619524,
+    "Cb25tqhpsErLPBTDDEkbdNBP17rpjRptcg1CuYP2x6iS": 1793096768.0752435
   },
   "watch": {
     "2dTEDPpbSLGiYmwVrbzAYCgRe3bjf6STB7H9UrXUHDUK": {
@@ -71511,7 +71586,7 @@
       "symbol": "OC",
       "entry_fill_usd": 0.0001450353714616874,
       "opened": 1793088509.9654405,
-      "peak_usd": 0.0003933507151949766,
+      "peak_usd": 0.00041441507363149143,
       "exit_usd": 0.0001710237478048254,
       "exit_reason": "STORY_ABGEKUEHLT (30% unter dem Hoch von 2.1x)",
       "until": 1793113825.0985382
@@ -71528,5 +71603,5 @@
   },
   "runde": 4,
   "shadow": {},
-  "saved_at": 1793096572.7485006
+  "saved_at": 1793096769.741372
 }
