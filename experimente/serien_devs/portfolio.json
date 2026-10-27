@@ -1,8 +1,82 @@
 {
   "strategy": "EXPERIMENT_serien_devs",
   "started": "2026-10-04T00:34:10.471102+00:00",
-  "bankroll_sol": 8.552506,
-  "positions": {},
+  "bankroll_sol": 8.351006,
+  "positions": {
+    "2TPu1iQQqvC4DSGixJdZgfkpjSgeWsBNciBNMW4bpump": {
+      "mint": "2TPu1iQQqvC4DSGixJdZgfkpjSgeWsBNciBNMW4bpump",
+      "symbol": "Koyuri-ko",
+      "opened": 1793104869.7412097,
+      "invested_sol": 0.2,
+      "fees_sol": 0.0015,
+      "entry_signal_usd": 1.0734772932696418e-05,
+      "entry_fill_usd": 1.3384807743311574e-05,
+      "entry_slippage_pct": 24.69,
+      "roundtrip_cost_pct": 3.0,
+      "tokens_initial": 1503701.675091,
+      "tokens_left": 1503701.675091,
+      "decimals": 6,
+      "proceeds_sol": 0.0,
+      "peak_usd": 1.3384807743311574e-05,
+      "tp1_done": false,
+      "thesis_breaks": 0,
+      "missing_loops": 0,
+      "entry_liquidity": 5925.798489180268,
+      "entry_view": {
+        "age_h": 0.5068881642818451,
+        "mcap": 10734.772932696418,
+        "liquidity": 5925.798489180268,
+        "holders": 99,
+        "holder_growth_1h": 30.263157894736842,
+        "holder_growth_5m": 23.75,
+        "net_buyers_5m": 37,
+        "organic_buyers_5m": 4,
+        "organic_score": 40.77481948747308,
+        "price_change_1h": 36.13483013242569,
+        "price_change_5m": 47.71536703695925,
+        "buys_5m": 73,
+        "sells_5m": 43,
+        "traders_5m": 67,
+        "traders_1h": 502,
+        "buy_vol_5m": 3120.9815353368535,
+        "sell_vol_5m": 2969.691025715695,
+        "buy_vol_1h": 36949.27272721662,
+        "sell_vol_1h": 39199.5220381906,
+        "organic_buy_vol_1h": 1880.784126019129,
+        "top_holders_pct": 24.2342039929555,
+        "dev_balance_pct": 0.0,
+        "dev_mints": 4342,
+        "launchpad": "pump.fun",
+        "graduated": false,
+        "social": true,
+        "quelle": "organic5m",
+        "trades_24h": 1835,
+        "organic_label": "medium",
+        "buy_organic_vol_5m": 0.0,
+        "jup_fees": null,
+        "hour_utc": 12
+      },
+      "bundle": {
+        "quelle": "experiment",
+        "text": "Serien-Dev: frueherer Coin JITI bis 417,190 $"
+      },
+      "phase": "normal",
+      "thesis": "Story verbreitet sich: Holder +30%/h, 37 Netto-Kaeufer 5m, 4 organisch; Serien-Dev: frueherer Coin JITI bis 417,190 $; Dev-Coins 4342",
+      "exit_rule": "Haelfte bei 2x; Rest raus, wenn Holder schrumpfen und Netto-Verkaeufer 2x in Folge, Liquiditaet -30%, -40%, nach 1,5x nicht unter Einstand, nach 2x 30 % vom Hoch (ab 10x 25 %)",
+      "mitlaeufer": null,
+      "solana_tracker": null,
+      "graduated": false,
+      "liq_low_checks": 0,
+      "dev_exit": true,
+      "dev_pct_kauf": 0.0,
+      "serien_vorgaenger": {
+        "symbol": "JITI",
+        "peak": 417190,
+        "zuerst": 1791208418,
+        "mint": "6YuVyHbjdwxiH1CLCSusP9yjXmsVvQfcTbSSPcFuXDew"
+      }
+    }
+  },
   "closed": [
     {
       "symbol": "GWC",
@@ -71609,7 +71683,8 @@
     "3RkcTGVXFPGEYFCEKiMXemraJrDah5fcU4o9pNNgHjk7": 1793093114.2619524,
     "Cb25tqhpsErLPBTDDEkbdNBP17rpjRptcg1CuYP2x6iS": 1793096768.0752435,
     "Nwjeu8QowWv2VpQF8uDus2yUvWgDs2dTnfvuKNYSLEa": 1793098797.316819,
-    "5WEk3YAKn6ESKbgTdGcQr8FeDTYhnCaH3Ur7sifEpump": 1793104106.3548572
+    "5WEk3YAKn6ESKbgTdGcQr8FeDTYhnCaH3Ur7sifEpump": 1793104106.3548572,
+    "2TPu1iQQqvC4DSGixJdZgfkpjSgeWsBNciBNMW4bpump": 1793104869.741713
   },
   "watch": {
     "49Z7uMK8U6F67t7RtU2feeWYTRrUYnnjxKBuR2Mx4JB2": {
@@ -71696,5 +71771,5 @@
   },
   "runde": 4,
   "shadow": {},
-  "saved_at": 1793104774.0558765
+  "saved_at": 1793104871.4704337
 }
