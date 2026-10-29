@@ -1,7 +1,7 @@
 {
   "strategy": "EXPERIMENT_serien_devs",
   "started": "2026-10-04T00:34:10.471102+00:00",
-  "bankroll_sol": 3.74948,
+  "bankroll_sol": 3.54798,
   "positions": {
     "8P5tuW5BMyz8PzT4HJymSgDVRj9XzVhYABhE6ibPpump": {
       "mint": "8P5tuW5BMyz8PzT4HJymSgDVRj9XzVhYABhE6ibPpump",
@@ -75,7 +75,80 @@
         "zuerst": 1792320116,
         "mint": "3A3qjns31YZA6Ung91ZpoPD7J3p1bDFbTJ4ANFAPpump"
       },
-      "flug_last": 1793296296.951697
+      "flug_last": 1793296367.408246
+    },
+    "CEQnejxG1FPzMS6UiLbcxNiMKrZM3x6GTZucpJoSeByy": {
+      "mint": "CEQnejxG1FPzMS6UiLbcxNiMKrZM3x6GTZucpJoSeByy",
+      "symbol": "ICE",
+      "opened": 1793296435.697689,
+      "invested_sol": 0.2,
+      "fees_sol": 0.0015,
+      "entry_signal_usd": 164.21402365796322,
+      "entry_fill_usd": 164.5640023750556,
+      "entry_slippage_pct": 0.21,
+      "roundtrip_cost_pct": 0.26,
+      "tokens_initial": 0.122439,
+      "tokens_left": 0.122439,
+      "decimals": 6,
+      "proceeds_sol": 0.0,
+      "peak_usd": 164.5640023750556,
+      "tp1_done": false,
+      "thesis_breaks": 0,
+      "missing_loops": 0,
+      "entry_liquidity": 72834.22276178165,
+      "entry_view": {
+        "age_h": 0.4371177423000336,
+        "mcap": 134607.4684397501,
+        "liquidity": 72834.22276178165,
+        "holders": 326,
+        "holder_growth_1h": 32500.0,
+        "holder_growth_5m": 13.986013986013987,
+        "net_buyers_5m": 105,
+        "organic_buyers_5m": 0,
+        "organic_score": 0.0,
+        "price_change_1h": -5.154861683247185,
+        "price_change_5m": 0.051541872276781434,
+        "buys_5m": 556,
+        "sells_5m": 550,
+        "traders_5m": 324,
+        "traders_1h": 2841,
+        "buy_vol_5m": 36789.008573626634,
+        "sell_vol_5m": 35113.2524036806,
+        "buy_vol_1h": 1118063.974432722,
+        "sell_vol_1h": 1324547.3607372066,
+        "organic_buy_vol_1h": 30674.57940160381,
+        "top_holders_pct": 11.302669289927573,
+        "dev_balance_pct": 0.0,
+        "dev_mints": 1146,
+        "launchpad": null,
+        "graduated": false,
+        "social": false,
+        "quelle": "traded1h+traded5m+trend5m",
+        "trades_24h": 28381,
+        "organic_label": "low",
+        "buy_organic_vol_5m": 725.2392908589732,
+        "jup_fees": null,
+        "hour_utc": 17
+      },
+      "bundle": {
+        "quelle": "experiment",
+        "text": "Serien-Dev: frueherer Coin DJT bis 1,798,933 $"
+      },
+      "phase": "heiss",
+      "thesis": "Story verbreitet sich: Holder +32500%/h, 105 Netto-Kaeufer 5m, 0 organisch; Serien-Dev: frueherer Coin DJT bis 1,798,933 $; Dev-Coins 1146",
+      "exit_rule": "Haelfte bei 2x; Rest raus, wenn Holder schrumpfen und Netto-Verkaeufer 2x in Folge, Liquiditaet -30%, -40%, nach 1,5x nicht unter Einstand, nach 2x 30 % vom Hoch (ab 10x 25 %)",
+      "mitlaeufer": null,
+      "solana_tracker": null,
+      "graduated": false,
+      "liq_low_checks": 0,
+      "dev_exit": true,
+      "dev_pct_kauf": 0.0,
+      "serien_vorgaenger": {
+        "symbol": "DJT",
+        "peak": 1798933,
+        "zuerst": 1791074049,
+        "mint": "DJTu7vi8norVzdVAffgvb39VP7wjKeTsgaMBJrzfxvoF"
+      }
     }
   },
   "closed": [
@@ -79063,7 +79136,8 @@
     "62iAxMrfUcesM6SUm5D1sV1cnrNmdPyYsxF5rQHUpump": 1793291458.5114295,
     "7yJ5EJTsDCwtMjxzd3DXVR891SqnXCUxbZjs5zrdpump": 1793293097.807202,
     "8P5tuW5BMyz8PzT4HJymSgDVRj9XzVhYABhE6ibPpump": 1793295070.3087096,
-    "HGPXxvbffcGgV98qvqbCi8hz6bKoS7naEDqt4VFZpump": 1793295459.7541087
+    "HGPXxvbffcGgV98qvqbCi8hz6bKoS7naEDqt4VFZpump": 1793295459.7541087,
+    "CEQnejxG1FPzMS6UiLbcxNiMKrZM3x6GTZucpJoSeByy": 1793296435.6987205
   },
   "watch": {
     "57vAaMsnAJXkvULtAz7fsi6gRn3bHRJFJsJV1okNpump": {
@@ -79133,7 +79207,7 @@
       "symbol": "Leverage",
       "entry_fill_usd": 2.448784950358644e-05,
       "opened": 1793295459.7531188,
-      "peak_usd": 2.6574188741094653e-05,
+      "peak_usd": 3.182560249899437e-05,
       "exit_usd": 1.109438821987281e-05,
       "exit_reason": "NOTBREMSE (-55%)",
       "until": 1793317282.7266061
@@ -79141,5 +79215,5 @@
   },
   "runde": 4,
   "shadow": {},
-  "saved_at": 1793296313.8743248
+  "saved_at": 1793296437.444017
 }
