@@ -1,7 +1,7 @@
 {
   "strategy": "EXPERIMENT_serien_devs",
   "started": "2026-10-04T00:34:10.471102+00:00",
-  "bankroll_sol": 3.714688,
+  "bankroll_sol": 3.513188,
   "positions": {
     "9hsUf4d21CpjLs6FNdxQosSEUnoT4SqLyUAjqGESKgG7": {
       "mint": "9hsUf4d21CpjLs6FNdxQosSEUnoT4SqLyUAjqGESKgG7",
@@ -17,7 +17,7 @@
       "tokens_left": 385701.466864,
       "decimals": 6,
       "proceeds_sol": 0.0,
-      "peak_usd": 5.1128662792137616e-05,
+      "peak_usd": 5.216633422838057e-05,
       "tp1_done": false,
       "thesis_breaks": 0,
       "missing_loops": 0,
@@ -62,6 +62,80 @@
       },
       "phase": "normal",
       "thesis": "Story verbreitet sich: Holder +1744%/h, 238 Netto-Kaeufer 5m, 0 organisch; Serien-Dev: frueherer Coin CLAUDIA bis 11,079,320 $; Dev-Coins 178066",
+      "exit_rule": "Haelfte bei 2x; Rest raus, wenn Holder schrumpfen und Netto-Verkaeufer 2x in Folge, Liquiditaet -30%, -40%, nach 1,5x nicht unter Einstand, nach 2x 30 % vom Hoch (ab 10x 25 %)",
+      "mitlaeufer": null,
+      "solana_tracker": null,
+      "graduated": true,
+      "liq_low_checks": 0,
+      "dev_exit": true,
+      "dev_pct_kauf": 0.0,
+      "serien_vorgaenger": {
+        "symbol": "CLAUDIA",
+        "peak": 11079320,
+        "zuerst": 1791342484,
+        "mint": "2j5SaS7xy776qCBpyPQbZjyQSAtKiFgrwjfErthnW2ZM"
+      },
+      "flug_last": 1793304722.4707797
+    },
+    "GmksAq1EZ6u1eVoTmQCkRuHKCcStQ7b16vtNZDy7M1dq": {
+      "mint": "GmksAq1EZ6u1eVoTmQCkRuHKCcStQ7b16vtNZDy7M1dq",
+      "symbol": "\ud83d\udd96",
+      "opened": 1793304732.5411878,
+      "invested_sol": 0.2,
+      "fees_sol": 0.0015,
+      "entry_signal_usd": 3.695885199966256e-05,
+      "entry_fill_usd": 3.59821443724277e-05,
+      "entry_slippage_pct": -2.64,
+      "roundtrip_cost_pct": 2.94,
+      "tokens_initial": 548464.838154,
+      "tokens_left": 548464.838154,
+      "decimals": 6,
+      "proceeds_sol": 0.0,
+      "peak_usd": 3.59821443724277e-05,
+      "tp1_done": false,
+      "thesis_breaks": 0,
+      "missing_loops": 0,
+      "entry_liquidity": 6515.203826535329,
+      "entry_view": {
+        "age_h": 0.26346410546037885,
+        "mcap": 35512.48898210232,
+        "liquidity": 6515.203826535329,
+        "holders": 370,
+        "holder_growth_1h": 428.57142857142856,
+        "holder_growth_5m": -5.612244897959184,
+        "net_buyers_5m": 78,
+        "organic_buyers_5m": 0,
+        "organic_score": 0.0,
+        "price_change_1h": 570.0084324345066,
+        "price_change_5m": 35.548490511521074,
+        "buys_5m": 181,
+        "sells_5m": 184,
+        "traders_5m": 187,
+        "traders_1h": 1633,
+        "buy_vol_5m": 11745.93719068886,
+        "sell_vol_5m": 10747.550540562728,
+        "buy_vol_1h": 174300.30532839193,
+        "sell_vol_1h": 170640.06654556454,
+        "organic_buy_vol_1h": 2712.136582334905,
+        "top_holders_pct": 22.01202200027783,
+        "dev_balance_pct": 0.0,
+        "dev_mints": 178068,
+        "launchpad": "pump.fun",
+        "graduated": true,
+        "social": true,
+        "quelle": "traded1h+traded5m+trend1h+trend5m",
+        "trades_24h": 7318,
+        "organic_label": "low",
+        "buy_organic_vol_5m": 17.20712134023454,
+        "jup_fees": null,
+        "hour_utc": 20
+      },
+      "bundle": {
+        "quelle": "experiment",
+        "text": "Serien-Dev: frueherer Coin CLAUDIA bis 11,079,320 $"
+      },
+      "phase": "normal",
+      "thesis": "Story verbreitet sich: Holder +429%/h, 78 Netto-Kaeufer 5m, 0 organisch; Serien-Dev: frueherer Coin CLAUDIA bis 11,079,320 $; Dev-Coins 178068",
       "exit_rule": "Haelfte bei 2x; Rest raus, wenn Holder schrumpfen und Netto-Verkaeufer 2x in Folge, Liquiditaet -30%, -40%, nach 1,5x nicht unter Einstand, nach 2x 30 % vom Hoch (ab 10x 25 %)",
       "mitlaeufer": null,
       "solana_tracker": null,
@@ -79372,7 +79446,8 @@
     "3ppdhqiqoU3RCHsuSbnhTMCrMbgwHMsYpYsUxA8RkpeW": 1793296548.2521927,
     "9m4cN1BZKobv6JkoDkemTdRvjJaJ9UuYvyVT85Cepump": 1793299081.8676853,
     "GozXFUVjxtTMVfF1HRAE9difXDLcciemgsJ2i5u1X6UJ": 1793302232.183553,
-    "9hsUf4d21CpjLs6FNdxQosSEUnoT4SqLyUAjqGESKgG7": 1793304626.1439888
+    "9hsUf4d21CpjLs6FNdxQosSEUnoT4SqLyUAjqGESKgG7": 1793304626.1439888,
+    "GmksAq1EZ6u1eVoTmQCkRuHKCcStQ7b16vtNZDy7M1dq": 1793304732.542261
   },
   "watch": {
     "ABkr21iDncsKabf4CVfXuvkUjCWQkJszGyASL9M7pump": {
@@ -79477,5 +79552,5 @@
   },
   "runde": 4,
   "shadow": {},
-  "saved_at": 1793304627.8033912
+  "saved_at": 1793304734.2034643
 }
