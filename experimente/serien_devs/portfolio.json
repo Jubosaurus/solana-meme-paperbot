@@ -1,8 +1,82 @@
 {
   "strategy": "EXPERIMENT_serien_devs",
   "started": "2026-10-04T00:34:10.471102+00:00",
-  "bankroll_sol": 5.147798,
-  "positions": {},
+  "bankroll_sol": 4.946298,
+  "positions": {
+    "4iPJyvV4PcFtoWHuy6MLo2ynrQ8GkxqvMoehKzVFKhDJ": {
+      "mint": "4iPJyvV4PcFtoWHuy6MLo2ynrQ8GkxqvMoehKzVFKhDJ",
+      "symbol": "CLYDEFROG",
+      "opened": 1793235457.7451148,
+      "invested_sol": 0.2,
+      "fees_sol": 0.0015,
+      "entry_signal_usd": 2.0963929260698866e-05,
+      "entry_fill_usd": 2.120221654744714e-05,
+      "entry_slippage_pct": 1.14,
+      "roundtrip_cost_pct": 2.94,
+      "tokens_initial": 960122.377508,
+      "tokens_left": 960122.377508,
+      "decimals": 6,
+      "proceeds_sol": 0.0,
+      "peak_usd": 2.120221654744714e-05,
+      "tp1_done": false,
+      "thesis_breaks": 0,
+      "missing_loops": 0,
+      "entry_liquidity": 8320.338258333239,
+      "entry_view": {
+        "age_h": 0.4074489468998379,
+        "mcap": 20951.19239296955,
+        "liquidity": 8320.338258333239,
+        "holders": 101,
+        "holder_growth_1h": 405.0,
+        "holder_growth_5m": 288.46153846153845,
+        "net_buyers_5m": 82,
+        "organic_buyers_5m": 0,
+        "organic_score": 0.0,
+        "price_change_1h": 79.81925697789988,
+        "price_change_5m": 452.3696838679341,
+        "buys_5m": 260,
+        "sells_5m": 173,
+        "traders_5m": 140,
+        "traders_1h": 590,
+        "buy_vol_5m": 13376.17512682564,
+        "sell_vol_5m": 10733.827533007709,
+        "buy_vol_1h": 67645.78923996718,
+        "sell_vol_1h": 71243.8808362806,
+        "organic_buy_vol_1h": 838.7893130177449,
+        "top_holders_pct": 22.4193714420052,
+        "dev_balance_pct": 0.0,
+        "dev_mints": 17212,
+        "launchpad": "pump.fun",
+        "graduated": false,
+        "social": true,
+        "quelle": "traded1h+traded5m+trend5m",
+        "trades_24h": 2781,
+        "organic_label": "low",
+        "buy_organic_vol_5m": 408.4776707908208,
+        "jup_fees": null,
+        "hour_utc": 0
+      },
+      "bundle": {
+        "quelle": "experiment",
+        "text": "Serien-Dev: frueherer Coin CAPYBARA bis 933,065 $"
+      },
+      "phase": "heiss",
+      "thesis": "Story verbreitet sich: Holder +405%/h, 82 Netto-Kaeufer 5m, 0 organisch; Serien-Dev: frueherer Coin CAPYBARA bis 933,065 $; Dev-Coins 17212",
+      "exit_rule": "Haelfte bei 2x; Rest raus, wenn Holder schrumpfen und Netto-Verkaeufer 2x in Folge, Liquiditaet -30%, -40%, nach 1,5x nicht unter Einstand, nach 2x 30 % vom Hoch (ab 10x 25 %)",
+      "mitlaeufer": null,
+      "solana_tracker": null,
+      "graduated": false,
+      "liq_low_checks": 0,
+      "dev_exit": true,
+      "dev_pct_kauf": 0.0,
+      "serien_vorgaenger": {
+        "symbol": "CAPYBARA",
+        "peak": 933065,
+        "zuerst": 1791433612,
+        "mint": "3xrw3JKyaSYjzksYc8nrZE1kReQAxoHT3epi3P1mpZVf"
+      }
+    }
+  },
   "closed": [
     {
       "symbol": "GWC",
@@ -77313,7 +77387,8 @@
     "Ge83QkAQbSqkDQ5iVh4aYcDARZKY6oUWFjFdVebppump": 1793225092.6957896,
     "DPe74dTCW7aFSCwCK4ZFWJJ4BL7uVJ9i4P58VUWJpump": 1793228942.7458587,
     "7AxJJTaJumkDRCJNz4n8ixobaPjrmL6GmxexuJKDpump": 1793234030.8680253,
-    "4yoNz9QvFoX47GcL1ZnBF8iwEVK69WRiAytxBLbYpump": 1793234885.1494532
+    "4yoNz9QvFoX47GcL1ZnBF8iwEVK69WRiAytxBLbYpump": 1793234885.1494532,
+    "4iPJyvV4PcFtoWHuy6MLo2ynrQ8GkxqvMoehKzVFKhDJ": 1793235457.7458317
   },
   "watch": {
     "DAePtSmz3ZgsdQCdF1s7LnMsM3eHF5WqQRMM2BAapump": {
@@ -77436,5 +77511,5 @@
   },
   "runde": 4,
   "shadow": {},
-  "saved_at": 1793235277.3389864
+  "saved_at": 1793235459.4350612
 }
