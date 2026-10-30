@@ -1,7 +1,7 @@
 {
   "strategy": "EXPERIMENT_serien_devs",
   "started": "2026-10-04T00:34:10.471102+00:00",
-  "bankroll_sol": 3.325499,
+  "bankroll_sol": 3.563222,
   "positions": {
     "C31uUcfLGPpQDHHieNtDkSWvp4PhNxeSs81cFQFdZVUQ": {
       "mint": "C31uUcfLGPpQDHHieNtDkSWvp4PhNxeSs81cFQFdZVUQ",
@@ -17,7 +17,7 @@
       "tokens_left": 332045.909279,
       "decimals": 6,
       "proceeds_sol": 0.0,
-      "peak_usd": 6.583468369412678e-05,
+      "peak_usd": 8.237429773420896e-05,
       "tp1_done": false,
       "thesis_breaks": 0,
       "missing_loops": 0,
@@ -75,27 +75,27 @@
         "zuerst": 1793139266,
         "mint": "2gLhk8p2KvUFeUXur2hiF4hxjdRM1vBcbgo9Q7DMZfiw"
       },
-      "flug_last": 1793327662.9660203
+      "flug_last": 1793327923.2346778
     },
     "893vJcLg8GssiMQuJ5iY28E7kAoVZnBNXmJHzTmKqCes": {
       "mint": "893vJcLg8GssiMQuJ5iY28E7kAoVZnBNXmJHzTmKqCes",
       "symbol": "OV",
       "opened": 1793327453.7610447,
       "invested_sol": 0.2,
-      "fees_sol": 0.0015,
+      "fees_sol": 0.003,
       "entry_signal_usd": 2.1936593900589062e-05,
       "entry_fill_usd": 2.218459341530252e-05,
       "entry_slippage_pct": 1.13,
       "roundtrip_cost_pct": 2.42,
       "tokens_initial": 856077.963337,
-      "tokens_left": 856077.963337,
+      "tokens_left": 428038.9816685,
       "decimals": 6,
-      "proceeds_sol": 0.0,
-      "peak_usd": 2.9688044018932333e-05,
-      "tp1_done": false,
+      "proceeds_sol": 0.237722764,
+      "peak_usd": 5.181610486882994e-05,
+      "tp1_done": true,
       "thesis_breaks": 0,
       "missing_loops": 0,
-      "entry_liquidity": 8733.7665562112,
+      "entry_liquidity": 8541.76514755443,
       "entry_view": {
         "age_h": 0.36733762323856356,
         "mcap": 21936.59390042682,
@@ -139,7 +139,7 @@
       "exit_rule": "Haelfte bei 2x; Rest raus, wenn Holder schrumpfen und Netto-Verkaeufer 2x in Folge, Liquiditaet -30%, -40%, nach 1,5x nicht unter Einstand, nach 2x 30 % vom Hoch (ab 10x 25 %)",
       "mitlaeufer": null,
       "solana_tracker": null,
-      "graduated": false,
+      "graduated": true,
       "liq_low_checks": 0,
       "dev_exit": true,
       "dev_pct_kauf": 0.0,
@@ -149,7 +149,8 @@
         "zuerst": 1791979363,
         "mint": "A2yA6AFtfKkfVkfsnGpvsKoUV5kQPpMYboZsBPvmkA9T"
       },
-      "flug_last": 1793327662.9660203
+      "flug_last": 1793327923.2346778,
+      "graduated_during": true
     }
   },
   "closed": [
@@ -80691,15 +80692,6 @@
     "893vJcLg8GssiMQuJ5iY28E7kAoVZnBNXmJHzTmKqCes": 1793327453.7616265
   },
   "watch": {
-    "6zuDiAw3NviBwcLZfTztHJgtCmeNWfyFxYVoXtNYpump": {
-      "symbol": "SI",
-      "entry_fill_usd": 3.615485200612791e-05,
-      "opened": 1793306175.5503244,
-      "peak_usd": 0.00032557717257242463,
-      "exit_usd": 1.9588404204694885e-05,
-      "exit_reason": "NOTBREMSE (-46%)",
-      "until": 1793327850.5675888
-    },
     "CBwX7xj3xvoHh5zM97bwq8wHMuXmqYTftbH7Fgcdpump": {
       "symbol": "HYPEHOUSE",
       "entry_fill_usd": 5.405754581745519e-05,
@@ -80856,5 +80848,5 @@
   },
   "runde": 4,
   "shadow": {},
-  "saved_at": 1793327679.757623
+  "saved_at": 1793327956.1907163
 }
