@@ -1,8 +1,82 @@
 {
   "strategy": "EXPERIMENT_serien_devs",
   "started": "2026-10-04T00:34:10.471102+00:00",
-  "bankroll_sol": 3.41042,
-  "positions": {},
+  "bankroll_sol": 3.20892,
+  "positions": {
+    "AhJffTKdbGbgEzxMuNzM6PVS3iHbmoTjgZmrJN2gpump": {
+      "mint": "AhJffTKdbGbgEzxMuNzM6PVS3iHbmoTjgZmrJN2gpump",
+      "symbol": "CEEZEE",
+      "opened": 1793338011.1922567,
+      "invested_sol": 0.2,
+      "fees_sol": 0.0015,
+      "entry_signal_usd": 1.9792394111744832e-05,
+      "entry_fill_usd": 1.9511823645232516e-05,
+      "entry_slippage_pct": -1.42,
+      "roundtrip_cost_pct": 2.95,
+      "tokens_initial": 1002454.814478,
+      "tokens_left": 1002454.814478,
+      "decimals": 6,
+      "proceeds_sol": 0.0,
+      "peak_usd": 1.9511823645232516e-05,
+      "tp1_done": false,
+      "thesis_breaks": 0,
+      "missing_loops": 0,
+      "entry_liquidity": 7923.10478683701,
+      "entry_view": {
+        "age_h": 0.2722998583316803,
+        "mcap": 19792.39363212006,
+        "liquidity": 7923.10478683701,
+        "holders": 193,
+        "holder_growth_1h": 83.80952380952381,
+        "holder_growth_5m": 10.285714285714285,
+        "net_buyers_5m": 59,
+        "organic_buyers_5m": 0,
+        "organic_score": 0.0,
+        "price_change_1h": 150.15982915837895,
+        "price_change_5m": 45.55749372723122,
+        "buys_5m": 143,
+        "sells_5m": 78,
+        "traders_5m": 102,
+        "traders_1h": 612,
+        "buy_vol_5m": 3910.288553524118,
+        "sell_vol_5m": 3855.845554317982,
+        "buy_vol_1h": 42779.00618336353,
+        "sell_vol_1h": 48489.78467103067,
+        "organic_buy_vol_1h": 2020.6842875183447,
+        "top_holders_pct": 23.569781288789272,
+        "dev_balance_pct": 0.0,
+        "dev_mints": 18435,
+        "launchpad": "pump.fun",
+        "graduated": false,
+        "social": true,
+        "quelle": "traded1h+traded5m",
+        "trades_24h": 2369,
+        "organic_label": "low",
+        "buy_organic_vol_5m": 564.113122565362,
+        "jup_fees": null,
+        "hour_utc": 5
+      },
+      "bundle": {
+        "quelle": "experiment",
+        "text": "Serien-Dev: frueherer Coin Human bis 5,972,336 $"
+      },
+      "phase": "normal",
+      "thesis": "Story verbreitet sich: Holder +84%/h, 59 Netto-Kaeufer 5m, 0 organisch; Serien-Dev: frueherer Coin Human bis 5,972,336 $; Dev-Coins 18435",
+      "exit_rule": "Haelfte bei 2x; Rest raus, wenn Holder schrumpfen und Netto-Verkaeufer 2x in Folge, Liquiditaet -30%, -40%, nach 1,5x nicht unter Einstand, nach 2x 30 % vom Hoch (ab 10x 25 %)",
+      "mitlaeufer": null,
+      "solana_tracker": null,
+      "graduated": false,
+      "liq_low_checks": 0,
+      "dev_exit": true,
+      "dev_pct_kauf": 0.0,
+      "serien_vorgaenger": {
+        "symbol": "Human",
+        "peak": 5972336,
+        "zuerst": 1791147225,
+        "mint": "8nPoBHiBM6pybxMws9PA2JRb9BjkppBfqcZGmot4DMBC"
+      }
+    }
+  },
   "closed": [
     {
       "symbol": "GWC",
@@ -81281,18 +81355,10 @@
     "99Rz5WYXtZgWRv1e7F8FzkYrSUSPNrVB2xFexf8upump": 1793334179.4584122,
     "4BQodQwmFX2pdh4aDpQrTER8opcEo6Q1nCD5W92vpump": 1793334368.4924517,
     "H57TwPgXudzmcv4NDGbBWhskFM3nj7ryjkW1bGdppump": 1793334653.0797477,
-    "3XLTWYyHxpAdbP1fjfTz9TBZp9Dhq4A6KWNarHMkGHQb": 1793335215.0080411
+    "3XLTWYyHxpAdbP1fjfTz9TBZp9Dhq4A6KWNarHMkGHQb": 1793335215.0080411,
+    "AhJffTKdbGbgEzxMuNzM6PVS3iHbmoTjgZmrJN2gpump": 1793338011.1931338
   },
   "watch": {
-    "4vfDwu14Z6rzX5M95TyaRJn5V3VfT6WmBcd3VNAhfDPs": {
-      "symbol": "1029",
-      "entry_fill_usd": 5.4711049314785605e-05,
-      "opened": 1793316260.3485687,
-      "peak_usd": 0.00011889198854956562,
-      "exit_usd": 2.691544536308125e-05,
-      "exit_reason": "NOTBREMSE (-51%)",
-      "until": 1793337911.1374054
-    },
     "GE3qKrtuVodNTmGAUqPyEvwc1kD6kAYVLyskQWkqpump": {
       "symbol": "cop",
       "entry_fill_usd": 1.4670729693247767e-05,
@@ -81458,5 +81524,5 @@
   },
   "runde": 4,
   "shadow": {},
-  "saved_at": 1793337890.8613205
+  "saved_at": 1793338013.1720548
 }
