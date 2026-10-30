@@ -1,8 +1,82 @@
 {
   "strategy": "EXPERIMENT_serien_devs",
   "started": "2026-10-04T00:34:10.471102+00:00",
-  "bankroll_sol": 3.807507,
-  "positions": {},
+  "bankroll_sol": 3.606007,
+  "positions": {
+    "DQQQ6epoDu8YMZezTj3aEa5JJEkGT3v67qHv2LEApump": {
+      "mint": "DQQQ6epoDu8YMZezTj3aEa5JJEkGT3v67qHv2LEApump",
+      "symbol": "Trunoest",
+      "opened": 1793324047.8551183,
+      "invested_sol": 0.2,
+      "fees_sol": 0.0015,
+      "entry_signal_usd": 9.12484840202852e-06,
+      "entry_fill_usd": 9.320212635731562e-06,
+      "entry_slippage_pct": 2.14,
+      "roundtrip_cost_pct": 3.15,
+      "tokens_initial": 2015108.995237,
+      "tokens_left": 2015108.995237,
+      "decimals": 6,
+      "proceeds_sol": 0.0,
+      "peak_usd": 9.320212635731562e-06,
+      "tp1_done": false,
+      "thesis_breaks": 0,
+      "missing_loops": 0,
+      "entry_liquidity": 5242.500725608531,
+      "entry_view": {
+        "age_h": 4.213809858163198,
+        "mcap": 9124.780581877385,
+        "liquidity": 5242.500725608531,
+        "holders": 54,
+        "holder_growth_1h": 125.0,
+        "holder_growth_5m": 12.5,
+        "net_buyers_5m": 11,
+        "organic_buyers_5m": 2,
+        "organic_score": 37.33644863463019,
+        "price_change_1h": 92.27457606933113,
+        "price_change_5m": 31.36242409954018,
+        "buys_5m": 20,
+        "sells_5m": 11,
+        "traders_5m": 17,
+        "traders_1h": 267,
+        "buy_vol_5m": 892.0859553826491,
+        "sell_vol_5m": 439.35177471513236,
+        "buy_vol_1h": 19884.74148856121,
+        "sell_vol_1h": 21663.843241020997,
+        "organic_buy_vol_1h": 1056.147987592438,
+        "top_holders_pct": 29.624985578770985,
+        "dev_balance_pct": 0.0,
+        "dev_mints": 14966,
+        "launchpad": "pump.fun",
+        "graduated": false,
+        "social": true,
+        "quelle": "organic5m",
+        "trades_24h": 2795,
+        "organic_label": "medium",
+        "buy_organic_vol_5m": 0.0,
+        "jup_fees": null,
+        "hour_utc": 1
+      },
+      "bundle": {
+        "quelle": "experiment",
+        "text": "Serien-Dev: frueherer Coin 4206066 bis 815,728 $"
+      },
+      "phase": "normal",
+      "thesis": "Story verbreitet sich: Holder +125%/h, 11 Netto-Kaeufer 5m, 2 organisch; Serien-Dev: frueherer Coin 4206066 bis 815,728 $; Dev-Coins 14966",
+      "exit_rule": "Haelfte bei 2x; Rest raus, wenn Holder schrumpfen und Netto-Verkaeufer 2x in Folge, Liquiditaet -30%, -40%, nach 1,5x nicht unter Einstand, nach 2x 30 % vom Hoch (ab 10x 25 %)",
+      "mitlaeufer": null,
+      "solana_tracker": null,
+      "graduated": false,
+      "liq_low_checks": 0,
+      "dev_exit": true,
+      "dev_pct_kauf": 0.0,
+      "serien_vorgaenger": {
+        "symbol": "4206066",
+        "peak": 815728,
+        "zuerst": 1791462631,
+        "mint": "Ca5VuKu5NyyFkixnewTnokmzXpmNuG8Mk5odwHJypRNq"
+      }
+    }
+  },
   "closed": [
     {
       "symbol": "GWC",
@@ -80413,18 +80487,10 @@
     "GE3qKrtuVodNTmGAUqPyEvwc1kD6kAYVLyskQWkqpump": 1793317085.6146913,
     "EFaQg27P3c3PHob2mFw4mHCUcWBHHDdatAEsXq2xpump": 1793320386.1521559,
     "Do68hm9wSx6mPjY7Z5gZx6XVab5n9588T1VsLGyMpump": 1793320477.6175976,
-    "9AeNEPwEnAyXsdbVBSSMbYEvcfVaTQxcir4K87eTpump": 1793321006.3949766
+    "9AeNEPwEnAyXsdbVBSSMbYEvcfVaTQxcir4K87eTpump": 1793321006.3949766,
+    "DQQQ6epoDu8YMZezTj3aEa5JJEkGT3v67qHv2LEApump": 1793324047.855884
   },
   "watch": {
-    "GozXFUVjxtTMVfF1HRAE9difXDLcciemgsJ2i5u1X6UJ": {
-      "symbol": "COLUM",
-      "entry_fill_usd": 2.1302079184191912e-05,
-      "opened": 1793302232.1825278,
-      "peak_usd": 7.47286901711916e-05,
-      "exit_usd": 3.0461904128521215e-05,
-      "exit_reason": "STORY_ABGEKUEHLT (30% unter dem Hoch von 2.2x)",
-      "until": 1793324026.0387769
-    },
     "GmksAq1EZ6u1eVoTmQCkRuHKCcStQ7b16vtNZDy7M1dq": {
       "symbol": "\ud83d\udd96",
       "entry_fill_usd": 3.59821443724277e-05,
@@ -80590,5 +80656,5 @@
   },
   "runde": 4,
   "shadow": {},
-  "saved_at": 1793323879.2562368
+  "saved_at": 1793324049.3751028
 }
