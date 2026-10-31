@@ -1,8 +1,83 @@
 {
   "strategy": "EXPERIMENT_serien_devs",
   "started": "2026-10-04T00:34:10.471102+00:00",
-  "bankroll_sol": 8.062914,
-  "positions": {},
+  "bankroll_sol": 7.861414,
+  "positions": {
+    "Df7kaKskbRMAYEkPEGJ1e33n4RPWDNs9GP9pzPjgpump": {
+      "mint": "Df7kaKskbRMAYEkPEGJ1e33n4RPWDNs9GP9pzPjgpump",
+      "symbol": "Satoshi",
+      "opened": 1793471777.169792,
+      "invested_sol": 0.2,
+      "fees_sol": 0.0015,
+      "entry_signal_usd": 7.245445493538133e-05,
+      "entry_fill_usd": 7.319511973701129e-05,
+      "entry_slippage_pct": 1.02,
+      "roundtrip_cost_pct": -0.64,
+      "tokens_initial": 262413.621624,
+      "tokens_left": 262413.621624,
+      "decimals": 6,
+      "proceeds_sol": 0.0,
+      "peak_usd": 7.319511973701129e-05,
+      "tp1_done": false,
+      "thesis_breaks": 0,
+      "missing_loops": 0,
+      "entry_liquidity": 11550.586215728457,
+      "entry_view": {
+        "age_h": 0.2679824800623788,
+        "mcap": 68863.47502363083,
+        "liquidity": 11550.586215728457,
+        "holders": 630,
+        "holder_growth_1h": 2420.0,
+        "holder_growth_5m": 20.229007633587788,
+        "net_buyers_5m": 289,
+        "organic_buyers_5m": 0,
+        "organic_score": 0.0,
+        "price_change_1h": 1632.4451027336363,
+        "price_change_5m": 161.63187345824758,
+        "buys_5m": 908,
+        "sells_5m": 724,
+        "traders_5m": 613,
+        "traders_1h": 1335,
+        "buy_vol_5m": 41620.300622819326,
+        "sell_vol_5m": 41500.22017427291,
+        "buy_vol_1h": 115857.25052770658,
+        "sell_vol_1h": 111899.04362475246,
+        "organic_buy_vol_1h": 2781.448733148401,
+        "top_holders_pct": 25.57406095094139,
+        "dev_balance_pct": 0.0,
+        "dev_mints": 5859,
+        "launchpad": "pump.fun",
+        "graduated": true,
+        "social": true,
+        "quelle": "traded1h+traded5m+trend1h+trend5m",
+        "trades_24h": 5528,
+        "organic_label": "low",
+        "buy_organic_vol_5m": 453.4262566202284,
+        "jup_fees": null,
+        "hour_utc": 18
+      },
+      "bundle": {
+        "quelle": "experiment",
+        "text": "Serien-Dev: frueherer Coin Robotaxi bis 415,678 $"
+      },
+      "phase": "normal",
+      "thesis": "Story verbreitet sich: Holder +2420%/h, 289 Netto-Kaeufer 5m, 0 organisch; Serien-Dev: frueherer Coin Robotaxi bis 415,678 $; Dev-Coins 5859",
+      "exit_rule": "Haelfte bei 2x; Rest raus, wenn Holder schrumpfen und Netto-Verkaeufer 2x in Folge, Liquiditaet -30%, -40%, nach 1,5x nicht unter Einstand, nach 2x 30 % vom Hoch (ab 10x 25 %)",
+      "mitlaeufer": null,
+      "solana_tracker": null,
+      "graduated": true,
+      "liq_low_checks": 0,
+      "dev_exit": true,
+      "dev_pct_kauf": 0.0,
+      "serien_vorgaenger": {
+        "symbol": "Robotaxi",
+        "peak": 415678,
+        "zuerst": 1793156297,
+        "mint": "4veRZzp7e6tT6FxKL81CZpHPVZrgjj2LUh8FFf6mpump"
+      },
+      "flug_last": 1793471789.8213701
+    }
+  },
   "closed": [
     {
       "symbol": "GWC",
@@ -86179,18 +86254,10 @@
     "J19PfsQAUrgEbBdG56CMthThKYDmoP2NDf4GUqqHpump": 1793468320.3609986,
     "8e7rkycmmQLyAvULWA3x37N18RHo1kdQSTpPxnuhpump": 1793468424.7887821,
     "4LzdstAQ5h2PiqnGY1t4xTECAzgkdwttSM2f4yR6pump": 1793469293.4423418,
-    "31MXkEEQPSVRi4PmkfUopaeHranTh5rsZ6snrjhfpump": 1793469488.3549452
+    "31MXkEEQPSVRi4PmkfUopaeHranTh5rsZ6snrjhfpump": 1793469488.3549452,
+    "Df7kaKskbRMAYEkPEGJ1e33n4RPWDNs9GP9pzPjgpump": 1793471777.17109
   },
   "watch": {
-    "BVqiLaqbK48xGygbxUwLbDVAwPCF4spdP6gHAWnjNRip": {
-      "symbol": "Champy",
-      "entry_fill_usd": 8.096810576055819e-06,
-      "opened": 1793449739.2103522,
-      "peak_usd": 8.919775621063517e-06,
-      "exit_usd": 4.5609880391226745e-06,
-      "exit_reason": "NOTBREMSE (-44%)",
-      "until": 1793471787.5508616
-    },
     "6vT3wA4SQHSKyhiiwoFfrbti1C8Q5dEGpQYu32Aupump": {
       "symbol": "DRAM",
       "entry_fill_usd": 3.736885584070146e-05,
@@ -86365,5 +86432,5 @@
   },
   "runde": 5,
   "shadow": {},
-  "saved_at": 1793471741.7838092
+  "saved_at": 1793471816.6489604
 }
