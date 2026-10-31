@@ -1,8 +1,83 @@
 {
   "strategy": "EXPERIMENT_serien_devs",
   "started": "2026-10-04T00:34:10.471102+00:00",
-  "bankroll_sol": 7.808645,
-  "positions": {},
+  "bankroll_sol": 7.607145,
+  "positions": {
+    "FPLi2dFsLBHfqshnFezovs7uzNGLkNGYSqSmjDA2pump": {
+      "mint": "FPLi2dFsLBHfqshnFezovs7uzNGLkNGYSqSmjDA2pump",
+      "symbol": "BECKY",
+      "opened": 1793486810.439011,
+      "invested_sol": 0.2,
+      "fees_sol": 0.0015,
+      "entry_signal_usd": 3.103866689036251e-05,
+      "entry_fill_usd": 3.5076597394094256e-05,
+      "entry_slippage_pct": 13.01,
+      "roundtrip_cost_pct": 4.34,
+      "tokens_initial": 544576.402598,
+      "tokens_left": 544576.402598,
+      "decimals": 6,
+      "proceeds_sol": 0.0,
+      "peak_usd": 3.5076597394094256e-05,
+      "tp1_done": false,
+      "thesis_breaks": 0,
+      "missing_loops": 0,
+      "entry_liquidity": 6077.907945125386,
+      "entry_view": {
+        "age_h": 0.39429798973931207,
+        "mcap": 27250.36230426575,
+        "liquidity": 6077.907945125386,
+        "holders": 196,
+        "holder_growth_1h": 335.55555555555554,
+        "holder_growth_5m": 34.24657534246575,
+        "net_buyers_5m": 71,
+        "organic_buyers_5m": 4,
+        "organic_score": 25.56099811727238,
+        "price_change_1h": 254.7920315336115,
+        "price_change_5m": 66.03487191001322,
+        "buys_5m": 147,
+        "sells_5m": 106,
+        "traders_5m": 125,
+        "traders_1h": 901,
+        "buy_vol_5m": 8755.144719259533,
+        "sell_vol_5m": 7225.705171948819,
+        "buy_vol_1h": 62952.07806423109,
+        "sell_vol_1h": 60802.45203709729,
+        "organic_buy_vol_1h": 661.413393979896,
+        "top_holders_pct": 25.850079195490373,
+        "dev_balance_pct": 0.0,
+        "dev_mints": 631,
+        "launchpad": "pump.fun",
+        "graduated": true,
+        "social": true,
+        "quelle": "organic1h+organic5m+traded1h+traded5m+trend1h+trend5m",
+        "trades_24h": 3416,
+        "organic_label": "medium",
+        "buy_organic_vol_5m": 10.873289700675151,
+        "jup_fees": null,
+        "hour_utc": 22
+      },
+      "bundle": {
+        "quelle": "experiment",
+        "text": "Serien-Dev: frueherer Coin DAVID bis 2,238,971 $"
+      },
+      "phase": "normal",
+      "thesis": "Story verbreitet sich: Holder +336%/h, 71 Netto-Kaeufer 5m, 4 organisch; Serien-Dev: frueherer Coin DAVID bis 2,238,971 $; Dev-Coins 631",
+      "exit_rule": "Haelfte bei 2x; Rest raus, wenn Holder schrumpfen und Netto-Verkaeufer 2x in Folge, Liquiditaet -30%, -40%, nach 1,5x nicht unter Einstand, nach 2x 30 % vom Hoch (ab 10x 25 %)",
+      "mitlaeufer": null,
+      "solana_tracker": null,
+      "graduated": true,
+      "liq_low_checks": 0,
+      "dev_exit": true,
+      "dev_pct_kauf": 0.0,
+      "serien_vorgaenger": {
+        "symbol": "DAVID",
+        "peak": 2238971,
+        "zuerst": 1793463406,
+        "mint": "6a81PfhejwCM3bB4F3Rnbzk9ALNmg4YGeyjKd5Nxpump"
+      },
+      "flug_last": 1793486824.4435012
+    }
+  },
   "closed": [
     {
       "symbol": "GWC",
@@ -86427,7 +86502,8 @@
     "Df7kaKskbRMAYEkPEGJ1e33n4RPWDNs9GP9pzPjgpump": 1793471777.17109,
     "YdnQNdhWq76CYpx8UVA5W6DYD7yur91D9NAZLoCpump": 1793474935.5475616,
     "GqgEiwuueHCGmwErpdpVVnGS3igPYn37kmrJb4sgpump": 1793481343.0520098,
-    "Gf5ty6whZG7hYUPzk7Zwuqe1yoarBPUCnfuAH3ymPgbn": 1793483752.2728581
+    "Gf5ty6whZG7hYUPzk7Zwuqe1yoarBPUCnfuAH3ymPgbn": 1793483752.2728581,
+    "FPLi2dFsLBHfqshnFezovs7uzNGLkNGYSqSmjDA2pump": 1793486810.4397268
   },
   "watch": {
     "6a81PfhejwCM3bB4F3Rnbzk9ALNmg4YGeyjKd5Nxpump": {
@@ -86559,5 +86635,5 @@
   },
   "runde": 5,
   "shadow": {},
-  "saved_at": 1793486752.222615
+  "saved_at": 1793486826.780162
 }
