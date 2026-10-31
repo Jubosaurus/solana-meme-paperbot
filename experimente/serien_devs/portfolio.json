@@ -1,24 +1,24 @@
 {
   "strategy": "EXPERIMENT_serien_devs",
   "started": "2026-10-04T00:34:10.471102+00:00",
-  "bankroll_sol": 7.914517,
+  "bankroll_sol": 7.920339,
   "positions": {
     "7zfaqkUtUKUYywDoj1R9zQZgwRj8EVZgKdp7TpqKuEQD": {
       "mint": "7zfaqkUtUKUYywDoj1R9zQZgwRj8EVZgKdp7TpqKuEQD",
       "symbol": "HUSS",
       "opened": 1793468037.565391,
       "invested_sol": 0.2,
-      "fees_sol": 0.0015,
+      "fees_sol": 0.003,
       "entry_signal_usd": 4.706789056176006e-05,
       "entry_fill_usd": 4.9578889850871874e-05,
       "entry_slippage_pct": 5.33,
       "roundtrip_cost_pct": 2.7,
       "tokens_initial": 386612.649363,
-      "tokens_left": 386612.649363,
+      "tokens_left": 193306.3246815,
       "decimals": 6,
-      "proceeds_sol": 0.0,
-      "peak_usd": 8.112048761404216e-05,
-      "tp1_done": false,
+      "proceeds_sol": 0.207321769,
+      "peak_usd": 0.0001028887250875815,
+      "tp1_done": true,
       "thesis_breaks": 0,
       "missing_loops": 0,
       "entry_liquidity": 18356.868817605668,
@@ -75,7 +75,81 @@
         "zuerst": 1791342484,
         "mint": "2j5SaS7xy776qCBpyPQbZjyQSAtKiFgrwjfErthnW2ZM"
       },
-      "flug_last": 1793469186.270787
+      "flug_last": 1793469256.2949913
+    },
+    "4LzdstAQ5h2PiqnGY1t4xTECAzgkdwttSM2f4yR6pump": {
+      "mint": "4LzdstAQ5h2PiqnGY1t4xTECAzgkdwttSM2f4yR6pump",
+      "symbol": "HUSS",
+      "opened": 1793469293.4414186,
+      "invested_sol": 0.2,
+      "fees_sol": 0.0015,
+      "entry_signal_usd": 1.9066710848856076e-05,
+      "entry_fill_usd": 1.826501099593649e-05,
+      "entry_slippage_pct": -4.2,
+      "roundtrip_cost_pct": 2.3,
+      "tokens_initial": 1051222.741379,
+      "tokens_left": 1051222.741379,
+      "decimals": 6,
+      "proceeds_sol": 0.0,
+      "peak_usd": 1.826501099593649e-05,
+      "tp1_done": false,
+      "thesis_breaks": 0,
+      "missing_loops": 0,
+      "entry_liquidity": 7700.985792640551,
+      "entry_view": {
+        "age_h": 0.26371412210994294,
+        "mcap": 19066.710848855066,
+        "liquidity": 7700.985792640551,
+        "holders": 215,
+        "holder_growth_1h": 760.0,
+        "holder_growth_5m": -3.587443946188341,
+        "net_buyers_5m": 66,
+        "organic_buyers_5m": 0,
+        "organic_score": 0.0,
+        "price_change_1h": 464.6588592333068,
+        "price_change_5m": 21.23673545765197,
+        "buys_5m": 185,
+        "sells_5m": 195,
+        "traders_5m": 176,
+        "traders_1h": 712,
+        "buy_vol_5m": 7019.511854776638,
+        "sell_vol_5m": 8611.535044562312,
+        "buy_vol_1h": 39350.3049173244,
+        "sell_vol_1h": 42450.444439275794,
+        "organic_buy_vol_1h": 1806.845557563475,
+        "top_holders_pct": 26.07035810348458,
+        "dev_balance_pct": 0.0,
+        "dev_mints": 24,
+        "launchpad": "pump.fun",
+        "graduated": false,
+        "social": true,
+        "quelle": "traded1h+traded5m",
+        "trades_24h": 2395,
+        "organic_label": "low",
+        "buy_organic_vol_5m": 159.7498102118869,
+        "jup_fees": null,
+        "hour_utc": 17
+      },
+      "bundle": {
+        "quelle": "experiment",
+        "text": "Serien-Dev: frueherer Coin Moustache bis 940,392 $"
+      },
+      "phase": "normal",
+      "thesis": "Story verbreitet sich: Holder +760%/h, 66 Netto-Kaeufer 5m, 0 organisch; Serien-Dev: frueherer Coin Moustache bis 940,392 $; Dev-Coins 24",
+      "exit_rule": "Haelfte bei 2x; Rest raus, wenn Holder schrumpfen und Netto-Verkaeufer 2x in Folge, Liquiditaet -30%, -40%, nach 1,5x nicht unter Einstand, nach 2x 30 % vom Hoch (ab 10x 25 %)",
+      "mitlaeufer": null,
+      "solana_tracker": null,
+      "graduated": false,
+      "liq_low_checks": 0,
+      "dev_exit": true,
+      "dev_pct_kauf": 0.0,
+      "serien_vorgaenger": {
+        "symbol": "Moustache",
+        "peak": 940392,
+        "zuerst": 1792797709,
+        "mint": "J9WL4zQVCFvLTydjtHoMGcLasjhRMZomnVmp4Y2cpump"
+      },
+      "flug_last": 1793469307.2368765
     }
   },
   "closed": [
@@ -86069,7 +86143,8 @@
     "3qPMJiuMzCu8nAFVPyaT2qzUKeVEadY8PLkCtZ2cpump": 1793467238.7530038,
     "7zfaqkUtUKUYywDoj1R9zQZgwRj8EVZgKdp7TpqKuEQD": 1793468037.5661798,
     "J19PfsQAUrgEbBdG56CMthThKYDmoP2NDf4GUqqHpump": 1793468320.3609986,
-    "8e7rkycmmQLyAvULWA3x37N18RHo1kdQSTpPxnuhpump": 1793468424.7887821
+    "8e7rkycmmQLyAvULWA3x37N18RHo1kdQSTpPxnuhpump": 1793468424.7887821,
+    "4LzdstAQ5h2PiqnGY1t4xTECAzgkdwttSM2f4yR6pump": 1793469293.4423418
   },
   "watch": {
     "BVqiLaqbK48xGygbxUwLbDVAwPCF4spdP6gHAWnjNRip": {
@@ -86228,5 +86303,5 @@
   },
   "runde": 5,
   "shadow": {},
-  "saved_at": 1793469240.1874766
+  "saved_at": 1793469311.0023637
 }
