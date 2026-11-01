@@ -1,8 +1,106 @@
 {
   "strategy": "EXPERIMENT_notbremse_25",
   "started": "2026-10-04T00:34:10.470983+00:00",
-  "bankroll_sol": 7.669007,
-  "positions": {},
+  "bankroll_sol": 7.467507,
+  "positions": {
+    "DVKS7yJQ7zh4dFfHp9TE7E5VwF5pAi56NYVDehcBW2ix": {
+      "mint": "DVKS7yJQ7zh4dFfHp9TE7E5VwF5pAi56NYVDehcBW2ix",
+      "symbol": "worm",
+      "opened": 1793505168.669616,
+      "invested_sol": 0.2,
+      "fees_sol": 0.0015,
+      "entry_signal_usd": 9.305638414125318e-06,
+      "entry_fill_usd": 9.312279032520683e-06,
+      "entry_slippage_pct": 0.07,
+      "roundtrip_cost_pct": 3.16,
+      "tokens_initial": 2050996.42423,
+      "tokens_left": 2050996.42423,
+      "decimals": 6,
+      "proceeds_sol": 0.0,
+      "peak_usd": 9.312279032520683e-06,
+      "tp1_done": false,
+      "thesis_breaks": 0,
+      "missing_loops": 0,
+      "entry_liquidity": 5346.327361093256,
+      "entry_view": {
+        "age_h": 0.7172103390428755,
+        "mcap": 9305.638277211041,
+        "liquidity": 5346.327361093256,
+        "holders": 112,
+        "holder_growth_1h": 229.41176470588235,
+        "holder_growth_5m": 6.666666666666667,
+        "net_buyers_5m": 19,
+        "organic_buyers_5m": 3,
+        "organic_score": 39.382637285195244,
+        "price_change_1h": 121.8951443263097,
+        "price_change_5m": -3.9287604399448615,
+        "buys_5m": 31,
+        "sells_5m": 33,
+        "traders_5m": 37,
+        "traders_1h": 497,
+        "buy_vol_5m": 1578.6900893861862,
+        "sell_vol_5m": 1793.1912917231627,
+        "buy_vol_1h": 35439.128697612796,
+        "sell_vol_1h": 39850.20805570454,
+        "organic_buy_vol_1h": 1303.8755673195385,
+        "top_holders_pct": 20.474972396461393,
+        "dev_balance_pct": 0.0003576654796623483,
+        "dev_mints": 1,
+        "launchpad": "pump.fun",
+        "graduated": false,
+        "social": true,
+        "quelle": "organic1h+organic5m+traded1h+traded5m",
+        "trades_24h": 2481,
+        "organic_label": "medium",
+        "buy_organic_vol_5m": 41.4814385315195,
+        "jup_fees": null,
+        "hour_utc": 3
+      },
+      "bundle": {
+        "quelle": "block0",
+        "slot": 463935463,
+        "block0_wallets": 4,
+        "block0_supply_pct": 14.11,
+        "block0_still_held_pct": 0.0,
+        "block0_exited": 4,
+        "early_tx_slot1_2": 9,
+        "bundle_holding_pct": 0.0,
+        "block0_tx_fehlend": 0,
+        "block0_halter_fehlend": 0,
+        "gebuendelt": false,
+        "rugcheck_insider_pct": 1.08
+      },
+      "phase": "normal",
+      "thesis": "Story verbreitet sich: Holder +229%/h, 19 Netto-Kaeufer 5m, 3 organisch; Block 0: 4 Kaeufer, 14.1% gekauft, 0.0% noch gehalten; Dev-Coins 1",
+      "exit_rule": "Haelfte bei 2x; Rest raus, wenn Holder schrumpfen und Netto-Verkaeufer 2x in Folge, Liquiditaet -30%, -25%, nach 1,5x nicht unter Einstand, nach 2x 30 % vom Hoch (ab 10x 25 %)",
+      "mitlaeufer": null,
+      "solana_tracker": {
+        "score": 7,
+        "rugged": false,
+        "snipers_pct": 0.8765,
+        "insiders_pct": 0,
+        "bundlers_pct": 0.4046,
+        "top10_pct": 20.475,
+        "risiken": [
+          "Bonding curve not complete",
+          "Price Decrease",
+          "Top 10 Holders"
+        ]
+      },
+      "graduated": false,
+      "liq_low_checks": 0,
+      "stop_pct": -25.0,
+      "block0_flug": {
+        "supply": 999999985286955.0,
+        "bought": {
+          "6Z91Dgiz9E44bMW11rQuMBjt1NwwPoQGXFNZieGfVtAb": 96448824049481.0,
+          "AMDEmVocLtN5ji2gBY7BrmSHEyM5vt6TGszBbg4crMXg": 42001925274312.0,
+          "BFDnKwfkfZtVq865AqZLKQXrJ6jDbuVyLAmkCsUuY94u": 2672051728157.0,
+          "DQDGehr9LrsP7MjdchmGoqA5XesUhDASBk7b37mXnuhA": 3576654744.0
+        }
+      }
+    }
+  },
   "closed": [
     {
       "symbol": "TUX",
@@ -20704,7 +20802,8 @@
     "13Fr7NAVWSCAjjd1fDsZC1MfJpPvpRoLwrhaWXWoaLLo": 1793394022.0767624,
     "9t4JYVrNW8pyjhSqAdSM57svukMFYmnrXziHtjaxpump": 1793408673.411163,
     "Dmq4fFjsKYr7LeR1UJk6GHDfKEnPRWALrGL6mhNRpump": 1793418734.5827672,
-    "Cy3tMYihpgaNX6Nc39hC81KFWC9thTSFSrHoUpUfpump": 1793504013.593556
+    "Cy3tMYihpgaNX6Nc39hC81KFWC9thTSFSrHoUpUfpump": 1793504013.593556,
+    "DVKS7yJQ7zh4dFfHp9TE7E5VwF5pAi56NYVDehcBW2ix": 1793505168.6701684
   },
   "watch": {
     "Cy3tMYihpgaNX6Nc39hC81KFWC9thTSFSrHoUpUfpump": {
@@ -20719,5 +20818,5 @@
   },
   "runde": 1,
   "shadow": {},
-  "saved_at": 1793504980.0799055
+  "saved_at": 1793505171.250149
 }
