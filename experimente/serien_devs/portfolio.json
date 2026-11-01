@@ -1,27 +1,27 @@
 {
   "strategy": "EXPERIMENT_serien_devs",
   "started": "2026-10-04T00:34:10.471102+00:00",
-  "bankroll_sol": 5.879944,
+  "bankroll_sol": 6.07767,
   "positions": {
     "4zhDF9CgyPFMWi8qoamrY4RXHrnbbHfGL4oBANk5pump": {
       "mint": "4zhDF9CgyPFMWi8qoamrY4RXHrnbbHfGL4oBANk5pump",
       "symbol": "LEARJET",
       "opened": 1793574121.5413816,
       "invested_sol": 0.2,
-      "fees_sol": 0.0015,
+      "fees_sol": 0.003,
       "entry_signal_usd": 1.9967027343866585e-05,
       "entry_fill_usd": 1.835848695800071e-05,
       "entry_slippage_pct": -8.06,
       "roundtrip_cost_pct": 2.96,
       "tokens_initial": 1021254.608346,
-      "tokens_left": 1021254.608346,
+      "tokens_left": 510627.304173,
       "decimals": 6,
-      "proceeds_sol": 0.0,
-      "peak_usd": 1.835848695800071e-05,
-      "tp1_done": false,
+      "proceeds_sol": 0.197726246,
+      "peak_usd": 3.701257595414927e-05,
+      "tp1_done": true,
       "thesis_breaks": 0,
       "missing_loops": 0,
-      "entry_liquidity": 7763.543533673623,
+      "entry_liquidity": 6335.736240313681,
       "entry_view": {
         "age_h": 0.39625697162416246,
         "mcap": 19966.925368956294,
@@ -65,7 +65,7 @@
       "exit_rule": "Haelfte bei 2x; Rest raus, wenn Holder schrumpfen und Netto-Verkaeufer 2x in Folge, Liquiditaet -30%, -40%, nach 1,5x nicht unter Einstand, nach 2x 30 % vom Hoch (ab 10x 25 %)",
       "mitlaeufer": null,
       "solana_tracker": null,
-      "graduated": false,
+      "graduated": true,
       "liq_low_checks": 0,
       "dev_exit": true,
       "dev_pct_kauf": 0.0,
@@ -74,7 +74,9 @@
         "peak": 815728,
         "zuerst": 1791462631,
         "mint": "Ca5VuKu5NyyFkixnewTnokmzXpmNuG8Mk5odwHJypRNq"
-      }
+      },
+      "flug_last": 1793574214.535111,
+      "graduated_during": true
     }
   },
   "closed": [
@@ -89274,7 +89276,7 @@
       "symbol": "Learjet",
       "entry_fill_usd": 2.6370773339244784e-05,
       "opened": 1793565284.1005995,
-      "peak_usd": 0.00016936394091429907,
+      "peak_usd": 0.00017182356026463063,
       "exit_usd": 4.5098000357068414e-05,
       "exit_reason": "STORY_ABGEKUEHLT (30% unter dem Hoch von 2.6x)",
       "until": 1793588167.1209388
@@ -89327,5 +89329,5 @@
   },
   "runde": 5,
   "shadow": {},
-  "saved_at": 1793574123.251233
+  "saved_at": 1793574252.0018907
 }
