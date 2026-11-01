@@ -1,8 +1,96 @@
 {
   "strategy": "NARRATIV",
   "started": "2026-09-26T02:46:00.825468+00:00",
-  "bankroll_sol": 6.618994,
-  "positions": {},
+  "bankroll_sol": 6.417494,
+  "positions": {
+    "3jAHcV6ZwmA3pnrR9MrWwNSbN5gDiM7rSM1RJradQ8xK": {
+      "mint": "3jAHcV6ZwmA3pnrR9MrWwNSbN5gDiM7rSM1RJradQ8xK",
+      "symbol": "CHAD",
+      "opened": 1793565014.3781729,
+      "invested_sol": 0.2,
+      "fees_sol": 0.0015,
+      "entry_signal_usd": 0.00011731530863581246,
+      "entry_fill_usd": 0.00011756049875669787,
+      "entry_slippage_pct": 0.21,
+      "roundtrip_cost_pct": 2.39,
+      "tokens_initial": 159826.417009,
+      "tokens_left": 159826.417009,
+      "decimals": 6,
+      "proceeds_sol": 0.0,
+      "peak_usd": 0.00011756049875669787,
+      "tp1_done": false,
+      "thesis_breaks": 0,
+      "missing_loops": 0,
+      "entry_liquidity": 35009.32867299184,
+      "entry_view": {
+        "age_h": 4.763647823996014,
+        "mcap": 117314.9768615318,
+        "liquidity": 35009.32867299184,
+        "holders": 400,
+        "holder_growth_1h": 89.57345971563981,
+        "holder_growth_5m": 2.564102564102564,
+        "net_buyers_5m": 34,
+        "organic_buyers_5m": 3,
+        "organic_score": 47.176346196460656,
+        "price_change_1h": 114.39004763894441,
+        "price_change_5m": 13.959675756788121,
+        "buys_5m": 92,
+        "sells_5m": 50,
+        "traders_5m": 62,
+        "traders_1h": 275,
+        "buy_vol_5m": 5828.88800414604,
+        "sell_vol_5m": 4999.471771682539,
+        "buy_vol_1h": 51120.54078732755,
+        "sell_vol_1h": 30972.66869683419,
+        "organic_buy_vol_1h": 3793.4667956414646,
+        "top_holders_pct": 22.520490270411525,
+        "dev_balance_pct": 0.0,
+        "dev_mints": 1,
+        "launchpad": "raydium-launchlab",
+        "graduated": true,
+        "social": false,
+        "quelle": "organic5m+traded1h+traded5m+trend1h+trend5m",
+        "trades_24h": 3242,
+        "organic_label": "medium",
+        "buy_organic_vol_5m": 0.0,
+        "jup_fees": null,
+        "hour_utc": 20
+      },
+      "bundle": {
+        "quelle": "block0",
+        "slot": 464146923,
+        "block0_wallets": 0,
+        "block0_supply_pct": 0.0,
+        "block0_still_held_pct": 0.0,
+        "block0_exited": 0,
+        "early_tx_slot1_2": 2,
+        "bundle_holding_pct": 0.0,
+        "block0_tx_fehlend": 0,
+        "block0_halter_fehlend": 0,
+        "gebuendelt": false,
+        "rugcheck_insider_pct": 0
+      },
+      "phase": "normal",
+      "thesis": "Story verbreitet sich: Holder +90%/h, 34 Netto-Kaeufer 5m, 3 organisch; Block 0: 0 Kaeufer, 0.0% gekauft, 0.0% noch gehalten; Dev-Coins 1",
+      "exit_rule": "Haelfte bei 2x; Rest raus, wenn Holder schrumpfen und Netto-Verkaeufer 2x in Folge, Liquiditaet -30%, -40%, nach 1,5x nicht unter Einstand, nach 2x 30 % vom Hoch (ab 10x 25 %)",
+      "mitlaeufer": null,
+      "solana_tracker": {
+        "score": 6,
+        "rugged": false,
+        "snipers_pct": 0,
+        "insiders_pct": 0,
+        "bundlers_pct": 6.3622,
+        "top10_pct": 22.5287,
+        "risiken": [
+          "Top 10 Holders",
+          "Bundler Holdings"
+        ]
+      },
+      "graduated": true,
+      "liq_low_checks": 0,
+      "flug_last": 1793565032.4405282
+    }
+  },
   "closed": [
     {
       "symbol": "SHOGGOTH",
@@ -28485,10 +28573,11 @@
     "DVKS7yJQ7zh4dFfHp9TE7E5VwF5pAi56NYVDehcBW2ix": 1793505165.3715167,
     "BRBxbQjafbMc1p24AUxLQpMmmuekKiQKi8PyNquLnbrb": 1793509263.7169268,
     "Cz1H9x9BQfVtVNYkzvhJyptCsJZTVXsaMoWJbs2ipump": 1793523057.6795082,
-    "8eG55WcQc231JshYDqf2dvFBXtUD1YARJcqnvPB6pump": 1793540770.81457
+    "8eG55WcQc231JshYDqf2dvFBXtUD1YARJcqnvPB6pump": 1793540770.81457,
+    "3jAHcV6ZwmA3pnrR9MrWwNSbN5gDiM7rSM1RJradQ8xK": 1793565014.3787708
   },
   "watch": {},
-  "saved_at": 1793564960.2157552,
+  "saved_at": 1793565033.002719,
   "shadow": {
     "ETHgDzFEG9gqBrjpPyiLvi12LSN9m7aPSdvWWjyZpump": {
       "symbol": "PARITY",
@@ -28655,7 +28744,7 @@
   },
   "st_usage": {
     "date": "2026-11-01",
-    "count": 5
+    "count": 6
   },
   "wellen": {
     "REGRETAMINE_1793538182": {
