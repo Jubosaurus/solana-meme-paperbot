@@ -1,7 +1,7 @@
 {
   "strategy": "EXPERIMENT_serien_devs",
   "started": "2026-10-04T00:34:10.471102+00:00",
-  "bankroll_sol": 6.24343,
+  "bankroll_sol": 6.04193,
   "positions": {
     "GvXhSHnWrkAasjAUZeRzRfUBV2BJiiduaHarCWAEpump": {
       "mint": "GvXhSHnWrkAasjAUZeRzRfUBV2BJiiduaHarCWAEpump",
@@ -17,11 +17,11 @@
       "tokens_left": 599911.043655,
       "decimals": 6,
       "proceeds_sol": 0.0,
-      "peak_usd": 3.991666225921631e-05,
+      "peak_usd": 4.375575640791866e-05,
       "tp1_done": false,
       "thesis_breaks": 0,
       "missing_loops": 0,
-      "entry_liquidity": 10366.284619742393,
+      "entry_liquidity": 8236.804847884136,
       "entry_view": {
         "age_h": 1.7343944974078072,
         "mcap": 29898.19213029374,
@@ -65,7 +65,7 @@
       "exit_rule": "Haelfte bei 2x; Rest raus, wenn Holder schrumpfen und Netto-Verkaeufer 2x in Folge, Liquiditaet -30%, -40%, nach 1,5x nicht unter Einstand, nach 2x 30 % vom Hoch (ab 10x 25 %)",
       "mitlaeufer": null,
       "solana_tracker": null,
-      "graduated": false,
+      "graduated": true,
       "liq_low_checks": 0,
       "dev_exit": true,
       "dev_pct_kauf": 0.0,
@@ -75,7 +75,81 @@
         "zuerst": 1793412262,
         "mint": "HvitmAeh6TkToQonoiNwqWcrZsYdYiaSZHP7yMmspump"
       },
-      "flug_last": 1793563587.6645405
+      "flug_last": 1793563649.2414885,
+      "graduated_during": true
+    },
+    "DTVcrMAEMwpSSBvu6W7P3BLZsRhFZb6bSzARFDqobfCT": {
+      "mint": "DTVcrMAEMwpSSBvu6W7P3BLZsRhFZb6bSzARFDqobfCT",
+      "symbol": "MOVEMBER",
+      "opened": 1793563675.9309142,
+      "invested_sol": 0.2,
+      "fees_sol": 0.0015,
+      "entry_signal_usd": 2.6735235688836737e-05,
+      "entry_fill_usd": 2.5867368358147107e-05,
+      "entry_slippage_pct": -3.25,
+      "roundtrip_cost_pct": 2.88,
+      "tokens_initial": 725849.380952,
+      "tokens_left": 725849.380952,
+      "decimals": 6,
+      "proceeds_sol": 0.0,
+      "peak_usd": 2.5867368358147107e-05,
+      "tp1_done": false,
+      "thesis_breaks": 0,
+      "missing_loops": 0,
+      "entry_liquidity": 8980.003840033261,
+      "entry_view": {
+        "age_h": 0.2768932043843799,
+        "mcap": 26735.23557371,
+        "liquidity": 8980.003840033261,
+        "holders": 298,
+        "holder_growth_1h": 1652.9411764705883,
+        "holder_growth_5m": -17.67955801104972,
+        "net_buyers_5m": 103,
+        "organic_buyers_5m": 0,
+        "organic_score": 0.0,
+        "price_change_1h": 295.98754744555345,
+        "price_change_5m": 4.444513281962908,
+        "buys_5m": 315,
+        "sells_5m": 294,
+        "traders_5m": 278,
+        "traders_1h": 1031,
+        "buy_vol_5m": 8948.427118913149,
+        "sell_vol_5m": 12538.063007384715,
+        "buy_vol_1h": 65814.79706057311,
+        "sell_vol_1h": 76122.61372874066,
+        "organic_buy_vol_1h": 2324.003036472982,
+        "top_holders_pct": 24.48774768127535,
+        "dev_balance_pct": 0.0,
+        "dev_mints": 179150,
+        "launchpad": "pump.fun",
+        "graduated": false,
+        "social": true,
+        "quelle": "traded1h+traded5m",
+        "trades_24h": 3864,
+        "organic_label": "low",
+        "buy_organic_vol_5m": 41.613384291314496,
+        "jup_fees": null,
+        "hour_utc": 20
+      },
+      "bundle": {
+        "quelle": "experiment",
+        "text": "Serien-Dev: frueherer Coin CLAUDIA bis 11,079,320 $"
+      },
+      "phase": "normal",
+      "thesis": "Story verbreitet sich: Holder +1653%/h, 103 Netto-Kaeufer 5m, 0 organisch; Serien-Dev: frueherer Coin CLAUDIA bis 11,079,320 $; Dev-Coins 179150",
+      "exit_rule": "Haelfte bei 2x; Rest raus, wenn Holder schrumpfen und Netto-Verkaeufer 2x in Folge, Liquiditaet -30%, -40%, nach 1,5x nicht unter Einstand, nach 2x 30 % vom Hoch (ab 10x 25 %)",
+      "mitlaeufer": null,
+      "solana_tracker": null,
+      "graduated": false,
+      "liq_low_checks": 0,
+      "dev_exit": true,
+      "dev_pct_kauf": 0.0,
+      "serien_vorgaenger": {
+        "symbol": "CLAUDIA",
+        "peak": 11079320,
+        "zuerst": 1791342484,
+        "mint": "2j5SaS7xy776qCBpyPQbZjyQSAtKiFgrwjfErthnW2ZM"
+      }
     }
   },
   "closed": [
@@ -88611,7 +88685,8 @@
     "EoevgZRtzXVFFnNq6Uy3LC53KCZmK7kQJvtebdTYqrCA": 1793559609.857003,
     "EpTFXqob4aPsyn8NbDuSX9jdUL1h48ZQwCwBXMonpump": 1793561540.3573935,
     "HNxyGpz8AkLqmfBBKMzmugkPE5Bahj2bGPPTNgWGpump": 1793561726.595237,
-    "GvXhSHnWrkAasjAUZeRzRfUBV2BJiiduaHarCWAEpump": 1793563202.7346878
+    "GvXhSHnWrkAasjAUZeRzRfUBV2BJiiduaHarCWAEpump": 1793563202.7346878,
+    "DTVcrMAEMwpSSBvu6W7P3BLZsRhFZb6bSzARFDqobfCT": 1793563675.9317281
   },
   "watch": {
     "6mhdsxRZzaVmvZm2rJXbGP6tpXCSXvvXtYnSGfaapump": {
@@ -88761,5 +88836,5 @@
   },
   "runde": 5,
   "shadow": {},
-  "saved_at": 1793563589.972711
+  "saved_at": 1793563677.5289505
 }
