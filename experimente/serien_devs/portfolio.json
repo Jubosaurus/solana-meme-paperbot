@@ -1,8 +1,82 @@
 {
   "strategy": "EXPERIMENT_serien_devs",
   "started": "2026-10-04T00:34:10.471102+00:00",
-  "bankroll_sol": 6.081444,
-  "positions": {},
+  "bankroll_sol": 5.879944,
+  "positions": {
+    "4zhDF9CgyPFMWi8qoamrY4RXHrnbbHfGL4oBANk5pump": {
+      "mint": "4zhDF9CgyPFMWi8qoamrY4RXHrnbbHfGL4oBANk5pump",
+      "symbol": "LEARJET",
+      "opened": 1793574121.5413816,
+      "invested_sol": 0.2,
+      "fees_sol": 0.0015,
+      "entry_signal_usd": 1.9967027343866585e-05,
+      "entry_fill_usd": 1.835848695800071e-05,
+      "entry_slippage_pct": -8.06,
+      "roundtrip_cost_pct": 2.96,
+      "tokens_initial": 1021254.608346,
+      "tokens_left": 1021254.608346,
+      "decimals": 6,
+      "proceeds_sol": 0.0,
+      "peak_usd": 1.835848695800071e-05,
+      "tp1_done": false,
+      "thesis_breaks": 0,
+      "missing_loops": 0,
+      "entry_liquidity": 7763.543533673623,
+      "entry_view": {
+        "age_h": 0.39625697162416246,
+        "mcap": 19966.925368956294,
+        "liquidity": 7763.543533673623,
+        "holders": 136,
+        "holder_growth_1h": 172.0,
+        "holder_growth_5m": 49.45054945054945,
+        "net_buyers_5m": 60,
+        "organic_buyers_5m": 0,
+        "organic_score": 0.0,
+        "price_change_1h": 307.7439653923738,
+        "price_change_5m": 146.10737752590796,
+        "buys_5m": 134,
+        "sells_5m": 95,
+        "traders_5m": 114,
+        "traders_1h": 638,
+        "buy_vol_5m": 6565.625320656278,
+        "sell_vol_5m": 5162.6717686562315,
+        "buy_vol_1h": 50004.93660751358,
+        "sell_vol_1h": 54453.46213849419,
+        "organic_buy_vol_1h": 596.8713617461635,
+        "top_holders_pct": 28.618585681056103,
+        "dev_balance_pct": 0.0,
+        "dev_mints": 15128,
+        "launchpad": "pump.fun",
+        "graduated": false,
+        "social": true,
+        "quelle": "traded1h+traded5m+trend5m",
+        "trades_24h": 2461,
+        "organic_label": "low",
+        "buy_organic_vol_5m": 0.0,
+        "jup_fees": null,
+        "hour_utc": 23
+      },
+      "bundle": {
+        "quelle": "experiment",
+        "text": "Serien-Dev: frueherer Coin 4206066 bis 815,728 $"
+      },
+      "phase": "normal",
+      "thesis": "Story verbreitet sich: Holder +172%/h, 60 Netto-Kaeufer 5m, 0 organisch; Serien-Dev: frueherer Coin 4206066 bis 815,728 $; Dev-Coins 15128",
+      "exit_rule": "Haelfte bei 2x; Rest raus, wenn Holder schrumpfen und Netto-Verkaeufer 2x in Folge, Liquiditaet -30%, -40%, nach 1,5x nicht unter Einstand, nach 2x 30 % vom Hoch (ab 10x 25 %)",
+      "mitlaeufer": null,
+      "solana_tracker": null,
+      "graduated": false,
+      "liq_low_checks": 0,
+      "dev_exit": true,
+      "dev_pct_kauf": 0.0,
+      "serien_vorgaenger": {
+        "symbol": "4206066",
+        "peak": 815728,
+        "zuerst": 1791462631,
+        "mint": "Ca5VuKu5NyyFkixnewTnokmzXpmNuG8Mk5odwHJypRNq"
+      }
+    }
+  },
   "closed": [
     {
       "symbol": "GWC",
@@ -89093,7 +89167,8 @@
     "6pGyajBJsvKWLvgDZPNebH5uZcHXc7hVQAJ3y1uuVXNd": 1793566607.494348,
     "jM9r9PJFyPaMEbhGZPbDeZJiysn2pfyz5TzdDs5pump": 1793567387.0742774,
     "9uvtKztoSGhTPhXV4Bq34Bi95GL2FFHQ4jB94vnFHrN5": 1793570811.789917,
-    "7ZB8kBFTiCDMR1Rjgi2Qsxm13ndZUUCzntXMo8mVpump": 1793572825.7062669
+    "7ZB8kBFTiCDMR1Rjgi2Qsxm13ndZUUCzntXMo8mVpump": 1793572825.7062669,
+    "4zhDF9CgyPFMWi8qoamrY4RXHrnbbHfGL4oBANk5pump": 1793574121.5421724
   },
   "watch": {
     "8buabJcozHuvWi8PEwzPK8gQdNJSJ6A8cAqsoqhBxQfQ": {
@@ -89199,7 +89274,7 @@
       "symbol": "Learjet",
       "entry_fill_usd": 2.6370773339244784e-05,
       "opened": 1793565284.1005995,
-      "peak_usd": 0.00010242094955838574,
+      "peak_usd": 0.00016936394091429907,
       "exit_usd": 4.5098000357068414e-05,
       "exit_reason": "STORY_ABGEKUEHLT (30% unter dem Hoch von 2.6x)",
       "until": 1793588167.1209388
@@ -89252,5 +89327,5 @@
   },
   "runde": 5,
   "shadow": {},
-  "saved_at": 1793573844.3172104
+  "saved_at": 1793574123.251233
 }
