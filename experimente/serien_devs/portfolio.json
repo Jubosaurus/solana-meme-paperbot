@@ -1,7 +1,7 @@
 {
   "strategy": "EXPERIMENT_serien_devs",
   "started": "2026-10-04T00:34:10.471102+00:00",
-  "bankroll_sol": 5.927404,
+  "bankroll_sol": 5.725904,
   "positions": {
     "83ebb8QexVupz4NFVE1ki69kJD1kYiM6jqf7QmTosmFe": {
       "mint": "83ebb8QexVupz4NFVE1ki69kJD1kYiM6jqf7QmTosmFe",
@@ -75,7 +75,80 @@
         "zuerst": 1791742955,
         "mint": "BXuuLQQsHsAjweVvTXHAgJSnTj9MLKpiK5cLP7c3wLxB"
       },
-      "flug_last": 1793650916.01153
+      "flug_last": 1793650988.4269536
+    },
+    "SPYBo66VJPFjh1pXMb9Le53kDYWTK1zzYVDeVRWtsbi": {
+      "mint": "SPYBo66VJPFjh1pXMb9Le53kDYWTK1zzYVDeVRWtsbi",
+      "symbol": "SPY",
+      "opened": 1793651057.0125506,
+      "invested_sol": 0.2,
+      "fees_sol": 0.0015,
+      "entry_signal_usd": 752.443850188962,
+      "entry_fill_usd": 753.858224727552,
+      "entry_slippage_pct": 0.19,
+      "roundtrip_cost_pct": 0.37,
+      "tokens_initial": 0.024353,
+      "tokens_left": 0.024353,
+      "decimals": 6,
+      "proceeds_sol": 0.0,
+      "peak_usd": 753.858224727552,
+      "tp1_done": false,
+      "thesis_breaks": 0,
+      "missing_loops": 0,
+      "entry_liquidity": 22033.242038864504,
+      "entry_view": {
+        "age_h": 1.3727453141080008,
+        "mcap": 377005.75488254905,
+        "liquidity": 22033.242038864504,
+        "holders": 785,
+        "holder_growth_1h": 78400.0,
+        "holder_growth_5m": 1.948051948051948,
+        "net_buyers_5m": 39,
+        "organic_buyers_5m": 10,
+        "organic_score": 64.49823625629557,
+        "price_change_1h": -2.8204293450323843,
+        "price_change_5m": -0.16291488727600006,
+        "buys_5m": 131,
+        "sells_5m": 144,
+        "traders_5m": 81,
+        "traders_1h": 2576,
+        "buy_vol_5m": 6405.532106046774,
+        "sell_vol_5m": 8494.13917804459,
+        "buy_vol_1h": 796253.1663576607,
+        "sell_vol_1h": 912954.3966404425,
+        "organic_buy_vol_1h": 31561.713229170364,
+        "top_holders_pct": 81.34883508461267,
+        "dev_balance_pct": 0.0,
+        "dev_mints": 35,
+        "launchpad": null,
+        "graduated": false,
+        "social": false,
+        "quelle": "organic1h+organic5m+traded1h+traded5m",
+        "trades_24h": 25288,
+        "organic_label": "medium",
+        "buy_organic_vol_5m": 32.777186100853264,
+        "jup_fees": null,
+        "hour_utc": 20
+      },
+      "bundle": {
+        "quelle": "experiment",
+        "text": "Serien-Dev: frueherer Coin SKHY bis 3,794,265 $"
+      },
+      "phase": "heiss",
+      "thesis": "Story verbreitet sich: Holder +78400%/h, 39 Netto-Kaeufer 5m, 10 organisch; Serien-Dev: frueherer Coin SKHY bis 3,794,265 $; Dev-Coins 35",
+      "exit_rule": "Haelfte bei 2x; Rest raus, wenn Holder schrumpfen und Netto-Verkaeufer 2x in Folge, Liquiditaet -30%, -40%, nach 1,5x nicht unter Einstand, nach 2x 30 % vom Hoch (ab 10x 25 %)",
+      "mitlaeufer": null,
+      "solana_tracker": null,
+      "graduated": false,
+      "liq_low_checks": 0,
+      "dev_exit": true,
+      "dev_pct_kauf": 0.0,
+      "serien_vorgaenger": {
+        "symbol": "SKHY",
+        "peak": 3794265,
+        "zuerst": 1791074049,
+        "mint": "SKHYhSjuRWHgikq8eRKbtBbpABgJSkd7ytQV14i9EQ3"
+      }
     }
   },
   "closed": [
@@ -91649,7 +91722,8 @@
     "BFKk1RFCz6527KbtcRKYjdvgtxaTCWZbw8dmF1txpump": 1793647471.957723,
     "H2F3dSkiLxyRekj1uzyUyyRpKLSrc7aDEyNrADbcpump": 1793648581.9786215,
     "6kKETm8xPeZ2z1DBYjXmxMTFAJudvGHJvRHu5Wt8uGtf": 1793648786.5894277,
-    "83ebb8QexVupz4NFVE1ki69kJD1kYiM6jqf7QmTosmFe": 1793650767.0134468
+    "83ebb8QexVupz4NFVE1ki69kJD1kYiM6jqf7QmTosmFe": 1793650767.0134468,
+    "SPYBo66VJPFjh1pXMb9Le53kDYWTK1zzYVDeVRWtsbi": 1793651057.013477
   },
   "watch": {
     "HckPgvvNVNnFRZsYRNGMbeSs362dLLhZGjzNmqpgf9gk": {
@@ -91790,5 +91864,5 @@
   },
   "runde": 5,
   "shadow": {},
-  "saved_at": 1793650955.1585948
+  "saved_at": 1793651065.7495396
 }
