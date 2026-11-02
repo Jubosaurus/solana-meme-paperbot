@@ -1,7 +1,7 @@
 {
   "strategy": "EXPERIMENT_serien_devs",
   "started": "2026-10-04T00:34:10.471102+00:00",
-  "bankroll_sol": 6.102887,
+  "bankroll_sol": 5.901387,
   "positions": {
     "H2F3dSkiLxyRekj1uzyUyyRpKLSrc7aDEyNrADbcpump": {
       "mint": "H2F3dSkiLxyRekj1uzyUyyRpKLSrc7aDEyNrADbcpump",
@@ -75,7 +75,80 @@
         "zuerst": 1793412262,
         "mint": "HvitmAeh6TkToQonoiNwqWcrZsYdYiaSZHP7yMmspump"
       },
-      "flug_last": 1793648595.8888867
+      "flug_last": 1793648730.4737315
+    },
+    "6kKETm8xPeZ2z1DBYjXmxMTFAJudvGHJvRHu5Wt8uGtf": {
+      "mint": "6kKETm8xPeZ2z1DBYjXmxMTFAJudvGHJvRHu5Wt8uGtf",
+      "symbol": "COLLECTOR",
+      "opened": 1793648786.587634,
+      "invested_sol": 0.2,
+      "fees_sol": 0.0015,
+      "entry_signal_usd": 0.0002258734520456773,
+      "entry_fill_usd": 0.00022812210671789928,
+      "entry_slippage_pct": 1.0,
+      "roundtrip_cost_pct": 2.24,
+      "tokens_initial": 79693.967968698,
+      "tokens_left": 79693.967968698,
+      "decimals": 9,
+      "proceeds_sol": 0.0,
+      "peak_usd": 0.00022812210671789928,
+      "tp1_done": false,
+      "thesis_breaks": 0,
+      "missing_loops": 0,
+      "entry_liquidity": 14507.072166712072,
+      "entry_view": {
+        "age_h": 0.7562347113423877,
+        "mcap": 225873.45204567732,
+        "liquidity": 14507.072166712072,
+        "holders": 174,
+        "holder_growth_1h": 83.15789473684211,
+        "holder_growth_5m": -2.247191011235955,
+        "net_buyers_5m": 7,
+        "organic_buyers_5m": 4,
+        "organic_score": 42.00772483853859,
+        "price_change_1h": 16.637873862852363,
+        "price_change_5m": -8.998578930985742,
+        "buys_5m": 19,
+        "sells_5m": 31,
+        "traders_5m": 27,
+        "traders_1h": 377,
+        "buy_vol_5m": 839.9306114330774,
+        "sell_vol_5m": 2749.7206245071134,
+        "buy_vol_1h": 112442.93584470812,
+        "sell_vol_1h": 107326.09127637096,
+        "organic_buy_vol_1h": 4856.899184244626,
+        "top_holders_pct": 59.41898848531142,
+        "dev_balance_pct": 0.0,
+        "dev_mints": 9,
+        "launchpad": null,
+        "graduated": false,
+        "social": false,
+        "quelle": "organic5m+traded1h+traded5m+trend1h",
+        "trades_24h": 1793,
+        "organic_label": "medium",
+        "buy_organic_vol_5m": 0.0,
+        "jup_fees": null,
+        "hour_utc": 19
+      },
+      "bundle": {
+        "quelle": "experiment",
+        "text": "Serien-Dev: frueherer Coin ATTN bis 1,450,409 $"
+      },
+      "phase": "normal",
+      "thesis": "Story verbreitet sich: Holder +83%/h, 7 Netto-Kaeufer 5m, 4 organisch; Serien-Dev: frueherer Coin ATTN bis 1,450,409 $; Dev-Coins 9",
+      "exit_rule": "Haelfte bei 2x; Rest raus, wenn Holder schrumpfen und Netto-Verkaeufer 2x in Folge, Liquiditaet -30%, -40%, nach 1,5x nicht unter Einstand, nach 2x 30 % vom Hoch (ab 10x 25 %)",
+      "mitlaeufer": null,
+      "solana_tracker": null,
+      "graduated": false,
+      "liq_low_checks": 0,
+      "dev_exit": true,
+      "dev_pct_kauf": 0.0,
+      "serien_vorgaenger": {
+        "symbol": "ATTN",
+        "peak": 1450409,
+        "zuerst": 1791106437,
+        "mint": "H1kXUqEPkQNNeNjGNN5tuHf3nsQK2vB1jUA9c4RggpUf"
+      }
     }
   },
   "closed": [
@@ -91525,18 +91598,10 @@
     "CSdSKwjeQB4REtxHjYu7R5nbJhCiHXFFs4undusRcrA6": 1793646009.847416,
     "5DnWmSL9t3YqK5MeYq8ozJpna46VcdePWzHvyN8avg2g": 1793646013.1466768,
     "BFKk1RFCz6527KbtcRKYjdvgtxaTCWZbw8dmF1txpump": 1793647471.957723,
-    "H2F3dSkiLxyRekj1uzyUyyRpKLSrc7aDEyNrADbcpump": 1793648581.9786215
+    "H2F3dSkiLxyRekj1uzyUyyRpKLSrc7aDEyNrADbcpump": 1793648581.9786215,
+    "6kKETm8xPeZ2z1DBYjXmxMTFAJudvGHJvRHu5Wt8uGtf": 1793648786.5894277
   },
   "watch": {
-    "7UERSJTrf7Rm4fNspJNPkLW39hHmQnqrfagN9BMWpump": {
-      "symbol": "DEVELOPER",
-      "entry_fill_usd": 1.1769383053887204e-05,
-      "opened": 1793626409.4662817,
-      "peak_usd": 1.3632452782714089e-05,
-      "exit_usd": 5.762402580527852e-06,
-      "exit_reason": "NOTBREMSE (-51%)",
-      "until": 1793648722.03738
-    },
     "HckPgvvNVNnFRZsYRNGMbeSs362dLLhZGjzNmqpgf9gk": {
       "symbol": "CI",
       "entry_fill_usd": 5.677397078334324e-05,
@@ -91657,5 +91722,5 @@
   },
   "runde": 5,
   "shadow": {},
-  "saved_at": 1793648599.3288598
+  "saved_at": 1793648794.3543851
 }
