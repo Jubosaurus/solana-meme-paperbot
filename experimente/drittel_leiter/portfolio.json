@@ -1,7 +1,7 @@
 {
   "strategy": "EXPERIMENT_drittel_leiter",
   "started": "2026-10-04T06:19:45.237722+00:00",
-  "bankroll_sol": 5.303599,
+  "bankroll_sol": 5.102099,
   "positions": {
     "7ymF66Z6VhgNiwadtVhjTtT6U7iQRpSxeiRrhfufhigh": {
       "mint": "7ymF66Z6VhgNiwadtVhjTtT6U7iQRpSxeiRrhfufhigh",
@@ -102,7 +102,110 @@
           "9qfu1eHi6aWrPGKYTbDcKcFbYBPj2VexzfWJYVvJ48E1": 33821584456647.0
         }
       },
-      "flug_last": 1793729045.9838223
+      "flug_last": 1793729180.0698395
+    },
+    "ECiKD6Gna9Rp1bU36L7mfdrpjtHwoMqJMAuVCXV8SM39": {
+      "mint": "ECiKD6Gna9Rp1bU36L7mfdrpjtHwoMqJMAuVCXV8SM39",
+      "symbol": "SAYSO",
+      "opened": 1793729199.5089447,
+      "invested_sol": 0.2,
+      "fees_sol": 0.0015,
+      "entry_signal_usd": 6.162258498628545e-05,
+      "entry_fill_usd": 6.793011825745172e-05,
+      "entry_slippage_pct": 10.24,
+      "roundtrip_cost_pct": 6.24,
+      "tokens_initial": 275444.509904,
+      "tokens_left": 275444.509904,
+      "decimals": 6,
+      "proceeds_sol": 0.0,
+      "peak_usd": 6.793011825745172e-05,
+      "tp1_done": false,
+      "thesis_breaks": 0,
+      "missing_loops": 0,
+      "entry_liquidity": 10132.636106310485,
+      "entry_view": {
+        "age_h": 1.1839082887437609,
+        "mcap": 57345.392347809946,
+        "liquidity": 10132.636106310485,
+        "holders": 127,
+        "holder_growth_1h": 32.29166666666667,
+        "holder_growth_5m": 1.6,
+        "net_buyers_5m": 3,
+        "organic_buyers_5m": 3,
+        "organic_score": 41.44699253948351,
+        "price_change_1h": 39.206179474640265,
+        "price_change_5m": 8.45978371296581,
+        "buys_5m": 6,
+        "sells_5m": 3,
+        "traders_5m": 4,
+        "traders_1h": 106,
+        "buy_vol_5m": 707.9927683879828,
+        "sell_vol_5m": 222.2221766132212,
+        "buy_vol_1h": 13175.669387728654,
+        "sell_vol_1h": 11596.69570908344,
+        "organic_buy_vol_1h": 869.1326590067722,
+        "top_holders_pct": 32.39648390798703,
+        "dev_balance_pct": 0.0,
+        "dev_mints": 1,
+        "launchpad": "met-dbc",
+        "graduated": true,
+        "social": true,
+        "quelle": "organic1h+organic5m",
+        "trades_24h": 951,
+        "organic_label": "medium",
+        "buy_organic_vol_5m": 0.0,
+        "jup_fees": null,
+        "hour_utc": 18
+      },
+      "bundle": {
+        "quelle": "block0",
+        "slot": 464973460,
+        "block0_wallets": 1,
+        "block0_supply_pct": 4.48,
+        "block0_still_held_pct": 0.0,
+        "block0_exited": 1,
+        "early_tx_slot1_2": 0,
+        "bundle_holding_pct": 0.0,
+        "block0_tx_fehlend": 0,
+        "block0_halter_fehlend": 0,
+        "gebuendelt": false,
+        "rugcheck_insider_pct": 0
+      },
+      "phase": "normal",
+      "thesis": "Story verbreitet sich: Holder +32%/h, 3 Netto-Kaeufer 5m, 3 organisch; Block 0: 1 Kaeufer, 4.5% gekauft, 0.0% noch gehalten; Dev-Coins 1",
+      "exit_rule": "Je ein Drittel bei 1,5x / 2x / 3x; sonst Rest raus, wenn Holder schrumpfen und Netto-Verkaeufer 2x in Folge, Liquiditaet -30%, -40%, nach 1,5x nicht unter Einstand, nach 2x 30 % vom Hoch (ab 10x 25 %)",
+      "mitlaeufer": {
+        "teil": "JUST",
+        "leader": "CHILLGUY",
+        "leader_mint": "Df6yfrKC8kZE3KNkrHERKzAetSxbrWeniQfyJY4Jpump",
+        "leader_mcap": 8720177
+      },
+      "solana_tracker": {
+        "score": 8,
+        "rugged": false,
+        "snipers_pct": 45.395,
+        "insiders_pct": 0,
+        "bundlers_pct": 1.2956,
+        "top10_pct": 30.1479,
+        "risiken": [
+          "Top 10 Holders",
+          "Snipers"
+        ]
+      },
+      "graduated": true,
+      "liq_low_checks": 0,
+      "leiter": [
+        1.5,
+        2.0,
+        3.0
+      ],
+      "leiter_stufe": 0,
+      "block0_flug": {
+        "supply": 930590502825751.0,
+        "bought": {
+          "FjoHQLK3kcETgYwMFjapvE7znEUyZYjubKvGTWKPULQ": 41682274289090.0
+        }
+      }
     }
   },
   "closed": [
@@ -21728,7 +21831,8 @@
     "GRKbh1ncSAQC4A3aGRsFsctG7KyTy9ebWNcDGGaupump": 1793702973.4583743,
     "2HbNwnhiL8HBK5mkdrcB9nbDxknPqGmJdXrtuH5fLoat": 1793718178.5017364,
     "2G1uc6R97HYiuMFpbwSDitToYEPRdmQ1qk2opbtDpair": 1793719183.435444,
-    "7ymF66Z6VhgNiwadtVhjTtT6U7iQRpSxeiRrhfufhigh": 1793728574.741248
+    "7ymF66Z6VhgNiwadtVhjTtT6U7iQRpSxeiRrhfufhigh": 1793728574.741248,
+    "ECiKD6Gna9Rp1bU36L7mfdrpjtHwoMqJMAuVCXV8SM39": 1793729199.5095718
   },
   "watch": {
     "2G1uc6R97HYiuMFpbwSDitToYEPRdmQ1qk2opbtDpair": {
@@ -21752,5 +21856,5 @@
   },
   "runde": 1,
   "shadow": {},
-  "saved_at": 1793729057.9566376
+  "saved_at": 1793729200.0713487
 }
