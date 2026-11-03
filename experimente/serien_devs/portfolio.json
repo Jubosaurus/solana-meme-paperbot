@@ -1,7 +1,7 @@
 {
   "strategy": "EXPERIMENT_serien_devs",
   "started": "2026-10-04T00:34:10.471102+00:00",
-  "bankroll_sol": 5.728661,
+  "bankroll_sol": 5.527161,
   "positions": {
     "7gQTgzd8BakkYhEKACiDGQrzERnvsQNFN1Vkj3w5pump": {
       "mint": "7gQTgzd8BakkYhEKACiDGQrzERnvsQNFN1Vkj3w5pump",
@@ -75,7 +75,80 @@
         "zuerst": 1792320116,
         "mint": "3A3qjns31YZA6Ung91ZpoPD7J3p1bDFbTJ4ANFAPpump"
       },
-      "flug_last": 1793694926.6692972
+      "flug_last": 1793694996.5369403
+    },
+    "8DB8Fw5UiC1AzugQAfRyw3qL8omw772LJbdehNWhpump": {
+      "mint": "8DB8Fw5UiC1AzugQAfRyw3qL8omw772LJbdehNWhpump",
+      "symbol": "OMBRO",
+      "opened": 1793695052.3974974,
+      "invested_sol": 0.2,
+      "fees_sol": 0.0015,
+      "entry_signal_usd": 9.595630196684414e-05,
+      "entry_fill_usd": 9.996637346574143e-05,
+      "entry_slippage_pct": 4.18,
+      "roundtrip_cost_pct": 4.93,
+      "tokens_initial": 182884.421715,
+      "tokens_left": 182884.421715,
+      "decimals": 6,
+      "proceeds_sol": 0.0,
+      "peak_usd": 9.996637346574143e-05,
+      "tp1_done": false,
+      "thesis_breaks": 0,
+      "missing_loops": 0,
+      "entry_liquidity": 14462.029287472766,
+      "entry_view": {
+        "age_h": 0.26674201627572375,
+        "mcap": 93263.2263367162,
+        "liquidity": 14462.029287472766,
+        "holders": 904,
+        "holder_growth_1h": 786.2745098039215,
+        "holder_growth_5m": 21.34228187919463,
+        "net_buyers_5m": 323,
+        "organic_buyers_5m": 0,
+        "organic_score": 0.0,
+        "price_change_1h": 756.6529883265514,
+        "price_change_5m": 11.738573239989023,
+        "buys_5m": 1037,
+        "sells_5m": 753,
+        "traders_5m": 631,
+        "traders_1h": 1240,
+        "buy_vol_5m": 30466.60657755484,
+        "sell_vol_5m": 30851.773988908997,
+        "buy_vol_1h": 120016.89100954653,
+        "sell_vol_1h": 109946.97548030395,
+        "organic_buy_vol_1h": 2150.3597792401647,
+        "top_holders_pct": 19.33742871905885,
+        "dev_balance_pct": 0.0,
+        "dev_mints": 2,
+        "launchpad": "pump.fun",
+        "graduated": true,
+        "social": false,
+        "quelle": "traded1h+traded5m+trend1h",
+        "trades_24h": 5272,
+        "organic_label": "low",
+        "buy_organic_vol_5m": 417.97024552351525,
+        "jup_fees": null,
+        "hour_utc": 8
+      },
+      "bundle": {
+        "quelle": "experiment",
+        "text": "Serien-Dev: frueherer Coin HERMIT bis 442,574 $"
+      },
+      "phase": "normal",
+      "thesis": "Story verbreitet sich: Holder +786%/h, 323 Netto-Kaeufer 5m, 0 organisch; Serien-Dev: frueherer Coin HERMIT bis 442,574 $; Dev-Coins 2",
+      "exit_rule": "Haelfte bei 2x; Rest raus, wenn Holder schrumpfen und Netto-Verkaeufer 2x in Folge, Liquiditaet -30%, -40%, nach 1,5x nicht unter Einstand, nach 2x 30 % vom Hoch (ab 10x 25 %)",
+      "mitlaeufer": null,
+      "solana_tracker": null,
+      "graduated": true,
+      "liq_low_checks": 0,
+      "dev_exit": true,
+      "dev_pct_kauf": 0.0,
+      "serien_vorgaenger": {
+        "symbol": "HERMIT",
+        "peak": 442574,
+        "zuerst": 1793205293,
+        "mint": "ASX4GtetW337jwG2rLZaU84eY64rRCoWbf63yXQepump"
+      }
     }
   },
   "closed": [
@@ -92765,7 +92838,8 @@
     "8UdrZzuCPbZAY2tiSErRED2KUrggJaRxEsHrzgWLpump": 1793675808.1980813,
     "GKrbz5JYG6o36T8NRxxPp7Dsn6DEtkD7gsnLc1sNpump": 1793680449.6986146,
     "GrF4sXCmWPPCBfUW8q6N11MKF5cF3RjFfMdVQ6bDpump": 1793684817.6107244,
-    "7gQTgzd8BakkYhEKACiDGQrzERnvsQNFN1Vkj3w5pump": 1793694353.1684086
+    "7gQTgzd8BakkYhEKACiDGQrzERnvsQNFN1Vkj3w5pump": 1793694353.1684086,
+    "8DB8Fw5UiC1AzugQAfRyw3qL8omw772LJbdehNWhpump": 1793695052.3984334
   },
   "watch": {
     "8UdrZzuCPbZAY2tiSErRED2KUrggJaRxEsHrzgWLpump": {
@@ -92798,5 +92872,5 @@
   },
   "runde": 5,
   "shadow": {},
-  "saved_at": 1793694980.5527942
+  "saved_at": 1793695054.1883888
 }
