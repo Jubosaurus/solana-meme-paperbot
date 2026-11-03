@@ -1,8 +1,101 @@
 {
   "strategy": "NARRATIV",
   "started": "2026-09-26T02:46:00.825468+00:00",
-  "bankroll_sol": 6.629634,
-  "positions": {},
+  "bankroll_sol": 6.428134,
+  "positions": {
+    "7ZpKoVqzcP3i3kKJzRTiXFPKnnodkAYfAhXBywXDpump": {
+      "mint": "7ZpKoVqzcP3i3kKJzRTiXFPKnnodkAYfAhXBywXDpump",
+      "symbol": "BEES",
+      "opened": 1793697454.7862585,
+      "invested_sol": 0.2,
+      "fees_sol": 0.0015,
+      "entry_signal_usd": 3.965981937225694e-05,
+      "entry_fill_usd": 4.270266796689235e-05,
+      "entry_slippage_pct": 7.67,
+      "roundtrip_cost_pct": 2.78,
+      "tokens_initial": 431180.619668,
+      "tokens_left": 431180.619668,
+      "decimals": 6,
+      "proceeds_sol": 0.0,
+      "peak_usd": 4.270266796689235e-05,
+      "tp1_done": false,
+      "thesis_breaks": 0,
+      "missing_loops": 0,
+      "entry_liquidity": 6682.4208142145,
+      "entry_view": {
+        "age_h": 4.537151750591066,
+        "mcap": 38725.092579515265,
+        "liquidity": 6682.4208142145,
+        "holders": 313,
+        "holder_growth_1h": 206.86274509803923,
+        "holder_growth_5m": 128.46715328467153,
+        "net_buyers_5m": 189,
+        "organic_buyers_5m": 3,
+        "organic_score": 36.46829905784156,
+        "price_change_1h": 139.61783615393614,
+        "price_change_5m": 24.363652242631918,
+        "buys_5m": 628,
+        "sells_5m": 393,
+        "traders_5m": 324,
+        "traders_1h": 376,
+        "buy_vol_5m": 27052.835031457147,
+        "sell_vol_5m": 26589.55961626001,
+        "buy_vol_1h": 31076.551427914837,
+        "sell_vol_1h": 30388.50231146222,
+        "organic_buy_vol_1h": 2777.378456185751,
+        "top_holders_pct": 28.219719147150663,
+        "dev_balance_pct": 0.0,
+        "dev_mints": 1,
+        "launchpad": "pump.fun",
+        "graduated": true,
+        "social": false,
+        "quelle": "organic1h+organic5m+traded1h+traded5m+trend5m",
+        "trades_24h": 2827,
+        "organic_label": "medium",
+        "buy_organic_vol_5m": 2126.443417777028,
+        "jup_fees": null,
+        "hour_utc": 9
+      },
+      "bundle": {
+        "quelle": "block0",
+        "slot": 464768871,
+        "block0_wallets": 1,
+        "block0_supply_pct": 30.77,
+        "block0_still_held_pct": 0.0,
+        "block0_exited": 1,
+        "early_tx_slot1_2": 7,
+        "bundle_holding_pct": 0.0,
+        "block0_tx_fehlend": 0,
+        "block0_halter_fehlend": 0,
+        "gebuendelt": false,
+        "rugcheck_insider_pct": 0
+      },
+      "phase": "normal",
+      "thesis": "Story verbreitet sich: Holder +207%/h, 189 Netto-Kaeufer 5m, 3 organisch; Block 0: 1 Kaeufer, 30.8% gekauft, 0.0% noch gehalten; Dev-Coins 1",
+      "exit_rule": "Haelfte bei 2x; Rest raus, wenn Holder schrumpfen und Netto-Verkaeufer 2x in Folge, Liquiditaet -30%, -40%, nach 1,5x nicht unter Einstand, nach 2x 30 % vom Hoch (ab 10x 25 %)",
+      "mitlaeufer": null,
+      "solana_tracker": {
+        "score": 6,
+        "rugged": false,
+        "snipers_pct": 7.0873,
+        "insiders_pct": 0,
+        "bundlers_pct": 7.9444,
+        "top10_pct": 27.554600000000004,
+        "risiken": [
+          "Top 10 Holders",
+          "Bundler Holdings"
+        ]
+      },
+      "graduated": true,
+      "liq_low_checks": 0,
+      "block0_flug": {
+        "supply": 975118623973614.0,
+        "bought": {
+          "AJYFjnpqGXgHu1JRuFBqpWhj6Gcy8bKPxe8xysgJBusj": 299999999999996.0
+        }
+      }
+    }
+  },
   "closed": [
     {
       "symbol": "SHOGGOTH",
@@ -29067,7 +29160,8 @@
     "ALTRgkReDWGmhisjTXwqHvbZRUcVoJicj54bQzVCpump": 1793647260.9397135,
     "B1FxS86N8hEBTgKMpt29yPB9VzPxXUgNY7AzdjGZpump": 1793651456.8611133,
     "J1pZjNKh4BnbXBsroE4acJv3TYzCGxTn46VrZii6orEZ": 1793686621.9749055,
-    "FxQ5GbqCBxNHDpFTpiL9RDVHiP58ar5nMkR3eMwepump": 1793689277.7298176
+    "FxQ5GbqCBxNHDpFTpiL9RDVHiP58ar5nMkR3eMwepump": 1793689277.7298176,
+    "7ZpKoVqzcP3i3kKJzRTiXFPKnnodkAYfAhXBywXDpump": 1793697454.787098
   },
   "watch": {
     "J1pZjNKh4BnbXBsroE4acJv3TYzCGxTn46VrZii6orEZ": {
@@ -29089,7 +29183,7 @@
       "until": 1793712222.1454055
     }
   },
-  "saved_at": 1793697327.9257643,
+  "saved_at": 1793697460.8804023,
   "shadow": {
     "CcDxdWZknjKxucq6SgQtHSc5w1amottoBkheaaePpump": {
       "symbol": "ANON",
@@ -29292,7 +29386,7 @@
   },
   "st_usage": {
     "date": "2026-11-03",
-    "count": 2
+    "count": 3
   },
   "wellen": {}
 }
