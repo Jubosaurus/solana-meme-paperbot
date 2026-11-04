@@ -1,7 +1,7 @@
 {
   "strategy": "EXPERIMENT_serien_devs",
   "started": "2026-10-04T00:34:10.471102+00:00",
-  "bankroll_sol": 8.961364,
+  "bankroll_sol": 8.759864,
   "positions": {
     "niGov23G5iRC9X4GRVmY3HdAhXSHpTYpwKd9gEHoR16": {
       "mint": "niGov23G5iRC9X4GRVmY3HdAhXSHpTYpwKd9gEHoR16",
@@ -75,7 +75,80 @@
         "zuerst": 1791074049,
         "mint": "CbyTNf7UPzvewHh4Zp6umogM2RWahhmGRJWLJnPwpump"
       },
-      "flug_last": 1793806595.031679
+      "flug_last": 1793806925.4232361
+    },
+    "EwHV6XfuMmBirGSiDVSypVkHcw7jD7Mho1s5xGwjpump": {
+      "mint": "EwHV6XfuMmBirGSiDVSypVkHcw7jD7Mho1s5xGwjpump",
+      "symbol": "AIB",
+      "opened": 1793806964.660292,
+      "invested_sol": 0.2,
+      "fees_sol": 0.0015,
+      "entry_signal_usd": 6.221010106679034e-05,
+      "entry_fill_usd": 7.184669756000451e-05,
+      "entry_slippage_pct": 15.49,
+      "roundtrip_cost_pct": 2.54,
+      "tokens_initial": 269881.738357,
+      "tokens_left": 269881.738357,
+      "decimals": 6,
+      "proceeds_sol": 0.0,
+      "peak_usd": 7.184669756000451e-05,
+      "tp1_done": false,
+      "thesis_breaks": 0,
+      "missing_loops": 0,
+      "entry_liquidity": 9482.101508794263,
+      "entry_view": {
+        "age_h": 0.26931429617934755,
+        "mcap": 59767.318754273605,
+        "liquidity": 9482.101508794263,
+        "holders": 910,
+        "holder_growth_1h": 2233.333333333333,
+        "holder_growth_5m": 0.11001100110011,
+        "net_buyers_5m": 557,
+        "organic_buyers_5m": 0,
+        "organic_score": 0.0,
+        "price_change_1h": 1060.4129884462425,
+        "price_change_5m": -41.2148221444796,
+        "buys_5m": 2342,
+        "sells_5m": 1634,
+        "traders_5m": 1275,
+        "traders_1h": 2017,
+        "buy_vol_5m": 105568.92075315636,
+        "sell_vol_5m": 109465.81276936688,
+        "buy_vol_1h": 252824.06513397436,
+        "sell_vol_1h": 246919.1592076303,
+        "organic_buy_vol_1h": 5636.441652986019,
+        "top_holders_pct": 17.053297735514032,
+        "dev_balance_pct": 0.0,
+        "dev_mints": 2533,
+        "launchpad": "pump.fun",
+        "graduated": true,
+        "social": true,
+        "quelle": "traded1h+traded5m+trend1h",
+        "trades_24h": 9704,
+        "organic_label": "low",
+        "buy_organic_vol_5m": 2166.5253197831416,
+        "jup_fees": null,
+        "hour_utc": 15
+      },
+      "bundle": {
+        "quelle": "experiment",
+        "text": "Serien-Dev: frueherer Coin Crawler bis 650,153 $"
+      },
+      "phase": "normal",
+      "thesis": "Story verbreitet sich: Holder +2233%/h, 557 Netto-Kaeufer 5m, 0 organisch; Serien-Dev: frueherer Coin Crawler bis 650,153 $; Dev-Coins 2533",
+      "exit_rule": "Haelfte bei 2x; Rest raus, wenn Holder schrumpfen und Netto-Verkaeufer 2x in Folge, Liquiditaet -30%, -40%, nach 1,5x nicht unter Einstand, nach 2x 30 % vom Hoch (ab 10x 25 %)",
+      "mitlaeufer": null,
+      "solana_tracker": null,
+      "graduated": true,
+      "liq_low_checks": 0,
+      "dev_exit": true,
+      "dev_pct_kauf": 0.0,
+      "serien_vorgaenger": {
+        "symbol": "Crawler",
+        "peak": 650153,
+        "zuerst": 1791083032,
+        "mint": "2gafU5vS2nVKN4poA9zeQTDM5MXbwWJfcayeJBw5pump"
+      }
     }
   },
   "closed": [
@@ -97229,7 +97302,8 @@
     "2f6TQQHxce6DuaoRD5U4V621KAFjMaWCvgAJ363bpump": 1793803060.9153638,
     "G8Lf8uthQp5YHoswQZDRdeRxaWiUqnNFNoZ45y68pump": 1793804084.4922378,
     "Any94UXGVmGSVxRMQswECH96YsA22B3eQbW1KHSNpump": 1793805692.283172,
-    "niGov23G5iRC9X4GRVmY3HdAhXSHpTYpwKd9gEHoR16": 1793806177.408952
+    "niGov23G5iRC9X4GRVmY3HdAhXSHpTYpwKd9gEHoR16": 1793806177.408952,
+    "EwHV6XfuMmBirGSiDVSypVkHcw7jD7Mho1s5xGwjpump": 1793806964.6610568
   },
   "watch": {
     "5iuqZtGthqTYnFVZTBHxMkXNXX31mjLsKJYy5Y8TAR9V": {
@@ -97290,7 +97364,7 @@
       "symbol": "Democat",
       "entry_fill_usd": 5.5619146184115354e-05,
       "opened": 1793805692.2824495,
-      "peak_usd": 7.596802827386802e-05,
+      "peak_usd": 8.602837335458886e-05,
       "exit_usd": 6.771379670134593e-05,
       "exit_reason": "DEV_VERKAUFT (0.9% -> 0.4%)",
       "until": 1793828074.7929614
@@ -97298,5 +97372,5 @@
   },
   "runde": 5,
   "shadow": {},
-  "saved_at": 1793806641.2661114
+  "saved_at": 1793806966.4178767
 }
