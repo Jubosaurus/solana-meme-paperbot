@@ -1,7 +1,7 @@
 {
   "strategy": "EXPERIMENT_serien_devs",
   "started": "2026-10-04T00:34:10.471102+00:00",
-  "bankroll_sol": 8.210301,
+  "bankroll_sol": 8.405414,
   "positions": {
     "7oCJc2xhb7bL4PjWhVnQRwJjz284LP6ArtfM8kTppump": {
       "mint": "7oCJc2xhb7bL4PjWhVnQRwJjz284LP6ArtfM8kTppump",
@@ -75,27 +75,27 @@
         "zuerst": 1791462631,
         "mint": "Ca5VuKu5NyyFkixnewTnokmzXpmNuG8Mk5odwHJypRNq"
       },
-      "flug_last": 1793832374.6143384
+      "flug_last": 1793832444.2527661
     },
     "3CLo2gEz6KQstXWcGEGCDeoLwDDdyzEXZGVwx7ippump": {
       "mint": "3CLo2gEz6KQstXWcGEGCDeoLwDDdyzEXZGVwx7ippump",
       "symbol": "KAIA",
       "opened": 1793832387.857631,
       "invested_sol": 0.2,
-      "fees_sol": 0.0015,
+      "fees_sol": 0.003,
       "entry_signal_usd": 1.9392436362822707e-05,
       "entry_fill_usd": 2.5997410046337517e-05,
       "entry_slippage_pct": 34.06,
       "roundtrip_cost_pct": -3.48,
       "tokens_initial": 738459.366955,
-      "tokens_left": 738459.366955,
+      "tokens_left": 369229.6834775,
       "decimals": 6,
-      "proceeds_sol": 0.0,
-      "peak_usd": 2.5997410046337517e-05,
-      "tp1_done": false,
+      "proceeds_sol": 0.195112685,
+      "peak_usd": 5.898964450314218e-05,
+      "tp1_done": true,
       "thesis_breaks": 0,
       "missing_loops": 0,
-      "entry_liquidity": 7786.12125943932,
+      "entry_liquidity": 8384.475991631482,
       "entry_view": {
         "age_h": 2.996837316221661,
         "mcap": 19392.43636282269,
@@ -139,7 +139,7 @@
       "exit_rule": "Haelfte bei 2x; Rest raus, wenn Holder schrumpfen und Netto-Verkaeufer 2x in Folge, Liquiditaet -30%, -40%, nach 1,5x nicht unter Einstand, nach 2x 30 % vom Hoch (ab 10x 25 %)",
       "mitlaeufer": null,
       "solana_tracker": null,
-      "graduated": false,
+      "graduated": true,
       "liq_low_checks": 0,
       "dev_exit": true,
       "dev_pct_kauf": 0.0,
@@ -148,7 +148,9 @@
         "peak": 1417393,
         "zuerst": 1792622097,
         "mint": "CMo7GfUhSGXuEfnY7qAzv8hhsV2M2P8GpWqmWikhpump"
-      }
+      },
+      "flug_last": 1793832412.5440886,
+      "graduated_during": true
     }
   },
   "closed": [
@@ -99101,5 +99103,5 @@
   },
   "runde": 5,
   "shadow": {},
-  "saved_at": 1793832389.4863741
+  "saved_at": 1793832464.3726456
 }
