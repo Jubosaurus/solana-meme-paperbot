@@ -1,8 +1,82 @@
 {
   "strategy": "EXPERIMENT_serien_devs",
   "started": "2026-10-04T00:34:10.471102+00:00",
-  "bankroll_sol": 9.122004,
-  "positions": {},
+  "bankroll_sol": 8.920504,
+  "positions": {
+    "Any94UXGVmGSVxRMQswECH96YsA22B3eQbW1KHSNpump": {
+      "mint": "Any94UXGVmGSVxRMQswECH96YsA22B3eQbW1KHSNpump",
+      "symbol": "Democat",
+      "opened": 1793805692.2824495,
+      "invested_sol": 0.2,
+      "fees_sol": 0.0015,
+      "entry_signal_usd": 4.754893973474846e-05,
+      "entry_fill_usd": 5.5619146184115354e-05,
+      "entry_slippage_pct": 16.97,
+      "roundtrip_cost_pct": -1.73,
+      "tokens_initial": 348879.612431,
+      "tokens_left": 348879.612431,
+      "decimals": 6,
+      "proceeds_sol": 0.0,
+      "peak_usd": 5.5619146184115354e-05,
+      "tp1_done": false,
+      "thesis_breaks": 0,
+      "missing_loops": 0,
+      "entry_liquidity": 7747.347247139269,
+      "entry_view": {
+        "age_h": 0.5800894253121482,
+        "mcap": 46799.92881668259,
+        "liquidity": 7747.347247139269,
+        "holders": 447,
+        "holder_growth_1h": 2135.0,
+        "holder_growth_5m": 97.78761061946902,
+        "net_buyers_5m": 244,
+        "organic_buyers_5m": 6,
+        "organic_score": 44.07918302840398,
+        "price_change_1h": 561.0146405360149,
+        "price_change_5m": 190.75922078017416,
+        "buys_5m": 693,
+        "sells_5m": 449,
+        "traders_5m": 474,
+        "traders_1h": 888,
+        "buy_vol_5m": 29762.605779810594,
+        "sell_vol_5m": 25953.95457881445,
+        "buy_vol_1h": 71601.8650318272,
+        "sell_vol_1h": 66923.06190100509,
+        "organic_buy_vol_1h": 5161.932717857428,
+        "top_holders_pct": 18.412352462761195,
+        "dev_balance_pct": 0.8616537114015512,
+        "dev_mints": 1926,
+        "launchpad": "pump.fun",
+        "graduated": true,
+        "social": true,
+        "quelle": "organic1h+organic5m+traded1h+traded5m+trend5m",
+        "trades_24h": 2993,
+        "organic_label": "medium",
+        "buy_organic_vol_5m": 2687.7892743938824,
+        "jup_fees": null,
+        "hour_utc": 15
+      },
+      "bundle": {
+        "quelle": "experiment",
+        "text": "Serien-Dev: frueherer Coin MENSA bis 452,585 $"
+      },
+      "phase": "heiss",
+      "thesis": "Story verbreitet sich: Holder +2135%/h, 244 Netto-Kaeufer 5m, 6 organisch; Serien-Dev: frueherer Coin MENSA bis 452,585 $; Dev-Coins 1926",
+      "exit_rule": "Haelfte bei 2x; Rest raus, wenn Holder schrumpfen und Netto-Verkaeufer 2x in Folge, Liquiditaet -30%, -40%, nach 1,5x nicht unter Einstand, nach 2x 30 % vom Hoch (ab 10x 25 %)",
+      "mitlaeufer": null,
+      "solana_tracker": null,
+      "graduated": true,
+      "liq_low_checks": 0,
+      "dev_exit": true,
+      "dev_pct_kauf": 0.8616537114015512,
+      "serien_vorgaenger": {
+        "symbol": "MENSA",
+        "peak": 452585,
+        "zuerst": 1791092204,
+        "mint": "CFPkPq1eYPR8GLzEo59wUbbMioX4bshaTQiSGzTSpump"
+      }
+    }
+  },
   "closed": [
     {
       "symbol": "GWC",
@@ -97091,7 +97165,8 @@
     "7izahPTvyYbbb2ggMvLwHz8bGMfamqYQZTXbnwFvpump": 1793795211.6962535,
     "4eEDTyors4YReX5fBoRFBYNkKs6w66oyQ5CvPcckpump": 1793799089.7591157,
     "2f6TQQHxce6DuaoRD5U4V621KAFjMaWCvgAJ363bpump": 1793803060.9153638,
-    "G8Lf8uthQp5YHoswQZDRdeRxaWiUqnNFNoZ45y68pump": 1793804084.4922378
+    "G8Lf8uthQp5YHoswQZDRdeRxaWiUqnNFNoZ45y68pump": 1793804084.4922378,
+    "Any94UXGVmGSVxRMQswECH96YsA22B3eQbW1KHSNpump": 1793805692.283172
   },
   "watch": {
     "5iuqZtGthqTYnFVZTBHxMkXNXX31mjLsKJYy5Y8TAR9V": {
@@ -97151,5 +97226,5 @@
   },
   "runde": 5,
   "shadow": {},
-  "saved_at": 1793805619.2145805
+  "saved_at": 1793805694.0436285
 }
