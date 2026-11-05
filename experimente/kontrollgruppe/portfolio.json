@@ -1,7 +1,7 @@
 {
   "strategy": "EXPERIMENT_kontrollgruppe",
   "started": "2026-09-29T08:33:20.747785+00:00",
-  "bankroll_sol": 4.773755,
+  "bankroll_sol": 4.951941,
   "positions": {
     "E86A12o3L9CBZCoJ3uYsT87WPEaMHy9dZVzgfdHXpump": {
       "mint": "E86A12o3L9CBZCoJ3uYsT87WPEaMHy9dZVzgfdHXpump",
@@ -67,7 +67,7 @@
       "solana_tracker": null,
       "graduated": true,
       "liq_low_checks": 0,
-      "flug_last": 1793889512.6819253
+      "flug_last": 1793889699.8816357
     },
     "J4rP3zhpvk3r2tFasTAecU4g9gnxDDpaR2xAXnz873fu": {
       "mint": "J4rP3zhpvk3r2tFasTAecU4g9gnxDDpaR2xAXnz873fu",
@@ -133,74 +133,8 @@
       "solana_tracker": null,
       "graduated": true,
       "liq_low_checks": 0,
-      "flug_last": 1793889512.6819253,
+      "flug_last": 1793889699.8816357,
       "graduated_during": true
-    },
-    "HX6pnETuZySVAsy8hT4a1zRFPYG4nXrfKVd1x66SPJ7c": {
-      "mint": "HX6pnETuZySVAsy8hT4a1zRFPYG4nXrfKVd1x66SPJ7c",
-      "symbol": "GNusmas",
-      "opened": 1793887507.792986,
-      "invested_sol": 0.2,
-      "fees_sol": 0.0015,
-      "entry_signal_usd": 5.509537757838202e-06,
-      "entry_fill_usd": 5.471671349586323e-06,
-      "entry_slippage_pct": -0.69,
-      "roundtrip_cost_pct": 3.19,
-      "tokens_initial": 3479819.312221,
-      "tokens_left": 3479819.312221,
-      "decimals": 6,
-      "proceeds_sol": 0.0,
-      "peak_usd": 5.594790093113134e-06,
-      "tp1_done": false,
-      "thesis_breaks": 0,
-      "missing_loops": 0,
-      "entry_liquidity": 5046.43431643534,
-      "entry_view": {
-        "age_h": 0.4323899550570382,
-        "mcap": 5509.537757838202,
-        "liquidity": 5046.43431643534,
-        "holders": 112,
-        "holder_growth_1h": 5500.0,
-        "holder_growth_5m": -43.14720812182741,
-        "net_buyers_5m": 24,
-        "organic_buyers_5m": 0,
-        "organic_score": 0.0,
-        "price_change_1h": -14.353566168057998,
-        "price_change_5m": -38.61919208019857,
-        "buys_5m": 98,
-        "sells_5m": 137,
-        "traders_5m": 121,
-        "traders_1h": 694,
-        "buy_vol_5m": 2533.4858520847706,
-        "sell_vol_5m": 7589.518923217663,
-        "buy_vol_1h": 48539.408183310195,
-        "sell_vol_1h": 53446.321046691206,
-        "organic_buy_vol_1h": 696.9768677588631,
-        "top_holders_pct": 9.622971905270697,
-        "dev_balance_pct": 0.0,
-        "dev_mints": 180780,
-        "launchpad": "pump.fun",
-        "graduated": false,
-        "social": true,
-        "quelle": "traded1h+traded5m",
-        "trades_24h": 2790,
-        "organic_label": "low",
-        "buy_organic_vol_5m": 0.0,
-        "jup_fees": null,
-        "hour_utc": 14
-      },
-      "bundle": {
-        "quelle": "experiment",
-        "text": "Kontrollgruppe: zufaellig aus 5 sicheren jungen Coins"
-      },
-      "phase": "normal",
-      "thesis": "Story verbreitet sich: Holder +5500%/h, 24 Netto-Kaeufer 5m, 0 organisch; Kontrollgruppe: zufaellig aus 5 sicheren jungen Coins; Dev-Coins 180780",
-      "exit_rule": "Haelfte bei 2x; Rest raus, wenn Holder schrumpfen und Netto-Verkaeufer 2x in Folge, Liquiditaet -30%, -40%, nach 1,5x nicht unter Einstand, nach 2x 30 % vom Hoch (ab 10x 25 %)",
-      "mitlaeufer": null,
-      "solana_tracker": null,
-      "graduated": false,
-      "liq_low_checks": 0,
-      "flug_last": 1793889512.6819253
     },
     "9XD1tHPpByPmJi74HrohCMmkXWMs6G9s7BLRiE9Tpump": {
       "mint": "9XD1tHPpByPmJi74HrohCMmkXWMs6G9s7BLRiE9Tpump",
@@ -218,7 +152,7 @@
       "proceeds_sol": 0.0,
       "peak_usd": 9.15084723418891e-06,
       "tp1_done": false,
-      "thesis_breaks": 0,
+      "thesis_breaks": 1,
       "missing_loops": 0,
       "entry_liquidity": 5220.689859520884,
       "entry_view": {
@@ -266,7 +200,7 @@
       "solana_tracker": null,
       "graduated": false,
       "liq_low_checks": 0,
-      "flug_last": 1793889512.6819253
+      "flug_last": 1793889699.8816357
     }
   },
   "closed": [
@@ -100165,6 +100099,67 @@
       "hold_h": 8.31,
       "closed_at": "2026-11-05T14:12:13.795229+00:00",
       "runde": 5
+    },
+    {
+      "symbol": "GNusmas",
+      "mint": "HX6pnETuZySVAsy8hT4a1zRFPYG4nXrfKVd1x66SPJ7c",
+      "invested_sol": 0.2,
+      "entry_fill_usd": 5.471671349586323e-06,
+      "entry_slippage_pct": -0.69,
+      "roundtrip_cost_pct": 3.19,
+      "tp1_done": false,
+      "entry_view": {
+        "age_h": 0.4323899550570382,
+        "mcap": 5509.537757838202,
+        "liquidity": 5046.43431643534,
+        "holders": 112,
+        "holder_growth_1h": 5500.0,
+        "holder_growth_5m": -43.14720812182741,
+        "net_buyers_5m": 24,
+        "organic_buyers_5m": 0,
+        "organic_score": 0.0,
+        "price_change_1h": -14.353566168057998,
+        "price_change_5m": -38.61919208019857,
+        "buys_5m": 98,
+        "sells_5m": 137,
+        "traders_5m": 121,
+        "traders_1h": 694,
+        "buy_vol_5m": 2533.4858520847706,
+        "sell_vol_5m": 7589.518923217663,
+        "buy_vol_1h": 48539.408183310195,
+        "sell_vol_1h": 53446.321046691206,
+        "organic_buy_vol_1h": 696.9768677588631,
+        "top_holders_pct": 9.622971905270697,
+        "dev_balance_pct": 0.0,
+        "dev_mints": 180780,
+        "launchpad": "pump.fun",
+        "graduated": false,
+        "social": true,
+        "quelle": "traded1h+traded5m",
+        "trades_24h": 2790,
+        "organic_label": "low",
+        "buy_organic_vol_5m": 0.0,
+        "jup_fees": null,
+        "hour_utc": 14
+      },
+      "bundle": {
+        "quelle": "experiment",
+        "text": "Kontrollgruppe: zufaellig aus 5 sicheren jungen Coins"
+      },
+      "phase": "normal",
+      "thesis": "Story verbreitet sich: Holder +5500%/h, 24 Netto-Kaeufer 5m, 0 organisch; Kontrollgruppe: zufaellig aus 5 sicheren jungen Coins; Dev-Coins 180780",
+      "mitlaeufer": null,
+      "solana_tracker": null,
+      "graduated_waehrend": false,
+      "proceeds_sol": 0.178186,
+      "pnl_sol": -0.023314,
+      "pnl_pct": -11.66,
+      "peak_multiple": 1.02,
+      "exit_usd": 4.9208279007471664e-06,
+      "exit_reason": "THESE_GEBROCHEN (Holder schrumpfen, Netto-Verkaeufer)",
+      "hold_h": 0.62,
+      "closed_at": "2026-11-05T14:42:37.584515+00:00",
+      "runde": 5
     }
   ],
   "cooldown": {
@@ -101822,6 +101817,6 @@
   "watch": {},
   "runde": 5,
   "shadow": {},
-  "saved_at": 1793889516.6435614,
+  "saved_at": 1793889757.9475975,
   "next_pick": 1793891097.0551822
 }
