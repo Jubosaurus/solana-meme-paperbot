@@ -1,7 +1,7 @@
 {
   "strategy": "EXPERIMENT_kontrollgruppe",
   "started": "2026-09-29T08:33:20.747785+00:00",
-  "bankroll_sol": 3.877951,
+  "bankroll_sol": 3.676451,
   "positions": {
     "4dFwoYryTJuHsSRciQ5yogSGB67KhfXctFyhx6hfLoat": {
       "mint": "4dFwoYryTJuHsSRciQ5yogSGB67KhfXctFyhx6hfLoat",
@@ -67,7 +67,7 @@
       "solana_tracker": null,
       "graduated": false,
       "liq_low_checks": 0,
-      "flug_last": 1793999884.9308245
+      "flug_last": 1794000088.1359491
     },
     "JATk4idqfAyU21F6w3xf2Rbyj9j8FnYxVWLMfoweqExh": {
       "mint": "JATk4idqfAyU21F6w3xf2Rbyj9j8FnYxVWLMfoweqExh",
@@ -83,11 +83,11 @@
       "tokens_left": 242534.667907,
       "decimals": 6,
       "proceeds_sol": 0.246638933,
-      "peak_usd": 9.782547686758826e-05,
+      "peak_usd": 0.00014868431659446584,
       "tp1_done": true,
       "thesis_breaks": 0,
       "missing_loops": 0,
-      "entry_liquidity": 8231.519696940099,
+      "entry_liquidity": 39779.17596831073,
       "entry_view": {
         "age_h": 1.5521668173207177,
         "mcap": 36904.42856544025,
@@ -131,9 +131,75 @@
       "exit_rule": "Haelfte bei 2x; Rest raus, wenn Holder schrumpfen und Netto-Verkaeufer 2x in Folge, Liquiditaet -30%, -40%, nach 1,5x nicht unter Einstand, nach 2x 30 % vom Hoch (ab 10x 25 %)",
       "mitlaeufer": null,
       "solana_tracker": null,
-      "graduated": false,
+      "graduated": true,
       "liq_low_checks": 0,
-      "flug_last": 1793999884.9308245
+      "flug_last": 1794000088.1359491,
+      "graduated_during": true
+    },
+    "9rVBU5ZHRk9stjXV9aM4HoXLznCa8Wts378Cs4Ecpump": {
+      "mint": "9rVBU5ZHRk9stjXV9aM4HoXLznCa8Wts378Cs4Ecpump",
+      "symbol": "STARMIND",
+      "opened": 1794000099.2989485,
+      "invested_sol": 0.2,
+      "fees_sol": 0.0015,
+      "entry_signal_usd": 6.837518328421592e-06,
+      "entry_fill_usd": 6.895279056244107e-06,
+      "entry_slippage_pct": 0.84,
+      "roundtrip_cost_pct": 3.25,
+      "tokens_initial": 2610498.484559,
+      "tokens_left": 2610498.484559,
+      "decimals": 6,
+      "proceeds_sol": 0.0,
+      "peak_usd": 6.895279056244107e-06,
+      "tp1_done": false,
+      "thesis_breaks": 0,
+      "missing_loops": 0,
+      "entry_liquidity": 5827.094659213448,
+      "entry_view": {
+        "age_h": 0.2708710969818963,
+        "mcap": 6834.514767423264,
+        "liquidity": 5827.094659213448,
+        "holders": 160,
+        "holder_growth_1h": 75.82417582417582,
+        "holder_growth_5m": -45.76271186440678,
+        "net_buyers_5m": 26,
+        "organic_buyers_5m": 0,
+        "organic_score": 0.0,
+        "price_change_1h": 13.933525053752206,
+        "price_change_5m": -52.72879266239231,
+        "buys_5m": 141,
+        "sells_5m": 202,
+        "traders_5m": 125,
+        "traders_1h": 1053,
+        "buy_vol_5m": 2812.0259180312587,
+        "sell_vol_5m": 5340.347337736489,
+        "buy_vol_1h": 69756.00273840106,
+        "sell_vol_1h": 73062.11850304007,
+        "organic_buy_vol_1h": 1880.5652547278132,
+        "top_holders_pct": 28.809678695945735,
+        "dev_balance_pct": 0.0,
+        "dev_mints": 1669,
+        "launchpad": "pump.fun",
+        "graduated": false,
+        "social": true,
+        "quelle": "traded1h+traded5m",
+        "trades_24h": 4855,
+        "organic_label": "low",
+        "buy_organic_vol_5m": 138.49638316116142,
+        "jup_fees": null,
+        "hour_utc": 21
+      },
+      "bundle": {
+        "quelle": "experiment",
+        "text": "Kontrollgruppe: zufaellig aus 12 sicheren jungen Coins"
+      },
+      "phase": "normal",
+      "thesis": "Story verbreitet sich: Holder +76%/h, 26 Netto-Kaeufer 5m, 0 organisch; Kontrollgruppe: zufaellig aus 12 sicheren jungen Coins; Dev-Coins 1669",
+      "exit_rule": "Haelfte bei 2x; Rest raus, wenn Holder schrumpfen und Netto-Verkaeufer 2x in Folge, Liquiditaet -30%, -40%, nach 1,5x nicht unter Einstand, nach 2x 30 % vom Hoch (ab 10x 25 %)",
+      "mitlaeufer": null,
+      "solana_tracker": null,
+      "graduated": false,
+      "liq_low_checks": 0
     }
   },
   "closed": [
@@ -105464,11 +105530,12 @@
     "DLDczx6LpVsfeMgGT8RFwy19fmcgK6ZmpPEpKR5Ppump": 1793992787.6510763,
     "AD2TBq5fP6mmGFnciRbofH93PJwkpd2mYTFBY3eRpump": 1793994628.630463,
     "4dFwoYryTJuHsSRciQ5yogSGB67KhfXctFyhx6hfLoat": 1793996440.1725795,
-    "JATk4idqfAyU21F6w3xf2Rbyj9j8FnYxVWLMfoweqExh": 1793998270.075926
+    "JATk4idqfAyU21F6w3xf2Rbyj9j8FnYxVWLMfoweqExh": 1793998270.075926,
+    "9rVBU5ZHRk9stjXV9aM4HoXLznCa8Wts378Cs4Ecpump": 1794000099.299702
   },
   "watch": {},
   "runde": 5,
   "shadow": {},
-  "saved_at": 1793999895.4936075,
-  "next_pick": 1794000057.8005424
+  "saved_at": 1794000104.3220673,
+  "next_pick": 1794001888.1359491
 }
