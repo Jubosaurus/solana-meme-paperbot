@@ -1,8 +1,82 @@
 {
   "strategy": "EXPERIMENT_serien_devs",
   "started": "2026-10-04T00:34:10.471102+00:00",
-  "bankroll_sol": 7.885163,
-  "positions": {},
+  "bankroll_sol": 7.683663,
+  "positions": {
+    "FugyvQb7hrg71eL8iWu6cpZvg9HyJBXN761dzxNFpump": {
+      "mint": "FugyvQb7hrg71eL8iWu6cpZvg9HyJBXN761dzxNFpump",
+      "symbol": "LAURA",
+      "opened": 1793985903.2508214,
+      "invested_sol": 0.2,
+      "fees_sol": 0.0015,
+      "entry_signal_usd": 1.2655610334508393e-05,
+      "entry_fill_usd": 1.3258207573551457e-05,
+      "entry_slippage_pct": 4.76,
+      "roundtrip_cost_pct": 8.12,
+      "tokens_initial": 1361942.145103,
+      "tokens_left": 1361942.145103,
+      "decimals": 6,
+      "proceeds_sol": 0.0,
+      "peak_usd": 1.3258207573551457e-05,
+      "tp1_done": false,
+      "thesis_breaks": 0,
+      "missing_loops": 0,
+      "entry_liquidity": 6718.314053599113,
+      "entry_view": {
+        "age_h": 0.38781902141041225,
+        "mcap": 12655.610334508394,
+        "liquidity": 6718.314053599113,
+        "holders": 100,
+        "holder_growth_1h": -13.793103448275861,
+        "holder_growth_5m": 12.359550561797752,
+        "net_buyers_5m": 20,
+        "organic_buyers_5m": 0,
+        "organic_score": 0.0,
+        "price_change_1h": 11.285338349418911,
+        "price_change_5m": 22.658183321147295,
+        "buys_5m": 31,
+        "sells_5m": 11,
+        "traders_5m": 30,
+        "traders_1h": 414,
+        "buy_vol_5m": 1504.718597896448,
+        "sell_vol_5m": 890.8082635993666,
+        "buy_vol_1h": 36623.37039901416,
+        "sell_vol_1h": 34546.37985409436,
+        "organic_buy_vol_1h": 1016.7676825374803,
+        "top_holders_pct": 19.372380892572902,
+        "dev_balance_pct": 0.0,
+        "dev_mints": 17,
+        "launchpad": "pump.fun",
+        "graduated": false,
+        "social": false,
+        "quelle": "trend1h",
+        "trades_24h": 1470,
+        "organic_label": "low",
+        "buy_organic_vol_5m": 155.72588239720318,
+        "jup_fees": null,
+        "hour_utc": 17
+      },
+      "bundle": {
+        "quelle": "experiment",
+        "text": "Serien-Dev: frueherer Coin SHINU bis 300,260 $"
+      },
+      "phase": "normal",
+      "thesis": "Story verbreitet sich: Holder +-14%/h, 20 Netto-Kaeufer 5m, 0 organisch; Serien-Dev: frueherer Coin SHINU bis 300,260 $; Dev-Coins 17",
+      "exit_rule": "Haelfte bei 2x; Rest raus, wenn Holder schrumpfen und Netto-Verkaeufer 2x in Folge, Liquiditaet -30%, -40%, nach 1,5x nicht unter Einstand, nach 2x 30 % vom Hoch (ab 10x 25 %)",
+      "mitlaeufer": null,
+      "solana_tracker": null,
+      "graduated": false,
+      "liq_low_checks": 0,
+      "dev_exit": true,
+      "dev_pct_kauf": 0.0,
+      "serien_vorgaenger": {
+        "symbol": "SHINU",
+        "peak": 300260,
+        "zuerst": 1791256876,
+        "mint": "AZ9NHodnyb6wPYian1Fd9HF1mfvPNkJEecExVT1Sevjg"
+      }
+    }
+  },
   "closed": [
     {
       "symbol": "GWC",
@@ -104097,7 +104171,8 @@
     "9ZtuW8JzjCPNirmhKne2EnWknTj7wjv7k4cRaFEhpump": 1793978317.511181,
     "DiHxAwXMMm9F8QG4qxkGd57a4dVQYvs1iUyTn9VKpump": 1793982214.7199342,
     "G2R9uE2AotZ8ymzin39ka1a14BP2Gmz3DFb9cu9dpump": 1793982612.5150383,
-    "5do6LBiSP7hnm5nRndRe14fMMoYb9JA7aw272YHfMTT5": 1793982720.4895587
+    "5do6LBiSP7hnm5nRndRe14fMMoYb9JA7aw272YHfMTT5": 1793982720.4895587,
+    "FugyvQb7hrg71eL8iWu6cpZvg9HyJBXN761dzxNFpump": 1793985903.2517128
   },
   "watch": {
     "B4MoNcGRskiRChgBT2cLTBpb9xQPxj7T5Gojd4BY8BNy": {
@@ -104211,5 +104286,5 @@
   },
   "runde": 5,
   "shadow": {},
-  "saved_at": 1793985835.0269756
+  "saved_at": 1793985904.9317076
 }
