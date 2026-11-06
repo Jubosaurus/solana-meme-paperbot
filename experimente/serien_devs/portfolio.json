@@ -1,8 +1,82 @@
 {
   "strategy": "EXPERIMENT_serien_devs",
   "started": "2026-10-04T00:34:10.471102+00:00",
-  "bankroll_sol": 8.735708,
-  "positions": {},
+  "bankroll_sol": 8.534208,
+  "positions": {
+    "FWEgq3GpN9CgpWaXcmcadi3ktSGUL8VGnjL37Yxmpump": {
+      "mint": "FWEgq3GpN9CgpWaXcmcadi3ktSGUL8VGnjL37Yxmpump",
+      "symbol": "dikdik",
+      "opened": 1793932857.505274,
+      "invested_sol": 0.2,
+      "fees_sol": 0.0015,
+      "entry_signal_usd": 5.928642745744165e-05,
+      "entry_fill_usd": 6.626775906224636e-05,
+      "entry_slippage_pct": 11.78,
+      "roundtrip_cost_pct": 6.84,
+      "tokens_initial": 271866.568003,
+      "tokens_left": 271866.568003,
+      "decimals": 6,
+      "proceeds_sol": 0.0,
+      "peak_usd": 6.626775906224636e-05,
+      "tp1_done": false,
+      "thesis_breaks": 0,
+      "missing_loops": 0,
+      "entry_liquidity": 18842.711139969193,
+      "entry_view": {
+        "age_h": 0.2506859823067983,
+        "mcap": 56889.21825830504,
+        "liquidity": 18842.711139969193,
+        "holders": 548,
+        "holder_growth_1h": 828.8135593220339,
+        "holder_growth_5m": 35.64356435643564,
+        "net_buyers_5m": 250,
+        "organic_buyers_5m": 0,
+        "organic_score": 0.0,
+        "price_change_1h": 786.3636225443639,
+        "price_change_5m": 93.3343541265754,
+        "buys_5m": 841,
+        "sells_5m": 631,
+        "traders_5m": 533,
+        "traders_1h": 1012,
+        "buy_vol_5m": 25185.902009129855,
+        "sell_vol_5m": 23295.106860847704,
+        "buy_vol_1h": 68338.02233845006,
+        "sell_vol_1h": 66151.57061122259,
+        "organic_buy_vol_1h": 3283.8325841270243,
+        "top_holders_pct": 25.23832603701909,
+        "dev_balance_pct": 0.00557874335128923,
+        "dev_mints": 650,
+        "launchpad": "pump.fun",
+        "graduated": true,
+        "social": true,
+        "quelle": "traded1h+traded5m+trend1h+trend5m",
+        "trades_24h": 3923,
+        "organic_label": "low",
+        "buy_organic_vol_5m": 1169.602634974608,
+        "jup_fees": null,
+        "hour_utc": 2
+      },
+      "bundle": {
+        "quelle": "experiment",
+        "text": "Serien-Dev: frueherer Coin CHILLHOUSE bis 1,608,478 $"
+      },
+      "phase": "normal",
+      "thesis": "Story verbreitet sich: Holder +829%/h, 250 Netto-Kaeufer 5m, 0 organisch; Serien-Dev: frueherer Coin CHILLHOUSE bis 1,608,478 $; Dev-Coins 650",
+      "exit_rule": "Haelfte bei 2x; Rest raus, wenn Holder schrumpfen und Netto-Verkaeufer 2x in Folge, Liquiditaet -30%, -40%, nach 1,5x nicht unter Einstand, nach 2x 30 % vom Hoch (ab 10x 25 %)",
+      "mitlaeufer": null,
+      "solana_tracker": null,
+      "graduated": true,
+      "liq_low_checks": 0,
+      "dev_exit": true,
+      "dev_pct_kauf": 0.00557874335128923,
+      "serien_vorgaenger": {
+        "symbol": "CHILLHOUSE",
+        "peak": 1608478,
+        "zuerst": 1791080133,
+        "mint": "GkyPYa7NnCFbduLknCfBfP7p8564X1VZhwZYJ6CZpump"
+      }
+    }
+  },
   "closed": [
     {
       "symbol": "GWC",
@@ -102361,18 +102435,10 @@
     "96yBcd5eDhHve1uaMfTqBLADbhMhUQQTKsZ784npPt2b": 1793927655.214873,
     "9r2TQu1wUvP2RaMqgGDhQcHBkGsPPUgvQ9jcMFempump": 1793928348.537268,
     "Dk2iHPgeStfACECMbmigRRcDtP8yzfTjdHnMq7hqpump": 1793928351.838961,
-    "BgJaJZXLwCCQ7ooV1WNJoWdTzHLrFDu3DgDbziw3pump": 1793931619.3520617
+    "BgJaJZXLwCCQ7ooV1WNJoWdTzHLrFDu3DgDbziw3pump": 1793931619.3520617,
+    "FWEgq3GpN9CgpWaXcmcadi3ktSGUL8VGnjL37Yxmpump": 1793932857.505696
   },
   "watch": {
-    "EywPB6BTJZGh6S1rkBiso5cjQtopxbfonULDmSkGpump": {
-      "symbol": "fun",
-      "entry_fill_usd": 8.854714325899115e-06,
-      "opened": 1793911141.3281448,
-      "peak_usd": 9.79547712009978e-06,
-      "exit_usd": 5.233503650807574e-06,
-      "exit_reason": "NOTBREMSE (-41%)",
-      "until": 1793932819.9947548
-    },
     "E339LCMzTWZXyM4hGGTKKcuFCJWJNtDkRshuLmVzpump": {
       "symbol": "Punjimoguin",
       "entry_fill_usd": 5.669839634904846e-05,
@@ -102529,5 +102595,5 @@
   },
   "runde": 5,
   "shadow": {},
-  "saved_at": 1793932589.6196234
+  "saved_at": 1793932859.0368805
 }
