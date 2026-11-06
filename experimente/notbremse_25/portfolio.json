@@ -1,8 +1,101 @@
 {
   "strategy": "EXPERIMENT_notbremse_25",
   "started": "2026-10-04T00:34:10.470983+00:00",
-  "bankroll_sol": 6.371085,
-  "positions": {},
+  "bankroll_sol": 6.169585,
+  "positions": {
+    "CMK5SEFQw3DDs6iGTBBAHeyQyMnBgtZvFnUp6tYwabi": {
+      "mint": "CMK5SEFQw3DDs6iGTBBAHeyQyMnBgtZvFnUp6tYwabi",
+      "symbol": "WABI",
+      "opened": 1793939574.1239963,
+      "invested_sol": 0.2,
+      "fees_sol": 0.0015,
+      "entry_signal_usd": 9.718153746741945e-05,
+      "entry_fill_usd": 9.635708853276073e-05,
+      "entry_slippage_pct": -0.85,
+      "roundtrip_cost_pct": 4.41,
+      "tokens_initial": 185000.332653,
+      "tokens_left": 185000.332653,
+      "decimals": 6,
+      "proceeds_sol": 0.0,
+      "peak_usd": 9.635708853276073e-05,
+      "tp1_done": false,
+      "thesis_breaks": 0,
+      "missing_loops": 0,
+      "entry_liquidity": 12968.690709237679,
+      "entry_view": {
+        "age_h": 3.018024648163054,
+        "mcap": 97181.53746733625,
+        "liquidity": 12968.690709237679,
+        "holders": 684,
+        "holder_growth_1h": 252.57731958762886,
+        "holder_growth_5m": 1.7857142857142856,
+        "net_buyers_5m": 31,
+        "organic_buyers_5m": 10,
+        "organic_score": 56.90601274305186,
+        "price_change_1h": 80.50321117094114,
+        "price_change_5m": 7.997850805186288,
+        "buys_5m": 88,
+        "sells_5m": 44,
+        "traders_5m": 41,
+        "traders_1h": 843,
+        "buy_vol_5m": 3242.834544379802,
+        "sell_vol_5m": 2410.2964977236725,
+        "buy_vol_1h": 123327.8411933146,
+        "sell_vol_1h": 113789.53437861135,
+        "organic_buy_vol_1h": 5171.695616514564,
+        "top_holders_pct": 30.473639897235483,
+        "dev_balance_pct": 1.000000000000856e-13,
+        "dev_mints": 1,
+        "launchpad": "raydium-launchlab",
+        "graduated": true,
+        "social": true,
+        "quelle": "organic1h+organic5m+traded1h+traded5m+trend1h+trend5m",
+        "trades_24h": 7341,
+        "organic_label": "medium",
+        "buy_organic_vol_5m": 249.18599007613395,
+        "jup_fees": null,
+        "hour_utc": 4
+      },
+      "bundle": {
+        "quelle": "block0",
+        "slot": 465925130,
+        "block0_wallets": 1,
+        "block0_supply_pct": 10.0,
+        "block0_still_held_pct": 0.0,
+        "block0_exited": 1,
+        "early_tx_slot1_2": 1,
+        "bundle_holding_pct": 0.0,
+        "block0_tx_fehlend": 0,
+        "block0_halter_fehlend": 0,
+        "gebuendelt": false,
+        "rugcheck_insider_pct": 0
+      },
+      "phase": "normal",
+      "thesis": "Story verbreitet sich: Holder +253%/h, 31 Netto-Kaeufer 5m, 10 organisch; Block 0: 1 Kaeufer, 10.0% gekauft, 0.0% noch gehalten; Dev-Coins 1",
+      "exit_rule": "Haelfte bei 2x; Rest raus, wenn Holder schrumpfen und Netto-Verkaeufer 2x in Folge, Liquiditaet -30%, -25%, nach 1,5x nicht unter Einstand, nach 2x 30 % vom Hoch (ab 10x 25 %)",
+      "mitlaeufer": null,
+      "solana_tracker": {
+        "score": 4,
+        "rugged": false,
+        "snipers_pct": 0,
+        "insiders_pct": 0,
+        "bundlers_pct": 1.6923,
+        "top10_pct": 30.4736,
+        "risiken": [
+          "Top 10 Holders"
+        ]
+      },
+      "graduated": true,
+      "liq_low_checks": 0,
+      "stop_pct": -25.0,
+      "block0_flug": {
+        "supply": 999999999999144.0,
+        "bought": {
+          "AAau6SxtR54xB9ssevVUtULfQ2zidPmenkKwrUccYGbv": 100000002973663.0
+        }
+      }
+    }
+  },
   "closed": [
     {
       "symbol": "TUX",
@@ -23791,7 +23884,8 @@
     "9d2DpBARkhyGUn7AusgPRpDh3rDanYpTKb9GRvTdpump": 1793898053.3634627,
     "BWJfBNeXpapG7uoqByp5KSwWgCQba8QcDmA2DQiEpump": 1793915131.7434378,
     "FqJu1nmcNP8fCJfAW7Y4dGmp6fF9iF2RxrqMSFAcpump": 1793918831.8203259,
-    "DNerJKigs1xZ5rCBDtU9a2ACxvskScMnSihWY9yYpump": 1793919420.8127563
+    "DNerJKigs1xZ5rCBDtU9a2ACxvskScMnSihWY9yYpump": 1793919420.8127563,
+    "CMK5SEFQw3DDs6iGTBBAHeyQyMnBgtZvFnUp6tYwabi": 1793939574.1242824
   },
   "watch": {
     "FqJu1nmcNP8fCJfAW7Y4dGmp6fF9iF2RxrqMSFAcpump": {
@@ -23824,5 +23918,5 @@
   },
   "runde": 1,
   "shadow": {},
-  "saved_at": 1793939495.0595534
+  "saved_at": 1793939576.7572613
 }
