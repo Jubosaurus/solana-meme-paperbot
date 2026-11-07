@@ -1,8 +1,82 @@
 {
   "strategy": "EXPERIMENT_serien_devs",
   "started": "2026-10-04T00:34:10.471102+00:00",
-  "bankroll_sol": 7.333598,
-  "positions": {},
+  "bankroll_sol": 7.132098,
+  "positions": {
+    "FpUtpHmLH37zEym49jqYYq3TcKCVDMsEm1KnQKFRpump": {
+      "mint": "FpUtpHmLH37zEym49jqYYq3TcKCVDMsEm1KnQKFRpump",
+      "symbol": "Morgano",
+      "opened": 1794033845.6904619,
+      "invested_sol": 0.2,
+      "fees_sol": 0.0015,
+      "entry_signal_usd": 4.1939243201382406e-05,
+      "entry_fill_usd": 4.7055081882325494e-05,
+      "entry_slippage_pct": 12.2,
+      "roundtrip_cost_pct": 2.81,
+      "tokens_initial": 383095.135024,
+      "tokens_left": 383095.135024,
+      "decimals": 6,
+      "proceeds_sol": 0.0,
+      "peak_usd": 4.7055081882325494e-05,
+      "tp1_done": false,
+      "thesis_breaks": 0,
+      "missing_loops": 0,
+      "entry_liquidity": 6713.096595677416,
+      "entry_view": {
+        "age_h": 0.2596449842717912,
+        "mcap": 40272.600340498895,
+        "liquidity": 6713.096595677416,
+        "holders": 524,
+        "holder_growth_1h": 509.3023255813954,
+        "holder_growth_5m": 37.53280839895013,
+        "net_buyers_5m": 212,
+        "organic_buyers_5m": 0,
+        "organic_score": 0.0,
+        "price_change_1h": 222.94046455452155,
+        "price_change_5m": -2.260721337375822,
+        "buys_5m": 615,
+        "sells_5m": 368,
+        "traders_5m": 376,
+        "traders_1h": 975,
+        "buy_vol_5m": 15752.51097216453,
+        "sell_vol_5m": 17006.725062135225,
+        "buy_vol_1h": 58587.758730421505,
+        "sell_vol_1h": 61604.411412941576,
+        "organic_buy_vol_1h": 1274.4554740842839,
+        "top_holders_pct": 22.979296125877564,
+        "dev_balance_pct": 0.0,
+        "dev_mints": 11480,
+        "launchpad": "pump.fun",
+        "graduated": true,
+        "social": true,
+        "quelle": "traded1h+traded5m",
+        "trades_24h": 3755,
+        "organic_label": "low",
+        "buy_organic_vol_5m": 259.97267004360515,
+        "jup_fees": null,
+        "hour_utc": 6
+      },
+      "bundle": {
+        "quelle": "experiment",
+        "text": "Serien-Dev: frueherer Coin Chonketha bis 3,475,502 $"
+      },
+      "phase": "normal",
+      "thesis": "Story verbreitet sich: Holder +509%/h, 212 Netto-Kaeufer 5m, 0 organisch; Serien-Dev: frueherer Coin Chonketha bis 3,475,502 $; Dev-Coins 11480",
+      "exit_rule": "Haelfte bei 2x; Rest raus, wenn Holder schrumpfen und Netto-Verkaeufer 2x in Folge, Liquiditaet -30%, -40%, nach 1,5x nicht unter Einstand, nach 2x 30 % vom Hoch (ab 10x 25 %)",
+      "mitlaeufer": null,
+      "solana_tracker": null,
+      "graduated": true,
+      "liq_low_checks": 0,
+      "dev_exit": true,
+      "dev_pct_kauf": 0.0,
+      "serien_vorgaenger": {
+        "symbol": "Chonketha",
+        "peak": 3475502,
+        "zuerst": 1791116304,
+        "mint": "HcfnJxLov6tY8i1dq9uYRRZKCvxADPpovcfkyXzdpump"
+      }
+    }
+  },
   "closed": [
     {
       "symbol": "GWC",
@@ -106267,7 +106341,8 @@
     "EwNpXtZdDzic8EuR2c4A5LD4SpPyhKEiqPryfsF9VpLX": 1794027808.6094294,
     "2boGZeUcMN73VrcG6XJQEBAg4cP1KbYUFuNR3Swipump": 1794030076.3054962,
     "21azpu32qfuNZR6TkKdUZKVnDtmvTUSBrXxhRFE5pump": 1794030349.6823006,
-    "AR282rBKsxZbhXsYvjcgF5UuS4ckQtRM5KU7k9DHpump": 1794032928.1778328
+    "AR282rBKsxZbhXsYvjcgF5UuS4ckQtRM5KU7k9DHpump": 1794032928.1778328,
+    "FpUtpHmLH37zEym49jqYYq3TcKCVDMsEm1KnQKFRpump": 1794033845.6912174
   },
   "watch": {
     "C6qzCXZC9zoau81rtmgbLReG9bExnqe9NDM818typump": {
@@ -106346,7 +106421,7 @@
       "symbol": "Alice",
       "entry_fill_usd": 0.0001583191226602604,
       "opened": 1794021538.8288002,
-      "peak_usd": 0.0002701280556372796,
+      "peak_usd": 0.0002923963713442611,
       "exit_usd": 9.390565458377461e-05,
       "exit_reason": "NOTBREMSE (-41%)",
       "until": 1794046892.7101169
@@ -106390,5 +106465,5 @@
   },
   "runde": 5,
   "shadow": {},
-  "saved_at": 1794033704.8165348
+  "saved_at": 1794033847.5574553
 }
