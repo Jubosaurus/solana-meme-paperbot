@@ -1,8 +1,82 @@
 {
   "strategy": "EXPERIMENT_serien_devs",
   "started": "2026-10-04T00:34:10.471102+00:00",
-  "bankroll_sol": 6.614167,
-  "positions": {},
+  "bankroll_sol": 6.412667,
+  "positions": {
+    "AZa4b6pqLM1yZNB27wTxpyMj9fVBPkYMVXPGVjh2pump": {
+      "mint": "AZa4b6pqLM1yZNB27wTxpyMj9fVBPkYMVXPGVjh2pump",
+      "symbol": "Tamiyo",
+      "opened": 1794074253.0427425,
+      "invested_sol": 0.2,
+      "fees_sol": 0.0015,
+      "entry_signal_usd": 1.0901723893776127e-05,
+      "entry_fill_usd": 1.1002570462783898e-05,
+      "entry_slippage_pct": 0.93,
+      "roundtrip_cost_pct": 3.08,
+      "tokens_initial": 1630049.702104,
+      "tokens_left": 1630049.702104,
+      "decimals": 6,
+      "proceeds_sol": 0.0,
+      "peak_usd": 1.1002570462783898e-05,
+      "tp1_done": false,
+      "thesis_breaks": 0,
+      "missing_loops": 0,
+      "entry_liquidity": 5623.0501410174,
+      "entry_view": {
+        "age_h": 0.27224757803810967,
+        "mcap": 10901.723893776118,
+        "liquidity": 5623.0501410174,
+        "holders": 106,
+        "holder_growth_1h": 3.9215686274509802,
+        "holder_growth_5m": 30.864197530864196,
+        "net_buyers_5m": 39,
+        "organic_buyers_5m": 0,
+        "organic_score": 0.0,
+        "price_change_1h": 78.29341754098773,
+        "price_change_5m": 9.679583644936368,
+        "buys_5m": 95,
+        "sells_5m": 63,
+        "traders_5m": 80,
+        "traders_1h": 566,
+        "buy_vol_5m": 2477.854650967833,
+        "sell_vol_5m": 2507.7172645666096,
+        "buy_vol_1h": 33675.6427468164,
+        "sell_vol_1h": 35963.207057782645,
+        "organic_buy_vol_1h": 1587.0860430454907,
+        "top_holders_pct": 20.48462037350422,
+        "dev_balance_pct": 0.0,
+        "dev_mints": 23381,
+        "launchpad": "pump.fun",
+        "graduated": false,
+        "social": true,
+        "quelle": "traded1h+traded5m",
+        "trades_24h": 2230,
+        "organic_label": "low",
+        "buy_organic_vol_5m": 704.3100577604464,
+        "jup_fees": null,
+        "hour_utc": 17
+      },
+      "bundle": {
+        "quelle": "experiment",
+        "text": "Serien-Dev: frueherer Coin CATE bis 77,706,213 $"
+      },
+      "phase": "heiss",
+      "thesis": "Story verbreitet sich: Holder +4%/h, 39 Netto-Kaeufer 5m, 0 organisch; Serien-Dev: frueherer Coin CATE bis 77,706,213 $; Dev-Coins 23381",
+      "exit_rule": "Haelfte bei 2x; Rest raus, wenn Holder schrumpfen und Netto-Verkaeufer 2x in Folge, Liquiditaet -30%, -40%, nach 1,5x nicht unter Einstand, nach 2x 30 % vom Hoch (ab 10x 25 %)",
+      "mitlaeufer": null,
+      "solana_tracker": null,
+      "graduated": false,
+      "liq_low_checks": 0,
+      "dev_exit": true,
+      "dev_pct_kauf": 0.0,
+      "serien_vorgaenger": {
+        "symbol": "CATE",
+        "peak": 77706213,
+        "zuerst": 1791074049,
+        "mint": "Ai66LHZG9MCzg1WKdawwqduVAXpNDUuV8M3uyq5ppump"
+      }
+    }
+  },
   "closed": [
     {
       "symbol": "GWC",
@@ -107321,7 +107395,8 @@
     "CkztAkPkXSZAGbt4trQXfnhGQ4PFzK1d9SJ8o4zupump": 1794070554.9927564,
     "FtbfeZXDrUFqC31z9dW9cBrbSUqcD3QaCtXVwk33pump": 1794070657.7245734,
     "DXXLf6zptReh2BM46XKRAhwWkEgipqtjSH6mxHedpump": 1794071517.850386,
-    "A9jFHc2G5AsT4vL5Lq1WHUFLsqnQ9W5pVjrQDoxUBAGS": 1794072383.43853
+    "A9jFHc2G5AsT4vL5Lq1WHUFLsqnQ9W5pVjrQDoxUBAGS": 1794072383.43853,
+    "AZa4b6pqLM1yZNB27wTxpyMj9fVBPkYMVXPGVjh2pump": 1794074253.0438623
   },
   "watch": {
     "AuqMCWXp7qM8esFtKymPm1okKHicgXsJNf73oLajBAGS": {
@@ -107444,5 +107519,5 @@
   },
   "runde": 5,
   "shadow": {},
-  "saved_at": 1794074185.5816052
+  "saved_at": 1794074254.6030242
 }
