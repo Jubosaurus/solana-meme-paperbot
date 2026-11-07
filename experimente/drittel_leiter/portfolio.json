@@ -1,8 +1,107 @@
 {
   "strategy": "EXPERIMENT_drittel_leiter",
   "started": "2026-10-04T06:19:45.237722+00:00",
-  "bankroll_sol": 4.038597,
-  "positions": {},
+  "bankroll_sol": 3.837097,
+  "positions": {
+    "EyvmSJy7z7VLj8158NNnJizKSH1rekfbnx1wSgMVpump": {
+      "mint": "EyvmSJy7z7VLj8158NNnJizKSH1rekfbnx1wSgMVpump",
+      "symbol": "Millioners",
+      "opened": 1794078739.6613266,
+      "invested_sol": 0.2,
+      "fees_sol": 0.0015,
+      "entry_signal_usd": 2.0314236160880943e-05,
+      "entry_fill_usd": 2.1092462614804006e-05,
+      "entry_slippage_pct": 3.83,
+      "roundtrip_cost_pct": 2.91,
+      "tokens_initial": 848924.693969,
+      "tokens_left": 848924.693969,
+      "decimals": 6,
+      "proceeds_sol": 0.0,
+      "peak_usd": 2.1092462614804006e-05,
+      "tp1_done": false,
+      "thesis_breaks": 0,
+      "missing_loops": 0,
+      "entry_liquidity": 7662.558878609501,
+      "entry_view": {
+        "age_h": 0.639352514743805,
+        "mcap": 20314.235322523895,
+        "liquidity": 7662.558878609501,
+        "holders": 302,
+        "holder_growth_1h": 193.20388349514565,
+        "holder_growth_5m": 7.092198581560284,
+        "net_buyers_5m": 25,
+        "organic_buyers_5m": 9,
+        "organic_score": 38.32606693002446,
+        "price_change_1h": 138.94090780099881,
+        "price_change_5m": 5.2925029052573604,
+        "buys_5m": 51,
+        "sells_5m": 44,
+        "traders_5m": 52,
+        "traders_1h": 956,
+        "buy_vol_5m": 1324.2471511258939,
+        "sell_vol_5m": 2575.955401240771,
+        "buy_vol_1h": 59435.72537315594,
+        "sell_vol_1h": 72095.26262707474,
+        "organic_buy_vol_1h": 1221.4309108134776,
+        "top_holders_pct": 28.117982555889153,
+        "dev_balance_pct": 0.0,
+        "dev_mints": 11,
+        "launchpad": "pump.fun",
+        "graduated": false,
+        "social": true,
+        "quelle": "organic1h+organic5m+traded1h+traded5m",
+        "trades_24h": 5227,
+        "organic_label": "medium",
+        "buy_organic_vol_5m": 0.0,
+        "jup_fees": null,
+        "hour_utc": 19
+      },
+      "bundle": {
+        "quelle": "block0",
+        "slot": 466614536,
+        "block0_wallets": 1,
+        "block0_supply_pct": 42.6,
+        "block0_still_held_pct": 0.0,
+        "block0_exited": 1,
+        "early_tx_slot1_2": 3,
+        "bundle_holding_pct": 0.0,
+        "block0_tx_fehlend": 0,
+        "block0_halter_fehlend": 0,
+        "gebuendelt": false,
+        "rugcheck_insider_pct": 0
+      },
+      "phase": "heiss",
+      "thesis": "Story verbreitet sich: Holder +193%/h, 25 Netto-Kaeufer 5m, 9 organisch; Block 0: 1 Kaeufer, 42.6% gekauft, 0.0% noch gehalten; Dev-Coins 11",
+      "exit_rule": "Je ein Drittel bei 1,5x / 2x / 3x; sonst Rest raus, wenn Holder schrumpfen und Netto-Verkaeufer 2x in Folge, Liquiditaet -30%, -40%, nach 1,5x nicht unter Einstand, nach 2x 30 % vom Hoch (ab 10x 25 %)",
+      "mitlaeufer": null,
+      "solana_tracker": {
+        "score": 6,
+        "rugged": false,
+        "snipers_pct": 0.5067,
+        "insiders_pct": 0,
+        "bundlers_pct": 0.0985,
+        "top10_pct": 28.1423,
+        "risiken": [
+          "Bonding curve not complete",
+          "Top 10 Holders"
+        ]
+      },
+      "graduated": false,
+      "liq_low_checks": 0,
+      "leiter": [
+        1.5,
+        2.0,
+        3.0
+      ],
+      "leiter_stufe": 0,
+      "block0_flug": {
+        "supply": 999999958730565.0,
+        "bought": {
+          "9VDXbhVLnYnbkhupWQ8o4b53YmmCz746b3abVsYR5zki": 426004962756358.0
+        }
+      }
+    }
+  },
   "closed": [
     {
       "symbol": "DIT",
@@ -23713,10 +23812,11 @@
     "4QDPF5TtNAKtU5p5pvcq9h9b44nRSikRzNrKzsUfLoat": 1793984748.203549,
     "BLYdKSwcRnEmtesj5aP6NzV9EyRA9Dr83sL5yhW8pump": 1794009159.3141332,
     "4C6LMX3q8iwShzW6j6A71NAUCgZ9G72T93hh4bKDpump": 1794038579.8904204,
-    "FoufDb9hXygVYT58SVDAFhbd98k3D93xYHtd9eCewQPk": 1794056453.2922392
+    "FoufDb9hXygVYT58SVDAFhbd98k3D93xYHtd9eCewQPk": 1794056453.2922392,
+    "EyvmSJy7z7VLj8158NNnJizKSH1rekfbnx1wSgMVpump": 1794078739.66178
   },
   "watch": {},
   "runde": 1,
   "shadow": {},
-  "saved_at": 1794078559.7400951
+  "saved_at": 1794078740.046551
 }
