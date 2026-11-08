@@ -1,8 +1,82 @@
 {
   "strategy": "EXPERIMENT_serien_devs",
   "started": "2026-10-04T00:34:10.471102+00:00",
-  "bankroll_sol": 6.480752,
-  "positions": {},
+  "bankroll_sol": 6.279252,
+  "positions": {
+    "Aftctsx6X1sDDnRtDtXChSYPWDuvDooP6iMFEaqTpump": {
+      "mint": "Aftctsx6X1sDDnRtDtXChSYPWDuvDooP6iMFEaqTpump",
+      "symbol": "SATORI",
+      "opened": 1794110871.6588345,
+      "invested_sol": 0.2,
+      "fees_sol": 0.0015,
+      "entry_signal_usd": 2.9145369170824518e-05,
+      "entry_fill_usd": 2.630280893523855e-05,
+      "entry_slippage_pct": -9.75,
+      "roundtrip_cost_pct": 2.04,
+      "tokens_initial": 678150.018088,
+      "tokens_left": 678150.018088,
+      "decimals": 6,
+      "proceeds_sol": 0.0,
+      "peak_usd": 2.630280893523855e-05,
+      "tp1_done": false,
+      "thesis_breaks": 0,
+      "missing_loops": 0,
+      "entry_liquidity": 5818.354830162798,
+      "entry_view": {
+        "age_h": 0.25130580107371014,
+        "mcap": 28018.435071571883,
+        "liquidity": 5818.354830162798,
+        "holders": 457,
+        "holder_growth_1h": 988.0952380952382,
+        "holder_growth_5m": -7.862903225806452,
+        "net_buyers_5m": 205,
+        "organic_buyers_5m": 0,
+        "organic_score": 0.0,
+        "price_change_1h": 445.11315045843264,
+        "price_change_5m": -47.26496252575709,
+        "buys_5m": 690,
+        "sells_5m": 590,
+        "traders_5m": 469,
+        "traders_1h": 1011,
+        "buy_vol_5m": 22699.56982792237,
+        "sell_vol_5m": 26642.53251378374,
+        "buy_vol_1h": 81541.13610366551,
+        "sell_vol_1h": 77441.68220847486,
+        "organic_buy_vol_1h": 1001.1436071551447,
+        "top_holders_pct": 23.634998542794833,
+        "dev_balance_pct": 0.0,
+        "dev_mints": 23408,
+        "launchpad": "pump.fun",
+        "graduated": true,
+        "social": true,
+        "quelle": "traded1h+traded5m+trend1h",
+        "trades_24h": 4453,
+        "organic_label": "low",
+        "buy_organic_vol_5m": 38.33100983594149,
+        "jup_fees": null,
+        "hour_utc": 4
+      },
+      "bundle": {
+        "quelle": "experiment",
+        "text": "Serien-Dev: frueherer Coin CATE bis 77,706,213 $"
+      },
+      "phase": "normal",
+      "thesis": "Story verbreitet sich: Holder +988%/h, 205 Netto-Kaeufer 5m, 0 organisch; Serien-Dev: frueherer Coin CATE bis 77,706,213 $; Dev-Coins 23408",
+      "exit_rule": "Haelfte bei 2x; Rest raus, wenn Holder schrumpfen und Netto-Verkaeufer 2x in Folge, Liquiditaet -30%, -40%, nach 1,5x nicht unter Einstand, nach 2x 30 % vom Hoch (ab 10x 25 %)",
+      "mitlaeufer": null,
+      "solana_tracker": null,
+      "graduated": true,
+      "liq_low_checks": 0,
+      "dev_exit": true,
+      "dev_pct_kauf": 0.0,
+      "serien_vorgaenger": {
+        "symbol": "CATE",
+        "peak": 77706213,
+        "zuerst": 1791074049,
+        "mint": "Ai66LHZG9MCzg1WKdawwqduVAXpNDUuV8M3uyq5ppump"
+      }
+    }
+  },
   "closed": [
     {
       "symbol": "GWC",
@@ -108623,7 +108697,8 @@
     "8H7mEY1MYwFtdxE3tXfHsGnJMkPPWXHwyKKuwMcFpump": 1794103084.4663775,
     "4e9pBdimFH1Ka15ZahpKLRvqS2XzmSeAF9iegKMJpump": 1794106490.7784927,
     "G1evzzdxVXa7q3ypytdrEWstKdaS2rvDG8q76jDTpump": 1794106592.6174948,
-    "BZpVNVGo6ivDArBwRNb8xs7Rds9a2Xmc5GeNZUi2pump": 1794108257.8310747
+    "BZpVNVGo6ivDArBwRNb8xs7Rds9a2Xmc5GeNZUi2pump": 1794108257.8310747,
+    "Aftctsx6X1sDDnRtDtXChSYPWDuvDooP6iMFEaqTpump": 1794110871.6595278
   },
   "watch": {
     "8MHHRJvpbXwCYKKdHRitEMpTVejFgtJGeUD8r8DPpump": {
@@ -108737,5 +108812,5 @@
   },
   "runde": 5,
   "shadow": {},
-  "saved_at": 1794110701.792154
+  "saved_at": 1794110873.3282223
 }
