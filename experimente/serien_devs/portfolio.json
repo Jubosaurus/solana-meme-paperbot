@@ -1,7 +1,7 @@
 {
   "strategy": "EXPERIMENT_serien_devs",
   "started": "2026-10-04T00:34:10.471102+00:00",
-  "bankroll_sol": 5.575151,
+  "bankroll_sol": 5.373651,
   "positions": {
     "B2SL9QpYLU84bq3ZEDA442oDJBcDJeDUtsvfW2Y2BAGS": {
       "mint": "B2SL9QpYLU84bq3ZEDA442oDJBcDJeDUtsvfW2Y2BAGS",
@@ -75,7 +75,80 @@
         "zuerst": 1791113481,
         "mint": "Gj4TowizfdkRJNsTgBEkj2WpBZZmGE7o9nN8q6RhBAGS"
       },
-      "flug_last": 1794146770.6782415
+      "flug_last": 1794146960.1069746
+    },
+    "DDDfDJGreM6pYbKEiB8NqkZ3RhgG9Q1zKK58SvcHpump": {
+      "mint": "DDDfDJGreM6pYbKEiB8NqkZ3RhgG9Q1zKK58SvcHpump",
+      "symbol": "JASON",
+      "opened": 1794147025.229066,
+      "invested_sol": 0.2,
+      "fees_sol": 0.0015,
+      "entry_signal_usd": 0.0001683461339244215,
+      "entry_fill_usd": 0.00017824834958724844,
+      "entry_slippage_pct": 5.88,
+      "roundtrip_cost_pct": 2.38,
+      "tokens_initial": 100011.987564,
+      "tokens_left": 100011.987564,
+      "decimals": 6,
+      "proceeds_sol": 0.0,
+      "peak_usd": 0.00017824834958724844,
+      "tp1_done": false,
+      "thesis_breaks": 0,
+      "missing_loops": 0,
+      "entry_liquidity": 15043.398436571882,
+      "entry_view": {
+        "age_h": 0.7769928881194856,
+        "mcap": 159897.449851754,
+        "liquidity": 15043.398436571882,
+        "holders": 1203,
+        "holder_growth_1h": 946.0869565217391,
+        "holder_growth_5m": 3.9757994814174586,
+        "net_buyers_5m": 65,
+        "organic_buyers_5m": 7,
+        "organic_score": 45.91833821385747,
+        "price_change_1h": 517.1477336326084,
+        "price_change_5m": 23.766565697159457,
+        "buys_5m": 127,
+        "sells_5m": 78,
+        "traders_5m": 114,
+        "traders_1h": 971,
+        "buy_vol_5m": 4581.129051761535,
+        "sell_vol_5m": 2811.4722661137525,
+        "buy_vol_1h": 100235.15876676611,
+        "sell_vol_1h": 85610.20846007478,
+        "organic_buy_vol_1h": 1521.0537949264135,
+        "top_holders_pct": 20.012932457515134,
+        "dev_balance_pct": 0.3268742140204207,
+        "dev_mints": 15,
+        "launchpad": "pump.fun",
+        "graduated": true,
+        "social": false,
+        "quelle": "organic1h+organic5m+traded1h+traded5m+trend1h+trend5m",
+        "trades_24h": 2936,
+        "organic_label": "medium",
+        "buy_organic_vol_5m": 289.7787361249894,
+        "jup_fees": null,
+        "hour_utc": 14
+      },
+      "bundle": {
+        "quelle": "experiment",
+        "text": "Serien-Dev: frueherer Coin RICO bis 869,705 $"
+      },
+      "phase": "normal",
+      "thesis": "Story verbreitet sich: Holder +946%/h, 65 Netto-Kaeufer 5m, 7 organisch; Serien-Dev: frueherer Coin RICO bis 869,705 $; Dev-Coins 15",
+      "exit_rule": "Haelfte bei 2x; Rest raus, wenn Holder schrumpfen und Netto-Verkaeufer 2x in Folge, Liquiditaet -30%, -40%, nach 1,5x nicht unter Einstand, nach 2x 30 % vom Hoch (ab 10x 25 %)",
+      "mitlaeufer": null,
+      "solana_tracker": null,
+      "graduated": true,
+      "liq_low_checks": 0,
+      "dev_exit": true,
+      "dev_pct_kauf": 0.3268742140204207,
+      "serien_vorgaenger": {
+        "symbol": "RICO",
+        "peak": 869705,
+        "zuerst": 1793650758,
+        "mint": "8kuQg3WivDtL85VEdw2jEmSXjYt6EEeYBATJ4DtQpump"
+      }
     }
   },
   "closed": [
@@ -109505,7 +109578,8 @@
     "9X3GyP7Y8Mdd6CXnuqaANFo6QVQp9n5bABTX2UKspump": 1794139392.0731711,
     "HvAuwngEey58kXt8vk6L3drCPgzPygi5d29Hy75vpump": 1794145358.0579965,
     "27h3dwXhRpzcB5kmGkNrSGuG7PSNKEgdDXkWhnwKpump": 1794145553.1514673,
-    "B2SL9QpYLU84bq3ZEDA442oDJBcDJeDUtsvfW2Y2BAGS": 1794146358.0094295
+    "B2SL9QpYLU84bq3ZEDA442oDJBcDJeDUtsvfW2Y2BAGS": 1794146358.0094295,
+    "DDDfDJGreM6pYbKEiB8NqkZ3RhgG9Q1zKK58SvcHpump": 1794147025.2298381
   },
   "watch": {
     "AKeCyQBKmKRTekyvv5eC4sTkrrMwcPdzMYqxzGbQPUTS": {
@@ -109539,7 +109613,7 @@
       "symbol": "MIGRATE",
       "entry_fill_usd": 9.586364874507742e-06,
       "opened": 1794145553.1507678,
-      "peak_usd": 1.1261172271348282e-05,
+      "peak_usd": 1.2539951878435694e-05,
       "exit_usd": 5.569291458487811e-06,
       "exit_reason": "NOTBREMSE (-42%)",
       "until": 1794167573.4544601
@@ -109547,5 +109621,5 @@
   },
   "runde": 5,
   "shadow": {},
-  "saved_at": 1794146772.0485342
+  "saved_at": 1794147035.8241723
 }
