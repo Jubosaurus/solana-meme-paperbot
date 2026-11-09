@@ -1,24 +1,24 @@
 {
   "strategy": "EXPERIMENT_serien_devs",
   "started": "2026-10-04T00:34:10.471102+00:00",
-  "bankroll_sol": 3.793777,
+  "bankroll_sol": 3.801832,
   "positions": {
     "5XGHbdLQQpr37aWxEqfpD3GL9VMjSBYRoYgEd6VVpump": {
       "mint": "5XGHbdLQQpr37aWxEqfpD3GL9VMjSBYRoYgEd6VVpump",
       "symbol": "FLACKO",
       "opened": 1794210237.5806327,
       "invested_sol": 0.2,
-      "fees_sol": 0.0015,
+      "fees_sol": 0.003,
       "entry_signal_usd": 9.008836352259022e-06,
       "entry_fill_usd": 1.0775200800765848e-05,
       "entry_slippage_pct": 19.61,
       "roundtrip_cost_pct": 3.08,
       "tokens_initial": 1587341.189027,
-      "tokens_left": 1587341.189027,
+      "tokens_left": 793670.5945135,
       "decimals": 6,
-      "proceeds_sol": 0.0,
-      "peak_usd": 1.7025025116896973e-05,
-      "tp1_done": false,
+      "proceeds_sol": 0.209554516,
+      "peak_usd": 2.2773172274073503e-05,
+      "tp1_done": true,
       "thesis_breaks": 0,
       "missing_loops": 0,
       "entry_liquidity": 5126.705603596136,
@@ -75,7 +75,81 @@
         "zuerst": 1793742826,
         "mint": "DDmGnuvroxVrb7CSyjYcezFU8gnAfhKasg4ZZezmpump"
       },
-      "flug_last": 1794211231.705226
+      "flug_last": 1794211303.536247
+    },
+    "wzoagKBWPTuszyHudUDXy4doD8AsofLiBoyKLMKpump": {
+      "mint": "wzoagKBWPTuszyHudUDXy4doD8AsofLiBoyKLMKpump",
+      "symbol": "Memes",
+      "opened": 1794211274.8030534,
+      "invested_sol": 0.2,
+      "fees_sol": 0.0015,
+      "entry_signal_usd": 1.0737301114033141e-05,
+      "entry_fill_usd": 1.1486060342685611e-05,
+      "entry_slippage_pct": 6.97,
+      "roundtrip_cost_pct": 2.97,
+      "tokens_initial": 1490219.93534,
+      "tokens_left": 1490219.93534,
+      "decimals": 6,
+      "proceeds_sol": 0.0,
+      "peak_usd": 1.2389408431725862e-05,
+      "tp1_done": false,
+      "thesis_breaks": 0,
+      "missing_loops": 0,
+      "entry_liquidity": 5981.635887278911,
+      "entry_view": {
+        "age_h": 0.2757528402407964,
+        "mcap": 10737.301114033131,
+        "liquidity": 5981.635887278911,
+        "holders": 275,
+        "holder_growth_1h": 461.2244897959184,
+        "holder_growth_5m": -12.420382165605096,
+        "net_buyers_5m": 101,
+        "organic_buyers_5m": 0,
+        "organic_score": 0.0,
+        "price_change_1h": 47.37083518131985,
+        "price_change_5m": -2.5706593082476266,
+        "buys_5m": 328,
+        "sells_5m": 224,
+        "traders_5m": 241,
+        "traders_1h": 799,
+        "buy_vol_5m": 6377.458717170009,
+        "sell_vol_5m": 6752.59736800489,
+        "buy_vol_1h": 45544.338979468135,
+        "sell_vol_1h": 53866.10509188348,
+        "organic_buy_vol_1h": 1131.420636580396,
+        "top_holders_pct": 19.800205623173017,
+        "dev_balance_pct": 0.0,
+        "dev_mints": 1022,
+        "launchpad": "pump.fun",
+        "graduated": false,
+        "social": true,
+        "quelle": "traded1h+traded5m",
+        "trades_24h": 3489,
+        "organic_label": "low",
+        "buy_organic_vol_5m": 28.070883763176155,
+        "jup_fees": null,
+        "hour_utc": 8
+      },
+      "bundle": {
+        "quelle": "experiment",
+        "text": "Serien-Dev: frueherer Coin DAVID bis 2,238,971 $"
+      },
+      "phase": "normal",
+      "thesis": "Story verbreitet sich: Holder +461%/h, 101 Netto-Kaeufer 5m, 0 organisch; Serien-Dev: frueherer Coin DAVID bis 2,238,971 $; Dev-Coins 1022",
+      "exit_rule": "Haelfte bei 2x; Rest raus, wenn Holder schrumpfen und Netto-Verkaeufer 2x in Folge, Liquiditaet -30%, -40%, nach 1,5x nicht unter Einstand, nach 2x 30 % vom Hoch (ab 10x 25 %)",
+      "mitlaeufer": null,
+      "solana_tracker": null,
+      "graduated": false,
+      "liq_low_checks": 0,
+      "dev_exit": true,
+      "dev_pct_kauf": 0.0,
+      "serien_vorgaenger": {
+        "symbol": "DAVID",
+        "peak": 2238971,
+        "zuerst": 1793463406,
+        "mint": "6a81PfhejwCM3bB4F3Rnbzk9ALNmg4YGeyjKd5Nxpump"
+      },
+      "flug_last": 1794211288.8691404
     }
   },
   "closed": [
@@ -111675,7 +111749,8 @@
     "kHb2wHWdXqWnuQkj7WjyjMh6m2WLSnbpdpbEvpHpump": 1794204161.2868,
     "9w2NEtTt22o1LG3sSTQ9QB6T5AkszF5m177XYeJjpump": 1794207942.7014055,
     "Big1krPP8QUkgg5fsfEZQmeuwAViNajzAxNhNYvXaSS1": 1794210234.316781,
-    "5XGHbdLQQpr37aWxEqfpD3GL9VMjSBYRoYgEd6VVpump": 1794210237.58167
+    "5XGHbdLQQpr37aWxEqfpD3GL9VMjSBYRoYgEd6VVpump": 1794210237.58167,
+    "wzoagKBWPTuszyHudUDXy4doD8AsofLiBoyKLMKpump": 1794211274.8038669
   },
   "watch": {
     "5Tjehk8zwfjUJS6NAVNkvvCSUxzRMiYR4dSUq1Ybpump": {
@@ -111798,5 +111873,5 @@
   },
   "runde": 5,
   "shadow": {},
-  "saved_at": 1794211246.7251976
+  "saved_at": 1794211320.8357856
 }
