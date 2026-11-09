@@ -1,8 +1,101 @@
 {
   "strategy": "NARRATIV",
   "started": "2026-09-26T02:46:00.825468+00:00",
-  "bankroll_sol": 4.780437,
-  "positions": {},
+  "bankroll_sol": 4.578937,
+  "positions": {
+    "ewnD7t9KCUUgz3F4wpMQtBDoHH4kVAG9NWv1QCppump": {
+      "mint": "ewnD7t9KCUUgz3F4wpMQtBDoHH4kVAG9NWv1QCppump",
+      "symbol": "Bobina",
+      "opened": 1794219082.535955,
+      "invested_sol": 0.2,
+      "fees_sol": 0.0015,
+      "entry_signal_usd": 7.4509546198953055e-06,
+      "entry_fill_usd": 7.311436469197485e-06,
+      "entry_slippage_pct": -1.87,
+      "roundtrip_cost_pct": 3.63,
+      "tokens_initial": 2353396.489177,
+      "tokens_left": 2353396.489177,
+      "decimals": 6,
+      "proceeds_sol": 0.0,
+      "peak_usd": 7.311436469197485e-06,
+      "tp1_done": false,
+      "thesis_breaks": 0,
+      "missing_loops": 0,
+      "entry_liquidity": 5102.710878204915,
+      "entry_view": {
+        "age_h": 1.0483700394630433,
+        "mcap": 7450.954619820789,
+        "liquidity": 5102.710878204915,
+        "holders": 161,
+        "holder_growth_1h": 34.166666666666664,
+        "holder_growth_5m": 1.89873417721519,
+        "net_buyers_5m": 25,
+        "organic_buyers_5m": 3,
+        "organic_score": 42.97677242471936,
+        "price_change_1h": -37.587527760757276,
+        "price_change_5m": 7.881668384347354,
+        "buys_5m": 39,
+        "sells_5m": 41,
+        "traders_5m": 45,
+        "traders_1h": 679,
+        "buy_vol_5m": 1567.2757393818206,
+        "sell_vol_5m": 1614.584295567919,
+        "buy_vol_1h": 50958.46644457423,
+        "sell_vol_1h": 58584.648595874656,
+        "organic_buy_vol_1h": 3020.0254927131346,
+        "top_holders_pct": 17.043558559023957,
+        "dev_balance_pct": 0.0,
+        "dev_mints": 3,
+        "launchpad": "pump.fun",
+        "graduated": false,
+        "social": true,
+        "quelle": "organic1h+organic5m",
+        "trades_24h": 3652,
+        "organic_label": "medium",
+        "buy_organic_vol_5m": 11.020253714863097,
+        "jup_fees": null,
+        "hour_utc": 10
+      },
+      "bundle": {
+        "quelle": "block0",
+        "slot": 467261568,
+        "block0_wallets": 1,
+        "block0_supply_pct": 0.03,
+        "block0_still_held_pct": 0.0,
+        "block0_exited": 1,
+        "early_tx_slot1_2": 0,
+        "bundle_holding_pct": 0.0,
+        "block0_tx_fehlend": 0,
+        "block0_halter_fehlend": 0,
+        "gebuendelt": false,
+        "rugcheck_insider_pct": 0
+      },
+      "phase": "normal",
+      "thesis": "Story verbreitet sich: Holder +34%/h, 25 Netto-Kaeufer 5m, 3 organisch; Block 0: 1 Kaeufer, 0.0% gekauft, 0.0% noch gehalten; Dev-Coins 3",
+      "exit_rule": "Haelfte bei 2x; Rest raus, wenn Holder schrumpfen und Netto-Verkaeufer 2x in Folge, Liquiditaet -30%, -40%, nach 1,5x nicht unter Einstand, nach 2x 30 % vom Hoch (ab 10x 25 %)",
+      "mitlaeufer": null,
+      "solana_tracker": {
+        "score": 6,
+        "rugged": false,
+        "snipers_pct": 0,
+        "insiders_pct": 0,
+        "bundlers_pct": 0.0609,
+        "top10_pct": 17.0434,
+        "risiken": [
+          "Bonding curve not complete",
+          "Top 10 Holders"
+        ]
+      },
+      "graduated": false,
+      "liq_low_checks": 0,
+      "block0_flug": {
+        "supply": 999999999989999.0,
+        "bought": {
+          "FyfZXGTtrNzJTzicv3co8zMSucctKMCym5pqvpRPzn8k": 278432923384.0
+        }
+      }
+    }
+  },
   "closed": [
     {
       "symbol": "SHOGGOTH",
@@ -32398,10 +32491,11 @@
     "nUESj13byLn6bHFFaygmf7mCQbHZvb6yKqdHjjLWmj1": 1794166208.1321096,
     "3UqRebmvw79J35E4zJ13dbAyiAi8uhuNxUg3wNpaL5T8": 1794176856.8434181,
     "8cp6EY2bZck2JU5MrfVyQuRBzdaYtb9cBTfjPwn5krHX": 1794183407.0957491,
-    "8DVgeUZ8ErsaFhPZU9kaaXwVhuyDmn4qoRN3SV9a85Pf": 1794186926.932696
+    "8DVgeUZ8ErsaFhPZU9kaaXwVhuyDmn4qoRN3SV9a85Pf": 1794186926.932696,
+    "ewnD7t9KCUUgz3F4wpMQtBDoHH4kVAG9NWv1QCppump": 1794219082.5364332
   },
   "watch": {},
-  "saved_at": 1794218814.5514994,
+  "saved_at": 1794219088.684798,
   "shadow": {
     "Ajd6HMXEniPg1hJi3MnRYwG9GhPx2hdLXMUvNHCfLoat": {
       "symbol": "JHM",
@@ -32535,48 +32629,15 @@
       "detail": "7.5 h alt (Grenze 6)",
       "ref_price": 3.533555734137679e-05,
       "since": 1794217540.115936,
-      "peak_usd": 3.6237389688244556e-05,
+      "peak_usd": 3.9586911839333725e-05,
       "until": 1794239140.115936
     }
   },
   "st_usage": {
     "date": "2026-11-09",
-    "count": 2
+    "count": 3
   },
   "wellen": {
-    "DEBTCOIN_1794175717": {
-      "id": "DEBTCOIN_1794175717",
-      "wort": "DEBTCOIN",
-      "zeit": 1794175717.9613256,
-      "mints": [
-        "9oZUCgQ4bs1RtDVf8mKXosDbA6LTbw25cmQVxXtfLoat",
-        "CJU4kpPgoP6jVPLL7QGXM579Zi8gNgZrcn1kzFJjxnVp",
-        "HLaSzRgp4mkZeDrAEKTJvr2UhSokYPxRS7auuYmg3xDX",
-        "4RG2qz47iPz6cRX6oKUfMEKbvqTV3Jnyb8h9TeXfLoat",
-        "FUppVamcF2np57H2fDeDgRK6eCrhBzUcr8YaECjQpump"
-      ],
-      "groesster": "HLaSzRgp4mkZeDrAEKTJvr2UhSokYPxRS7auuYmg3xDX",
-      "symbol": "Debtcoin",
-      "holders": 968,
-      "ref_price": 0.0002538554130094233,
-      "peak_usd": 0.0003099985447105104,
-      "until": 1794197317.9613256,
-      "entscheidung": "abgelehnt",
-      "grund": "VERBREITUNG_STOCKT",
-      "fenster_start": 1794175594.0,
-      "symbole": {
-        "9oZUCgQ4bs1RtDVf8mKXosDbA6LTbw25cmQVxXtfLoat": "Debtcoin",
-        "CJU4kpPgoP6jVPLL7QGXM579Zi8gNgZrcn1kzFJjxnVp": "Debtcoin",
-        "HLaSzRgp4mkZeDrAEKTJvr2UhSokYPxRS7auuYmg3xDX": "Debtcoin",
-        "4RG2qz47iPz6cRX6oKUfMEKbvqTV3Jnyb8h9TeXfLoat": "DTC",
-        "FUppVamcF2np57H2fDeDgRK6eCrhBzUcr8YaECjQpump": "Debtcoin"
-      },
-      "preis_usd": 1.8163071148225517e-05,
-      "start_geschrieben": true,
-      "meta_stand": 1794197263.9259098,
-      "meta_abrufe": 71,
-      "beendet": true
-    },
     "500_1794179346": {
       "id": "500_1794179346",
       "wort": "500",
