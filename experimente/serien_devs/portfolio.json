@@ -1,7 +1,7 @@
 {
   "strategy": "EXPERIMENT_serien_devs",
   "started": "2026-10-04T00:34:10.471102+00:00",
-  "bankroll_sol": 3.704458,
+  "bankroll_sol": 3.502958,
   "positions": {
     "F8PGq6RrWiMGwqqAgxzigFZepVH62dQVnkNC2L2Tpump": {
       "mint": "F8PGq6RrWiMGwqqAgxzigFZepVH62dQVnkNC2L2Tpump",
@@ -75,7 +75,80 @@
         "zuerst": 1791318550,
         "mint": "HzYCHqAN2uoHGRnL9v2ChCfFQX3bvJuJd5zu2Hd5MZQy"
       },
-      "flug_last": 1794192239.4109166
+      "flug_last": 1794192302.252124
+    },
+    "GgN3jfbg75SiW4qJKmak4VJrnWQvQdnUmN4NLHW5pump": {
+      "mint": "GgN3jfbg75SiW4qJKmak4VJrnWQvQdnUmN4NLHW5pump",
+      "symbol": "JENSEN",
+      "opened": 1794192327.9332669,
+      "invested_sol": 0.2,
+      "fees_sol": 0.0015,
+      "entry_signal_usd": 4.7876650557997576e-05,
+      "entry_fill_usd": 5.289238265138857e-05,
+      "entry_slippage_pct": 10.48,
+      "roundtrip_cost_pct": -2.03,
+      "tokens_initial": 333236.191119,
+      "tokens_left": 333236.191119,
+      "decimals": 6,
+      "proceeds_sol": 0.0,
+      "peak_usd": 5.289238265138857e-05,
+      "tp1_done": false,
+      "thesis_breaks": 0,
+      "missing_loops": 0,
+      "entry_liquidity": 20378.33485488821,
+      "entry_view": {
+        "age_h": 0.2671905991103914,
+        "mcap": 45987.00574903146,
+        "liquidity": 20378.33485488821,
+        "holders": 609,
+        "holder_growth_1h": 1007.2727272727273,
+        "holder_growth_5m": 73.01136363636364,
+        "net_buyers_5m": 238,
+        "organic_buyers_5m": 0,
+        "organic_score": 0.0,
+        "price_change_1h": 496.57985364601814,
+        "price_change_5m": 53.70935230611773,
+        "buys_5m": 827,
+        "sells_5m": 554,
+        "traders_5m": 485,
+        "traders_1h": 840,
+        "buy_vol_5m": 23145.803003946883,
+        "sell_vol_5m": 22348.273682179453,
+        "buy_vol_1h": 62576.53671773368,
+        "sell_vol_1h": 55780.623434322224,
+        "organic_buy_vol_1h": 821.0846190509319,
+        "top_holders_pct": 26.68173690899596,
+        "dev_balance_pct": 0.0,
+        "dev_mints": 1384,
+        "launchpad": "pump.fun",
+        "graduated": true,
+        "social": false,
+        "quelle": "traded1h+traded5m+trend1h+trend5m",
+        "trades_24h": 3295,
+        "organic_label": "low",
+        "buy_organic_vol_5m": 261.85434280063043,
+        "jup_fees": null,
+        "hour_utc": 2
+      },
+      "bundle": {
+        "quelle": "experiment",
+        "text": "Serien-Dev: frueherer Coin HABIBI bis 305,275 $"
+      },
+      "phase": "normal",
+      "thesis": "Story verbreitet sich: Holder +1007%/h, 238 Netto-Kaeufer 5m, 0 organisch; Serien-Dev: frueherer Coin HABIBI bis 305,275 $; Dev-Coins 1384",
+      "exit_rule": "Haelfte bei 2x; Rest raus, wenn Holder schrumpfen und Netto-Verkaeufer 2x in Folge, Liquiditaet -30%, -40%, nach 1,5x nicht unter Einstand, nach 2x 30 % vom Hoch (ab 10x 25 %)",
+      "mitlaeufer": null,
+      "solana_tracker": null,
+      "graduated": true,
+      "liq_low_checks": 0,
+      "dev_exit": true,
+      "dev_pct_kauf": 0.0,
+      "serien_vorgaenger": {
+        "symbol": "HABIBI",
+        "peak": 305275,
+        "zuerst": 1794111804,
+        "mint": "9GpJDZrgXvGXxGjffCZhhYfyLyZ94QTezQoipn74pump"
+      }
     }
   },
   "closed": [
@@ -111055,7 +111128,8 @@
     "9xHdBH13RVqpv4Vw7ZXBVUZxUPt2ukCrowLjJyV4BAGS": 1794190129.5009344,
     "5Tjehk8zwfjUJS6NAVNkvvCSUxzRMiYR4dSUq1Ybpump": 1794190982.6653743,
     "4nauGNuw7pwKC5CYR9xBJUqPd3HNyEc9pYKobEL8pump": 1794191278.7428303,
-    "F8PGq6RrWiMGwqqAgxzigFZepVH62dQVnkNC2L2Tpump": 1794191943.1848567
+    "F8PGq6RrWiMGwqqAgxzigFZepVH62dQVnkNC2L2Tpump": 1794191943.1848567,
+    "GgN3jfbg75SiW4qJKmak4VJrnWQvQdnUmN4NLHW5pump": 1794192327.9340034
   },
   "watch": {
     "9SXjHAYXgoaCUPnSVo4sKVwaL5XpEEm2LGwzk2sYpump": {
@@ -111196,5 +111270,5 @@
   },
   "runde": 5,
   "shadow": {},
-  "saved_at": 1794192255.4036798
+  "saved_at": 1794192329.5945382
 }
