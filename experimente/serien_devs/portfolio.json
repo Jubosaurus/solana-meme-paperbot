@@ -1,8 +1,82 @@
 {
   "strategy": "EXPERIMENT_serien_devs",
   "started": "2026-10-04T00:34:10.471102+00:00",
-  "bankroll_sol": 1.901834,
-  "positions": {},
+  "bankroll_sol": 1.700334,
+  "positions": {
+    "EMV2NttnmMj5GVofe5XodThMKWsokfjMCEqiJfKo6DUX": {
+      "mint": "EMV2NttnmMj5GVofe5XodThMKWsokfjMCEqiJfKo6DUX",
+      "symbol": "Musks",
+      "opened": 1794293831.194797,
+      "invested_sol": 0.2,
+      "fees_sol": 0.0015,
+      "entry_signal_usd": 1.821900268783198e-05,
+      "entry_fill_usd": 1.9043122816359354e-05,
+      "entry_slippage_pct": 4.52,
+      "roundtrip_cost_pct": 39.04,
+      "tokens_initial": 902735.417576,
+      "tokens_left": 902735.417576,
+      "decimals": 6,
+      "proceeds_sol": 0.0,
+      "peak_usd": 1.9043122816359354e-05,
+      "tp1_done": false,
+      "thesis_breaks": 0,
+      "missing_loops": 0,
+      "entry_liquidity": 17909.61964557759,
+      "entry_view": {
+        "age_h": 0.25617722001340654,
+        "mcap": 17303.5410444645,
+        "liquidity": 17909.61964557759,
+        "holders": 333,
+        "holder_growth_1h": 566.0,
+        "holder_growth_5m": 7.419354838709677,
+        "net_buyers_5m": 116,
+        "organic_buyers_5m": 0,
+        "organic_score": 0.0,
+        "price_change_1h": 274.695856023022,
+        "price_change_5m": -42.91191329888753,
+        "buys_5m": 410,
+        "sells_5m": 532,
+        "traders_5m": 308,
+        "traders_1h": 708,
+        "buy_vol_5m": 12497.440240671025,
+        "sell_vol_5m": 15855.046462217326,
+        "buy_vol_1h": 53847.34336917734,
+        "sell_vol_1h": 50960.01467660396,
+        "organic_buy_vol_1h": 2215.2156091259985,
+        "top_holders_pct": 23.720703467551726,
+        "dev_balance_pct": 0.0,
+        "dev_mints": 7224,
+        "launchpad": "pump.fun",
+        "graduated": true,
+        "social": true,
+        "quelle": "traded1h+traded5m+trend1h",
+        "trades_24h": 3159,
+        "organic_label": "low",
+        "buy_organic_vol_5m": 279.15279201359033,
+        "jup_fees": null,
+        "hour_utc": 6
+      },
+      "bundle": {
+        "quelle": "experiment",
+        "text": "Serien-Dev: frueherer Coin Nuts bis 614,981 $"
+      },
+      "phase": "normal",
+      "thesis": "Story verbreitet sich: Holder +566%/h, 116 Netto-Kaeufer 5m, 0 organisch; Serien-Dev: frueherer Coin Nuts bis 614,981 $; Dev-Coins 7224",
+      "exit_rule": "Haelfte bei 2x; Rest raus, wenn Holder schrumpfen und Netto-Verkaeufer 2x in Folge, Liquiditaet -30%, -40%, nach 1,5x nicht unter Einstand, nach 2x 30 % vom Hoch (ab 10x 25 %)",
+      "mitlaeufer": null,
+      "solana_tracker": null,
+      "graduated": true,
+      "liq_low_checks": 0,
+      "dev_exit": true,
+      "dev_pct_kauf": 0.0,
+      "serien_vorgaenger": {
+        "symbol": "Nuts",
+        "peak": 614981,
+        "zuerst": 1791742955,
+        "mint": "BXuuLQQsHsAjweVvTXHAgJSnTj9MLKpiK5cLP7c3wLxB"
+      }
+    }
+  },
   "closed": [
     {
       "symbol": "GWC",
@@ -114017,18 +114091,10 @@
     "A6CK4PukTpJdnZeTv8PuUT9LLnTnc2AGyuF8PE4cpump": 1794276869.956206,
     "B9FgqHbtccsgcL6YPfUhNd81qveNtrTbsfLvcjxtpump": 1794277588.5673494,
     "52N8mH4XGpnsQJbpexD3oxw1G2zZn7m2jX6VSpkd6btd": 1794284729.0120707,
-    "ZFumAP6KnpLXSV131WCtwV74fkfSpYtcQbJXAKBpump": 1794287797.6803803
+    "ZFumAP6KnpLXSV131WCtwV74fkfSpYtcQbJXAKBpump": 1794287797.6803803,
+    "EMV2NttnmMj5GVofe5XodThMKWsokfjMCEqiJfKo6DUX": 1794293831.1956124
   },
   "watch": {
-    "GNj9z8cL5x2bFUQ2KmgU72bfCKjNdEe9pxENy6rBEGju": {
-      "symbol": "PERPULATOR",
-      "entry_fill_usd": 2.2626026947361663e-05,
-      "opened": 1794271594.213065,
-      "peak_usd": 0.00015555661089753595,
-      "exit_usd": 2.993387640799654e-05,
-      "exit_reason": "THESE_GEBROCHEN (Holder schrumpfen, Netto-Verkaeufer)",
-      "until": 1794293756.821221
-    },
     "HPsMMzfMCWS5MErR9LDD8z6iTjLBx6BrVvawdgUEpump": {
       "symbol": "Autoimmune",
       "entry_fill_usd": 2.8718937724038317e-05,
@@ -114113,5 +114179,5 @@
   },
   "runde": 5,
   "shadow": {},
-  "saved_at": 1794293587.3867054
+  "saved_at": 1794293832.849605
 }
