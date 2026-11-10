@@ -1,8 +1,83 @@
 {
   "strategy": "EXPERIMENT_serien_devs",
   "started": "2026-10-04T00:34:10.471102+00:00",
-  "bankroll_sol": 2.010621,
-  "positions": {},
+  "bankroll_sol": 1.809121,
+  "positions": {
+    "69fKQHLBWzb1pmXb3RGJxDN9jFZKULLT9KxQW2x7BAGS": {
+      "mint": "69fKQHLBWzb1pmXb3RGJxDN9jFZKULLT9KxQW2x7BAGS",
+      "symbol": "FINNHQ",
+      "opened": 1794274328.3365843,
+      "invested_sol": 0.2,
+      "fees_sol": 0.0015,
+      "entry_signal_usd": 2.2166523395909496e-05,
+      "entry_fill_usd": 2.103035180957511e-05,
+      "entry_slippage_pct": -5.13,
+      "roundtrip_cost_pct": 4.38,
+      "tokens_initial": 821052.414000652,
+      "tokens_left": 821052.414000652,
+      "decimals": 9,
+      "proceeds_sol": 0.0,
+      "peak_usd": 2.289604938505663e-05,
+      "tp1_done": false,
+      "thesis_breaks": 0,
+      "missing_loops": 0,
+      "entry_liquidity": 5077.0941294997565,
+      "entry_view": {
+        "age_h": 4.108959331247542,
+        "mcap": 22166.523395909495,
+        "liquidity": 5077.0941294997565,
+        "holders": 257,
+        "holder_growth_1h": 108.9430894308943,
+        "holder_growth_5m": 8.898305084745763,
+        "net_buyers_5m": 52,
+        "organic_buyers_5m": 7,
+        "organic_score": 41.1954572153062,
+        "price_change_1h": 387.4421608326491,
+        "price_change_5m": 37.89611285518685,
+        "buys_5m": 92,
+        "sells_5m": 67,
+        "traders_5m": 95,
+        "traders_1h": 248,
+        "buy_vol_5m": 3620.6645220726496,
+        "sell_vol_5m": 3278.1510917487312,
+        "buy_vol_1h": 15332.166540650247,
+        "sell_vol_1h": 11344.063643335787,
+        "organic_buy_vol_1h": 606.5176328519852,
+        "top_holders_pct": 29.814228349399542,
+        "dev_balance_pct": 0.0,
+        "dev_mints": 194106,
+        "launchpad": "bags.fun",
+        "graduated": false,
+        "social": false,
+        "quelle": "organic1h+organic5m+traded1h+traded5m+trend1h+trend5m",
+        "trades_24h": 4066,
+        "organic_label": "medium",
+        "buy_organic_vol_5m": 126.53885651833275,
+        "jup_fees": null,
+        "hour_utc": 1
+      },
+      "bundle": {
+        "quelle": "experiment",
+        "text": "Serien-Dev: frueherer Coin LORIA bis 2,869,479 $"
+      },
+      "phase": "normal",
+      "thesis": "Story verbreitet sich: Holder +109%/h, 52 Netto-Kaeufer 5m, 7 organisch; Serien-Dev: frueherer Coin LORIA bis 2,869,479 $; Dev-Coins 194106",
+      "exit_rule": "Haelfte bei 2x; Rest raus, wenn Holder schrumpfen und Netto-Verkaeufer 2x in Folge, Liquiditaet -30%, -40%, nach 1,5x nicht unter Einstand, nach 2x 30 % vom Hoch (ab 10x 25 %)",
+      "mitlaeufer": null,
+      "solana_tracker": null,
+      "graduated": false,
+      "liq_low_checks": 0,
+      "dev_exit": true,
+      "dev_pct_kauf": 0.0,
+      "serien_vorgaenger": {
+        "symbol": "LORIA",
+        "peak": 2869479,
+        "zuerst": 1791113481,
+        "mint": "Gj4TowizfdkRJNsTgBEkj2WpBZZmGE7o9nN8q6RhBAGS"
+      },
+      "flug_last": 1794274342.191891
+    }
+  },
   "closed": [
     {
       "symbol": "GWC",
@@ -113583,7 +113658,8 @@
     "27ASrFetuvv2JWk2Xf6ykjqQKGPByTeqpiZi3Bvspump": 1794270505.7733557,
     "GNj9z8cL5x2bFUQ2KmgU72bfCKjNdEe9pxENy6rBEGju": 1794271594.213811,
     "HPsMMzfMCWS5MErR9LDD8z6iTjLBx6BrVvawdgUEpump": 1794272312.733283,
-    "8HjHG2SBLoASk5aNGDDnCjQrGEaHTyG4j8SSL7Dtpump": 1794274128.9520574
+    "8HjHG2SBLoASk5aNGDDnCjQrGEaHTyG4j8SSL7Dtpump": 1794274128.9520574,
+    "69fKQHLBWzb1pmXb3RGJxDN9jFZKULLT9KxQW2x7BAGS": 1794274328.3374457
   },
   "watch": {
     "8pfaw78t9r7yECpeXKi6JZDiv2tdczseXxCMKg89pump": {
@@ -113698,7 +113774,7 @@
       "symbol": "PERPULATOR",
       "entry_fill_usd": 2.2626026947361663e-05,
       "opened": 1794271594.213065,
-      "peak_usd": 7.071846794296795e-05,
+      "peak_usd": 0.00015555661089753595,
       "exit_usd": 2.993387640799654e-05,
       "exit_reason": "THESE_GEBROCHEN (Holder schrumpfen, Netto-Verkaeufer)",
       "until": 1794293756.821221
@@ -113724,5 +113800,5 @@
   },
   "runde": 5,
   "shadow": {},
-  "saved_at": 1794274301.6562452
+  "saved_at": 1794274369.7657073
 }
