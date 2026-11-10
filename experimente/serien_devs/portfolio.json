@@ -1,8 +1,82 @@
 {
   "strategy": "EXPERIMENT_serien_devs",
   "started": "2026-10-04T00:34:10.471102+00:00",
-  "bankroll_sol": 1.509582,
-  "positions": {},
+  "bankroll_sol": 1.308082,
+  "positions": {
+    "3RJ8MmZmbVBPqj7re8AHcrMvPq5MctYqu1ZHXMZkpump": {
+      "mint": "3RJ8MmZmbVBPqj7re8AHcrMvPq5MctYqu1ZHXMZkpump",
+      "symbol": "XOGE",
+      "opened": 1794320447.659141,
+      "invested_sol": 0.2,
+      "fees_sol": 0.0015,
+      "entry_signal_usd": 1.0564090179086044e-05,
+      "entry_fill_usd": 1.0422594398036353e-05,
+      "entry_slippage_pct": -1.34,
+      "roundtrip_cost_pct": null,
+      "tokens_initial": 1609499.772501,
+      "tokens_left": 1609499.772501,
+      "decimals": 6,
+      "proceeds_sol": 0.0,
+      "peak_usd": 1.0422594398036353e-05,
+      "tp1_done": false,
+      "thesis_breaks": 0,
+      "missing_loops": 0,
+      "entry_liquidity": 5916.874864873498,
+      "entry_view": {
+        "age_h": 4.508798428442743,
+        "mcap": 10564.090179086044,
+        "liquidity": 5916.874864873498,
+        "holders": 163,
+        "holder_growth_1h": 15.602836879432624,
+        "holder_growth_5m": -1.2121212121212122,
+        "net_buyers_5m": 3,
+        "organic_buyers_5m": 0,
+        "organic_score": 46.58529192258148,
+        "price_change_1h": 62.45527073019507,
+        "price_change_5m": -3.9381128978004174,
+        "buys_5m": 4,
+        "sells_5m": 4,
+        "traders_5m": 7,
+        "traders_1h": 155,
+        "buy_vol_5m": 42.106446050108445,
+        "sell_vol_5m": 329.91514744769853,
+        "buy_vol_1h": 13505.500674931756,
+        "sell_vol_1h": 12922.745085950095,
+        "organic_buy_vol_1h": 81.8262095690607,
+        "top_holders_pct": 21.046043958325097,
+        "dev_balance_pct": 1.4167661322086,
+        "dev_mints": 1431,
+        "launchpad": "pump.fun",
+        "graduated": false,
+        "social": false,
+        "quelle": "trend1h",
+        "trades_24h": 3560,
+        "organic_label": "medium",
+        "buy_organic_vol_5m": 0.0,
+        "jup_fees": null,
+        "hour_utc": 14
+      },
+      "bundle": {
+        "quelle": "experiment",
+        "text": "Serien-Dev: frueherer Coin HABIBI bis 305,275 $"
+      },
+      "phase": "normal",
+      "thesis": "Story verbreitet sich: Holder +16%/h, 3 Netto-Kaeufer 5m, 0 organisch; Serien-Dev: frueherer Coin HABIBI bis 305,275 $; Dev-Coins 1431",
+      "exit_rule": "Haelfte bei 2x; Rest raus, wenn Holder schrumpfen und Netto-Verkaeufer 2x in Folge, Liquiditaet -30%, -40%, nach 1,5x nicht unter Einstand, nach 2x 30 % vom Hoch (ab 10x 25 %)",
+      "mitlaeufer": null,
+      "solana_tracker": null,
+      "graduated": false,
+      "liq_low_checks": 0,
+      "dev_exit": true,
+      "dev_pct_kauf": 1.4167661322086,
+      "serien_vorgaenger": {
+        "symbol": "HABIBI",
+        "peak": 305275,
+        "zuerst": 1794111804,
+        "mint": "9GpJDZrgXvGXxGjffCZhhYfyLyZ94QTezQoipn74pump"
+      }
+    }
+  },
   "closed": [
     {
       "symbol": "GWC",
@@ -114451,7 +114525,8 @@
     "EyfCwFh74imkrRqdM5WqkPC9EmVg47wPjQtY63YDEvK6": 1794303347.2464015,
     "DBpD6sF8XRoJV1kEwRWfr2DYgBSZGMYo8XQBD4pNpump": 1794305183.0258296,
     "G4KLCTPjNyiQFEF2SExtKnHSt8t7rtPYRsdhYR3jpump": 1794308884.1420054,
-    "HimTmicQh2Q9DqPoZNtqz8RqFfDRVvCzhSnHQJpUpump": 1794317425.5728986
+    "HimTmicQh2Q9DqPoZNtqz8RqFfDRVvCzhSnHQJpUpump": 1794317425.5728986,
+    "3RJ8MmZmbVBPqj7re8AHcrMvPq5MctYqu1ZHXMZkpump": 1794320447.6602352
   },
   "watch": {
     "E8KkwnRHHJRcLyrzBTqtr1HHrY8zmDZgBwztGu6FLcy2": {
@@ -114511,5 +114586,5 @@
   },
   "runde": 5,
   "shadow": {},
-  "saved_at": 1794320294.905382
+  "saved_at": 1794320449.4088063
 }
