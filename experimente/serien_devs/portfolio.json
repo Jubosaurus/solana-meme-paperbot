@@ -1,8 +1,82 @@
 {
   "strategy": "EXPERIMENT_serien_devs",
   "started": "2026-10-04T00:34:10.471102+00:00",
-  "bankroll_sol": 0.955159,
-  "positions": {},
+  "bankroll_sol": 0.753659,
+  "positions": {
+    "5X44ZzxfLVL6CJHeLLuJpwN2YtSCySqZgss94e9v5MeU": {
+      "mint": "5X44ZzxfLVL6CJHeLLuJpwN2YtSCySqZgss94e9v5MeU",
+      "symbol": "LEXUR",
+      "opened": 1794342292.8504133,
+      "invested_sol": 0.2,
+      "fees_sol": 0.0015,
+      "entry_signal_usd": 2.601487389765113e-05,
+      "entry_fill_usd": 2.852004455734164e-05,
+      "entry_slippage_pct": 9.63,
+      "roundtrip_cost_pct": 0.81,
+      "tokens_initial": 584742.729324,
+      "tokens_left": 584742.729324,
+      "decimals": 6,
+      "proceeds_sol": 0.0,
+      "peak_usd": 2.852004455734164e-05,
+      "tp1_done": false,
+      "thesis_breaks": 0,
+      "missing_loops": 0,
+      "entry_liquidity": 6263.5635577468,
+      "entry_view": {
+        "age_h": 0.2549650475051668,
+        "mcap": 26014.87389765113,
+        "liquidity": 6263.5635577468,
+        "holders": 146,
+        "holder_growth_1h": 231.81818181818184,
+        "holder_growth_5m": -5.806451612903226,
+        "net_buyers_5m": 21,
+        "organic_buyers_5m": 0,
+        "organic_score": 0.0,
+        "price_change_1h": 42.723995101200636,
+        "price_change_5m": -13.167278753018607,
+        "buys_5m": 37,
+        "sells_5m": 37,
+        "traders_5m": 47,
+        "traders_1h": 502,
+        "buy_vol_5m": 734.5950477823578,
+        "sell_vol_5m": 1301.6617806940371,
+        "buy_vol_1h": 45448.715851538946,
+        "sell_vol_1h": 38800.14948315287,
+        "organic_buy_vol_1h": 1168.6539679354184,
+        "top_holders_pct": 33.6357330985426,
+        "dev_balance_pct": 9.999999999999999e-14,
+        "dev_mints": 2,
+        "launchpad": "raydium-launchlab",
+        "graduated": true,
+        "social": false,
+        "quelle": "traded1h+trend1h",
+        "trades_24h": 1679,
+        "organic_label": "low",
+        "buy_organic_vol_5m": 103.20938613751494,
+        "jup_fees": null,
+        "hour_utc": 20
+      },
+      "bundle": {
+        "quelle": "experiment",
+        "text": "Serien-Dev: frueherer Coin LEXUR bis 683,528 $"
+      },
+      "phase": "normal",
+      "thesis": "Story verbreitet sich: Holder +232%/h, 21 Netto-Kaeufer 5m, 0 organisch; Serien-Dev: frueherer Coin LEXUR bis 683,528 $; Dev-Coins 2",
+      "exit_rule": "Haelfte bei 2x; Rest raus, wenn Holder schrumpfen und Netto-Verkaeufer 2x in Folge, Liquiditaet -30%, -40%, nach 1,5x nicht unter Einstand, nach 2x 30 % vom Hoch (ab 10x 25 %)",
+      "mitlaeufer": null,
+      "solana_tracker": null,
+      "graduated": true,
+      "liq_low_checks": 0,
+      "dev_exit": true,
+      "dev_pct_kauf": 9.999999999999999e-14,
+      "serien_vorgaenger": {
+        "symbol": "LEXUR",
+        "peak": 683528,
+        "zuerst": 1791135619,
+        "mint": "ARL25d266bzjv6bm23SUZMgFaFf28Et52Lcco9WEASY"
+      }
+    }
+  },
   "closed": [
     {
       "symbol": "GWC",
@@ -115505,7 +115579,8 @@
     "EPqP4J9BMoEpG39peirG34ENaZfyyfqbmfjvqRLWpump": 1794339144.5927033,
     "CFqcbVyrnBnXCvUKvEVvMh6yC5cdmanggmVQmSPzekTQ": 1794339634.9795525,
     "LbKc932r1XRjiBVMDqqowUwNxXDtMRkzoKBH2tVpump": 1794339638.280681,
-    "3kCwAMuAinhyRHRhv3se9fCSTbpFJ8Y3e9jmgCgJpump": 1794340702.216896
+    "3kCwAMuAinhyRHRhv3se9fCSTbpFJ8Y3e9jmgCgJpump": 1794340702.216896,
+    "5X44ZzxfLVL6CJHeLLuJpwN2YtSCySqZgss94e9v5MeU": 1794342292.851244
   },
   "watch": {
     "3RJ8MmZmbVBPqj7re8AHcrMvPq5MctYqu1ZHXMZkpump": {
@@ -115664,5 +115739,5 @@
   },
   "runde": 5,
   "shadow": {},
-  "saved_at": 1794342029.722425
+  "saved_at": 1794342294.7898612
 }
