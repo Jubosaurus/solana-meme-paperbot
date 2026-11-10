@@ -1,8 +1,82 @@
 {
   "strategy": "EXPERIMENT_serien_devs",
   "started": "2026-10-04T00:34:10.471102+00:00",
-  "bankroll_sol": 1.991574,
-  "positions": {},
+  "bankroll_sol": 1.790074,
+  "positions": {
+    "ZFumAP6KnpLXSV131WCtwV74fkfSpYtcQbJXAKBpump": {
+      "mint": "ZFumAP6KnpLXSV131WCtwV74fkfSpYtcQbJXAKBpump",
+      "symbol": "KARHU",
+      "opened": 1794287797.67971,
+      "invested_sol": 0.2,
+      "fees_sol": 0.0015,
+      "entry_signal_usd": 9.126470562238505e-06,
+      "entry_fill_usd": 9.361661498477669e-06,
+      "entry_slippage_pct": 2.58,
+      "roundtrip_cost_pct": 3.12,
+      "tokens_initial": 1839644.406368,
+      "tokens_left": 1839644.406368,
+      "decimals": 6,
+      "proceeds_sol": 0.0,
+      "peak_usd": 9.361661498477669e-06,
+      "tp1_done": false,
+      "thesis_breaks": 0,
+      "missing_loops": 0,
+      "entry_liquidity": 5051.544160126818,
+      "entry_view": {
+        "age_h": 0.5615668239196142,
+        "mcap": 9126.459309970622,
+        "liquidity": 5051.544160126818,
+        "holders": 117,
+        "holder_growth_1h": 101.72413793103448,
+        "holder_growth_5m": 14.705882352941178,
+        "net_buyers_5m": 23,
+        "organic_buyers_5m": 2,
+        "organic_score": 40.28322553408323,
+        "price_change_1h": 10.32074682983215,
+        "price_change_5m": 34.23099206789311,
+        "buys_5m": 44,
+        "sells_5m": 36,
+        "traders_5m": 45,
+        "traders_1h": 640,
+        "buy_vol_5m": 2421.173585707933,
+        "sell_vol_5m": 2069.8800420797447,
+        "buy_vol_1h": 38421.92682633394,
+        "sell_vol_1h": 43482.18489208835,
+        "organic_buy_vol_1h": 1692.8338408827303,
+        "top_holders_pct": 21.940226830580418,
+        "dev_balance_pct": 0.08471447071292029,
+        "dev_mints": 1124,
+        "launchpad": "pump.fun",
+        "graduated": false,
+        "social": false,
+        "quelle": "organic1h+organic5m+traded1h+trend5m",
+        "trades_24h": 2537,
+        "organic_label": "medium",
+        "buy_organic_vol_5m": 0.0,
+        "jup_fees": null,
+        "hour_utc": 5
+      },
+      "bundle": {
+        "quelle": "experiment",
+        "text": "Serien-Dev: frueherer Coin HOOT bis 363,399 $"
+      },
+      "phase": "normal",
+      "thesis": "Story verbreitet sich: Holder +102%/h, 23 Netto-Kaeufer 5m, 2 organisch; Serien-Dev: frueherer Coin HOOT bis 363,399 $; Dev-Coins 1124",
+      "exit_rule": "Haelfte bei 2x; Rest raus, wenn Holder schrumpfen und Netto-Verkaeufer 2x in Folge, Liquiditaet -30%, -40%, nach 1,5x nicht unter Einstand, nach 2x 30 % vom Hoch (ab 10x 25 %)",
+      "mitlaeufer": null,
+      "solana_tracker": null,
+      "graduated": false,
+      "liq_low_checks": 0,
+      "dev_exit": true,
+      "dev_pct_kauf": 0.08471447071292029,
+      "serien_vorgaenger": {
+        "symbol": "HOOT",
+        "peak": 363399,
+        "zuerst": 1792371431,
+        "mint": "J4dyfXc8EY3TXAeFdpAKZqWyW4S8XpdoABib7JMnpump"
+      }
+    }
+  },
   "closed": [
     {
       "symbol": "GWC",
@@ -113955,7 +114029,8 @@
     "37JkCVyZZ67i2byUwegMGPzfrehz4cwPLuZhD3PSpump": 1794275237.803628,
     "A6CK4PukTpJdnZeTv8PuUT9LLnTnc2AGyuF8PE4cpump": 1794276869.956206,
     "B9FgqHbtccsgcL6YPfUhNd81qveNtrTbsfLvcjxtpump": 1794277588.5673494,
-    "52N8mH4XGpnsQJbpexD3oxw1G2zZn7m2jX6VSpkd6btd": 1794284729.0120707
+    "52N8mH4XGpnsQJbpexD3oxw1G2zZn7m2jX6VSpkd6btd": 1794284729.0120707,
+    "ZFumAP6KnpLXSV131WCtwV74fkfSpYtcQbJXAKBpump": 1794287797.6803803
   },
   "watch": {
     "73c1ih4kbQsPWsEw35EeDwk4QgJ9mZMkM7LqJgYZpump": {
@@ -114052,7 +114127,7 @@
       "symbol": "BREW",
       "entry_fill_usd": 2.2954732503715484e-05,
       "opened": 1794284729.0112119,
-      "peak_usd": 5.177923152979706e-05,
+      "peak_usd": 6.288204421148175e-05,
       "exit_usd": 2.2049828661634095e-05,
       "exit_reason": "GEWINN_GESCHUETZT (Hoch 1.7x, zurueck auf Einstand)",
       "until": 1794306455.9463286
@@ -114060,5 +114135,5 @@
   },
   "runde": 5,
   "shadow": {},
-  "saved_at": 1794287614.1000054
+  "saved_at": 1794287799.4409826
 }
