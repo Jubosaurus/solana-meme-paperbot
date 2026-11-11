@@ -1,7 +1,7 @@
 {
   "strategy": "EXPERIMENT_kontrollgruppe",
   "started": "2026-09-29T08:33:20.747785+00:00",
-  "bankroll_sol": 8.345207,
+  "bankroll_sol": 8.143707,
   "positions": {
     "65iH8k736QNhuUHm1tt8X7yJXpJ517HPPq8BrVdwring": {
       "mint": "65iH8k736QNhuUHm1tt8X7yJXpJ517HPPq8BrVdwring",
@@ -19,7 +19,7 @@
       "proceeds_sol": 0.0,
       "peak_usd": 0.00010691698050191282,
       "tp1_done": false,
-      "thesis_breaks": 0,
+      "thesis_breaks": 1,
       "missing_loops": 0,
       "entry_liquidity": 11205.37075300586,
       "entry_view": {
@@ -67,7 +67,7 @@
       "solana_tracker": null,
       "graduated": true,
       "liq_low_checks": 0,
-      "flug_last": 1794359814.4178987
+      "flug_last": 1794359877.9075823
     },
     "BNvefAuFBu9wLep9meSZUcwRQdobpk6i5JRNeLCGpump": {
       "mint": "BNvefAuFBu9wLep9meSZUcwRQdobpk6i5JRNeLCGpump",
@@ -133,7 +133,72 @@
       "solana_tracker": null,
       "graduated": true,
       "liq_low_checks": 0,
-      "flug_last": 1794359773.8133898
+      "flug_last": 1794359905.015123
+    },
+    "2uiRwhob8Zem9VmEZe2PiCScN3GkKSwqshym2NznKMoT": {
+      "mint": "2uiRwhob8Zem9VmEZe2PiCScN3GkKSwqshym2NznKMoT",
+      "symbol": "BANDANA",
+      "opened": 1794359915.0713725,
+      "invested_sol": 0.2,
+      "fees_sol": 0.0015,
+      "entry_signal_usd": 3.2482728478303415e-05,
+      "entry_fill_usd": 3.205787318108679e-05,
+      "entry_slippage_pct": -1.31,
+      "roundtrip_cost_pct": 4.44,
+      "tokens_initial": 516593.260395,
+      "tokens_left": 516593.260395,
+      "decimals": 6,
+      "proceeds_sol": 0.0,
+      "peak_usd": 3.205787318108679e-05,
+      "tp1_done": false,
+      "thesis_breaks": 0,
+      "missing_loops": 0,
+      "entry_liquidity": 7465.046593550789,
+      "entry_view": {
+        "age_h": 3.3361153119140203,
+        "mcap": 32482.72847830335,
+        "liquidity": 7465.046593550789,
+        "holders": 107,
+        "holder_growth_1h": 3466.6666666666665,
+        "holder_growth_5m": 3466.6666666666665,
+        "net_buyers_5m": 53,
+        "organic_buyers_5m": 0,
+        "organic_score": 0.0,
+        "price_change_1h": 83.23805809391993,
+        "price_change_5m": 83.23805809391993,
+        "buys_5m": 220,
+        "sells_5m": 100,
+        "traders_5m": 74,
+        "traders_1h": 74,
+        "buy_vol_5m": 14915.362174420718,
+        "sell_vol_5m": 7500.503134045742,
+        "buy_vol_1h": 14915.362174420718,
+        "sell_vol_1h": 7500.503134045742,
+        "organic_buy_vol_1h": 241.8988190491609,
+        "top_holders_pct": 14.695949232830527,
+        "dev_balance_pct": 0.0,
+        "dev_mints": 1,
+        "launchpad": "raydium-launchlab",
+        "graduated": false,
+        "social": true,
+        "quelle": "traded5m+trend1h+trend5m",
+        "trades_24h": 886,
+        "organic_label": "low",
+        "buy_organic_vol_5m": 241.8988190491609,
+        "jup_fees": null,
+        "hour_utc": 1
+      },
+      "bundle": {
+        "quelle": "experiment",
+        "text": "Kontrollgruppe: zufaellig aus 6 sicheren jungen Coins"
+      },
+      "phase": "normal",
+      "thesis": "Story verbreitet sich: Holder +3467%/h, 53 Netto-Kaeufer 5m, 0 organisch; Kontrollgruppe: zufaellig aus 6 sicheren jungen Coins; Dev-Coins 1",
+      "exit_rule": "Haelfte bei 2x; Rest raus, wenn Holder schrumpfen und Netto-Verkaeufer 2x in Folge, Liquiditaet -30%, -40%, nach 1,5x nicht unter Einstand, nach 2x 30 % vom Hoch (ab 10x 25 %)",
+      "mitlaeufer": null,
+      "solana_tracker": null,
+      "graduated": false,
+      "liq_low_checks": 0
     }
   },
   "closed": [
@@ -117244,11 +117309,12 @@
     "E26zyc5CG5BNkgZCFVTmVZxXuD4hjJDUcVAoxyWGpump": 1794352514.4562213,
     "65iH8k736QNhuUHm1tt8X7yJXpJ517HPPq8BrVdwring": 1794354370.7809336,
     "CbmdFB7ruUfTHb1uRWC99knEni77CQKfFZL6qq2fLoat": 1794356260.05025,
-    "BNvefAuFBu9wLep9meSZUcwRQdobpk6i5JRNeLCGpump": 1794358089.3396842
+    "BNvefAuFBu9wLep9meSZUcwRQdobpk6i5JRNeLCGpump": 1794358089.3396842,
+    "2uiRwhob8Zem9VmEZe2PiCScN3GkKSwqshym2NznKMoT": 1794359915.0720744
   },
   "watch": {},
   "runde": 6,
   "shadow": {},
-  "saved_at": 1794359821.2718232,
-  "next_pick": 1794359877.1013854
+  "saved_at": 1794359916.6978035,
+  "next_pick": 1794361705.015123
 }
