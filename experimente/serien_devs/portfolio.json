@@ -1,8 +1,82 @@
 {
   "strategy": "EXPERIMENT_serien_devs",
   "started": "2026-10-04T00:34:10.471102+00:00",
-  "bankroll_sol": 10.054887,
-  "positions": {},
+  "bankroll_sol": 9.853387,
+  "positions": {
+    "3JhZkgmR4TPzpKH6cVwfHbPPVC7xYMMv9an3hushpump": {
+      "mint": "3JhZkgmR4TPzpKH6cVwfHbPPVC7xYMMv9an3hushpump",
+      "symbol": "Sackson",
+      "opened": 1794436037.580499,
+      "invested_sol": 0.2,
+      "fees_sol": 0.0015,
+      "entry_signal_usd": 3.283494608951761e-05,
+      "entry_fill_usd": 3.0326962457160296e-05,
+      "entry_slippage_pct": -7.64,
+      "roundtrip_cost_pct": -0.58,
+      "tokens_initial": 557435.92476,
+      "tokens_left": 557435.92476,
+      "decimals": 6,
+      "proceeds_sol": 0.0,
+      "peak_usd": 3.0326962457160296e-05,
+      "tp1_done": false,
+      "thesis_breaks": 0,
+      "missing_loops": 0,
+      "entry_liquidity": 8829.665131920867,
+      "entry_view": {
+        "age_h": 0.38712812569406296,
+        "mcap": 32787.11386475569,
+        "liquidity": 8829.665131920867,
+        "holders": 220,
+        "holder_growth_1h": 1733.3333333333333,
+        "holder_growth_5m": 193.33333333333334,
+        "net_buyers_5m": 163,
+        "organic_buyers_5m": 0,
+        "organic_score": 0.0,
+        "price_change_1h": 876.0168983552012,
+        "price_change_5m": 232.9789205119558,
+        "buys_5m": 516,
+        "sells_5m": 486,
+        "traders_5m": 337,
+        "traders_1h": 457,
+        "buy_vol_5m": 23913.19787422823,
+        "sell_vol_5m": 22137.92470468697,
+        "buy_vol_1h": 37718.318068880704,
+        "sell_vol_1h": 34165.53797748872,
+        "organic_buy_vol_1h": 1122.7700164046396,
+        "top_holders_pct": 26.246490751712802,
+        "dev_balance_pct": 0.0,
+        "dev_mints": 1528,
+        "launchpad": "pump.fun",
+        "graduated": true,
+        "social": false,
+        "quelle": "traded1h+traded5m+trend1h+trend5m",
+        "trades_24h": 1516,
+        "organic_label": "low",
+        "buy_organic_vol_5m": 662.0943464116081,
+        "jup_fees": null,
+        "hour_utc": 22
+      },
+      "bundle": {
+        "quelle": "experiment",
+        "text": "Serien-Dev: frueherer Coin SKYNET bis 439,926 $"
+      },
+      "phase": "normal",
+      "thesis": "Story verbreitet sich: Holder +1733%/h, 163 Netto-Kaeufer 5m, 0 organisch; Serien-Dev: frueherer Coin SKYNET bis 439,926 $; Dev-Coins 1528",
+      "exit_rule": "Haelfte bei 2x; Rest raus, wenn Holder schrumpfen und Netto-Verkaeufer 2x in Folge, Liquiditaet -30%, -40%, nach 1,5x nicht unter Einstand, nach 2x 30 % vom Hoch (ab 10x 25 %)",
+      "mitlaeufer": null,
+      "solana_tracker": null,
+      "graduated": true,
+      "liq_low_checks": 0,
+      "dev_exit": true,
+      "dev_pct_kauf": 0.0,
+      "serien_vorgaenger": {
+        "symbol": "SKYNET",
+        "peak": 439926,
+        "zuerst": 1792699635,
+        "mint": "2s9ycNwMgVCB4SWtXmTu14w1ospd88MVYZdHLVEHLdVC"
+      }
+    }
+  },
   "closed": [
     {
       "symbol": "GWC",
@@ -118233,7 +118307,8 @@
     "3FEvMfxW3zx9V6cCnQ1UmWHKTozbxAVN2LeeTY4tpump": 1794430674.663743,
     "Hu4eFmzw4jHDYfU9KhjPnJoJFKdT2c3hr8WENudspump": 1794431090.6499383,
     "Gsj4msPvgEdDJ6UuYwoKT6uqfMzHUWS8B3pG5QNvpump": 1794432470.895274,
-    "5gP4Eu7G5J8aE53MDZmQFvmXN1xra5WniX7tYXB1pump": 1794434795.3760254
+    "5gP4Eu7G5J8aE53MDZmQFvmXN1xra5WniX7tYXB1pump": 1794434795.3760254,
+    "3JhZkgmR4TPzpKH6cVwfHbPPVC7xYMMv9an3hushpump": 1794436037.5807698
   },
   "watch": {
     "7CrDTf8w6WUyhSRLCijv7iEZuGmbQe1UrX6nqEmtkCLA": {
@@ -118374,5 +118449,5 @@
   },
   "runde": 6,
   "shadow": {},
-  "saved_at": 1794435955.0075636
+  "saved_at": 1794436039.1634839
 }
