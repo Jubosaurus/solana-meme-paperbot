@@ -1,27 +1,27 @@
 {
   "strategy": "EXPERIMENT_kontrollgruppe",
   "started": "2026-09-29T08:33:20.747785+00:00",
-  "bankroll_sol": 6.511013,
+  "bankroll_sol": 6.731283,
   "positions": {
     "ASYGfSjeBjQ26Tb5i7fkZbttQzahfLVouqZWh3utpump": {
       "mint": "ASYGfSjeBjQ26Tb5i7fkZbttQzahfLVouqZWh3utpump",
       "symbol": "Artcoin",
       "opened": 1794487998.4970033,
       "invested_sol": 0.2,
-      "fees_sol": 0.0015,
+      "fees_sol": 0.003,
       "entry_signal_usd": 1.4870098637625786e-05,
       "entry_fill_usd": 1.4672579535902555e-05,
       "entry_slippage_pct": -1.33,
       "roundtrip_cost_pct": 2.98,
       "tokens_initial": 1121886.178715,
-      "tokens_left": 1121886.178715,
+      "tokens_left": 560943.0893575,
       "decimals": 6,
-      "proceeds_sol": 0.0,
-      "peak_usd": 2.3802142869415378e-05,
-      "tp1_done": false,
+      "proceeds_sol": 0.22026959,
+      "peak_usd": 3.327489846506813e-05,
+      "tp1_done": true,
       "thesis_breaks": 0,
       "missing_loops": 0,
-      "entry_liquidity": 6316.565093267136,
+      "entry_liquidity": 7404.514449458358,
       "entry_view": {
         "age_h": 1.4898284208112293,
         "mcap": 14868.86849502204,
@@ -65,9 +65,10 @@
       "exit_rule": "Haelfte bei 2x; Rest raus, wenn Holder schrumpfen und Netto-Verkaeufer 2x in Folge, Liquiditaet -30%, -40%, nach 1,5x nicht unter Einstand, nach 2x 30 % vom Hoch (ab 10x 25 %)",
       "mitlaeufer": null,
       "solana_tracker": null,
-      "graduated": false,
+      "graduated": true,
       "liq_low_checks": 0,
-      "flug_last": 1794495355.7488945
+      "flug_last": 1794495546.4761448,
+      "graduated_during": true
     },
     "EkSnBFrNpjKQ8rsQAkh2Jcnfm4Xn7RUoBsK6qL4Hpump": {
       "mint": "EkSnBFrNpjKQ8rsQAkh2Jcnfm4Xn7RUoBsK6qL4Hpump",
@@ -133,7 +134,7 @@
       "solana_tracker": null,
       "graduated": false,
       "liq_low_checks": 0,
-      "flug_last": 1794495355.7488945
+      "flug_last": 1794495546.4761448
     },
     "9pvQmvGMXpZYxWgwLVKoQrA3yy22gbDLEmQDZgh9pump": {
       "mint": "9pvQmvGMXpZYxWgwLVKoQrA3yy22gbDLEmQDZgh9pump",
@@ -198,7 +199,8 @@
       "mitlaeufer": null,
       "solana_tracker": null,
       "graduated": false,
-      "liq_low_checks": 0
+      "liq_low_checks": 0,
+      "flug_last": 1794495546.4761448
     }
   },
   "closed": [
@@ -121841,6 +121843,6 @@
   "watch": {},
   "runde": 6,
   "shadow": {},
-  "saved_at": 1794495397.9305706,
+  "saved_at": 1794495562.0773277,
   "next_pick": 1794497186.254686
 }
