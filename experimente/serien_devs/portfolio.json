@@ -1,8 +1,82 @@
 {
   "strategy": "EXPERIMENT_serien_devs",
   "started": "2026-10-04T00:34:10.471102+00:00",
-  "bankroll_sol": 8.455943,
-  "positions": {},
+  "bankroll_sol": 8.254443,
+  "positions": {
+    "87e8w4G33sB6Nsmi8aSUUsYSYBXXAof8h38dKahNpump": {
+      "mint": "87e8w4G33sB6Nsmi8aSUUsYSYBXXAof8h38dKahNpump",
+      "symbol": "NekoNano",
+      "opened": 1794516838.3750312,
+      "invested_sol": 0.2,
+      "fees_sol": 0.0015,
+      "entry_signal_usd": 1.360705157147303e-05,
+      "entry_fill_usd": 1.3845100983606008e-05,
+      "entry_slippage_pct": 1.75,
+      "roundtrip_cost_pct": 2.99,
+      "tokens_initial": 1176356.338546,
+      "tokens_left": 1176356.338546,
+      "decimals": 6,
+      "proceeds_sol": 0.0,
+      "peak_usd": 1.3845100983606008e-05,
+      "tp1_done": false,
+      "thesis_breaks": 0,
+      "missing_loops": 0,
+      "entry_liquidity": 5979.380861314463,
+      "entry_view": {
+        "age_h": 0.2715021421511968,
+        "mcap": 13607.051571472988,
+        "liquidity": 5979.380861314463,
+        "holders": 203,
+        "holder_growth_1h": 178.08219178082192,
+        "holder_growth_5m": -8.558558558558559,
+        "net_buyers_5m": 74,
+        "organic_buyers_5m": 0,
+        "organic_score": 0.0,
+        "price_change_1h": 103.2219413737185,
+        "price_change_5m": 2.8259275211701502,
+        "buys_5m": 130,
+        "sells_5m": 113,
+        "traders_5m": 140,
+        "traders_1h": 770,
+        "buy_vol_5m": 3981.2023173331418,
+        "sell_vol_5m": 4314.200836217515,
+        "buy_vol_1h": 47136.51940906416,
+        "sell_vol_1h": 53696.077388991696,
+        "organic_buy_vol_1h": 2815.5453472899376,
+        "top_holders_pct": 24.414732483204272,
+        "dev_balance_pct": 0.0,
+        "dev_mints": 376,
+        "launchpad": "pump.fun",
+        "graduated": false,
+        "social": true,
+        "quelle": "traded1h+traded5m",
+        "trades_24h": 2780,
+        "organic_label": "low",
+        "buy_organic_vol_5m": 56.77887788297985,
+        "jup_fees": null,
+        "hour_utc": 20
+      },
+      "bundle": {
+        "quelle": "experiment",
+        "text": "Serien-Dev: frueherer Coin Gato bis 1,617,993 $"
+      },
+      "phase": "normal",
+      "thesis": "Story verbreitet sich: Holder +178%/h, 74 Netto-Kaeufer 5m, 0 organisch; Serien-Dev: frueherer Coin Gato bis 1,617,993 $; Dev-Coins 376",
+      "exit_rule": "Haelfte bei 2x; Rest raus, wenn Holder schrumpfen und Netto-Verkaeufer 2x in Folge, Liquiditaet -30%, -40%, nach 1,5x nicht unter Einstand, nach 2x 30 % vom Hoch (ab 10x 25 %)",
+      "mitlaeufer": null,
+      "solana_tracker": null,
+      "graduated": false,
+      "liq_low_checks": 0,
+      "dev_exit": true,
+      "dev_pct_kauf": 0.0,
+      "serien_vorgaenger": {
+        "symbol": "Gato",
+        "peak": 1617993,
+        "zuerst": 1792260835,
+        "mint": "55A3VxMBfzw6uSe64zms5iMPw9k6kx9WzzusbCU6pump"
+      }
+    }
+  },
   "closed": [
     {
       "symbol": "GWC",
@@ -121643,18 +121717,10 @@
     "8EVuyYQJKMAtX5SFjFDwWL2jyCd2BVK49FuoSPULpump": 1794512776.425715,
     "FMK5RyfhwcPaRUYaRQ5jAG3VNiVyYR5iq57TBhnPpump": 1794514105.4893749,
     "HqE31X3y7BAZNEZev8RBMkhTgj2RMR4bffZsZeampump": 1794514307.7926824,
-    "C1pQ6KN72GaBKtUDbZJsEHD2ErkerLewfLBDBFphtmir": 1794514597.0326812
+    "C1pQ6KN72GaBKtUDbZJsEHD2ErkerLewfLBDBFphtmir": 1794514597.0326812,
+    "87e8w4G33sB6Nsmi8aSUUsYSYBXXAof8h38dKahNpump": 1794516838.37563
   },
   "watch": {
-    "4FP2GRQS3WYPsZSE2dwaVzqkajrBpHcXyVSTVt83pump": {
-      "symbol": "Huang",
-      "entry_fill_usd": 3.9624127737945274e-05,
-      "opened": 1794494319.5868046,
-      "peak_usd": 0.0007993441502668051,
-      "exit_usd": 9.269562386245996e-05,
-      "exit_reason": "STORY_ABGEKUEHLT (30% unter dem Hoch von 3.4x)",
-      "until": 1794516747.3024604
-    },
     "7Z4mw7wUziU9JvbrYbVkArZ7KJpRs8dKibaWdherpump": {
       "symbol": "Dickcoin",
       "entry_fill_usd": 2.375809757148911e-05,
@@ -121802,5 +121868,5 @@
   },
   "runde": 6,
   "shadow": {},
-  "saved_at": 1794516607.1480427
+  "saved_at": 1794516840.3911905
 }
