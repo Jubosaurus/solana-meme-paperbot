@@ -1,8 +1,83 @@
 {
   "strategy": "EXPERIMENT_serien_devs",
   "started": "2026-10-04T00:34:10.471102+00:00",
-  "bankroll_sol": 8.852077,
-  "positions": {},
+  "bankroll_sol": 8.650577,
+  "positions": {
+    "2ipXjbKqQL8RLufxitX3WdPnw6JCVWKHfH8iqAWtpump": {
+      "mint": "2ipXjbKqQL8RLufxitX3WdPnw6JCVWKHfH8iqAWtpump",
+      "symbol": "Jewbots",
+      "opened": 1794452292.796551,
+      "invested_sol": 0.2,
+      "fees_sol": 0.0015,
+      "entry_signal_usd": 4.604283810820655e-05,
+      "entry_fill_usd": 4.274809673806089e-05,
+      "entry_slippage_pct": -7.16,
+      "roundtrip_cost_pct": null,
+      "tokens_initial": 389644.003681,
+      "tokens_left": 389644.003681,
+      "decimals": 6,
+      "proceeds_sol": 0.0,
+      "peak_usd": 4.274809673806089e-05,
+      "tp1_done": false,
+      "thesis_breaks": 0,
+      "missing_loops": 0,
+      "entry_liquidity": 7929.2005083046215,
+      "entry_view": {
+        "age_h": 0.46163077579604256,
+        "mcap": 45896.88305935117,
+        "liquidity": 7929.2005083046215,
+        "holders": 217,
+        "holder_growth_1h": 985.0,
+        "holder_growth_5m": 38.21656050955414,
+        "net_buyers_5m": 69,
+        "organic_buyers_5m": 0,
+        "organic_score": 0.0,
+        "price_change_1h": 701.9120902276171,
+        "price_change_5m": 118.89580712003476,
+        "buys_5m": 229,
+        "sells_5m": 113,
+        "traders_5m": 140,
+        "traders_1h": 459,
+        "buy_vol_5m": 8992.664015601013,
+        "sell_vol_5m": 6450.967244850528,
+        "buy_vol_1h": 44691.251448326555,
+        "sell_vol_1h": 40014.54155279211,
+        "organic_buy_vol_1h": 1780.129690246477,
+        "top_holders_pct": 30.090606863674385,
+        "dev_balance_pct": 0.0,
+        "dev_mints": 6848,
+        "launchpad": "pump.fun",
+        "graduated": true,
+        "social": true,
+        "quelle": "traded1h+traded5m+trend1h+trend5m",
+        "trades_24h": 1821,
+        "organic_label": "low",
+        "buy_organic_vol_5m": 491.2886307287446,
+        "jup_fees": null,
+        "hour_utc": 2
+      },
+      "bundle": {
+        "quelle": "experiment",
+        "text": "Serien-Dev: frueherer Coin CYBER bis 1,417,393 $"
+      },
+      "phase": "normal",
+      "thesis": "Story verbreitet sich: Holder +985%/h, 69 Netto-Kaeufer 5m, 0 organisch; Serien-Dev: frueherer Coin CYBER bis 1,417,393 $; Dev-Coins 6848",
+      "exit_rule": "Haelfte bei 2x; Rest raus, wenn Holder schrumpfen und Netto-Verkaeufer 2x in Folge, Liquiditaet -30%, -40%, nach 1,5x nicht unter Einstand, nach 2x 30 % vom Hoch (ab 10x 25 %)",
+      "mitlaeufer": null,
+      "solana_tracker": null,
+      "graduated": true,
+      "liq_low_checks": 0,
+      "dev_exit": true,
+      "dev_pct_kauf": 0.0,
+      "serien_vorgaenger": {
+        "symbol": "CYBER",
+        "peak": 1417393,
+        "zuerst": 1792622097,
+        "mint": "CMo7GfUhSGXuEfnY7qAzv8hhsV2M2P8GpWqmWikhpump"
+      },
+      "flug_last": 1794452306.6467237
+    }
+  },
   "closed": [
     {
       "symbol": "GWC",
@@ -119163,18 +119238,10 @@
     "6mb1WzFveWXa9AeBwQ2mbyoxJhw8KCgmyQaDZziZBAGS": 1794446858.7817376,
     "6wX5SbZRGje8Rv4u7x6ToYrLxf5S4QnXLCyLpZSLnmUK": 1794448145.9311948,
     "7TmeeJxBF3PFsbgzuy23XpWJzQsqVXjvgLTb8S2zpump": 1794448881.129118,
-    "4ifmbtSq12EbGZQh697bJaqcEHwNKeGsyou5Vrzgpump": 1794449923.2590187
+    "4ifmbtSq12EbGZQh697bJaqcEHwNKeGsyou5Vrzgpump": 1794449923.2590187,
+    "2ipXjbKqQL8RLufxitX3WdPnw6JCVWKHfH8iqAWtpump": 1794452292.7968976
   },
   "watch": {
-    "77HqxiDCgYfXUsDXDD6YVefPhTTz1Z2n8jX4gTxipump": {
-      "symbol": "updog",
-      "entry_fill_usd": 7.937149758862331e-05,
-      "opened": 1794429454.244835,
-      "peak_usd": 0.00019447992902753958,
-      "exit_usd": 0.00011099883383652156,
-      "exit_reason": "STORY_ABGEKUEHLT (30% unter dem Hoch von 2.2x)",
-      "until": 1794452265.862851
-    },
     "3FEvMfxW3zx9V6cCnQ1UmWHKTozbxAVN2LeeTY4tpump": {
       "symbol": "MEW",
       "entry_fill_usd": 1.3593525097959028e-05,
@@ -119349,5 +119416,5 @@
   },
   "runde": 6,
   "shadow": {},
-  "saved_at": 1794452253.2925029
+  "saved_at": 1794452324.6353195
 }
