@@ -1,8 +1,82 @@
 {
   "strategy": "EXPERIMENT_serien_devs",
   "started": "2026-10-04T00:34:10.471102+00:00",
-  "bankroll_sol": 8.366332,
-  "positions": {},
+  "bankroll_sol": 8.164832,
+  "positions": {
+    "4FP2GRQS3WYPsZSE2dwaVzqkajrBpHcXyVSTVt83pump": {
+      "mint": "4FP2GRQS3WYPsZSE2dwaVzqkajrBpHcXyVSTVt83pump",
+      "symbol": "Huang",
+      "opened": 1794494319.5868046,
+      "invested_sol": 0.2,
+      "fees_sol": 0.0015,
+      "entry_signal_usd": 4.368229748998513e-05,
+      "entry_fill_usd": 3.9624127737945274e-05,
+      "entry_slippage_pct": -9.29,
+      "roundtrip_cost_pct": 2.72,
+      "tokens_initial": 411167.266535,
+      "tokens_left": 411167.266535,
+      "decimals": 6,
+      "proceeds_sol": 0.0,
+      "peak_usd": 3.9624127737945274e-05,
+      "tp1_done": false,
+      "thesis_breaks": 0,
+      "missing_loops": 0,
+      "entry_liquidity": 6536.397795164277,
+      "entry_view": {
+        "age_h": 0.26375985046227773,
+        "mcap": 42132.34197791328,
+        "liquidity": 6536.397795164277,
+        "holders": 590,
+        "holder_growth_1h": 408.62068965517244,
+        "holder_growth_5m": 17.764471057884233,
+        "net_buyers_5m": 290,
+        "organic_buyers_5m": 0,
+        "organic_score": 0.0,
+        "price_change_1h": 588.672328045459,
+        "price_change_5m": 10.083835761769326,
+        "buys_5m": 1045,
+        "sells_5m": 773,
+        "traders_5m": 732,
+        "traders_1h": 1154,
+        "buy_vol_5m": 26393.225346671577,
+        "sell_vol_5m": 26548.55208828877,
+        "buy_vol_1h": 58555.25682570716,
+        "sell_vol_1h": 58386.72867112892,
+        "organic_buy_vol_1h": 1633.4585415389004,
+        "top_holders_pct": 25.2861730888452,
+        "dev_balance_pct": 0.13853777446391163,
+        "dev_mints": 1900,
+        "launchpad": "pump.fun",
+        "graduated": true,
+        "social": false,
+        "quelle": "traded1h+traded5m",
+        "trades_24h": 3714,
+        "organic_label": "low",
+        "buy_organic_vol_5m": 700.96235665265,
+        "jup_fees": null,
+        "hour_utc": 14
+      },
+      "bundle": {
+        "quelle": "experiment",
+        "text": "Serien-Dev: frueherer Coin Bear bis 435,743 $"
+      },
+      "phase": "normal",
+      "thesis": "Story verbreitet sich: Holder +409%/h, 290 Netto-Kaeufer 5m, 0 organisch; Serien-Dev: frueherer Coin Bear bis 435,743 $; Dev-Coins 1900",
+      "exit_rule": "Haelfte bei 2x; Rest raus, wenn Holder schrumpfen und Netto-Verkaeufer 2x in Folge, Liquiditaet -30%, -40%, nach 1,5x nicht unter Einstand, nach 2x 30 % vom Hoch (ab 10x 25 %)",
+      "mitlaeufer": null,
+      "solana_tracker": null,
+      "graduated": true,
+      "liq_low_checks": 0,
+      "dev_exit": true,
+      "dev_pct_kauf": 0.13853777446391163,
+      "serien_vorgaenger": {
+        "symbol": "Bear",
+        "peak": 435743,
+        "zuerst": 1791858692,
+        "mint": "49PU6ENTpYc3zkhgCruzCSBzgVAdix5muP2oVzRGpump"
+      }
+    }
+  },
   "closed": [
     {
       "symbol": "GWC",
@@ -120589,27 +120663,10 @@
     "642k1Nzoat9azqL87tmmRRuRbNjWX1jgNp2GzRQ1eUKf": 1794492460.7839503,
     "7rtrYEBfMhMPmPqCr4BZyY3zYRSLqUa7h6WR44Z7YWWF": 1794492967.0858395,
     "Ctt9721gdLHhVTUZwxTLLN8F2ho9k6h9qLCbxEat267Z": 1794493169.9975069,
-    "adCRCzLKBjHtu1WzXcCrFr416wMhMonp8To7Xd4QPfk": 1794493567.534419
+    "adCRCzLKBjHtu1WzXcCrFr416wMhMonp8To7Xd4QPfk": 1794493567.534419,
+    "4FP2GRQS3WYPsZSE2dwaVzqkajrBpHcXyVSTVt83pump": 1794494319.5875149
   },
   "watch": {
-    "kJD4vZcGjNEdMa5Md6dgdogLa5A2JBG4DTXBqThpump": {
-      "symbol": "ANTPE",
-      "entry_fill_usd": 9.347391409377127e-06,
-      "opened": 1794470566.5200303,
-      "peak_usd": 1.0226539976909257e-05,
-      "exit_usd": 5.202865667365347e-06,
-      "exit_reason": "NOTBREMSE (-44%)",
-      "until": 1794494212.6362371
-    },
-    "C2MEPrVQuWfW35J5oo4yBju2hKnrGQZDxjaLAPzwpump": {
-      "symbol": "CLAUDE",
-      "entry_fill_usd": 7.199607898871128e-05,
-      "opened": 1794470459.800231,
-      "peak_usd": 7.990526735882395e-05,
-      "exit_usd": 4.059783117091693e-05,
-      "exit_reason": "NOTBREMSE (-44%)",
-      "until": 1794494251.3289592
-    },
     "2UMho4zUPqSKb2fbJbKNPf1dU1WKD6SfbNmVkvphpump": {
       "symbol": "Shiqi",
       "entry_fill_usd": 2.9403357935603333e-05,
@@ -120730,5 +120787,5 @@
   },
   "runde": 6,
   "shadow": {},
-  "saved_at": 1794494083.1888268
+  "saved_at": 1794494321.3522923
 }
