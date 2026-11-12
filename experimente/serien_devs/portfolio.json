@@ -1,7 +1,7 @@
 {
   "strategy": "EXPERIMENT_serien_devs",
   "started": "2026-10-04T00:34:10.471102+00:00",
-  "bankroll_sol": 7.840905,
+  "bankroll_sol": 8.075151,
   "positions": {
     "FMK5RyfhwcPaRUYaRQ5jAG3VNiVyYR5iq57TBhnPpump": {
       "mint": "FMK5RyfhwcPaRUYaRQ5jAG3VNiVyYR5iq57TBhnPpump",
@@ -75,27 +75,27 @@
         "zuerst": 1791113383,
         "mint": "ATBR4i19gcQ31Rfr7ymA2XvkCQEAkNFGBtVKTmdqpump"
       },
-      "flug_last": 1794514586.9286106
+      "flug_last": 1794514659.4736452
     },
     "C1pQ6KN72GaBKtUDbZJsEHD2ErkerLewfLBDBFphtmir": {
       "mint": "C1pQ6KN72GaBKtUDbZJsEHD2ErkerLewfLBDBFphtmir",
       "symbol": "MARS",
       "opened": 1794514597.0318818,
       "invested_sol": 0.2,
-      "fees_sol": 0.0015,
+      "fees_sol": 0.003,
       "entry_signal_usd": 1.4950666109617574e-05,
       "entry_fill_usd": 1.3122043816936293e-05,
       "entry_slippage_pct": -12.23,
       "roundtrip_cost_pct": 2.26,
       "tokens_initial": 1239908.78877,
-      "tokens_left": 1239908.78877,
+      "tokens_left": 619954.394385,
       "decimals": 6,
-      "proceeds_sol": 0.0,
-      "peak_usd": 1.3122043816936293e-05,
-      "tp1_done": false,
+      "proceeds_sol": 0.234246081,
+      "peak_usd": 3.2610084871201546e-05,
+      "tp1_done": true,
       "thesis_breaks": 0,
       "missing_loops": 0,
-      "entry_liquidity": 6205.179661566439,
+      "entry_liquidity": 9150.917887619138,
       "entry_view": {
         "age_h": 0.4688690584897995,
         "mcap": 14950.665252668894,
@@ -139,7 +139,7 @@
       "exit_rule": "Haelfte bei 2x; Rest raus, wenn Holder schrumpfen und Netto-Verkaeufer 2x in Folge, Liquiditaet -30%, -40%, nach 1,5x nicht unter Einstand, nach 2x 30 % vom Hoch (ab 10x 25 %)",
       "mitlaeufer": null,
       "solana_tracker": null,
-      "graduated": false,
+      "graduated": true,
       "liq_low_checks": 0,
       "dev_exit": true,
       "dev_pct_kauf": 0.0,
@@ -148,7 +148,9 @@
         "peak": 3417981,
         "zuerst": 1791074049,
         "mint": "9aqmJjCnnMQv42TXLk921ceUkN35nea2QP969n1caqjj"
-      }
+      },
+      "flug_last": 1794514688.2852669,
+      "graduated_during": true
     }
   },
   "closed": [
@@ -121837,5 +121839,5 @@
   },
   "runde": 6,
   "shadow": {},
-  "saved_at": 1794514599.5670068
+  "saved_at": 1794514711.5561166
 }
