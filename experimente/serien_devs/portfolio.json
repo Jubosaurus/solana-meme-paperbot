@@ -1,7 +1,7 @@
 {
   "strategy": "EXPERIMENT_serien_devs",
   "started": "2026-10-04T00:34:10.471102+00:00",
-  "bankroll_sol": 8.441249,
+  "bankroll_sol": 8.239749,
   "positions": {
     "7rtrYEBfMhMPmPqCr4BZyY3zYRSLqUa7h6WR44Z7YWWF": {
       "mint": "7rtrYEBfMhMPmPqCr4BZyY3zYRSLqUa7h6WR44Z7YWWF",
@@ -66,6 +66,80 @@
       "mitlaeufer": null,
       "solana_tracker": null,
       "graduated": true,
+      "liq_low_checks": 0,
+      "dev_exit": true,
+      "dev_pct_kauf": 0.0,
+      "serien_vorgaenger": {
+        "symbol": "CLAUDIA",
+        "peak": 11079320,
+        "zuerst": 1791342484,
+        "mint": "2j5SaS7xy776qCBpyPQbZjyQSAtKiFgrwjfErthnW2ZM"
+      },
+      "flug_last": 1794493128.7186332
+    },
+    "Ctt9721gdLHhVTUZwxTLLN8F2ho9k6h9qLCbxEat267Z": {
+      "mint": "Ctt9721gdLHhVTUZwxTLLN8F2ho9k6h9qLCbxEat267Z",
+      "symbol": "JENSEN",
+      "opened": 1794493169.996753,
+      "invested_sol": 0.2,
+      "fees_sol": 0.0015,
+      "entry_signal_usd": 1.3116967135742129e-05,
+      "entry_fill_usd": 1.3743811185669079e-05,
+      "entry_slippage_pct": 4.78,
+      "roundtrip_cost_pct": 3.05,
+      "tokens_initial": 1176820.81107,
+      "tokens_left": 1176820.81107,
+      "decimals": 6,
+      "proceeds_sol": 0.0,
+      "peak_usd": 1.3743811185669079e-05,
+      "tp1_done": false,
+      "thesis_breaks": 0,
+      "missing_loops": 0,
+      "entry_liquidity": 5847.223745774254,
+      "entry_view": {
+        "age_h": 0.2530243722597758,
+        "mcap": 13116.967135742128,
+        "liquidity": 5847.223745774254,
+        "holders": 150,
+        "holder_growth_1h": 70.45454545454545,
+        "holder_growth_5m": -1.3157894736842104,
+        "net_buyers_5m": 60,
+        "organic_buyers_5m": 0,
+        "organic_score": 0.0,
+        "price_change_1h": 195.5611026904452,
+        "price_change_5m": 60.47247099857393,
+        "buys_5m": 154,
+        "sells_5m": 139,
+        "traders_5m": 159,
+        "traders_1h": 658,
+        "buy_vol_5m": 4770.552457898269,
+        "sell_vol_5m": 4849.367152058059,
+        "buy_vol_1h": 33327.75133860526,
+        "sell_vol_1h": 36529.68053325294,
+        "organic_buy_vol_1h": 941.3292850112583,
+        "top_holders_pct": 22.499628315217198,
+        "dev_balance_pct": 0.0,
+        "dev_mints": 183449,
+        "launchpad": "pump.fun",
+        "graduated": false,
+        "social": true,
+        "quelle": "traded1h+traded5m",
+        "trades_24h": 2330,
+        "organic_label": "low",
+        "buy_organic_vol_5m": 79.67049461577793,
+        "jup_fees": null,
+        "hour_utc": 14
+      },
+      "bundle": {
+        "quelle": "experiment",
+        "text": "Serien-Dev: frueherer Coin CLAUDIA bis 11,079,320 $"
+      },
+      "phase": "normal",
+      "thesis": "Story verbreitet sich: Holder +70%/h, 60 Netto-Kaeufer 5m, 0 organisch; Serien-Dev: frueherer Coin CLAUDIA bis 11,079,320 $; Dev-Coins 183449",
+      "exit_rule": "Haelfte bei 2x; Rest raus, wenn Holder schrumpfen und Netto-Verkaeufer 2x in Folge, Liquiditaet -30%, -40%, nach 1,5x nicht unter Einstand, nach 2x 30 % vom Hoch (ab 10x 25 %)",
+      "mitlaeufer": null,
+      "solana_tracker": null,
+      "graduated": false,
       "liq_low_checks": 0,
       "dev_exit": true,
       "dev_pct_kauf": 0.0,
@@ -120478,7 +120552,8 @@
     "HboHtoVXPncFkfoSyiVSkYsLtKwoJD2nAEYaoNZ7pump": 1794484129.3925445,
     "FuMfqGzdLK12ZvsX3Gz1XjLzAYarjvSuE4hZpEwBpump": 1794484927.9950643,
     "642k1Nzoat9azqL87tmmRRuRbNjWX1jgNp2GzRQ1eUKf": 1794492460.7839503,
-    "7rtrYEBfMhMPmPqCr4BZyY3zYRSLqUa7h6WR44Z7YWWF": 1794492967.0858395
+    "7rtrYEBfMhMPmPqCr4BZyY3zYRSLqUa7h6WR44Z7YWWF": 1794492967.0858395,
+    "Ctt9721gdLHhVTUZwxTLLN8F2ho9k6h9qLCbxEat267Z": 1794493169.9975069
   },
   "watch": {
     "F64i9ukyAWTRsnoWdyNN6RbULKNaDdGaVYtE6nT9pump": {
@@ -120584,7 +120659,7 @@
       "symbol": "\u5c0f\u864e",
       "entry_fill_usd": 1.238313285881383e-05,
       "opened": 1794484927.9943142,
-      "peak_usd": 2.023867882687393e-05,
+      "peak_usd": 2.8436080459098206e-05,
       "exit_usd": 7.249565745660105e-06,
       "exit_reason": "NOTBREMSE (-41%)",
       "until": 1794507481.523988
@@ -120601,5 +120676,5 @@
   },
   "runde": 6,
   "shadow": {},
-  "saved_at": 1794492972.4499466
+  "saved_at": 1794493171.6706383
 }
