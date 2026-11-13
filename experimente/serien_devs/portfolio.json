@@ -1,8 +1,82 @@
 {
   "strategy": "EXPERIMENT_serien_devs",
   "started": "2026-10-04T00:34:10.471102+00:00",
-  "bankroll_sol": 6.780935,
-  "positions": {},
+  "bankroll_sol": 6.579435,
+  "positions": {
+    "MAG7thcoWx4Q77jkmWDzjcTstsMkExUiMhc7sMSwxtg": {
+      "mint": "MAG7thcoWx4Q77jkmWDzjcTstsMkExUiMhc7sMSwxtg",
+      "symbol": "MAG7",
+      "opened": 1794597212.1796901,
+      "invested_sol": 0.2,
+      "fees_sol": 0.0015,
+      "entry_signal_usd": 1.0045744844044466,
+      "entry_fill_usd": 1.0108489864899204,
+      "entry_slippage_pct": 0.62,
+      "roundtrip_cost_pct": 1.31,
+      "tokens_initial": 15.845231,
+      "tokens_left": 15.845231,
+      "decimals": 6,
+      "proceeds_sol": 0.0,
+      "peak_usd": 1.0108489864899204,
+      "tp1_done": false,
+      "thesis_breaks": 0,
+      "missing_loops": 0,
+      "entry_liquidity": 40325.988270620364,
+      "entry_view": {
+        "age_h": 0.28638050920433467,
+        "mcap": 134004.43753836665,
+        "liquidity": 40325.988270620364,
+        "holders": 1760,
+        "holder_growth_1h": 175900.0,
+        "holder_growth_5m": 84.10041841004184,
+        "net_buyers_5m": 1352,
+        "organic_buyers_5m": 0,
+        "organic_score": 0.0,
+        "price_change_1h": -0.7413939948597105,
+        "price_change_5m": 0.9611204237651263,
+        "buys_5m": 4978,
+        "sells_5m": 5011,
+        "traders_5m": 1448,
+        "traders_1h": 2219,
+        "buy_vol_5m": 217834.80803917305,
+        "sell_vol_5m": 211995.85397072844,
+        "buy_vol_1h": 575994.7137018753,
+        "sell_vol_1h": 589676.9593152903,
+        "organic_buy_vol_1h": 8593.976196057198,
+        "top_holders_pct": 25.430872136528432,
+        "dev_balance_pct": 0.0,
+        "dev_mints": 258,
+        "launchpad": null,
+        "graduated": false,
+        "social": true,
+        "quelle": "traded1h+traded5m+trend5m",
+        "trades_24h": 19872,
+        "organic_label": "low",
+        "buy_organic_vol_5m": 3707.227355158639,
+        "jup_fees": null,
+        "hour_utc": 19
+      },
+      "bundle": {
+        "quelle": "experiment",
+        "text": "Serien-Dev: frueherer Coin TRUMP3 bis 576,262 $"
+      },
+      "phase": "heiss",
+      "thesis": "Story verbreitet sich: Holder +175900%/h, 1352 Netto-Kaeufer 5m, 0 organisch; Serien-Dev: frueherer Coin TRUMP3 bis 576,262 $; Dev-Coins 258",
+      "exit_rule": "Haelfte bei 2x; Rest raus, wenn Holder schrumpfen und Netto-Verkaeufer 2x in Folge, Liquiditaet -30%, -40%, nach 1,5x nicht unter Einstand, nach 2x 30 % vom Hoch (ab 10x 25 %)",
+      "mitlaeufer": null,
+      "solana_tracker": null,
+      "graduated": false,
+      "liq_low_checks": 0,
+      "dev_exit": true,
+      "dev_pct_kauf": 0.0,
+      "serien_vorgaenger": {
+        "symbol": "TRUMP3",
+        "peak": 576262,
+        "zuerst": 1792530497,
+        "mint": "6s2umN1sqM8mS8ERRmt9cqcFwAoWu5ofma7DN3KfFiue"
+      }
+    }
+  },
   "closed": [
     {
       "symbol": "GWC",
@@ -124681,18 +124755,10 @@
     "FqmHVSWGmgPHCXQvBSeE82kxMJgS8fBHyiUkJvWopump": 1794587847.169357,
     "49Z2pXyeh8QnKXLHDm3Js4r8Ah2JSQv2KQquJVB1pump": 1794590089.6773167,
     "62Z72VWdVeMwgyGDjeR8KaazTjFzy3RVXD3K25yNaHAT": 1794592031.9623928,
-    "95B2iW4VNMW48dHADuaW7nb9Qmhmu5XE3LuwwkyApump": 1794592704.2291162
+    "95B2iW4VNMW48dHADuaW7nb9Qmhmu5XE3LuwwkyApump": 1794592704.2291162,
+    "MAG7thcoWx4Q77jkmWDzjcTstsMkExUiMhc7sMSwxtg": 1794597212.1804929
   },
   "watch": {
-    "HcsZdLqWXmL7BQBhvoBvi9BDRZyiBuMvymhNwrfKpump": {
-      "symbol": "papercat",
-      "entry_fill_usd": 0.0001526776117127497,
-      "opened": 1794572466.6840267,
-      "peak_usd": 0.00029273946187090673,
-      "exit_usd": 0.00012545556410247194,
-      "exit_reason": "GEWINN_GESCHUETZT (Hoch 1.9x, zurueck auf Einstand)",
-      "until": 1794596903.7503624
-    },
     "ABbYu88QKUU55X4DJCtgdJZhbW6JHByWqTFgQdYPpump": {
       "symbol": "UwU-Chan",
       "entry_fill_usd": 9.485090664098551e-06,
@@ -124795,5 +124861,5 @@
   },
   "runde": 6,
   "shadow": {},
-  "saved_at": 1794596896.093708
+  "saved_at": 1794597213.8990803
 }
