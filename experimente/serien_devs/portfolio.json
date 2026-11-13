@@ -1,7 +1,7 @@
 {
   "strategy": "EXPERIMENT_serien_devs",
   "started": "2026-10-04T00:34:10.471102+00:00",
-  "bankroll_sol": 6.829812,
+  "bankroll_sol": 6.628312,
   "positions": {
     "3V5qFZzqFr3TivY44nA1DRQxEpgjF3EzYrD99p1Lpump": {
       "mint": "3V5qFZzqFr3TivY44nA1DRQxEpgjF3EzYrD99p1Lpump",
@@ -75,7 +75,80 @@
         "zuerst": 1791128879,
         "mint": "285zor2vwNYzURQTmyLqxhYAabwfDP4MpvYJz5tFpump"
       },
-      "flug_last": 1794566185.5258362
+      "flug_last": 1794566401.2390106
+    },
+    "vetKA7K1suCztU58ejmQ3zqEr38aDAUVhGkA62FtbK4": {
+      "mint": "vetKA7K1suCztU58ejmQ3zqEr38aDAUVhGkA62FtbK4",
+      "symbol": "Trencher",
+      "opened": 1794566411.2944632,
+      "invested_sol": 0.2,
+      "fees_sol": 0.0015,
+      "entry_signal_usd": 2.6017184523456792e-05,
+      "entry_fill_usd": 2.7362840040524507e-05,
+      "entry_slippage_pct": 5.17,
+      "roundtrip_cost_pct": 2.46,
+      "tokens_initial": 587007.292242,
+      "tokens_left": 587007.292242,
+      "decimals": 6,
+      "proceeds_sol": 0.0,
+      "peak_usd": 2.7362840040524507e-05,
+      "tp1_done": false,
+      "thesis_breaks": 0,
+      "missing_loops": 0,
+      "entry_liquidity": 9061.434900917686,
+      "entry_view": {
+        "age_h": 0.27034416960345375,
+        "mcap": 26017.162287731004,
+        "liquidity": 9061.434900917686,
+        "holders": 407,
+        "holder_growth_1h": 1465.3846153846152,
+        "holder_growth_5m": 53.58490566037736,
+        "net_buyers_5m": 173,
+        "organic_buyers_5m": 0,
+        "organic_score": 0.0,
+        "price_change_1h": 474.0447039506653,
+        "price_change_5m": 47.04368529012876,
+        "buys_5m": 449,
+        "sells_5m": 435,
+        "traders_5m": 339,
+        "traders_1h": 781,
+        "buy_vol_5m": 11787.078179138945,
+        "sell_vol_5m": 17410.78749278817,
+        "buy_vol_1h": 44184.67147693983,
+        "sell_vol_1h": 52929.268005836006,
+        "organic_buy_vol_1h": 698.8728617105884,
+        "top_holders_pct": 21.75540234246937,
+        "dev_balance_pct": 0.0,
+        "dev_mints": 551,
+        "launchpad": "pump.fun",
+        "graduated": false,
+        "social": true,
+        "quelle": "traded1h+traded5m",
+        "trades_24h": 3103,
+        "organic_label": "low",
+        "buy_organic_vol_5m": 661.2670961377966,
+        "jup_fees": null,
+        "hour_utc": 10
+      },
+      "bundle": {
+        "quelle": "experiment",
+        "text": "Serien-Dev: frueherer Coin SWOLF bis 2,880,004 $"
+      },
+      "phase": "normal",
+      "thesis": "Story verbreitet sich: Holder +1465%/h, 173 Netto-Kaeufer 5m, 0 organisch; Serien-Dev: frueherer Coin SWOLF bis 2,880,004 $; Dev-Coins 551",
+      "exit_rule": "Haelfte bei 2x; Rest raus, wenn Holder schrumpfen und Netto-Verkaeufer 2x in Folge, Liquiditaet -30%, -40%, nach 1,5x nicht unter Einstand, nach 2x 30 % vom Hoch (ab 10x 25 %)",
+      "mitlaeufer": null,
+      "solana_tracker": null,
+      "graduated": false,
+      "liq_low_checks": 0,
+      "dev_exit": true,
+      "dev_pct_kauf": 0.0,
+      "serien_vorgaenger": {
+        "symbol": "SWOLF",
+        "peak": 2880004,
+        "zuerst": 1791545123,
+        "mint": "HwJyyniKKDRLXxjRSzyLtpvxzqecqrhrbcSbKRm7STNK"
+      }
     }
   },
   "closed": [
@@ -123827,18 +123900,10 @@
     "An3rurFgHvJrcBNkvd9mNdQrUzUMjEfj1JU8axofpump": 1794557947.0284584,
     "396eXzV7ZTsurYr3tnnHXudb4PFiWUTBtmDTgQvUpump": 1794560119.860425,
     "68SME3AYFsugDkyqeyoMRPV4zEf146LUun8FZkcGpump": 1794565097.2156537,
-    "3V5qFZzqFr3TivY44nA1DRQxEpgjF3EzYrD99p1Lpump": 1794565477.079189
+    "3V5qFZzqFr3TivY44nA1DRQxEpgjF3EzYrD99p1Lpump": 1794565477.079189,
+    "vetKA7K1suCztU58ejmQ3zqEr38aDAUVhGkA62FtbK4": 1794566411.2951918
   },
   "watch": {
-    "73DZB8tQWvxYU2gVD5rVsUMU271mdmuJCfYVxSNdpump": {
-      "symbol": "Dog",
-      "entry_fill_usd": 2.8510480073200912e-05,
-      "opened": 1794544502.0394027,
-      "peak_usd": 2.8973181359923487e-05,
-      "exit_usd": 1.6314833577265563e-05,
-      "exit_reason": "NOTBREMSE (-43%)",
-      "until": 1794566368.6485488
-    },
     "5ysJ3ogaQLe3LGZVNZyzD1aqsWnkEf4zG8JG383Ypump": {
       "symbol": "NEVER",
       "entry_fill_usd": 3.1401267454153225e-05,
@@ -123950,5 +124015,5 @@
   },
   "runde": 6,
   "shadow": {},
-  "saved_at": 1794566201.4018643
+  "saved_at": 1794566412.995067
 }
