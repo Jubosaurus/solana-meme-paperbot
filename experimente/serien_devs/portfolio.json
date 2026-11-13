@@ -1,27 +1,27 @@
 {
   "strategy": "EXPERIMENT_serien_devs",
   "started": "2026-10-04T00:34:10.471102+00:00",
-  "bankroll_sol": 6.250941,
+  "bankroll_sol": 6.450448,
   "positions": {
     "6DN9qkg45N7GWvS46zYvUf6ADDYLc9FWYyWim28ut49X": {
       "mint": "6DN9qkg45N7GWvS46zYvUf6ADDYLc9FWYyWim28ut49X",
       "symbol": "CWW",
       "opened": 1794606185.276821,
       "invested_sol": 0.2,
-      "fees_sol": 0.0015,
+      "fees_sol": 0.003,
       "entry_signal_usd": 1.5180641562780624e-05,
       "entry_fill_usd": 1.5165080511551712e-05,
       "entry_slippage_pct": -0.1,
       "roundtrip_cost_pct": 2.96,
       "tokens_initial": 1044242.791631,
-      "tokens_left": 1044242.791631,
+      "tokens_left": 522121.3958155,
       "decimals": 6,
-      "proceeds_sol": 0.0,
-      "peak_usd": 1.8375276111956716e-05,
-      "tp1_done": false,
+      "proceeds_sol": 0.1995074851313812,
+      "peak_usd": 3.185335938177504e-05,
+      "tp1_done": true,
       "thesis_breaks": 0,
       "missing_loops": 0,
-      "entry_liquidity": 6219.223265923896,
+      "entry_liquidity": 8705.19527013555,
       "entry_view": {
         "age_h": 0.2689524698257446,
         "mcap": 15180.640110807273,
@@ -65,7 +65,7 @@
       "exit_rule": "Haelfte bei 2x; Rest raus, wenn Holder schrumpfen und Netto-Verkaeufer 2x in Folge, Liquiditaet -30%, -40%, nach 1,5x nicht unter Einstand, nach 2x 30 % vom Hoch (ab 10x 25 %)",
       "mitlaeufer": null,
       "solana_tracker": null,
-      "graduated": false,
+      "graduated": true,
       "liq_low_checks": 0,
       "dev_exit": true,
       "dev_pct_kauf": 0.0,
@@ -75,7 +75,8 @@
         "zuerst": 1791074049,
         "mint": "9aqmJjCnnMQv42TXLk921ceUkN35nea2QP969n1caqjj"
       },
-      "flug_last": 1794606333.7820175
+      "flug_last": 1794606606.3691945,
+      "graduated_during": true
     }
   },
   "closed": [
@@ -125385,5 +125386,5 @@
   },
   "runde": 6,
   "shadow": {},
-  "saved_at": 1794606349.9475935
+  "saved_at": 1794606613.3062608
 }
