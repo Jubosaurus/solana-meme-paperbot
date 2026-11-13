@@ -1,8 +1,83 @@
 {
   "strategy": "EXPERIMENT_serien_devs",
   "started": "2026-10-04T00:34:10.471102+00:00",
-  "bankroll_sol": 7.128177,
-  "positions": {},
+  "bankroll_sol": 6.926677,
+  "positions": {
+    "68SME3AYFsugDkyqeyoMRPV4zEf146LUun8FZkcGpump": {
+      "mint": "68SME3AYFsugDkyqeyoMRPV4zEf146LUun8FZkcGpump",
+      "symbol": "CHEWIE",
+      "opened": 1794565097.214827,
+      "invested_sol": 0.2,
+      "fees_sol": 0.0015,
+      "entry_signal_usd": 2.2807562007325667e-05,
+      "entry_fill_usd": 2.0664355201818534e-05,
+      "entry_slippage_pct": -9.4,
+      "roundtrip_cost_pct": null,
+      "tokens_initial": 777766.394346,
+      "tokens_left": 777766.394346,
+      "decimals": 6,
+      "proceeds_sol": 0.0,
+      "peak_usd": 2.0664355201818534e-05,
+      "tp1_done": false,
+      "thesis_breaks": 0,
+      "missing_loops": 0,
+      "entry_liquidity": 7677.881556799064,
+      "entry_view": {
+        "age_h": 0.2504853516154819,
+        "mcap": 22807.53113759992,
+        "liquidity": 7677.881556799064,
+        "holders": 352,
+        "holder_growth_1h": 2414.285714285714,
+        "holder_growth_5m": -5.630026809651475,
+        "net_buyers_5m": 165,
+        "organic_buyers_5m": 0,
+        "organic_score": 0.0,
+        "price_change_1h": 561.1967145302594,
+        "price_change_5m": -7.99626301878968,
+        "buys_5m": 518,
+        "sells_5m": 369,
+        "traders_5m": 396,
+        "traders_1h": 765,
+        "buy_vol_5m": 11985.623623726135,
+        "sell_vol_5m": 14401.00133445576,
+        "buy_vol_1h": 39507.29837224272,
+        "sell_vol_1h": 43572.907046151704,
+        "organic_buy_vol_1h": 370.07802443586087,
+        "top_holders_pct": 20.422105585426245,
+        "dev_balance_pct": 0.0,
+        "dev_mints": 244,
+        "launchpad": "pump.fun",
+        "graduated": false,
+        "social": true,
+        "quelle": "traded1h+traded5m",
+        "trades_24h": 3080,
+        "organic_label": "low",
+        "buy_organic_vol_5m": 247.74997821867868,
+        "jup_fees": null,
+        "hour_utc": 10
+      },
+      "bundle": {
+        "quelle": "experiment",
+        "text": "Serien-Dev: frueherer Coin Mimi bis 610,748 $"
+      },
+      "phase": "normal",
+      "thesis": "Story verbreitet sich: Holder +2414%/h, 165 Netto-Kaeufer 5m, 0 organisch; Serien-Dev: frueherer Coin Mimi bis 610,748 $; Dev-Coins 244",
+      "exit_rule": "Haelfte bei 2x; Rest raus, wenn Holder schrumpfen und Netto-Verkaeufer 2x in Folge, Liquiditaet -30%, -40%, nach 1,5x nicht unter Einstand, nach 2x 30 % vom Hoch (ab 10x 25 %)",
+      "mitlaeufer": null,
+      "solana_tracker": null,
+      "graduated": false,
+      "liq_low_checks": 0,
+      "dev_exit": true,
+      "dev_pct_kauf": 0.0,
+      "serien_vorgaenger": {
+        "symbol": "Mimi",
+        "peak": 610748,
+        "zuerst": 1792403193,
+        "mint": "8CYyivwMZPg6Edaofxo3eHiveZkDrU6TtUDwtMjTpump"
+      },
+      "flug_last": 1794565112.0408773
+    }
+  },
   "closed": [
     {
       "symbol": "GWC",
@@ -123689,7 +123764,8 @@
     "CmsVQy7fDFAEn9GnXWGUfUwQeZHbVs9JPP6WcaBDpump": 1794556179.326602,
     "BYeDusCxeuzfZeBy8n6EVeH9yhYcVCn8xMfiGMakpump": 1794557410.5769012,
     "An3rurFgHvJrcBNkvd9mNdQrUzUMjEfj1JU8axofpump": 1794557947.0284584,
-    "396eXzV7ZTsurYr3tnnHXudb4PFiWUTBtmDTgQvUpump": 1794560119.860425
+    "396eXzV7ZTsurYr3tnnHXudb4PFiWUTBtmDTgQvUpump": 1794560119.860425,
+    "68SME3AYFsugDkyqeyoMRPV4zEf146LUun8FZkcGpump": 1794565097.2156537
   },
   "watch": {
     "73DZB8tQWvxYU2gVD5rVsUMU271mdmuJCfYVxSNdpump": {
@@ -123803,5 +123879,5 @@
   },
   "runde": 6,
   "shadow": {},
-  "saved_at": 1794565038.3444781
+  "saved_at": 1794565113.4099956
 }
