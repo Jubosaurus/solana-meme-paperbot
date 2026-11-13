@@ -1,7 +1,7 @@
 {
   "strategy": "EXPERIMENT_serien_devs",
   "started": "2026-10-04T00:34:10.471102+00:00",
-  "bankroll_sol": 7.448644,
+  "bankroll_sol": 7.859946,
   "positions": {
     "FibMHnUpDLQGtg51rWZotvRX2yp45SewAU4KrCNcpump": {
       "mint": "FibMHnUpDLQGtg51rWZotvRX2yp45SewAU4KrCNcpump",
@@ -75,27 +75,27 @@
         "zuerst": 1791074049,
         "mint": "XkeTXo1125vz5H9svJpGiw4JvLbN8VmMu9cmMvspump"
       },
-      "flug_last": 1794529997.1130798
+      "flug_last": 1794530276.4983573
     },
     "3SQvjgyN2GYKx2BXhZMxpP4pJQpQujkMTNKjXnMJpump": {
       "mint": "3SQvjgyN2GYKx2BXhZMxpP4pJQpQujkMTNKjXnMJpump",
       "symbol": "AGI",
       "opened": 1794528619.2268908,
       "invested_sol": 0.2,
-      "fees_sol": 0.0015,
+      "fees_sol": 0.003,
       "entry_signal_usd": 1.1484866032252622e-05,
       "entry_fill_usd": 1.1721408613536456e-05,
       "entry_slippage_pct": 2.06,
       "roundtrip_cost_pct": 3.04,
       "tokens_initial": 1392249.487633,
-      "tokens_left": 1392249.487633,
+      "tokens_left": 696124.7438165,
       "decimals": 6,
-      "proceeds_sol": 0.0,
-      "peak_usd": 1.929181375597922e-05,
-      "tp1_done": false,
+      "proceeds_sol": 0.411302044,
+      "peak_usd": 4.930471545499435e-05,
+      "tp1_done": true,
       "thesis_breaks": 0,
       "missing_loops": 0,
-      "entry_liquidity": 5446.5689479638395,
+      "entry_liquidity": 7518.383533081423,
       "entry_view": {
         "age_h": 0.7832635969585843,
         "mcap": 11484.86603225261,
@@ -139,7 +139,7 @@
       "exit_rule": "Haelfte bei 2x; Rest raus, wenn Holder schrumpfen und Netto-Verkaeufer 2x in Folge, Liquiditaet -30%, -40%, nach 1,5x nicht unter Einstand, nach 2x 30 % vom Hoch (ab 10x 25 %)",
       "mitlaeufer": null,
       "solana_tracker": null,
-      "graduated": false,
+      "graduated": true,
       "liq_low_checks": 0,
       "dev_exit": true,
       "dev_pct_kauf": 0.0,
@@ -149,7 +149,8 @@
         "zuerst": 1794436130,
         "mint": "4xgqefa5WcdHWKXzqvM9MRJqWYGaHVEUnpUL4Vq5pump"
       },
-      "flug_last": 1794529997.1130798
+      "flug_last": 1794530276.4983573,
+      "graduated_during": true
     }
   },
   "closed": [
@@ -122603,15 +122604,6 @@
     "GksPeb4TjgkcLorASBFH1MxnvE5EpEb55usE46GZpump": 1794529380.9682505
   },
   "watch": {
-    "GsuDgP89rWTYrsGCZ3VMtfnD7mAeDLfe6qiJ6KLKpump": {
-      "symbol": "CS",
-      "entry_fill_usd": 3.006795820840077e-05,
-      "opened": 1794506384.9253356,
-      "peak_usd": 8.587006356382845e-05,
-      "exit_usd": 1.5971232434076387e-05,
-      "exit_reason": "NOTBREMSE (-47%)",
-      "until": 1794530096.569583
-    },
     "Aw8LQXFq7kvQa5ePEk8QBsCEAmVUoJS9CyWbAUrHpump": {
       "symbol": "IMG",
       "entry_fill_usd": 1.4578979952801462e-05,
@@ -122777,5 +122769,5 @@
   },
   "runde": 6,
   "shadow": {},
-  "saved_at": 1794530047.1231654
+  "saved_at": 1794530328.0881548
 }
