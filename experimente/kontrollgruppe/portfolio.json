@@ -1,7 +1,7 @@
 {
   "strategy": "EXPERIMENT_kontrollgruppe",
   "started": "2026-09-29T08:33:20.747785+00:00",
-  "bankroll_sol": 5.298282,
+  "bankroll_sol": 5.096782,
   "positions": {
     "DSKM3d518BBaQShSKqaqZcG1XMRf81UFB6a1eavhSTNK": {
       "mint": "DSKM3d518BBaQShSKqaqZcG1XMRf81UFB6a1eavhSTNK",
@@ -67,7 +67,72 @@
       "solana_tracker": null,
       "graduated": true,
       "liq_low_checks": 0,
-      "flug_last": 1794684041.4219458
+      "flug_last": 1794684251.3743155
+    },
+    "GEppMmnXswv1cqJBMUU2t8QkB2FCRrQUQb1v7K3xpump": {
+      "mint": "GEppMmnXswv1cqJBMUU2t8QkB2FCRrQUQb1v7K3xpump",
+      "symbol": "PROMETHEUS",
+      "opened": 1794684302.7414234,
+      "invested_sol": 0.2,
+      "fees_sol": 0.0015,
+      "entry_signal_usd": 2.2797049097652758e-05,
+      "entry_fill_usd": 2.2651067678593666e-05,
+      "entry_slippage_pct": -0.64,
+      "roundtrip_cost_pct": 1.52,
+      "tokens_initial": 633024.036191,
+      "tokens_left": 633024.036191,
+      "decimals": 6,
+      "proceeds_sol": 0.0,
+      "peak_usd": 2.2651067678593666e-05,
+      "tp1_done": false,
+      "thesis_breaks": 0,
+      "missing_loops": 0,
+      "entry_liquidity": 16513.032042849,
+      "entry_view": {
+        "age_h": 0.6418295633130603,
+        "mcap": 21886.966891037464,
+        "liquidity": 16513.032042849,
+        "holders": 449,
+        "holder_growth_1h": 1940.909090909091,
+        "holder_growth_5m": -6.458333333333334,
+        "net_buyers_5m": 31,
+        "organic_buyers_5m": 13,
+        "organic_score": 44.93339501150342,
+        "price_change_1h": 421.84791030399,
+        "price_change_5m": 24.76545838599637,
+        "buys_5m": 67,
+        "sells_5m": 57,
+        "traders_5m": 70,
+        "traders_1h": 1590,
+        "buy_vol_5m": 2453.3038637837053,
+        "sell_vol_5m": 2411.286992989862,
+        "buy_vol_1h": 118954.38677296371,
+        "sell_vol_1h": 118462.38172822264,
+        "organic_buy_vol_1h": 3241.006694197189,
+        "top_holders_pct": 19.989622847809567,
+        "dev_balance_pct": 0.0,
+        "dev_mints": 6665,
+        "launchpad": "pump.fun",
+        "graduated": true,
+        "social": true,
+        "quelle": "organic1h+organic5m+traded1h+traded5m+trend5m",
+        "trades_24h": 8060,
+        "organic_label": "medium",
+        "buy_organic_vol_5m": 15.669719990678797,
+        "jup_fees": null,
+        "hour_utc": 19
+      },
+      "bundle": {
+        "quelle": "experiment",
+        "text": "Kontrollgruppe: zufaellig aus 6 sicheren jungen Coins"
+      },
+      "phase": "normal",
+      "thesis": "Story verbreitet sich: Holder +1941%/h, 31 Netto-Kaeufer 5m, 13 organisch; Kontrollgruppe: zufaellig aus 6 sicheren jungen Coins; Dev-Coins 6665",
+      "exit_rule": "Haelfte bei 2x; Rest raus, wenn Holder schrumpfen und Netto-Verkaeufer 2x in Folge, Liquiditaet -30%, -40%, nach 1,5x nicht unter Einstand, nach 2x 30 % vom Hoch (ab 10x 25 %)",
+      "mitlaeufer": null,
+      "solana_tracker": null,
+      "graduated": true,
+      "liq_low_checks": 0
     }
   },
   "closed": [
@@ -128089,11 +128154,12 @@
     "G8yRcY9LgtsTbj3J2kgBhQeo5mzUPryK78iHJUXrpump": 1794676911.8668988,
     "J9DTop9MMZaMArnJm1vGhoyBPN2QRh1Sbs1Z7g6qpump": 1794678766.9783537,
     "DSKM3d518BBaQShSKqaqZcG1XMRf81UFB6a1eavhSTNK": 1794680583.4628537,
-    "6ZnZUo7Nj5dJwyEXDpMXM32QHkCwHEsQX3rkRbyjpump": 1794682417.6121616
+    "6ZnZUo7Nj5dJwyEXDpMXM32QHkCwHEsQX3rkRbyjpump": 1794682417.6121616,
+    "GEppMmnXswv1cqJBMUU2t8QkB2FCRrQUQb1v7K3xpump": 1794684302.742102
   },
   "watch": {},
   "runde": 6,
   "shadow": {},
-  "saved_at": 1794684096.2330816,
-  "next_pick": 1794684207.5317938
+  "saved_at": 1794684306.1863942,
+  "next_pick": 1794686090.586428
 }
