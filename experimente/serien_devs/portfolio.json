@@ -1,8 +1,82 @@
 {
   "strategy": "EXPERIMENT_serien_devs",
   "started": "2026-10-04T00:34:10.471102+00:00",
-  "bankroll_sol": 6.177677,
-  "positions": {},
+  "bankroll_sol": 5.976177,
+  "positions": {
+    "EjoWiu2PLuEs6roeM1H9YxApa3LQ3guo9E27Lcu5pump": {
+      "mint": "EjoWiu2PLuEs6roeM1H9YxApa3LQ3guo9E27Lcu5pump",
+      "symbol": "HARAMBE",
+      "opened": 1794623185.6490374,
+      "invested_sol": 0.2,
+      "fees_sol": 0.0015,
+      "entry_signal_usd": 7.038009354913089e-05,
+      "entry_fill_usd": 6.653703942252787e-05,
+      "entry_slippage_pct": -5.46,
+      "roundtrip_cost_pct": 2.16,
+      "tokens_initial": 228465.791059,
+      "tokens_left": 228465.791059,
+      "decimals": 6,
+      "proceeds_sol": 0.0,
+      "peak_usd": 6.653703942252787e-05,
+      "tp1_done": false,
+      "thesis_breaks": 0,
+      "missing_loops": 0,
+      "entry_liquidity": 9583.226244502806,
+      "entry_view": {
+        "age_h": 0.2648945030901167,
+        "mcap": 69015.07068651365,
+        "liquidity": 9583.226244502806,
+        "holders": 679,
+        "holder_growth_1h": 1258.0,
+        "holder_growth_5m": 118.32797427652733,
+        "net_buyers_5m": 379,
+        "organic_buyers_5m": 0,
+        "organic_score": 0.0,
+        "price_change_1h": 776.9610683296344,
+        "price_change_5m": 8.852569439399256,
+        "buys_5m": 1377,
+        "sells_5m": 970,
+        "traders_5m": 742,
+        "traders_1h": 1228,
+        "buy_vol_5m": 44420.82533923062,
+        "sell_vol_5m": 43699.76745765722,
+        "buy_vol_1h": 94766.18787803438,
+        "sell_vol_1h": 95854.54871066872,
+        "organic_buy_vol_1h": 1962.5485703182742,
+        "top_holders_pct": 22.76789308180643,
+        "dev_balance_pct": 0.14231854073970598,
+        "dev_mints": 1524,
+        "launchpad": "pump.fun",
+        "graduated": true,
+        "social": true,
+        "quelle": "traded1h+traded5m+trend5m",
+        "trades_24h": 5178,
+        "organic_label": "low",
+        "buy_organic_vol_5m": 691.4065330500322,
+        "jup_fees": null,
+        "hour_utc": 2
+      },
+      "bundle": {
+        "quelle": "experiment",
+        "text": "Serien-Dev: frueherer Coin HABIBI bis 305,275 $"
+      },
+      "phase": "heiss",
+      "thesis": "Story verbreitet sich: Holder +1258%/h, 379 Netto-Kaeufer 5m, 0 organisch; Serien-Dev: frueherer Coin HABIBI bis 305,275 $; Dev-Coins 1524",
+      "exit_rule": "Haelfte bei 2x; Rest raus, wenn Holder schrumpfen und Netto-Verkaeufer 2x in Folge, Liquiditaet -30%, -40%, nach 1,5x nicht unter Einstand, nach 2x 30 % vom Hoch (ab 10x 25 %)",
+      "mitlaeufer": null,
+      "solana_tracker": null,
+      "graduated": true,
+      "liq_low_checks": 0,
+      "dev_exit": true,
+      "dev_pct_kauf": 0.14231854073970598,
+      "serien_vorgaenger": {
+        "symbol": "HABIBI",
+        "peak": 305275,
+        "zuerst": 1794111804,
+        "mint": "9GpJDZrgXvGXxGjffCZhhYfyLyZ94QTezQoipn74pump"
+      }
+    }
+  },
   "closed": [
     {
       "symbol": "GWC",
@@ -125797,7 +125871,8 @@
     "HP7VzKRfL6QbQVbqddSFkFy9NwrbEveewz3sqdgLL6VZ": 1794614134.9678457,
     "HTp4PKiZ6wwusNKDdDqJYhoP58bMDneME2E9z8cJpump": 1794614721.4468691,
     "AUH2LBseFhiYBxr1xsdyBhr7m4HSGMk9oWRB7f2qpump": 1794617852.911473,
-    "9T9JyZtJQjYNfSYvhMB4uXkPJLUv6MTfVRBNRq5Spump": 1794622208.948349
+    "9T9JyZtJQjYNfSYvhMB4uXkPJLUv6MTfVRBNRq5Spump": 1794622208.948349,
+    "EjoWiu2PLuEs6roeM1H9YxApa3LQ3guo9E27Lcu5pump": 1794623185.6498148
   },
   "watch": {
     "4aY33ycCbtjRSqjQYuuBHcfj8LqrzAcnHVa9E8JZA2HD": {
@@ -125867,7 +125942,7 @@
       "symbol": "SWJ",
       "entry_fill_usd": 3.344552529736375e-05,
       "opened": 1794608474.7032633,
-      "peak_usd": 0.0005269570522353889,
+      "peak_usd": 0.0006268128084484531,
       "exit_usd": 1.6911957512516057e-05,
       "exit_reason": "NOTBREMSE (-49%)",
       "until": 1794630221.567782
@@ -125938,5 +126013,5 @@
   },
   "runde": 6,
   "shadow": {},
-  "saved_at": 1794622924.7018495
+  "saved_at": 1794623188.084518
 }
