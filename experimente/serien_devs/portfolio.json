@@ -1,8 +1,82 @@
 {
   "strategy": "EXPERIMENT_serien_devs",
   "started": "2026-10-04T00:34:10.471102+00:00",
-  "bankroll_sol": 6.238779,
-  "positions": {},
+  "bankroll_sol": 6.037279,
+  "positions": {
+    "5sbC6AFpeBMnMVwjx1fVBuAmxMksMd5pKpJ9f112pump": {
+      "mint": "5sbC6AFpeBMnMVwjx1fVBuAmxMksMd5pKpJ9f112pump",
+      "symbol": "BABYELON",
+      "opened": 1794637494.7474535,
+      "invested_sol": 0.2,
+      "fees_sol": 0.0015,
+      "entry_signal_usd": 1.4493366197458069e-05,
+      "entry_fill_usd": 1.4005551890217438e-05,
+      "entry_slippage_pct": -3.37,
+      "roundtrip_cost_pct": 2.97,
+      "tokens_initial": 1082585.733917,
+      "tokens_left": 1082585.733917,
+      "decimals": 6,
+      "proceeds_sol": 0.0,
+      "peak_usd": 1.4005551890217438e-05,
+      "tp1_done": false,
+      "thesis_breaks": 0,
+      "missing_loops": 0,
+      "entry_liquidity": 5952.193839939094,
+      "entry_view": {
+        "age_h": 0.3185460629728105,
+        "mcap": 14493.364527350539,
+        "liquidity": 5952.193839939094,
+        "holders": 178,
+        "holder_growth_1h": 83.50515463917526,
+        "holder_growth_5m": -9.183673469387756,
+        "net_buyers_5m": 30,
+        "organic_buyers_5m": 0,
+        "organic_score": 0.0,
+        "price_change_1h": 175.76007296506793,
+        "price_change_5m": 71.84528003182223,
+        "buys_5m": 61,
+        "sells_5m": 71,
+        "traders_5m": 81,
+        "traders_1h": 674,
+        "buy_vol_5m": 3046.034014402304,
+        "sell_vol_5m": 2529.326124182334,
+        "buy_vol_1h": 38879.296866562516,
+        "sell_vol_1h": 45663.39774752045,
+        "organic_buy_vol_1h": 488.7887270246506,
+        "top_holders_pct": 25.575353066281025,
+        "dev_balance_pct": 0.1740931725824,
+        "dev_mints": 1527,
+        "launchpad": "pump.fun",
+        "graduated": false,
+        "social": true,
+        "quelle": "traded1h+traded5m+trend5m",
+        "trades_24h": 2507,
+        "organic_label": "low",
+        "buy_organic_vol_5m": 15.160025968530153,
+        "jup_fees": null,
+        "hour_utc": 6
+      },
+      "bundle": {
+        "quelle": "experiment",
+        "text": "Serien-Dev: frueherer Coin HARAMBE bis 339,356 $"
+      },
+      "phase": "normal",
+      "thesis": "Story verbreitet sich: Holder +84%/h, 30 Netto-Kaeufer 5m, 0 organisch; Serien-Dev: frueherer Coin HARAMBE bis 339,356 $; Dev-Coins 1527",
+      "exit_rule": "Haelfte bei 2x; Rest raus, wenn Holder schrumpfen und Netto-Verkaeufer 2x in Folge, Liquiditaet -30%, -40%, nach 1,5x nicht unter Einstand, nach 2x 30 % vom Hoch (ab 10x 25 %)",
+      "mitlaeufer": null,
+      "solana_tracker": null,
+      "graduated": false,
+      "liq_low_checks": 0,
+      "dev_exit": true,
+      "dev_pct_kauf": 0.1740931725824,
+      "serien_vorgaenger": {
+        "symbol": "HARAMBE",
+        "peak": 339356,
+        "zuerst": 1794627840,
+        "mint": "EjoWiu2PLuEs6roeM1H9YxApa3LQ3guo9E27Lcu5pump"
+      }
+    }
+  },
   "closed": [
     {
       "symbol": "GWC",
@@ -126293,7 +126367,8 @@
     "AAxNjsH446dqmJZ7AZQi8bViCDHZ9rR35Jpdub1ppump": 1794631363.5017903,
     "DefRELe1LF4WcVzUaUBnDPNiZYthKTcaPKr1VvnYpump": 1794631555.6733882,
     "Ftn74epZ9x4MTu4QBnuT1B72E17ueWqcJMdrVMuLpump": 1794631672.8313174,
-    "ASiqpp5c9xXNwJpUnG5kARfibZDoQF64Ar6n8x2Spump": 1794633684.5001183
+    "ASiqpp5c9xXNwJpUnG5kARfibZDoQF64Ar6n8x2Spump": 1794633684.5001183,
+    "5sbC6AFpeBMnMVwjx1fVBuAmxMksMd5pKpJ9f112pump": 1794637494.748316
   },
   "watch": {
     "AUH2LBseFhiYBxr1xsdyBhr7m4HSGMk9oWRB7f2qpump": {
@@ -126389,5 +126464,5 @@
   },
   "runde": 6,
   "shadow": {},
-  "saved_at": 1794637314.3707128
+  "saved_at": 1794637496.4872591
 }
